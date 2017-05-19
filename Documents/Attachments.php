@@ -12,7 +12,6 @@ class Attachments
     private $filename;
     private $documentId;
     private $objMysql;
-   
 
     public function __construct ()
     {
@@ -102,7 +101,7 @@ class Attachments
 
             switch ($sMainDirectory) {
                 case 'templates':
-                    
+
                     break;
                 case 'uploads':
                     $sDirectory = PATH_DATA_PUBLIC . $sMainDirectory . "/" . $sProcessUID . PATH_SEP . $sSubDirectory . $aData['prf_filename'];
@@ -498,17 +497,58 @@ class Attachments
             {
                 throw new Exception ("ID_INVALID_VALUE_FOR");
             }
-            
-            if (file_exists($path) && !is_dir($path)) {
-                unlink($path);
+
+            if ( file_exists ($path) && !is_dir ($path) )
+            {
+                unlink ($path);
             }
-            
+
             $processFiles = new ProcessFiles();
-            $processFiles->setId($prfUid);
-            $processFiles->delete();
-            
+            $processFiles->setId ($prfUid);
+            $processFiles->delete ();
         } catch (Exception $ex) {
             throw $e;
         }
     }
+
+    public function createDocumentVersion ($filename, $documentId)
+    {
+        try {
+            $docVersion = $this->getDocumentVersion ($filename);
+
+            if ( $docVersion === false )
+            {
+                throw new Exception ("Error getting version number");
+            }
+
+            $docVersion += 1;
+
+            $objVersioning = new DocumentVersion();
+            $objVersioning->setDocVersion ($docVersion);
+            $objVersioning->setUsrUid ($_SESSION['user']['usrid']);
+            $objVersioning->setDocUid ($documentId);
+            $objVersioning->setAppDocCreateDate (date ("Y-m-d H:i:s"));
+            $objVersioning->setAppDocFilename ($filename);
+            $objVersioning->setAppDocType ("INPUT");
+
+            $objVersioning->save ();
+
+            return $docVersion;
+        } catch (Exception $e) {
+            throw new Exception ($e);
+        }
+    }
+
+    private function getDocumentVersion ($filename)
+    {
+        $result = $this->objMysql->_query ("SELECT MAX(document_version) AS VERSION FROM workflow.document_version WHERE filename = ?", [$filename]);
+
+        if ( isset ($result[0]['VERSION']) && trim ($result[0]['VERSION']) != "" )
+        {
+            return $result[0]['VERSION'];
+        }
+
+        return false;
+    }
+
 }
