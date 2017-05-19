@@ -172,7 +172,7 @@ trait Validator
      *
      * return void Throw exception if data is empty
      */
-    public function throwExceptionIfDataIsEmpty($data, $dataNameForException)
+    public function throwExceptionIfDataIsEmpty($data)
     {
         try {
             if (empty($data)) {

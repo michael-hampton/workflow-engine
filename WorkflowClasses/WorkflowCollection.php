@@ -12,6 +12,7 @@ class WorkflowCollection
     private $systemId;
     private $objMysql;
     private $arrValidationErrors;
+    private $new;
     private $arrFieldMapping = array(
         "description" => array("accessor" => "getDescription", "mutator" => "setDescription", "required" => false),
         "request_type" => array("accessor" => "getName", "mutator" => "setName", "required" => true),
@@ -172,6 +173,16 @@ class WorkflowCollection
         return $this->requestId;
     }
 
+    public function getNew ()
+    {
+        return $this->new;
+    }
+
+    public function setNew ($new)
+    {
+        $this->new = $new;
+    }
+
     /**
      * @param mixed $requestId
      */
@@ -256,13 +267,13 @@ class WorkflowCollection
 
     public function save ()
     {
-        if ( $this->validate () === true )
+        if ( $this->new === true )
         {
             $this->objMysql->_insert ("workflow.request_types", $this->arrCollection);
         }
         else
         {
-            return $this->arrValidationErrors;
+            
         }
     }
 
