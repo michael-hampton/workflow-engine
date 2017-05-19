@@ -80,5 +80,6 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/models/Elements.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Dashboard/Dashboard.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Dashboard/DashboardUser.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Dashboard/DashboardInstance.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Dashboard/DashboardBuilder.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Dashboard/DashboardFactory.php';
 

@@ -22,6 +22,7 @@ class DashboardInstance
         $this->getAllProjects ();
         $this->getIncompleteProjects ();
         $this->getOnTimeProjects ();
+        $this->getProjectsForUser ();
     }
 
     private function loadProjects ($arrProjects)
@@ -92,8 +93,11 @@ class DashboardInstance
             }
         }
 
-        //if(  count ($this->arrCompletedProjects) == 0)           $this->arrCompletedProjects = 1;
+        return $this->arrCompletedProjects;
+    }
 
+    public function incompleteVsCompleted ()
+    {
         $percentage = count ($this->incompleteProjects) / count ($this->arrCompletedProjects) * 100; // string: 100%
         return $percentage;
     }
@@ -117,6 +121,11 @@ class DashboardInstance
         }
 
         return $this->incompleteProjects;
+    }
+
+    public function getNoOfProjectsForUser ()
+    {
+        return ' <h1 class="no-margins">' . count ($this->arrProjectsForUser) . '</h1>';
     }
 
     public function getNumberOfProjects ()
