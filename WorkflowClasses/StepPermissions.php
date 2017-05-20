@@ -117,12 +117,12 @@ class StepPermissions
      */
     public function validateUserPermissions (Users $objUser)
     {
-
+        
         $permissions = $this->getProcessPermissions ();
 
         if ( empty ($permissions) )
         {
-            return false;
+            return true;
         }
 
         $permissionType = $permissions[0]['permission_type'];
@@ -135,7 +135,7 @@ class StepPermissions
         switch ($permissionType) {
             case "team":
                 $teamId = $objUser->getTeam_id ();
-
+                
                 if ( in_array ($teamId, $arrMaster) )
                 {
                     return 1;

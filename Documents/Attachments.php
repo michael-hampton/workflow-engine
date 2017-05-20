@@ -27,13 +27,6 @@ class Attachments
 
     public function loadObject ($arrData)
     {
-        $aData = array(
-            "prf_path" => "uploads",
-            "prf_filename" => $arrData['filename']
-        );
-
-        $arrResponse = $this->addProcessFilesManager ($arrData['source_id'], $arrData['uploaded_by'], $aData);
-
         if ( isset ($arrData['files']) )
         {
             if ( isset ($arrData['step']) && !$arrData['step'] instanceof WorkflowStep )
@@ -46,10 +39,16 @@ class Attachments
                 $this->documentId = $arrData['file_type'];
                 $this->stepId = $arrData['step']->getStepId ();
                 $this->projectId = $arrData['source_id'];
-                $this->uploadDocument ($arrData['files']);
+                $this->uploadDocument ($arrData['files'], $arrData);
             }
             else
             {
+                $aData = array(
+                    "prf_path" => "uploads",
+                    "prf_filename" => $arrData['filename']
+                );
+
+                $arrResponse = $this->addProcessFilesManager ($arrData['source_id'], $arrData['uploaded_by'], $aData);
                 $this->upload ($arrData['source_id'], $arrResponse['prf_uid']);
             }
         }
@@ -145,6 +144,13 @@ class Attachments
             $oProcessFiles->setPrfType ('file');
             $oProcessFiles->setPrfEditable ($sEditable);
             $oProcessFiles->setPrfCreateDate ($sDate);
+            $oProcessFiles->setPrfFielname ($aData['prf_filename']);
+
+            if ( isset ($aData['file_type']) )
+            {
+                $oProcessFiles->setFileType ($aData['file_type']);
+            }
+
             $oProcessFiles->save ();
 
             $oProcessFile = array('prf_uid' => $oProcessFiles->getId (),
@@ -250,9 +256,8 @@ class Attachments
      * @return boolean
      * @throws Exception
      */
-    private function uploadDocument ($arrFiles)
+    private function uploadDocument ($arrFiles, $arrData)
     {
-
         $stepDocument = new StepDocument ($this->stepId);
 
         if ( !is_numeric ($this->documentId) )
@@ -282,6 +287,8 @@ class Attachments
             $dir2 = $objStepDocument[$first_key]->getDestinationPath ();
             $maxFileSize = $objStepDocument[$first_key]->getMaxFileSize ();
         }
+
+        $arrUploadedFiles = array();
 
         foreach ($_FILES['fileUpload']['name'] as $key => $name) {
             $size = $_FILES['fileUpload']['size'][$key];
@@ -318,6 +325,12 @@ class Attachments
                 $dir = $_SERVER['DOCUMENT_ROOT'] . "/FormBuilder/public/uploads/" . $dir2 . "/";
                 $destination = $dir . $filename;
 
+                $objVersioning = new DocumentVersion();
+                $originalFilename = $filename;
+                $version = $objVersioning->getLastDocVersionByFilename ($filename);
+                $version += 1;
+
+
                 // check if file exists if it does check versioning if no versioning dont do upload
                 if ( file_exists ($destination) )
                 {
@@ -327,7 +340,7 @@ class Attachments
                     }
                     else
                     {
-                        $filename = $inputName . "_" . $this->projectId . "_v2" . "." . $file_ext;
+                        $filename = $inputName . "_" . $this->projectId . "_" . $version . "." . $file_ext;
                         $destination = $dir . $filename;
                     }
                 }
@@ -350,21 +363,23 @@ class Attachments
 
             $this->object['file_destination'] = $destination;
 
+            $aData = array(
+                "prf_path" => "uploads",
+                "prf_filename" => $filename,
+                "file_type" => $arrData['file_type']
+            );
+
+            // save document
+            $arrResponse = $this->addProcessFilesManager ($arrData['source_id'], $arrData['uploaded_by'], $aData);
+
+            // update version
+            $objVersioning->create (array("filename" => $originalFilename, "document_id" => $arrResponse['prf_uid']));
+            $arrUploadedFiles[] = $arrResponse['prf_uid'];
+
             $intCount++;
         }
 
-        return true;
-    }
-
-    /**
-     * 
-     * @return type
-     */
-    public function save ()
-    {
-        $objMysql = new Mysql2();
-        $id = $objMysql->_insert ($this->table, $this->object, false);
-        return $id;
+        return $arrUploadedFiles;
     }
 
     /**
@@ -385,7 +400,44 @@ class Attachments
     public function getAllAttachments ($sourceId)
     {
         $objMysql = new Mysql2();
-        return $objMysql->_select ($this->table, array(), array("source_id" => $sourceId));
+        $arrAttachments = $objMysql->_select ("task_manager.attachments", array(), array("source_id" => $sourceId));
+
+        $aFields = array();
+
+        foreach ($arrAttachments as $arrAttachment) {
+            
+            $arrExploded = explode("_",$arrAttachment['filename']);
+            $version = substr( end($arrExploded), 0, strpos( end($arrExploded), ".")); 
+            
+            $version = $version == 0 ? 1 : $version;
+            
+            $filePath = str_replace("C:/xampp/htdocs", "", $arrAttachment['file_destination']);
+            $filePath = str_replace($arrAttachment['filename'], "", $filePath);
+
+            $arrData = array(
+                'id' => $arrAttachment['id'],
+                'filename' => $arrAttachment['filename'],
+                'TYPE' => $arrAttachment['file_type'],
+                'date_uploaded' => $arrAttachment['date_uploaded'],
+                'uploaded_by' => $arrAttachment['uploaded_by'],
+                "FILE_PATH" => $arrAttachment['file_destination'],
+                "version" => $version,
+                "download_path" => $filePath
+            );
+
+            if ( $arrAttachment['filename'] != '' )
+            {
+                $arrData['TITLE'] = $arrAttachment['filename'];
+            }
+            else
+            {
+                //$aFields['TITLE'] = $aFields['APP_DOC_COMMENT'];
+            }
+
+            $aFields[] = $arrData;
+        }
+
+        return $aFields;
     }
 
     /**
@@ -509,46 +561,6 @@ class Attachments
         } catch (Exception $ex) {
             throw $e;
         }
-    }
-
-    public function createDocumentVersion ($filename, $documentId)
-    {
-        try {
-            $docVersion = $this->getDocumentVersion ($filename);
-
-            if ( $docVersion === false )
-            {
-                throw new Exception ("Error getting version number");
-            }
-
-            $docVersion += 1;
-
-            $objVersioning = new DocumentVersion();
-            $objVersioning->setDocVersion ($docVersion);
-            $objVersioning->setUsrUid ($_SESSION['user']['usrid']);
-            $objVersioning->setDocUid ($documentId);
-            $objVersioning->setAppDocCreateDate (date ("Y-m-d H:i:s"));
-            $objVersioning->setAppDocFilename ($filename);
-            $objVersioning->setAppDocType ("INPUT");
-
-            $objVersioning->save ();
-
-            return $docVersion;
-        } catch (Exception $e) {
-            throw new Exception ($e);
-        }
-    }
-
-    private function getDocumentVersion ($filename)
-    {
-        $result = $this->objMysql->_query ("SELECT MAX(document_version) AS VERSION FROM workflow.document_version WHERE filename = ?", [$filename]);
-
-        if ( isset ($result[0]['VERSION']) && trim ($result[0]['VERSION']) != "" )
-        {
-            return $result[0]['VERSION'];
-        }
-
-        return false;
     }
 
 }

@@ -13,6 +13,8 @@ class ProcessFiles
     private $PrfCreateDate;
     private $id;
     private $New = true;
+    private $fileType;
+    private $PrfFielname;
 
     /**
      * Array of ValidationFailed objects.
@@ -117,6 +119,25 @@ class ProcessFiles
         }
     }
 
+    public function getPrfFielname ()
+    {
+        return $this->PrfFielname;
+    }
+
+    public function setPrfFielname ($PrfFielname)
+    {
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ( $PrfFielname !== null && !is_string ($PrfFielname) )
+        {
+            $PrfFielname = (string) $PrfFielname;
+        }
+        if ( $this->PrfFielname !== $PrfFielname || $PrfFielname === '' )
+        {
+            $this->PrfFielname = $PrfFielname;
+        }
+    }
+
     public function getPrfType ()
     {
         return $this->PrfType;
@@ -206,6 +227,16 @@ class ProcessFiles
         $this->New = $New;
     }
 
+    public function getFileType ()
+    {
+        return $this->fileType;
+    }
+
+    public function setFileType ($fileType)
+    {
+        $this->fileType = $fileType;
+    }
+
     private function doInsert ()
     {
         $id = $this->objMysql->_insert ("task_manager.attachments", array(
@@ -214,11 +245,13 @@ class ProcessFiles
             "uploaded_by" => $this->UsrUid,
             "file_destination" => $this->PrfPath,
             "prf_type" => $this->PrfType,
-            "prf_editable" => $this->PrfEditable
+            "prf_editable" => $this->PrfEditable,
+            "file_type" => $this->fileType,
+            "filename" => $this->PrfFielname
                 )
         );
-        
-        $this->setId($id);
+
+        $this->setId ($id);
     }
 
     private function doUpdate ()
@@ -268,10 +301,10 @@ class ProcessFiles
 
         $this->alreadyInSave = false;
     }
-    
-    public function delete()
+
+    public function delete ()
     {
-        $this->objMysql->_delete("task_manager.attachments", array("id" => $this->id));
+        $this->objMysql->_delete ("task_manager.attachments", array("id" => $this->id));
     }
 
 }

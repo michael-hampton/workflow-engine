@@ -9,7 +9,8 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Reports.php';
 
 /************************* Documents *********************************************/
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/ProcessFiles.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/DocumenrtVersion.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/BaseDocumentVersion.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/DocumentVersion.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/Attachments.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/InputDocument.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/StepDocument.php';

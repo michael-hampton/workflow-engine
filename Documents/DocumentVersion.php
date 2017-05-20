@@ -1,378 +1,102 @@
 <?php
 
-class DocumentVersion
+class DocumentVersion extends BaseDocumentVersion
 {
-
-    /**
-     * The value for the app_doc_uid field.
-     * @var        string
-     */
-    protected $app_doc_uid = '';
-
-    /**
-     * The value for the app_doc_filename field.
-     * @var        string
-     */
-    protected $app_doc_filename;
-
-    /**
-     * The value for the doc_version field.
-     * @var        int
-     */
-    protected $doc_version = 1;
-
-    /**
-     * The value for the doc_uid field.
-     * @var        string
-     */
-    protected $doc_uid = '';
-
-    /**
-     * The value for the usr_uid field.
-     * @var        string
-     */
-    protected $usr_uid = '';
-
-    /**
-     * The value for the app_doc_type field.
-     * @var        string
-     */
-    protected $app_doc_type = '';
-
-    /**
-     * The value for the app_doc_create_date field.
-     * @var        int
-     */
-    protected $app_doc_create_date;
-
-    /**
-     * Get the [app_doc_uid] column value.
-     *
-     * @return     string
-     */
-    public function getAppDocUid ()
+    private $objMysql;
+    
+    public function __construct ()
     {
-
-        return $this->app_doc_uid;
+        $this->objMysql = new Mysql2();
     }
 
     /**
-     * Get the [app_doc_filename] column value.
+     * Get last Document Version based on filename
      *
-     * @return     string
-     */
-    public function getAppDocFilename ()
-    {
-
-        return $this->app_doc_filename;
-    }
-
-    /**
-     * Get the [doc_version] column value.
+     * @params $filename
+     * @return integer
      *
-     * @return     int
      */
-    public function getDocVersion ()
-    {
-
-        return $this->doc_version;
-    }
-
-    /**
-     * Get the [doc_uid] column value.
-     *
-     * @return     string
-     */
-    public function getDocUid ()
-    {
-
-        return $this->doc_uid;
-    }
-
-    /**
-     * Get the [usr_uid] column value.
-     *
-     * @return     string
-     */
-    public function getUsrUid ()
-    {
-
-        return $this->usr_uid;
-    }
-
-    /**
-     * Get the [app_doc_type] column value.
-     *
-     * @return     string
-     */
-    public function getAppDocType ()
-    {
-
-        return $this->app_doc_type;
-    }
-
-    /**
-     * Set the value of [app_doc_uid] column.
-     *
-     * @param      string $v new value
-     * @return     void
-     */
-    public function setAppDocUid ($v)
-    {
-
-        // Since the native PHP type for this column is string,
-        // we will cast the input to a string (if it is not).
-        if ( $v !== null && !is_string ($v) )
-        {
-            $v = (string) $v;
-        }
-
-        if ( $this->app_doc_uid !== $v || $v === '' )
-        {
-            $this->app_doc_uid = $v;
-        }
-    }
-
-// setAppDoc
-
-    /**
-     * Set the value of [app_doc_filename] column.
-     *
-     * @param      string $v new value
-     * @return     void
-     */
-    public function setAppDocFilename ($v)
-    {
-
-        // Since the native PHP type for this column is string,
-        // we will cast the input to a string (if it is not).
-        if ( $v !== null && !is_string ($v) )
-        {
-            $v = (string) $v;
-        }
-
-        if ( $this->app_doc_filename !== $v )
-        {
-            $this->app_doc_filename = $v;
-        }
-    }
-
-// setAppDocFilename()
-
-    /**
-     * Set the value of [doc_version] column.
-     *
-     * @param      int $v new value
-     * @return     void
-     */
-    public function setDocVersion ($v)
-    {
-
-        // Since the native PHP type for this column is integer,
-        // we will cast the input value to an int (if it is not).
-        if ( $v !== null && !is_int ($v) && is_numeric ($v) )
-        {
-            $v = (int) $v;
-        }
-
-        if ( $this->doc_version !== $v || $v === 1 )
-        {
-            $this->doc_version = $v;
-        }
-    }
-
-// setDocVersion()
-
-    /**
-     * Set the value of [doc_uid] column.
-     *
-     * @param      string $v new value
-     * @return     void
-     */
-    public function setDocUid ($v)
-    {
-
-        // Since the native PHP type for this column is string,
-        // we will cast the input to a string (if it is not).
-        if ( $v !== null && !is_string ($v) )
-        {
-            $v = (string) $v;
-        }
-
-        if ( $this->doc_uid !== $v || $v === '' )
-        {
-            $this->doc_uid = $v;
-        }
-    }
-
-// setDocUid()
-
-    /**
-     * Set the value of [usr_uid] column.
-     *
-     * @param      string $v new value
-     * @return     void
-     */
-    public function setUsrUid ($v)
-    {
-
-        // Since the native PHP type for this column is string,
-        // we will cast the input to a string (if it is not).
-        if ( $v !== null && !is_string ($v) )
-        {
-            $v = (string) $v;
-        }
-
-        if ( $this->usr_uid !== $v || $v === '' )
-        {
-            $this->usr_uid = $v;
-        }
-    }
-
-// setUsrUid()
-
-    /**
-     * Set the value of [app_doc_type] column.
-     *
-     * @param      string $v new value
-     * @return     void
-     */
-    public function setAppDocType ($v)
-    {
-
-        // Since the native PHP type for this column is string,
-        // we will cast the input to a string (if it is not).
-        if ( $v !== null && !is_string ($v) )
-        {
-            $v = (string) $v;
-        }
-
-        if ( $this->app_doc_type !== $v || $v === '' )
-        {
-            $this->app_doc_type = $v;
-        }
-    }
-
-// setAppDocType()
-
-    /**
-     * Set the value of [app_doc_create_date] column.
-     *
-     * @param      int $v new value
-     * @return     void
-     */
-    public function setAppDocCreateDate ($v)
-    {
-
-        if ( $v !== null && !is_int ($v) )
-        {
-            $ts = strtotime ($v);
-            //Date/time accepts null values
-            if ( $v == '' )
-            {
-                $ts = null;
-            }
-            if ( $ts === -1 || $ts === false )
-            {
-                throw new PropelException ("Unable to parse date/time value for [app_doc_create_date] from input: " .
-                var_export ($v, true));
-            }
-        }
-        else
-        {
-            $ts = $v;
-        }
-        if ( $this->app_doc_create_date !== $ts )
-        {
-            $this->app_doc_create_date = $ts;
-        }
-    }
-
-// setAppDocCreateDate()
-
-    /**
-     * Removes this object from datastore and sets delete attribute.
-     *
-     * @param      Connection $con
-     * @return     void
-     * @throws     PropelException
-     * @see        BaseObject::setDeleted()
-     * @see        BaseObject::isDeleted()
-     */
-    public function delete ($con = null)
+    public function getLastDocVersionByFilename ($filename)
     {
         try {
-            AppDocumentPeer::doDelete ($this, $con);
-        } catch (Exception $e) {
-            throw $e;
+
+            $result = $this->objMysql->_query ("SELECT MAX(document_version) AS VERSION FROM task_manager.document_version WHERE filename = ?", [$filename]);
+
+            if ( isset ($result[0]['VERSION']) && trim ($result[0]['VERSION']) != "" )
+            {
+                return $result[0]['VERSION'];
+            }
+            else
+            {
+                return 0;
+            }
+        } catch (Exception $oError) {
+            throw ($oError);
         }
     }
 
     /**
-     * Stores the object in the database.  If the object is new,
-     * it inserts it; otherwise an update is performed.  This method
-     * wraps the doSave() worker method in a transaction.
+     * Get last Document Version based on App UID
      *
-     * @param      Connection $con
-     * @return     int The number of rows affected by this insert/update
-     * @throws     PropelException
-     * @see        doSave()
+     * @param s $sAppDocUid
+     * @return integer
+     *
      */
-    public function save ()
+    public function getLastDocVersion ($appUID)
     {
-        $this->objMysql->_insert (
-                "workflow.document_version", array(
-            "document_version" => $this->doc_version,
-            "user_id" => $this->usr_uid,
-            "document_id" => $this->doc_uid,
-            "date_created" => $this->app_doc_create_date,
-            "filename" => $this->app_doc_filename,
-            "document_type" => $this->app_doc_type
-                )
-        );
-    }
+        try {
 
-    /**
-     * Array of ValidationFailed objects.
-     * @var        array ValidationFailed[]
-     */
-    protected $validationFailures = array();
+            $result = $this->objMysql->_query ("SELECT MAX(document_version) AS VERSION FROM task_manager.document_version WHERE app_id = ?", [$appUID]);
 
-    /**
-     * Gets any ValidationFailed objects that resulted from last call to validate().
-     *
-     *
-     * @return     array ValidationFailed[]
-     * @see        validate()
-     */
-    public function getValidationFailures ()
-    {
-        return $this->validationFailures;
-    }
-
-    /**
-     * Validates the objects modified field values and all objects related to this table.
-     *
-     * If $columns is either a column name or an array of column names
-     * only those columns are validated.
-     *
-     * @param      mixed $columns Column name or an array of column names.
-     * @return     boolean Whether all columns pass validation.
-     * @see        doValidate()
-     * @see        getValidationFailures()
-     */
-    public function validate ($columns = null)
-    {
-        $res = $this->doValidate ($columns);
-        if ( $res === true )
-        {
-            $this->validationFailures = array();
-            return true;
+            if ( isset ($result[0]['VERSION']) && trim ($result[0]['VERSION']) != "" )
+            {
+                return $result[0]['VERSION'];
+            }
+            else
+            {
+                return 0;
+            }
+        } catch (Exception $oError) {
+            throw ($oError);
         }
-        else
-        {
-            $this->validationFailures = $res;
-            return false;
+    }
+
+    /**
+     * Create the application document registry
+     *
+     * @param array $aData
+     * @return string
+     *
+     */
+    public function create ($aData)
+    {
+        try {
+            $docVersion = $this->getLastDocVersionByFilename ($aData['filename']);
+            $docVersion += 1;
+
+            $objVersioning = new DocumentVersion();
+            $objVersioning->setDocVersion ($docVersion);
+            $objVersioning->setUsrUid ($_SESSION['user']['usrid']);
+            $objVersioning->setDocUid ($aData['document_id']);
+            $objVersioning->setAppDocCreateDate (date ("Y-m-d H:i:s"));
+            $objVersioning->setAppDocFilename ($aData['filename']);
+            $objVersioning->setAppDocType ("INPUT");
+
+            if ( $objVersioning->validate () )
+            {
+                $objVersioning->save();
+            }
+            else
+            {
+                $sMessage = '';
+                $aValidationFailures = $objVersioning->getValidationFailures ();
+                foreach ($aValidationFailures as $strValidationFailure) {
+                    $sMessage .= $strValidationFailure . '<br />';
+                }
+                throw (new Exception ('The registry cannot be created!<br />' . $sMessage));
+            }
+        } catch (Exception $ex) {
+            throw ($ex);
         }
     }
 
