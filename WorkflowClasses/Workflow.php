@@ -7,6 +7,8 @@ class Workflow
     private $objMike;
     private $intCollectionId;
     private $objMysql;
+    private $sort;
+    private $dir;
 
     public function __construct ($workflowId = null, $objMike = null)
     {
@@ -132,6 +134,206 @@ class Workflow
         }
     }
 
+    public function getAllProcesses ($start, $limit, $sort = 'PRO_TITLE', $dir = 'ASC', $category = null, $processName = null, $counters = true, $reviewSubProcess = false, $userLogged = "")
+    {
+        $this->sort = $sort;
+        $this->dir = $dir;
+        $aProcesses = Array();
+        $categories = Array();
+        $arrParameters = array();
+
+        $sql = "SELECT w.workflow_id,
+                        w.workflow_name,
+                        w.description,
+                        r.request_id,
+                        w.created_by,
+                        w.date_created,
+                        u.firstName,
+                        u.lastName,
+                        u.username,
+                        r.request_type
+
+                FROM workflow.workflows w
+                INNER JOIN user_management.poms_users u ON u.username = created_by
+                INNER JOIN workflow.request_types r ON r.request_id = w.request_id
+                WHERE 1=1";
+
+        if ( isset ($category) )
+        {
+            $sql .= " AND r.request_id = ?";
+            $arrParameters[] = $category;
+        }
+
+        if ( $userLogged != "" )
+        {
+            $sql .= " AND w.created_by = ?";
+            $arrParameters[] = $userLogged;
+        }
+
+        $sql .= " GROUP BY w.workflow_id";
+
+        if ( $sort == "PRO_CREATE_DATE" )
+        {
+            if ( $dir == "DESC" )
+            {
+                $sql .= " ORDER BY w.date_created DESC";
+            }
+            else
+            {
+                $sql .= " ORDER BY w.date_created ASC";
+            }
+        }
+
+        //execute a query to obtain numbers, how many cases there are by process
+        if ( $counters )
+        {
+            $casesCnt = $this->getCasesCountInAllProcesses ();
+        }
+
+        //execute the query
+        $results = $this->objMysql->_query ($sql, $arrParameters);
+
+        $processes = Array();
+        $uids = array();
+
+        foreach ($results as $row) {
+            $processes[] = $row;
+            $uids[] = $processes[sizeof ($processes) - 1]['workflow_id'];
+        }
+        //process details will have the info about the processes
+        $processesDetails = Array();
+
+        foreach ($processes as $process) {
+
+            $proTitle = isset ($process['workflow_name']) ? $process['workflow_name'] : '';
+            $proDescription = isset ($process['description']) ? htmlspecialchars ($process['description']) : '';
+
+            //filtering by $processName
+            if ( isset ($processName) && $processName != '' && stripos ($proTitle, $processName) === false )
+            {
+                continue;
+            }
+            if ( $counters )
+            {
+                $casesCountTotal = 0;
+                if ( isset ($casesCnt[$process['workflow_id']]) )
+                {
+                    $casesCountTotal += $casesCnt[$process['workflow_id']];
+                }
+            }
+
+            $userOwner = $process['firstName'] . ' ' . $process['lastName'];
+
+            $process['PRO_CATEGORY_LABEL'] = trim ($process['request_type']) != '' ? $process['request_type'] : '- ' . "No Category" . ' -';
+            $process['PRO_TITLE'] = $proTitle;
+            $process['PRO_DESCRIPTION'] = $proDescription;
+            $process['PRO_STATUS_LABEL'] = "ACTIVE";
+            $process['PRO_CREATE_USER_LABEL'] = $userOwner;
+
+//            if ( $counters )
+//            {
+//                $process['CASES_COUNT_TO_DO'] = (isset ($casesCnt[$process['PRO_UID']]['TO_DO']) ? $casesCnt[$process['PRO_UID']]['TO_DO'] : 0);
+//                $process['CASES_COUNT_COMPLETED'] = (isset ($casesCnt[$process['PRO_UID']]['COMPLETED']) ? $casesCnt[$process['PRO_UID']]['COMPLETED'] : 0);
+//                $process['CASES_COUNT_DRAFT'] = (isset ($casesCnt[$process['PRO_UID']]['DRAFT']) ? $casesCnt[$process['PRO_UID']]['DRAFT'] : 0);
+//                $process['CASES_COUNT_CANCELLED'] = (isset ($casesCnt[$process['PRO_UID']]['CANCELLED']) ? $casesCnt[$process['PRO_UID']]['CANCELLED'] : 0);
+//                $process['CASES_COUNT'] = $casesCountTotal;
+//            }
+
+            $aProcesses[] = $process;
+        }
+
+        if ( $limit == '' )
+        {
+            $limit = count ($aProcesses);
+        }
+
+        if ( $sort != "PRO_CREATE_DATE" )
+        {
+            if ( $dir == "ASC" )
+            {
+                usort ($aProcesses, array($this, "ordProcessAsc"));
+            }
+            else
+            {
+                usort ($aProcesses, array($this, "ordProcessDesc"));
+            }
+        }
+        
+        return $aProcesses;
+    }
+
+    public function ordProcessAsc ($a, $b)
+    {
+        if ( ($this->sort) == '' )
+        {
+            $this->sort = 'PRO_TITLE';
+        }
+        if ( strtolower ($a[$this->sort]) > strtolower ($b[$this->sort]) )
+        {
+            return 1;
+        }
+        elseif ( strtolower ($a[$this->sort]) < strtolower ($b[$this->sort]) )
+        {
+            return - 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    public function ordProcessDesc ($a, $b)
+    {
+        if ( ($this->sort) == '' )
+        {
+            $this->sort = 'PRO_TITLE';
+        }
+        if ( strtolower ($a[$this->sort]) > strtolower ($b[$this->sort]) )
+        {
+            return - 1;
+        }
+        elseif ( strtolower ($a[$this->sort]) < strtolower ($b[$this->sort]) )
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    public function getCasesCountInAllProcesses ()
+    {
+        $results = $this->objMysql->_select ("workflow.workflow_data");
+        $arrCounts = array();
+
+        foreach ($results as $result) {
+            $workflowData = json_decode ($result['workflow_data'], true);
+
+            if ( isset ($workflowData['elements']) && !empty ($workflowData['elements']) )
+            {
+                foreach ($workflowData['elements'] as $element) {
+
+                    $arrCounts[$element['workflow_id']] = isset ($arrCounts[$element['workflow_id']]) ? $arrCounts[$element['workflow_id']] ++ : 1;
+                }
+            }
+        }
+
+        return $arrCounts;
+    }
+
+    public function getCasesCountForProcess ($pro_uid)
+    {
+        $oCriteria = new Criteria ('workflow');
+        $oCriteria->addSelectColumn ('COUNT(*) AS TOTAL_CASES');
+        $oCriteria->add (ApplicationPeer::PRO_UID, $pro_uid);
+        $oDataset = ApplicationPeer::doSelectRS ($oCriteria, Propel::getDbConnection ('workflow_ro'));
+        $oDataset->setFetchmode (ResultSet::FETCHMODE_ASSOC);
+        $oDataset->next ();
+        $cases = $oDataset->getRow ();
+        return (int) $cases['TOTAL_CASES'];
+    }
+    
     public function getAllProcessesByCategory ()
     {
         $results = $this->objMysql->_query ("SELECT request_id, COUNT(*) AS CNT FROM workflow.workflows GROUP BY request_id");
@@ -142,5 +344,4 @@ class Workflow
         }
         return $aProc;
     }
-
 }
