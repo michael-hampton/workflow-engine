@@ -12,6 +12,8 @@ class WorkflowCollection
     private $systemId;
     private $objMysql;
     private $arrValidationErrors;
+    private $new;
+    private $processCout = 0;
     private $arrFieldMapping = array(
         "description" => array("accessor" => "getDescription", "mutator" => "setDescription", "required" => false),
         "request_type" => array("accessor" => "getName", "mutator" => "setName", "required" => true),
@@ -172,6 +174,16 @@ class WorkflowCollection
         return $this->requestId;
     }
 
+    public function getNew ()
+    {
+        return $this->new;
+    }
+
+    public function setNew ($new)
+    {
+        $this->new = $new;
+    }
+
     /**
      * @param mixed $requestId
      */
@@ -180,14 +192,40 @@ class WorkflowCollection
         $this->requestId = $requestId;
     }
 
+    /**
+     * 
+     * @return type
+     */
     function getParentId ()
     {
         return $this->parentId;
     }
 
+    /**
+     * 
+     * @param type $parentId
+     */
     function setParentId ($parentId)
     {
         $this->parentId = $parentId;
+    }
+    
+    /**
+     * 
+     * @return type
+     */
+    public function getProcessCout ()
+    {
+        return $this->processCout;
+    }
+
+    /**
+     * 
+     * @param type $processCout
+     */
+    public function setProcessCout ($processCout)
+    {
+        $this->processCout = $processCout;
     }
 
     public function getNextWorkflow ()
@@ -256,13 +294,13 @@ class WorkflowCollection
 
     public function save ()
     {
-        if ( $this->validate () === true )
+        if ( $this->new === true )
         {
             $this->objMysql->_insert ("workflow.request_types", $this->arrCollection);
         }
         else
         {
-            return $this->arrValidationErrors;
+            
         }
     }
 
@@ -276,6 +314,16 @@ class WorkflowCollection
         }
 
         return false;
+    }
+
+    public function delete ()
+    {
+        if ( !is_numeric ($this->requestId) )
+        {
+            throw new Exception ("REQUEST ID HAS NOT BEEN SET");
+        }
+
+        $this->objMysql->_delete ("workflow.request_types", array("request_id" => $this->requestId));
     }
 
 }

@@ -118,8 +118,8 @@ class Workflow
             $arrResult2 = $this->objMysql->_select ("workflow.status_mapping", array(), array("step_to" => $this->status));
         }
     }
-    
-    public function deleteWorkflow()
+
+    public function deleteWorkflow ()
     {
         $arrResult = $this->objMysql->_select ("workflow.status_mapping", array("workflow_id"), array("workflow_id" => $this->intWorkflowId));
 
@@ -131,4 +131,16 @@ class Workflow
             $this->objMysql->_delete ("workflow.workflow_mapping", array("workflow_to" => $this->intWorkflowId));
         }
     }
+
+    public function getAllProcessesByCategory ()
+    {
+        $results = $this->objMysql->_query ("SELECT request_id, COUNT(*) AS CNT FROM workflow.workflows GROUP BY request_id");
+
+        $aProc = Array();
+        foreach ($results as $row) {
+            $aProc[$row['request_id']] = $row['CNT'];
+        }
+        return $aProc;
+    }
+
 }
