@@ -13,6 +13,7 @@ class WorkflowCollection
     private $objMysql;
     private $arrValidationErrors;
     private $new;
+    private $processCout = 0;
     private $arrFieldMapping = array(
         "description" => array("accessor" => "getDescription", "mutator" => "setDescription", "required" => false),
         "request_type" => array("accessor" => "getName", "mutator" => "setName", "required" => true),
@@ -191,14 +192,40 @@ class WorkflowCollection
         $this->requestId = $requestId;
     }
 
+    /**
+     * 
+     * @return type
+     */
     function getParentId ()
     {
         return $this->parentId;
     }
 
+    /**
+     * 
+     * @param type $parentId
+     */
     function setParentId ($parentId)
     {
         $this->parentId = $parentId;
+    }
+    
+    /**
+     * 
+     * @return type
+     */
+    public function getProcessCout ()
+    {
+        return $this->processCout;
+    }
+
+    /**
+     * 
+     * @param type $processCout
+     */
+    public function setProcessCout ($processCout)
+    {
+        $this->processCout = $processCout;
     }
 
     public function getNextWorkflow ()
@@ -287,6 +314,16 @@ class WorkflowCollection
         }
 
         return false;
+    }
+
+    public function delete ()
+    {
+        if ( !is_numeric ($this->requestId) )
+        {
+            throw new Exception ("REQUEST ID HAS NOT BEEN SET");
+        }
+
+        $this->objMysql->_delete ("workflow.request_types", array("request_id" => $this->requestId));
     }
 
 }

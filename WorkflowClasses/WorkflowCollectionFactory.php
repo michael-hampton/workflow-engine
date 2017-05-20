@@ -2,6 +2,7 @@
 
 class WorkflowCollectionFactory
 {
+
     use Validator;
 
     private $objMysql;
@@ -129,9 +130,10 @@ class WorkflowCollectionFactory
             {
                 $this->throwExceptionIfExistsName ($arrayData["request_type"]);
             }
-           
-            if(empty($arrayData["request_type"]) || !isset($arrayData["request_type"])) {
-            
+
+            if ( empty ($arrayData["request_type"]) || !isset ($arrayData["request_type"]) )
+            {
+
                 // throw excption cant be empty
                 throw new Exception ("CATEGORY TITLE IS MISSING");
             }
@@ -160,7 +162,7 @@ class WorkflowCollectionFactory
             //Create
             $category = new WorkflowCollection();
 
-          $category->setNew(true);
+            $category->setNew (true);
             $category->setName ($arrayData["request_type"]);
             $category->setDeptId ($arrayData['dept_id']);
 
@@ -172,7 +174,7 @@ class WorkflowCollectionFactory
             $category->setSystemId (1);
 
             $result = $category->save ();
-            
+
             return $result;
         } catch (\Exception $e) {
             throw $e;
@@ -226,7 +228,7 @@ class WorkflowCollectionFactory
             }
 
             $result = $category->save ();
-            
+
             return $result;
 
             return $arrayData;
@@ -248,7 +250,7 @@ class WorkflowCollectionFactory
             //Verify data
             $this->throwExceptionIfNotExistsCategory ($categoryUid);
 
-            $process = new Process();
+            $process = new Workflow();
 
             $arrayTotalProcessesByCategory = $process->getAllProcessesByCategory ();
 
@@ -260,7 +262,7 @@ class WorkflowCollectionFactory
             //Delete
             $category = new WorkflowCollection();
 
-            $category->setCategoryUid ($categoryUid);
+            $category->setRequestId ($categoryUid);
             $category->delete ();
         } catch (\Exception $e) {
             throw $e;
@@ -284,7 +286,13 @@ class WorkflowCollectionFactory
             $arrayCategory = array();
 
             //Verify data
-            $process = new Process();
+            $process = new Workflow();
+
+            //Get data
+            if ( !is_null ($limit) && $limit . "" == "0" )
+            {
+                return $arrayCategory;
+            }
 
             $arrayTotalProcessesByCategory = $process->getAllProcessesByCategory ();
 
@@ -313,31 +321,48 @@ class WorkflowCollectionFactory
                 $sql .= " ASC";
             }
 
-            if ( !is_null ($start) )
-            {
-                $sql .= " OFFSET " . (int) ($start);
-            }
-
             if ( !is_null ($limit) )
             {
                 $sql .= " LIMIT " . (int) ($limit);
             }
 
+            if ( !is_null ($start) )
+            {
+                $sql .= " OFFSET " . (int) ($start);
+            }
+
             $results = $this->objMysql->_query ($sql);
 
-//            while ($rsCriteria->next()) {
-//                $row = $rsCriteria->getRow();
-//
-//                $row["CATEGORY_TOTAL_PROCESSES"] = (isset($arrayTotalProcessesByCategory[$row["CATEGORY_UID"]]))? (int)($arrayTotalProcessesByCategory[$row["CATEGORY_UID"]]) : 0;
-//
-//                $arrayCategory[] = $this->getCategoryDataFromRecord($row);
-//            }
-//
-//            //Return
-//            return $arrayCategory;
+            foreach ($results as $row) {
+                $row["CATEGORY_TOTAL_PROCESSES"] = (isset ($arrayTotalProcessesByCategory[$row["request_id"]])) ? (int) ($arrayTotalProcessesByCategory[$row["request_id"]]) : 0;
+                $arrayCategory[] = $this->getCategoryDataFromRecord ($row);
+            }
+
+            return $arrayCategory;
         } catch (Exception $e) {
             throw $e;
         }
+    }
+
+    /**
+     *  Build Category object from a record
+     * @param array $record Record
+     * @return \WorkflowCollection - Category object
+     */
+    private function getCategoryDataFromRecord ($record)
+    {
+        $objRequest = new WorkflowCollection();
+        $objRequest->setDeptId ($record['dept_id']);
+        $objRequest->setName ($record['request_type']);
+        $objRequest->setRequestId ($record['request_id']);
+        $objRequest->setSystemId ($record['system_id']);
+
+        if ( isset ($record['CATEGORY_TOTAL_PROCESSES']) )
+        {
+            $objRequest->setProcessCout ($record['CATEGORY_TOTAL_PROCESSES']);
+        }
+
+        return $objRequest;
     }
 
     /**
@@ -352,19 +377,19 @@ class WorkflowCollectionFactory
     {
         try {
             //Verify data
-            $this->throwExceptionIfNotExistsCategory ($categoryUid, $this->arrayFieldNameForException["categoryUid"]);
+            $this->throwExceptionIfNotExistsCategory ($categoryUid);
 
             //Set variables
             if ( !$flagGetRecord )
             {
-                $process = new Process();
+                $process = new Workflow();
 
                 $arrayTotalProcessesByCategory = $process->getAllProcessesByCategory ();
             }
 
             //Get data
             //SQL
-            $result = $sql = "SELECT * FROM workflows.request_types WHERE request_id = ?";
+            $result = $this->objMysql->_select ("workflow.request_types", array(), array("request_id" => $categoryUid));
 
             if ( !isset ($result[0]) || empty ($result[0]) )
             {
@@ -375,7 +400,7 @@ class WorkflowCollectionFactory
 
             if ( !$flagGetRecord )
             {
-                $row["CATEGORY_TOTAL_PROCESSES"] = (isset ($arrayTotalProcessesByCategory[$row["CATEGORY_UID"]])) ? (int) ($arrayTotalProcessesByCategory[$row["CATEGORY_UID"]]) : 0;
+                $row["CATEGORY_TOTAL_PROCESSES"] = (isset ($arrayTotalProcessesByCategory[$row["request_id"]])) ? (int) ($arrayTotalProcessesByCategory[$row["request_id"]]) : 0;
             }
 
             //Return
