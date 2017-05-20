@@ -4,6 +4,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/config.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Mysql.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Variable.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/StepVariable.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BaseComments.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Comments.php';
 
 /************************* Documents *********************************************/
@@ -75,8 +76,9 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/Roles.ph
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/Login.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/Teams.php';
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/models/Save.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/models/Elements.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/WorkflowClasses/Save.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/WorkflowClasses/Elements.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/WorkflowClasses/Cases.php';
 
 /***************************88 Dashboard ****************************************/
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Dashboard/Dashboard.php';

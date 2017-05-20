@@ -53,7 +53,7 @@ class WorkflowCollectionFactory
         }
     }
 
-    private function retrieveByPk ($pk)
+    public function retrieveByPk ($pk)
     {
         $result = $this->objMysql->_select ("workflow.request_types", array(), array("request_id" => $pk));
 

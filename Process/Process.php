@@ -44,7 +44,7 @@ class Process
      * @param type $processId
      * @return boolean
      */
-    private function processExists ($processId)
+    public function processExists ($processId)
     {
         $result = $this->objMysql->_select ("workflow.workflows", array(), array("workflow_id" => $processId));
 
