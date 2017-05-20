@@ -400,7 +400,7 @@ class WorkflowStep
         $strWorkflow = json_encode ($this->objWorkflow);
 
         $objectId = isset ($this->parentId) && is_numeric ($this->parentId) ? $this->parentId : $this->elementId;
-
+        
         if ( !empty ($arrWorkflowData) )
         {
             $this->objMysql->_update ("workflow.workflow_data", array(

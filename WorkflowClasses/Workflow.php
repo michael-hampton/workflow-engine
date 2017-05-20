@@ -134,7 +134,7 @@ class Workflow
         }
     }
 
-    public function getAllProcesses ($start, $limit, $sort = 'PRO_TITLE', $dir = 'ASC', $category = null, $processName = null, $counters = true, $reviewSubProcess = false, $userLogged = "")
+    public function getAllProcesses ($start, $limit, $sort = 'request_id', $dir = 'ASC', $category = null, $processName = null, $counters = true, $reviewSubProcess = false, $userLogged = "")
     {
         $this->sort = $sort;
         $this->dir = $dir;
@@ -258,8 +258,30 @@ class Workflow
                 usort ($aProcesses, array($this, "ordProcessDesc"));
             }
         }
-        
+
+        if ( is_numeric ($start) && is_numeric ($limit) )
+        {
+            return $this->paginate ($aProcesses, $limit, $start);
+        }
+
         return $aProcesses;
+    }
+
+    private function paginate ($array, $intPageLimit, $page = 1)
+    {
+        $intPageLimit = (int) $intPageLimit;
+        $page = (int) $page;
+        $totalRows = (int) count ($array);
+        $_SESSION["pagination"]["current_page"] = $page;
+
+        $page = $page < 1 ? 1 : $page + 1;
+
+        $start = ($page - 1) * $intPageLimit;
+
+        $_SESSION["pagination"]["total_pages"] = (int) ceil (($totalRows / $intPageLimit));
+        $_SESSION["pagination"]["total_counter"] = $totalRows;
+
+        return array_slice ($array, $start, $intPageLimit);
     }
 
     public function ordProcessAsc ($a, $b)
@@ -333,7 +355,7 @@ class Workflow
         $cases = $oDataset->getRow ();
         return (int) $cases['TOTAL_CASES'];
     }
-    
+
     public function getAllProcessesByCategory ()
     {
         $results = $this->objMysql->_query ("SELECT request_id, COUNT(*) AS CNT FROM workflow.workflows GROUP BY request_id");
@@ -344,4 +366,5 @@ class Workflow
         }
         return $aProc;
     }
+
 }

@@ -483,4 +483,19 @@ class Cases
         $appNote->addCaseNote ($app_uid, $usr_uid, $note_content, intval ($send_mail));
     }
 
+    public function startCase ($workflowId)
+    {
+        $objWorkflow = new Workflow ($workflowId, null);
+        $objStep = $objWorkflow->getNextStep ();
+        $stepId = $objStep->getStepId();
+        
+        $objForm = new Form($stepId, $workflowId);
+        $arrFields = $objForm->getFields();
+
+        $objFprmBuilder = new FormBuilder ("AddNewForm");
+        $html = $objFprmBuilder->buildForm($arrFields, array());
+        
+        return $html;
+    }
+
 }

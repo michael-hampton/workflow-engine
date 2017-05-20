@@ -118,7 +118,7 @@ class Attachments
             if ( file_exists ($sDirectory) )
             {
                 $directory = $sMainDirectory . PATH_SEP . $sSubDirectory . $aData['prf_filename'];
-                throw new Exception ("ID_EXISTS_FILE");
+                //throw new Exception ("ID_EXISTS_FILE");
             }
 
             if ( !file_exists ($sCheckDirectory) )
