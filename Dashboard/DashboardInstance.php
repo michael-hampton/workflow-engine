@@ -1,6 +1,6 @@
 <?php
 
-class Reports
+class DashboardInstance
 {
 
     private $objMysql;
@@ -14,12 +14,18 @@ class Reports
     private $arrProjectsForUser = array();
     private $arrAllProjects = array();
 
-    public function __construct ()
+    public function __construct ($arrProjects)
     {
         $this->objMysql = new Mysql2();
+        $this->loadProjects ($arrProjects);
+        $this->getCompletedProjects ();
+        $this->getAllProjects ();
+        $this->getIncompleteProjects ();
+        $this->getOnTimeProjects ();
+        $this->getProjectsForUser ();
     }
 
-    public function loadProjects ($arrProjects)
+    private function loadProjects ($arrProjects)
     {
         $this->arrProjects = $arrProjects;
 
@@ -28,8 +34,8 @@ class Reports
             $this->arrAllProjects[$arrProject['id']] = $arrProject;
         }
     }
-    
-    public function getAllProjects()
+
+    public function getAllProjects ()
     {
         return $this->arrAllProjects;
     }
@@ -55,7 +61,8 @@ class Reports
                                 {
                                     if ( $claimed == $_SESSION['user']['username'] )
                                     {
-                                        $this->arrProjectsForUser[] = $arrProject['id'];
+                                        $this->arrProjectsForUser[$key]['name'] = $arrJSON['job']['name'];
+                                        $this->arrProjectsForUser[$key]['dueDate'] = $arrJSON['job']['dueDate'];
                                     }
                                 }
                             }
@@ -64,7 +71,7 @@ class Reports
                 }
             }
         }
-        
+
         return $this->arrProjectsForUser;
     }
 
@@ -85,8 +92,14 @@ class Reports
                 }
             }
         }
-        
+
         return $this->arrCompletedProjects;
+    }
+
+    public function incompleteVsCompleted ()
+    {
+        $percentage = count ($this->incompleteProjects) / count ($this->arrCompletedProjects) * 100; // string: 100%
+        return $percentage;
     }
 
     public function getIncompleteProjects ()
@@ -106,8 +119,19 @@ class Reports
                 }
             }
         }
-        
+
         return $this->incompleteProjects;
+    }
+
+    public function getNoOfProjectsForUser ()
+    {
+        return ' <h1 class="no-margins">' . count ($this->arrProjectsForUser) . '</h1>';
+    }
+
+    public function getNumberOfProjects ()
+    {
+
+        return '<h1 class="no-margins">' . count ($this->arrCompletedProjects) . ' / ' . count ($this->arrAllProjects) . '</h1>';
     }
 
     public function getLateProjects ()
@@ -124,8 +148,8 @@ class Reports
                 $this->arrLateProjects[] = $arrProject['id'];
             }
         }
-        
-        return $this->arrLateProjects;
+
+        return array("on_time" => count ($this->arrOnTime), "late" => count ($this->arrLateProjects));
     }
 
     public function getUsersWithProjects ()
@@ -143,7 +167,7 @@ class Reports
                 $this->arrUsersWithProjects[$arrJSON['job']['added_by']] = $this->arrUsersWithProjects[$arrJSON['job']['added_by']] + 1;
             }
         }
-        
+
         return $this->arrUsersWithProjects;
     }
 
@@ -161,7 +185,7 @@ class Reports
                 $this->arrOnTime[] = $arrProject['id'];
             }
         }
-        
+
         return $this->arrOnTime;
     }
 

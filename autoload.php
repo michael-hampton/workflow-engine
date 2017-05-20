@@ -5,7 +5,6 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Mysql.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Variable.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/StepVariable.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Comments.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Reports.php';
 
 /************************* Documents *********************************************/
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/ProcessFiles.php';
@@ -78,4 +77,11 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/Teams.ph
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/models/Save.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/models/Elements.php';
+
+/***************************88 Dashboard ****************************************/
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Dashboard/Dashboard.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Dashboard/DashboardUser.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Dashboard/DashboardInstance.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Dashboard/DashboardBuilder.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Dashboard/DashboardFactory.php';
 
