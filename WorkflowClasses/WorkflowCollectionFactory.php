@@ -310,17 +310,17 @@ class WorkflowCollectionFactory
             {
 
                 $sql .= " ORDER BY " . $sortField;
-            }
 
-            if ( !is_null ($sortDir) && trim ($sortDir) != "" && strtoupper ($sortDir) == "DESC" )
-            {
-                $sql .= " DESC";
+                if ( !is_null ($sortDir) && trim ($sortDir) != "" && strtoupper ($sortDir) == "DESC" )
+                {
+                    $sql .= " DESC";
+                }
+                else
+                {
+                    $sql .= " ASC";
+                }
             }
-            else
-            {
-                $sql .= " ASC";
-            }
-
+            
             if ( !is_null ($limit) )
             {
                 $sql .= " LIMIT " . (int) ($limit);

@@ -38,6 +38,8 @@ class Elements
     );
     private $objMysql;
     private $arrToIgnore = array("claimed", "status", "dateCompleted");
+    
+    private $status;
 
     public function __construct ($parentId, $id = null)
     {
@@ -127,6 +129,16 @@ class Elements
     function getName ()
     {
         return $this->name;
+    }
+    
+    public function getStatus ()
+    {
+        return $this->status;
+    }
+
+    public function setStatus ($status)
+    {
+        $this->status = $status;
     }
 
     public function getCurrentStep ()

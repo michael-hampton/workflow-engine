@@ -134,7 +134,7 @@ class Workflow
         }
     }
 
-    public function getAllProcesses ($start, $limit, $sort = 'request_id', $dir = 'ASC', $category = null, $processName = null, $counters = true, $reviewSubProcess = false, $userLogged = "")
+    public function getAllProcesses ($start = 0, $limit = 25, $sort = 'request_id', $dir = 'ASC', $category = null, $processName = null, $counters = true, $reviewSubProcess = false, $userLogged = "")
     {
         $this->sort = $sort;
         $this->dir = $dir;
@@ -200,6 +200,7 @@ class Workflow
             $processes[] = $row;
             $uids[] = $processes[sizeof ($processes) - 1]['workflow_id'];
         }
+
         //process details will have the info about the processes
         $processesDetails = Array();
 

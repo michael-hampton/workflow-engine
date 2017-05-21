@@ -84,7 +84,8 @@ class Cases
 
         if ( $action == 'search' || $action == 'to_reassign' )
         {
-            $userUid = ($user == "CURRENT_USER") ? $userUid : $user;
+            $userUid = ($user == "CURRENT_USER") || $user == '' ? $userUid : $user;
+            
             if ( $first )
             {
                 $result = array();
@@ -174,6 +175,7 @@ class Cases
         }
 
         $arrCases = [];
+        $arrUsed = array();
 
         $arrResults = $this->objMysql->_select ("workflow.workflow_data", array(), array());
 
@@ -181,9 +183,11 @@ class Cases
             $workflowData = json_decode ($arrResult['workflow_data'], true);
             $auditData = json_decode ($arrResult['audit_data'], true);
 
+
             if ( isset ($workflowData['elements']) )
             {
                 foreach ($workflowData['elements'] as $elementId => $element) {
+
 
                     $intSkip = 0;
                     $dateCompleted = '';
@@ -194,7 +198,17 @@ class Cases
                     $previousStep = $this->getPreviousStep ($currentStep, $workflowId);
                     $currentStatus = $element['status'];
 
-                    $audit = $auditData['elements'][$elementId]['steps'][$previousStep];
+                    if ( count ($auditData['elements'][$elementId]['steps']) == 1 )
+                    {
+                        reset ($auditData['elements'][$elementId]['steps']);
+                        $first_key = key ($auditData['elements'][$elementId]['steps']);
+
+                        $audit = $auditData['elements'][$elementId]['steps'][$first_key];
+                    }
+                    else
+                    {
+                        $audit = $auditData['elements'][$elementId]['steps'][$previousStep];
+                    }
 
                     if ( trim ($audit['dateCompleted']) !== "" )
                     {
@@ -232,18 +246,29 @@ class Cases
                     }
 
 
-                    if ( $intSkip == 0 )
+                    if ( $intSkip == 0 && trim ($arrResult['object_id']) !== trim ($elementId) )
                     {
                         $arrCase = array(
                             "elementId" => $elementId,
                             "projectId" => $arrResult['object_id'],
                             "workflow_id" => $workflowId,
-                            "current_user" => $audit['claimed']
+                            "current_user" => $audit['claimed'],
+                            "current_step" => $currentStep,
+                            "status" => $currentStatus
                         );
-                        $arrCases[] = $arrCase;
+
+                        if ( !in_array ($elementId, $arrUsed) )
+                        {
+                            $arrCases[] = $arrCase;
+                        }
                     }
                 }
+
+
+                $arrUsed[] = $elementId;
             }
+
+            $arrUsed = array();
         }
 
         if ( !empty ($arrCases) )
@@ -253,18 +278,41 @@ class Cases
                 $arrCases = $this->paginate ($arrCases, $limit, $start);
             }
 
+            $arrUsed = array();
+
             foreach ($arrCases['data'] as $key => $arrCase) {
 
                 $objCase = new Elements ($arrCase['projectId'], $arrCase['elementId']);
 
                 if ( isset ($arrCase['workflow_id']) )
                 {
+                    $workflow = $this->objMysql->_select("workflow.workflows", array(), array("workflow_id" => $arrCase['workflow_id']));
                     $objCase->setWorkflow_id ($workflow_id);
+                    
+                    if(isset($workflow[0]) && !empty($workflow[0])) {
+                        $objCase->setWorkflowName($workflow[0]['workflow_name']);
+                    }
                 }
 
                 if ( isset ($arrCase['current_user']) )
                 {
                     $objCase->setCurrent_user ($arrCase['current_user']);
+                }
+
+                if ( isset ($arrCase['current_step']) )
+                {
+                    $step = $this->objMysql->_query ("SELECT s.step_name FROM workflow.status_mapping m
+                                                    INNER JOIN workflow.steps s ON s.step_id = m.step_from
+                                                    WHERE m.id = ?", [$arrCase['current_step']]);
+
+                    if ( isset ($step[0]['step_name']) && !empty ($step[0]['step_name']) )
+                    {
+                        $objCase->setCurrent_step ($step[0]['step_name']);
+                    }
+                }
+                
+                if(isset($arrCase['status'])) {
+                    $objCase->setStatus($arrCase['status']);
                 }
 
                 if ( is_object ($objCase) )
@@ -487,14 +535,14 @@ class Cases
     {
         $objWorkflow = new Workflow ($workflowId, null);
         $objStep = $objWorkflow->getNextStep ();
-        $stepId = $objStep->getStepId();
-        
-        $objForm = new Form($stepId, $workflowId);
-        $arrFields = $objForm->getFields();
+        $stepId = $objStep->getStepId ();
+
+        $objForm = new Form ($stepId, $workflowId);
+        $arrFields = $objForm->getFields ();
 
         $objFprmBuilder = new FormBuilder ("AddNewForm");
-        $html = $objFprmBuilder->buildForm($arrFields, array());
-        
+        $html = $objFprmBuilder->buildForm ($arrFields, array());
+
         return $html;
     }
 
