@@ -151,6 +151,16 @@ class BaseFieldCondition
 
     public function delete ()
     {
+        if ( trim ($this->fieldIdentifier) == "" || !is_numeric ($this->fieldIdentifier) )
+        {
+            throw new Exception ("Invalid field id given");
+        }
+
+        if ( trim ($this->stepId) == "" || !is_numeric ($this->stepId) )
+        {
+            throw new Exception ("Invalid step id given");
+        }
+
         $this->objMysql->_update ("workflow.step_fields", array("field_conditions" => ""), array("field_id" => $this->fieldIdentifier, "step_id" => $this->stepId));
     }
 

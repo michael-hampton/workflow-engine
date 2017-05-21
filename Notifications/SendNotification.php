@@ -2,7 +2,9 @@
 
 class SendNotification extends Notifications
 {
+
     private $elementId;
+    private $arrEmailAddresses = array();
 
     /**
      * 
@@ -25,12 +27,22 @@ class SendNotification extends Notifications
     {
         $this->projectId = $projectId;
     }
-    
+
+    public function getArrEmailAddresses ()
+    {
+        return $this->arrEmailAddresses;
+    }
+
+    public function setArrEmailAddresses ($arrEmailAddresses)
+    {
+        $this->arrEmailAddresses = $arrEmailAddresses;
+    }
+
     /**
      * 
      * @param type $elementId
      */
-    public function setElementId($elementId)
+    public function setElementId ($elementId)
     {
         $this->elementId = $elementId;
     }
@@ -84,8 +96,16 @@ class SendNotification extends Notifications
 
         $this->subject = $this->message['message_subject'];
         $this->body = $this->message['message_body'];
-        $this->recipient = $this->message['to'];
-        
+
+        if ( !empty ($this->arrEmailAddresses) )
+        {
+            $this->recipient = implode (",", $this->arrEmailAddresses);
+        }
+        else
+        {
+            $this->recipient = $this->message['to'];
+        }
+
         $pattern = "/\[([^\]]+)\]/";
         $found = preg_match_all ($pattern, $this->message['message_subject'], $subjectKeys);
         $found = preg_match_all ($pattern, $this->message['message_body'], $bodyKeys);
@@ -110,8 +130,8 @@ class SendNotification extends Notifications
                 $this->body = str_replace ($bodyKey, $arrData[$subjectKey2], $this->body);
             }
         }
-        
-        $this->save();
+
+        $this->save ();
 
         //	sending email notification
         $this->notificationEmail ($this->recipient, $this->subject, $this->body);
@@ -129,7 +149,7 @@ class SendNotification extends Notifications
                                 WHERE case_id = ? 
                                 AND status != 3", [$this->elementId]
         );
-        
+
         $id = $this->objMysql->_insert (
                 "workflow.notifications_sent", array(
             "subject" => $this->subject,
@@ -178,4 +198,5 @@ class SendNotification extends Notifications
 
         mail ($sendto, $message_subject, $message_body, $headers);
     }
+
 }

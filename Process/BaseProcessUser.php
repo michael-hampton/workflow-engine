@@ -61,14 +61,36 @@ class BaseProcessUser
         $this->pu_type = $pu_type;
     }
 
+    /**
+     * Set the value of [usr_uid] column.
+     * 
+     * @param      string $v new value
+     * @return     void
+     */
     public function setUsr_uid ($usr_uid)
     {
-        $this->usr_uid = $usr_uid;
+        // Since the native PHP type for this column is integer,
+        // we will cast the input value to an int (if it is not).
+        if ( $usr_uid !== null && !is_int ($usr_uid) && is_numeric ($usr_uid) )
+        {
+            $usr_uid = (int) $usr_uid;
+        }
+        if ( $this->usr_uid !== $usr_uid )
+        {
+            $this->usr_uid = $usr_uid;
+        }
     }
 
     public function setPro_uid ($pro_uid)
     {
-        $this->pro_uid = $pro_uid;
+        if ( $pro_uid !== null && !is_int ($pro_uid) && is_numeric ($pro_uid) )
+        {
+            $pro_uid = (int) $pro_uid;
+        }
+        if ( $this->pro_uid !== $pro_uid )
+        {
+            $this->pro_uid = $pro_uid;
+        }
     }
 
     public function getValidationFailures ()
@@ -80,7 +102,7 @@ class BaseProcessUser
     {
         $this->validationFailures = $validationFailures;
     }
-    
+
     public function getPu_id ()
     {
         return $this->pu_id;
@@ -88,7 +110,14 @@ class BaseProcessUser
 
     public function setPu_id ($pu_id)
     {
-        $this->pu_id = $pu_id;
+        if ( $pu_id !== null && !is_int ($pu_id) && is_numeric ($pu_id) )
+        {
+            $pu_id = (int) $pu_id;
+        }
+        if ( $this->pu_id !== $pu_id )
+        {
+            $this->pu_id = $pu_id;
+        }
     }
 
     public function validate ()
@@ -123,6 +152,11 @@ class BaseProcessUser
 
     public function delete ()
     {
+        if ( trim ($this->pu_id) == "" || !is_numeric ($this->pu_id) )
+        {
+            throw new Exception ("Invalid id given");
+        }
+
         $this->objMysql->_delete ("workflow.process_supervisors", array("id" => $this->pu_id));
 
         return true;
@@ -136,7 +170,7 @@ class BaseProcessUser
             "pu_type" => $this->pu_type
                 )
         );
-        
+
         return true;
     }
 

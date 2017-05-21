@@ -21,7 +21,7 @@ class Comments extends BaseComments
     {
         $this->setAppUid ($projectId);
         $this->setUserUid ($usrUid);
-        $this->setNoteDate ($noteDate);
+        $this->setNoteDate (date("Y-m-d H:i:s"));
         $this->setNoteContent ($noteContent);
         $this->setNoteType ($noteType);
         $this->setRecipients ($noteRecipients);
@@ -72,7 +72,7 @@ class Comments extends BaseComments
         return $response;
     }
 
-    public function sendNoteNotification ($appUid, $projectId, $usrUid, $noteContent, $noteRecipients, $sFrom = "")
+    public function sendNoteNotification ($appUid, $usrUid, $noteContent, $noteRecipients, $sFrom = "")
     {
         try {
 
@@ -81,48 +81,33 @@ class Comments extends BaseComments
                 $this->getConnection ();
             }
 
-
             $aUser = $this->objMysql->_select ("user_management.poms_users", array(), array("username" => $usrUid));
 
-            $authorName = ((($aUser[0]['firstName'] != '') || ($aUser[0]['lastName'] != '')) ? $aUser[0]['firstName'] . ' ' . $aUser[0]['lastName'] . ' ' : '') . '<' . $aUser[0]['email_address'] . '>';
+            $authorName = ((($aUser[0]['firstName'] != '') || ($aUser[0]['lastName'] != '')) ? $aUser[0]['firstName'] . ' ' . $aUser[0]['lastName'] . ' ' : '') . '<' . $aUser[0]['user_email'] . '>';
             $objCase = new Cases();
-            $arrData = $objCase->getCaseInfo ($projectId, $appUid);
+            $arrData = $objCase->getCaseInfo ($appUid);
 
             $configNoteNotification['subject'] = "NEW COMMENT ADDED";
             $configNoteNotification['body'] = $arrData->getId () . ": " . $arrData->getName () . "<br />" . ": $authorName<br /><br />$noteContent";
+
             $sFrom = "bluetiger_uan@yahoo.com";
             $sBody = nl2br ($configNoteNotification['body']);
-            $oUser = new Users();
+            
+            $oUser = new UsersFactory();
             $recipientsArray = explode (",", $noteRecipients);
+            
             foreach ($recipientsArray as $recipientUid) {
-                $aUser = $oUser->load ($recipientUid);
-                $sTo = ((($aUser['USR_FIRSTNAME'] != '') || ($aUser['USR_LASTNAME'] != '')) ? $aUser['USR_FIRSTNAME'] . ' ' . $aUser['USR_LASTNAME'] . ' ' : '') . '<' . $aUser['USR_EMAIL'] . '>';
+                
+                $objUser = $oUser->getUsers($recipientUid);
 
+                $sTo = ((($objUser[0]->getFirstName () != '') || ($objUser[0]->getLastName () != '')) ? $objUser[0]->getFirstName () . ' ' . $objUser[0]->getLastName () . ' ' : '') . '<' . $objUser[0]->getUser_email () . '>';
+                
                 mail($sTo, $configNoteNotification['subject'], $sBody);
             }
             //Send derivation notification - End
         } catch (Exception $oException) {
             throw $oException;
         }
-    }
-
-    public function save ()
-    {
-        $objMysql = new Mysql2();
-        $id = $objMysql->_insert ($this->table, $this->object, false);
-        return $id;
-    }
-
-    public function getAttachment ()
-    {
-        $objMysql = new Mysql2();
-        return $objMysql->_select ($this->table, array(), array("id" => $this->id));
-    }
-
-    public function getAllComments ($sourceId)
-    {
-        $objMysql = new Mysql2();
-        return $objMysql->_select ($this->table, array(), array("source_id" => $sourceId));
     }
 
     public function doCount ($appUid, $usrUid = '', $start = '', $limit = 25, $sort = 'APP_NOTES.NOTE_DATE', $dir = 'DESC', $dateFrom = '', $dateTo = '', $search = '')
@@ -216,10 +201,12 @@ class Comments extends BaseComments
 
         $response = array();
         $totalCount = $this->doCount ($appUid, $usrUid, $start, $limit, $sort, $dir, $dateFrom, $dateTo, $search);
+        
         $response['totalCount'] = $totalCount;
 
         $response['notes'] = array();
-        if ( $start != '' )
+        
+        if ( trim($start) != '' )
         {
             $sql .= " LIMIT " . $limit;
             $sql .= " OFFSET " . $start;
@@ -233,30 +220,34 @@ class Comments extends BaseComments
         }
 
         $result['array'] = $response;
+        
         return $result;
 
 
         //`datetime` BETWEEN '2017-02-16' AND '2017-02-21'
     }
 
-    public function addCaseNote ($projectId, $caseId, $userUid, $note, $sendMail)
+    public function addCaseNote ($projectId, $userUid, $note, $sendMail)
     {
-        $response = $this->postNewNote($projectId, $caseId, $userUid, $note, false);
+        $response = $this->postNewNote($projectId, $projectId, $userUid, $note, false);
         
         if ( $sendMail == 1 )
         {
             $case = new Cases();
-            $p = $case->getUsersParticipatedInCase($projectId, $caseId);
+            $p = $case->getUsersParticipatedInCase($projectId);
+
             $noteRecipientsList = array();
-            foreach ($p["array"] as $key => $userParticipated) {
-                if ( $key != '' )
+
+            foreach ($p as $userParticipated) {
+                if ( $userParticipated != '' )
                 {
-                    $noteRecipientsList[] = $key;
+                    $noteRecipientsList[] = $userParticipated;
                 }
             }
             $noteRecipients = implode (",", $noteRecipientsList);
+
             $note = stripslashes ($note);
-            $this->sendNoteNotification($caseId, $projectId, $usrUid, $note, $noteRecipients);
+            $this->sendNoteNotification($projectId, $userUid, $note, $noteRecipients);
         }
         return $response;
     }

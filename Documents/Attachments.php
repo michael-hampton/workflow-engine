@@ -15,8 +15,16 @@ class Attachments
 
     public function __construct ()
     {
-        define ("PATH_DATA_PUBLIC", $_SERVER['DOCUMENT_ROOT'] . "/FormBuilder/public/");
-        define ("PATH_SEP", "/");
+        if ( !defined ("PATH_DATA_PUBLIC") )
+        {
+            define ("PATH_DATA_PUBLIC", $_SERVER['DOCUMENT_ROOT'] . "/FormBuilder/public/");
+        }
+
+        if ( !defined ("PATH_SEP") )
+        {
+            define ("PATH_SEP", "/");
+        }
+
         $this->objMysql = new Mysql2();
     }
 
@@ -186,64 +194,20 @@ class Attachments
             {
                 throw new Exception ('UPLOADING_FILE_PROBLEM');
             }
+            
+            $objFileUpload = new FileUpload();
 
-            foreach ($_FILES['fileUpload']['name'] as $key => $name) {
-                $arrName = explode ('.', $name);
-                $extention = strtolower (end ($arrName));
-
-                if ( !$extention )
-                {
-                    $extention = '.html';
-                    $_FILES['prf_file']['name'] = $_FILES['prf_file']['name'] . $extention;
-                }
-
-                $arrPath = explode ("/", $path);
-                $file = end ($arrPath);
-
-                if ( strpos ($file, "\\") > 0 )
-                {
-                    $file = str_replace ('\\', '/', $file);
-                    $file = end (explode ("/", $file));
-                }
-
-                $path = str_replace ($file, '', $path);
-
-                if ( $file == $name )
-                {
-                    if ( $_FILES['fileUpload']['error'][$key] != 1 )
-                    {
-                        if ( $_FILES['fileUpload']['tmp_name'][$key] != '' )
-                        {
-                            try {
-                                $content = file_get_contents ($_FILES['fileUpload']['tmp_name'][$key]);
-                                $result = array('file_content' => $content);
-
-                                if ( !is_dir ($path) )
-                                {
-                                    mkdir ($path);
-                                }
-
-                                move_uploaded_file ($_FILES['fileUpload']['tmp_name'][$key], $path . "/" . $file);
-                            } catch (Exception $ex) {
-                                
-                            }
-                        }
-                    }
-                    else
-                    {
-                        $result->success = false;
-                        $result->fileError = true;
-                        throw (new Exception ($result));
-                    }
-
-                    return $result;
-                }
-                else
-                {
-                    throw new Exception ('ID_PMTABLE_UPLOADING_FILE_PROBLEM');
+            if ( isset ($_FILES['fileUpload']) )
+            {
+                foreach ($_FILES['fileUpload']['name'] as $key => $name) {
+                    $objFileUpload->doUpload ($name, $path,  $_FILES['fileUpload']['error'][$key], $_FILES['fileUpload']['tmp_name'][$key]);
                 }
             }
-
+            else
+            {
+                $objFileUpload->doUpload ($_FILES['file']['name'], $path, $_FILES['file']['error'], $_FILES['file']['tmp_name']);
+            }
+            
             return array();
         } catch (Exception $e) {
             throw $e;
@@ -405,14 +369,14 @@ class Attachments
         $aFields = array();
 
         foreach ($arrAttachments as $arrAttachment) {
-            
-            $arrExploded = explode("_",$arrAttachment['filename']);
-            $version = substr( end($arrExploded), 0, strpos( end($arrExploded), ".")); 
-            
+
+            $arrExploded = explode ("_", $arrAttachment['filename']);
+            $version = substr (end ($arrExploded), 0, strpos (end ($arrExploded), "."));
+
             $version = $version == 0 ? 1 : $version;
-            
-            $filePath = str_replace("C:/xampp/htdocs", "", $arrAttachment['file_destination']);
-            $filePath = str_replace($arrAttachment['filename'], "", $filePath);
+
+            $filePath = str_replace ("C:/xampp/htdocs", "", $arrAttachment['file_destination']);
+            $filePath = str_replace ($arrAttachment['filename'], "", $filePath);
 
             $arrData = array(
                 'id' => $arrAttachment['id'],

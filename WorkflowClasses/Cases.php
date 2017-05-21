@@ -85,7 +85,7 @@ class Cases
         if ( $action == 'search' || $action == 'to_reassign' )
         {
             $userUid = ($user == "CURRENT_USER") || $user == '' ? $userUid : $user;
-            
+
             if ( $first )
             {
                 $result = array();
@@ -127,7 +127,7 @@ class Cases
         return $response;
     }
 
-    public function getUsersParticipatedInCase ($projectId, $caseId)
+    public function getUsersParticipatedInCase ($projectId)
     {
         if ( $this->objMysql === null )
         {
@@ -145,20 +145,20 @@ class Cases
             if ( isset ($workflowData['elements']) && !empty ($workflowData['elements']) )
             {
                 foreach ($workflowData['elements'] as $elementId => $element) {
-                    if ( $elementId == $caseId )
-                    {
-                        $previousStep = $this->getPreviousStep ($element['current_step'], $element['workflow_id']);
+                    //if ( $elementId == $caseId )
+                    //{
+                    $previousStep = $this->getPreviousStep ($element['current_step'], $element['workflow_id']);
 
-                        foreach ($auditData['elements'][$elementId]['steps'] as $audit) {
-                            $arrUsers[] = $audit['claimed'];
-                        }
+                    foreach ($auditData['elements'][$elementId]['steps'] as $audit) {
+                        $arrUsers[] = $audit['claimed'];
                     }
+                    //}
                 }
             }
 
             if ( !empty ($arrUsers) )
             {
-                return $arrUsers;
+                return array_unique ($arrUsers);
             }
 
             return [];
@@ -286,11 +286,12 @@ class Cases
 
                 if ( isset ($arrCase['workflow_id']) )
                 {
-                    $workflow = $this->objMysql->_select("workflow.workflows", array(), array("workflow_id" => $arrCase['workflow_id']));
+                    $workflow = $this->objMysql->_select ("workflow.workflows", array(), array("workflow_id" => $arrCase['workflow_id']));
                     $objCase->setWorkflow_id ($workflow_id);
-                    
-                    if(isset($workflow[0]) && !empty($workflow[0])) {
-                        $objCase->setWorkflowName($workflow[0]['workflow_name']);
+
+                    if ( isset ($workflow[0]) && !empty ($workflow[0]) )
+                    {
+                        $objCase->setWorkflowName ($workflow[0]['workflow_name']);
                     }
                 }
 
@@ -310,9 +311,10 @@ class Cases
                         $objCase->setCurrent_step ($step[0]['step_name']);
                     }
                 }
-                
-                if(isset($arrCase['status'])) {
-                    $objCase->setStatus($arrCase['status']);
+
+                if ( isset ($arrCase['status']) )
+                {
+                    $objCase->setStatus ($arrCase['status']);
                 }
 
                 if ( is_object ($objCase) )
@@ -369,7 +371,7 @@ class Cases
      *
      * return array Return an array with data of Case Info
      */
-    public function getCaseInfo ($projectId, $caseId, $userUid)
+    public function getCaseInfo ($projectId, $caseId = null, $userUid = null)
     {
         if ( $this->objMysql === null )
         {
@@ -384,12 +386,29 @@ class Cases
 
             if ( isset ($workflowData['elements']) && !empty ($workflowData['elements']) )
             {
+
+                // if no case id specified use the last element in the array
+                if ( $caseId === null )
+                {
+                    end ($workflowData['elements']);         // move the internal pointer to the end of the array
+                    $caseId = key ($workflowData['elements']);  // fetches the key of the element pointed to by the internal pointer
+                }
+
                 foreach ($workflowData['elements'] as $elementId => $element) {
                     if ( $elementId == $caseId )
                     {
                         $previousStep = $this->getPreviousStep ($element['current_step'], $element['workflow_id']);
 
-                        $audit = $auditData['elements'][$elementId]['steps'][$previousStep];
+                        if ( isset ($auditData['elements'][$elementId]['steps'][$previousStep]) )
+                        {
+                            $audit = $auditData['elements'][$elementId]['steps'][$previousStep];
+                        }
+                        elseif ( count ($auditData['elements'][$elementId]['steps']) == 1 )
+                        {
+                            end ($auditData['elements'][$elementId]['steps']);         // move the internal pointer to the end of the array
+                            $previousStep = key ($auditData['elements'][$elementId]['steps']);
+                            $audit = $auditData['elements'][$elementId]['steps'][$previousStep];
+                        }
 
                         $objElements = new Elements ($projectId, $elementId);
                         $objElements->setWorkflow_id ($element['workflow_id']);
@@ -457,7 +476,7 @@ class Cases
         }
 
         $objComments = new Comments();
-        $note_data = $appNote->getNotesList ($app_uid, $user, $start, $limit, $sort, $dir, $dateFrom, $dateTo, $search);
+        $note_data = $objComments->getNotesList ($app_uid, $user, $start, $limit, $sort, $dir, $dateFrom, $dateTo, $search);
         $response = array();
         if ( $paged === true )
         {
@@ -473,10 +492,11 @@ class Cases
             $response['data'] = array();
             $con = 0;
             foreach ($note_data['array']['notes'] as $value) {
-                $response['data'][$con]['app_uid'] = $value['APP_UID'];
-                $response['data'][$con]['usr_uid'] = $value['USR_UID'];
-                $response['data'][$con]['note_date'] = $value['NOTE_DATE'];
-                $response['data'][$con]['note_content'] = $value['NOTE_CONTENT'];
+                
+                $response['data'][$con]['app_uid'] = $value['source_id'];
+                $response['data'][$con]['usr_uid'] = $value['username'];
+                $response['data'][$con]['note_date'] = $value['datetime'];
+                $response['data'][$con]['note_content'] = $value['comment'];
                 $con++;
             }
         }
@@ -484,13 +504,14 @@ class Cases
         {
             $con = 0;
             foreach ($note_data['array']['notes'] as $value) {
-                $response[$con]['app_uid'] = $value['APP_UID'];
-                $response[$con]['usr_uid'] = $value['USR_UID'];
-                $response[$con]['note_date'] = $value['NOTE_DATE'];
-                $response[$con]['note_content'] = $value['NOTE_CONTENT'];
+                $response[$con]['app_uid'] = $value['source_id'];
+                $response[$con]['usr_uid'] = $value['username'];
+                $response[$con]['note_date'] = $value['datetime'];
+                $response[$con]['note_content'] = $value['comment'];
                 $con++;
             }
         }
+        
         return $response;
     }
 
@@ -506,29 +527,24 @@ class Cases
      */
     public function saveCaseNote ($app_uid, $usr_uid, $note_content, $send_mail = false)
     {
-        Validator::isString ($app_uid, '$app_uid');
-        Validator::appUid ($app_uid, '$app_uid');
-        Validator::isString ($usr_uid, '$usr_uid');
-        Validator::usrUid ($usr_uid, '$usr_uid');
-        Validator::isString ($note_content, '$note_content');
+        $this->isString ($app_uid, '$app_uid');
+        $this->projectUid ($app_uid);
+        $this->isString ($usr_uid, '$usr_uid');
+        $this->validateUserId ($usr_uid, '$usr_uid');
+        $this->isString ($note_content, '$note_content');
+
         if ( strlen ($note_content) > 500 )
         {
-            throw (new \Exception (\G::LoadTranslation ("ID_INVALID_MAX_PERMITTED", array($note_content, '500'))));
+            throw (new Exception ("COMMENT CANNOT BE MORE THAN 500 CHARACTERS"));
         }
-        Validator::isBoolean ($send_mail, '$send_mail');
-        $case = new \Cases();
-        $caseLoad = $case->loadCase ($app_uid);
-        $pro_uid = $caseLoad['PRO_UID'];
-        $tas_uid = \AppDelegation::getCurrentTask ($app_uid);
-        $respView = $case->getAllObjectsFrom ($pro_uid, $app_uid, $tas_uid, $usr_uid, 'VIEW');
-        $respBlock = $case->getAllObjectsFrom ($pro_uid, $app_uid, $tas_uid, $usr_uid, 'BLOCK');
-        if ( $respView['CASES_NOTES'] == 0 && $respBlock['CASES_NOTES'] == 0 )
-        {
-            throw (new \Exception (\G::LoadTranslation ("ID_CASES_NOTES_NO_PERMISSIONS")));
-        }
+
+        $this->isBoolean ($send_mail);
+        //$case = new \Cases();
+        //$caseLoad = $case->loadCase ($app_uid);
+        //$pro_uid = $caseLoad['PRO_UID'];
         $note_content = addslashes ($note_content);
-        $appNote = new \AppNotes();
-        $appNote->addCaseNote ($app_uid, $usr_uid, $note_content, intval ($send_mail));
+        $comments = new Comments();
+        $comments->addCaseNote ($app_uid, $usr_uid, $note_content, intval ($send_mail));
     }
 
     public function startCase ($workflowId)

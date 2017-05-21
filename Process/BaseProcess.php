@@ -105,12 +105,23 @@ class BaseProcess
     }
 
     /**
+     * Set the value of [pro_id] column.
      * 
-     * @param type $requestId
+     * @param      int $requestId new value
+     * @return     void
      */
     public function setRequestId ($requestId)
     {
-        $this->requestId = $requestId;
+        // Since the native PHP type for this column is integer,
+        // we will cast the input value to an int (if it is not).
+        if ( $requestId !== null && !is_int ($requestId) && is_numeric ($requestId) )
+        {
+            $requestId = (int) $requestId;
+        }
+        if ( $this->requestId !== $requestId )
+        {
+            $this->requestId = $requestId;
+        }
     }
 
     /**
@@ -119,7 +130,16 @@ class BaseProcess
      */
     public function setSystemId ($systemId)
     {
-        $this->systemId = $systemId;
+        // Since the native PHP type for this column is integer,
+        // we will cast the input value to an int (if it is not).
+        if ( $systemId !== null && !is_int ($systemId) && is_numeric ($systemId) )
+        {
+            $systemId = (int) $systemId;
+        }
+        if ( $this->systemId !== $systemId )
+        {
+            $this->systemId = $systemId;
+        }
     }
 
     /**
@@ -146,12 +166,21 @@ class BaseProcess
     }
 
     /**
+     * Set the value of [pro_status] column.
      * 
-     * @param type $ProStatus
+     * @param      int $ProStatus new value
+     * @return     void
      */
     public function setProStatus ($ProStatus)
     {
-        $this->ProStatus = $ProStatus;
+        if ( $ProStatus !== null && !is_int ($ProStatus) && is_numeric ($ProStatus) )
+        {
+            $ProStatus = (int) $ProStatus;
+        }
+        if ( $this->ProStatus !== $ProStatus )
+        {
+            $this->ProStatus = $ProStatus;
+        }
     }
 
     public function getProCreateUser ()
@@ -165,7 +194,14 @@ class BaseProcess
      */
     public function setProCreateUser ($ProCreateUser)
     {
-        $this->ProCreateUser = $ProCreateUser;
+        if ( $ProCreateUser !== null && !is_int ($ProCreateUser) && is_numeric ($ProCreateUser) )
+        {
+            $ProCreateUser = (int) $ProCreateUser;
+        }
+        if ( $this->ProCreateUser !== $ProCreateUser )
+        {
+            $this->ProCreateUser = $ProCreateUser;
+        }
     }
 
     public function getArrValidationErrors ()

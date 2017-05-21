@@ -304,6 +304,11 @@ class ProcessFiles
 
     public function delete ()
     {
+        if ( trim ($this->id) == "" || !is_numeric ($this->id) )
+        {
+            throw new Exception ("Invalid id given");
+        }
+
         $this->objMysql->_delete ("task_manager.attachments", array("id" => $this->id));
     }
 

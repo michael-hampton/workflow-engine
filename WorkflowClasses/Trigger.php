@@ -151,7 +151,7 @@ class Trigger
             "step_from" => $this->id
                 )
         );
-        
+
         return true;
     }
 
@@ -162,6 +162,10 @@ class Trigger
      */
     public function delete ($id)
     {
+        if ( trim ($id) == "" || !is_numeric ($id) )
+        {
+            throw new Exception ("Invalid id given");
+        }
 
         $this->objMysql->_update ("workflow.status_mapping", array("step_trigger" => ""), array("id" => $id));
 

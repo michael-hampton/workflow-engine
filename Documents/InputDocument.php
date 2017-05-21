@@ -204,7 +204,7 @@ class InputDocument
 
         return TRUE;
     }
-    
+
     public function getArrValidationErrors ()
     {
         return $this->arrValidationErrors;
@@ -258,8 +258,14 @@ class InputDocument
         );
     }
 
-    public function remove()
+    public function remove ()
     {
-        $this->objMysql->_delete("workflow.documents", array("id" => $this->id));
+        if ( trim ($this->id) == "" || !is_numeric ($this->id) )
+        {
+            throw new Exception ("Invalid id given");
+        }
+
+        $this->objMysql->_delete ("workflow.documents", array("id" => $this->id));
     }
+
 }

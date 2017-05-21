@@ -6,6 +6,38 @@ trait Validator
     private $connection;
 
     /**
+     * Validate project id
+     *
+     * @param string $project_uid, Uid for application
+     * @param string $nameField . Name of field for message
+     *
+     * @access public
+     *
+     * @return string
+     */
+    public function projectUid ($project_uid)
+    {
+        if ( $this->connection === null )
+        {
+            $this->connection = new Mysql2();
+        }
+
+        $project_uid = trim ($project_uid);
+        if ( $project_uid == '' )
+        {
+            throw (new Exception ("PROJECT DOES NOT EXIST"));
+        }
+        
+        $result = $this->connection->_select("task_manager.projects", array(), array("id" => $project_uid));
+        
+        if(isset($result[0]) && !empty($result[0])) {
+            return $project_uid;
+        }
+        
+         throw (new Exception ("PROJECT DOES NOT EXIST"));
+    }
+
+    /**
      * validates a user id
      * @param type $userId
      * @return boolean
@@ -158,7 +190,7 @@ trait Validator
      *
      * @return void
      */
-    public function isBoolean ($field, $nameField)
+    public function isBoolean ($field)
     {
         if ( !is_bool ($field) )
         {
@@ -304,7 +336,7 @@ trait Validator
         {
             return true;
         }
-        
+
         return false;
     }
 

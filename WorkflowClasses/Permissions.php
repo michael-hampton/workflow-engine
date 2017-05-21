@@ -122,7 +122,7 @@ class Permissions
 
         if ( $type == "master" )
         {
-             $this->objMysql->_query ("INSERT INTO workflow.step_permission (step_id, master_permission, permission_type) VALUES (?,?, ?)
+            $this->objMysql->_query ("INSERT INTO workflow.step_permission (step_id, master_permission, permission_type) VALUES (?,?, ?)
   				ON DUPLICATE KEY UPDATE master_permission = ?, permission_type = ?", [$this->stepId, $lists, $this->permissionType, $lists, $this->permissionType]);
         }
         else
@@ -130,11 +130,11 @@ class Permissions
             $this->objMysql->_query ("INSERT INTO workflow.step_permission (step_id, permission, permission_type) VALUES (?,?, ?)
   				ON DUPLICATE KEY UPDATE permission = ?, permission_type = ?", [$this->stepId, $lists, $this->permissionType, $lists, $this->permissionType]);
         }
-        
-        unset($this->lists);
-        unset($this->userId);
-        unset($this->deptId);
-        unset($this->teamId);
+
+        unset ($this->lists);
+        unset ($this->userId);
+        unset ($this->deptId);
+        unset ($this->teamId);
     }
 
     /**
@@ -148,6 +148,11 @@ class Permissions
 
     public function delete ()
     {
+        if ( empty ($this->getLists ()) )
+        {
+            throw new Exception ("Lists is empty");
+        }
+
         $lists = explode (",", $this->getLists ());
 
         foreach ($lists as $key => $list) {

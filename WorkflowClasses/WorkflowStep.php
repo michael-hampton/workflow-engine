@@ -208,7 +208,7 @@ class WorkflowStep
         }
     }
 
-    public function save ($objMike, $arrFormData)
+    public function save ($objMike, $arrFormData, $arrEmailAddresses = array())
     {
 
         if ( !$this->validateWorkflowStep ($arrFormData) )
@@ -228,14 +228,14 @@ class WorkflowStep
 
         if ( isset ($arrFormData['status']) )
         {
-            if ( $this->completeWorkflowObject ($objMike, $arrFormData, false) === false )
+            if ( $this->completeWorkflowObject ($objMike, $arrFormData, false, $arrEmailAddresses) === false )
             {
                 return false;
             }
         }
         else
         {
-            if ( $this->completeWorkflowObject ($objMike, array(), false) === false )
+            if ( $this->completeWorkflowObject ($objMike, array(), false, $arrEmailAddresses) === false )
             {
                 return false;
             }
@@ -256,7 +256,7 @@ class WorkflowStep
         return true;
     }
 
-    private function sendNotification ($objMike, array $arrCompleteData = [])
+    private function sendNotification ($objMike, array $arrCompleteData = [], $arrEmailAddresses = [])
     {
         $objNotifications = new SendNotification();
         $objNotifications->setVariables (5, $this->_systemName);
@@ -289,6 +289,10 @@ class WorkflowStep
         $objNotifications->setProjectId($this->parentId);
         $objNotifications->setElementId($this->elementId);
         
+        if(!empty($arrEmailAddresses)) {
+            $objNotifications->setArrEmailAddresses($arrEmailAddresses);
+        }
+        
         $objNotifications->buildEmail (5, $arrNotificationData);
     }
 
@@ -309,7 +313,7 @@ class WorkflowStep
         }
     }
 
-    private function completeWorkflowObject ($objMike, $arrCompleteData, $complete = false)
+    private function completeWorkflowObject ($objMike, $arrCompleteData, $complete = false, $arrEmailAddresses)
     {
         $this->elementId = $objMike->getId ();
 
@@ -393,7 +397,7 @@ class WorkflowStep
             $this->completeAuditObject ($arrCompleteData);
         }
 
-        $this->sendNotification ($objMike, $arrCompleteData);
+        $this->sendNotification ($objMike, $arrCompleteData, $arrEmailAddresses);
 
         // Update workflow and audit object
         $strAudit = json_encode ($this->objAudit);
@@ -422,9 +426,9 @@ class WorkflowStep
         }
     }
 
-    public function complete ($objMike, $arrCompleteData)
+    public function complete ($objMike, $arrCompleteData, $arrEmailAddresses = array())
     {
-        $this->completeWorkflowObject ($objMike, $arrCompleteData, true);
+        $this->completeWorkflowObject ($objMike, $arrCompleteData, true, $arrEmailAddresses);
 
         if ( isset ($this->nextStep) && $this->nextStep != 0 )
         {
