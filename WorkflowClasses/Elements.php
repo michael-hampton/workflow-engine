@@ -17,7 +17,6 @@ class Elements
     private $rejectionReason;
     private $workflowName;
     private $current_user;
-    private $auditData;
     public $arrElement = array();
     public $objJobFields = array(
         "location" => array("required" => "true", "type" => "string", "accessor" => "getLocation", "mutator" => "setLocation"),
@@ -56,11 +55,19 @@ class Elements
         $this->objMysql = new Mysql2();
     }
 
+    /**
+     * 
+     * @param type $id
+     */
     public function setId ($id)
     {
         $this->id = $id;
     }
 
+    /**
+     * 
+     * @param type $parentId
+     */
     public function setParentId ($parentId)
     {
         $this->source_id = $parentId;
@@ -71,6 +78,11 @@ class Elements
         return $this->source_id;
     }
 
+    /**
+     * 
+     * @param type $arrElements
+     * @return boolean
+     */
     public function loadObject ($arrElements)
     {
         $objVariables = new StepVariable();
@@ -136,6 +148,10 @@ class Elements
         return $this->status;
     }
 
+    /**
+     * 
+     * @param type $status
+     */
     public function setStatus ($status)
     {
         $this->status = $status;
@@ -166,12 +182,20 @@ class Elements
         return $this->file2;
     }
 
+    /**
+     * 
+     * @param type $location
+     */
     function setLocation ($location)
     {
         $this->location = $location;
         $this->arrElement['location'] = $location;
     }
 
+    /**
+     * 
+     * @param type $description
+     */
     function setDescription ($description)
     {
         $this->description = $description;
@@ -179,6 +203,10 @@ class Elements
         $this->object['scheduler']['description'] = $description;
     }
 
+    /**
+     * 
+     * @param type $name
+     */
     function setName ($name)
     {
         $this->name = $name;
@@ -186,6 +214,10 @@ class Elements
         $this->object['scheduler']['name'] = $name;
     }
 
+    /**
+     * 
+     * @param type $current_step
+     */
     function setCurrent_step ($current_step)
     {
         $this->current_step = $current_step;
@@ -193,24 +225,40 @@ class Elements
         $this->object['scheduler']['current_step'] = $current_step;
     }
 
+    /**
+     * 
+     * @param type $workflow_id
+     */
     function setWorkflow_id ($workflow_id)
     {
         $this->workflow_id = $workflow_id;
         $this->arrElement['workflow_id'] = $workflow_id;
     }
 
+    /**
+     * 
+     * @param type $source_id
+     */
     function setSource_id ($source_id)
     {
         $this->source_id = $source_id;
         $this->arrElement['source_id'] = $source_id;
     }
 
+    /**
+     * 
+     * @param type $sampleRef
+     */
     function setSampleRef ($sampleRef)
     {
         $this->sampleRef = $sampleRef;
         $this->arrElement['sampleRef'] = $sampleRef;
     }
 
+    /**
+     * 
+     * @param string $file2
+     */
     function setFile2 ($file2)
     {
         if ( isset ($this->file2) )
@@ -227,6 +275,10 @@ class Elements
         return $this->batch;
     }
 
+    /**
+     * 
+     * @param type $batch
+     */
     function setBatch ($batch)
     {
         $this->batch = $batch;
@@ -238,6 +290,10 @@ class Elements
         return $this->rejectionReason;
     }
 
+    /**
+     * 
+     * @param type $rejectionReason
+     */
     function setRejectionReason ($rejectionReason)
     {
         $this->rejectionReason = $rejectionReason;
@@ -254,11 +310,19 @@ class Elements
         return $this->current_user;
     }
 
+    /**
+     * 
+     * @param type $workflowName
+     */
     public function setWorkflowName ($workflowName)
     {
         $this->workflowName = $workflowName;
     }
 
+    /**
+     * 
+     * @param type $current_user
+     */
     public function setCurrent_user ($current_user)
     {
         $this->current_user = $current_user;
@@ -309,6 +373,12 @@ class Elements
         }
     }
 
+    /**
+     * 
+     * @param type $sourceId
+     * @param type $workflow
+     * @return type
+     */
     public function buildObjectId ($sourceId, $workflow)
     {
         $objMysql = new Mysql2();
@@ -367,21 +437,8 @@ class Elements
         }
     }
 
-    public function getAuditData ()
-    {
-        return $this->auditData;
-    }
-
     public function getCurrent_step ()
     {
         return $this->current_step;
     }
-
-    public function last ($arrData)
-    {
-        end ($arrData['steps']);
-        $key = key ($arrData['steps']);
-        return $key;
-    }
-
 }
