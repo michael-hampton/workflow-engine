@@ -737,5 +737,4 @@ class Cases
 
         return false;
     }
-
 }

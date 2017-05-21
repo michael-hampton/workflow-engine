@@ -70,8 +70,10 @@ class NotificationsFactory
         $query .= " ORDER BY " . $strOrderBy . " " . $strOrderDir;
 
         $arrResults = $this->objMysql->_query ($query, $arrWhere);
+        
+        $total = count($arrResults);
 
-        return $arrResults[0]['totalCount'];
+        return $total;
     }
 
     /**

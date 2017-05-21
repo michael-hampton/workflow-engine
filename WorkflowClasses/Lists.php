@@ -127,12 +127,24 @@ class Lists
         }
     }
 
-    public function getCounters ()
+    public function getCounters (Users $objUser = null)
     {
-        $response = array(
-            //array('count' => $aRow['USR_TOTAL_INBOX'],          'item' => 'CASES_INBOX'),
-            //array('count' => $aRow['USR_TOTAL_DRAFT'],          'item' => 'CASES_DRAFT'),
+        $inboxCount = 0;
+        $draftCount = 0;
 
+        if ( $objUser !== null && is_object ($objUser) )
+        {
+            $objUsers = new UsersFactory ($userUid);
+            $arrUser = $objUsers->getUsers ();
+            $objNotificationsFactory = new NotificationsFactory();
+
+            $inboxCount = $objNotificationsFactory->countNotifications (array("user" => $objUser->getUser_email (), "status" => 1), "ns.date_sent", "DESC");
+            $draftCount = $objNotificationsFactory->countNotifications (array("user" => $objUser->getUser_email (), "status" => 2), "ns.date_sent", "DESC");
+        }
+
+        $response = array(
+            array('count' => $inboxCount, 'item' => 'CASES_INBOX'),
+            array('count' => $draftCount, 'item' => 'CASES_DRAFT'),
             array('count' => $this->abandonedCounter, 'item' => 'ABANDONED'),
             array('count' => $this->participatedCounter, 'item' => 'PARTICIPATED'),
             array('count' => $this->pausedCounter, 'item' => 'PAUSED'),
@@ -147,11 +159,7 @@ class Lists
 
     private function getLastStep ($workflowId)
     {
-        $result = $this->objMysql->_query ("SELECT * FROM workflow.`status_mapping`
-                                                    WHERE step_to = 0 AND workflow_id = 
-                                                        (SELECT workflow_id FROM workflow.status_mapping 
-                                                                                WHERE id = 21
-                                                            )", [$workflowId]);
+        $result = $this->objMysql->_select ("workflow.status_mapping", array(), array("step_to" => 0, "workflow_id" => $workflowId));
 
         return $result[0]['id'];
     }
@@ -168,13 +176,18 @@ class Lists
 
             $this->validateUserId ($dataList["userId"]);
             $userUid = $dataList["userId"];
+
+            $objUsers = new UsersFactory ($userUid);
+            $arrUser = $objUsers->getUsers ();
         }
 
-        if(isset($dataList['page']) && is_numeric ($dataList['page'])) {
+        if ( isset ($dataList['page']) && is_numeric ($dataList['page']) )
+        {
             $page = $dataList['page'];
         }
-        
-         if(isset($dataList['page_limit']) && is_numeric ($dataList['page_limit'])) {
+
+        if ( isset ($dataList['page_limit']) && is_numeric ($dataList['page_limit']) )
+        {
             $pageLimit = $dataList['page_limit'];
         }
 
@@ -225,17 +238,33 @@ class Lists
 
         if ( $listName !== "" )
         {
+            $objNotificationsFactory = new NotificationsFactory();
+            
+            if($listName == "inbox") {
+               $arrList = $objNotificationsFactory->getNotifications(array("status" => 1, "user" => $arrUser[0]->getUser_email()));
+            
+               return $arrList;
+            }
+            
+            if($listName === "draft") {
+                 $arrList = $objNotificationsFactory->getNotifications(array("status" => 2, "user" => $arrUser[0]->getUser_email()));
+            
+                 return $arrList;
+            }
+            
+            
             foreach ($response as $list) {
                 if ( $list['item'] == $listName )
                 {
                     $arrProjects = $this->loadProjects ($list['list']);
-                    
-                    if(isset($page) && isset($pageLimit)) {
-                        $arrrPaginated = $this->paginate($arrProjects, $pageLimit, $page);
-                        
+
+                    if ( isset ($page) && isset ($pageLimit) )
+                    {
+                        $arrrPaginated = $this->paginate ($arrProjects, $pageLimit, $page);
+
                         return $arrrPaginated;
                     }
-                    
+
                     return $arrProjects;
                 }
             }
@@ -257,7 +286,7 @@ class Lists
         foreach ($list as $parentId => $arrList) {
             foreach ($arrList as $id) {
                 $objCases = new Cases();
-                $objElement = $objCases->getCaseInfo($parentId, $id);
+                $objElement = $objCases->getCaseInfo ($parentId, $id);
                 $arrProjects[] = $objElement;
             }
         }
@@ -276,16 +305,16 @@ class Lists
     {
         $intPageLimit = (int) $intPageLimit;
         $page = (int) $page;
-        $totalRows = (int) count($array);
+        $totalRows = (int) count ($array);
         $_SESSION["pagination"]["current_page"] = $page;
-        
+
         $page = $page < 1 ? 1 : $page + 1;
 
         $start = ($page - 1) * $intPageLimit;
-        
-        $_SESSION["pagination"]["total_pages"] = (int) ceil(($totalRows / $intPageLimit));
+
+        $_SESSION["pagination"]["total_pages"] = (int) ceil (($totalRows / $intPageLimit));
         $_SESSION["pagination"]["total_counter"] = $totalRows;
-        
+
         return array_slice ($array, $start, $intPageLimit);
     }
 
