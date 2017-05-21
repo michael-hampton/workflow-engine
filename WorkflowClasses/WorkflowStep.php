@@ -244,8 +244,8 @@ class WorkflowStep
 
     private function validateWorkflowStep ($arrFormData)
     {
-        $objValidate = new FieldValidator($this->_stepId);
-        $arrErrorsCodes = $objValidate->validate($arrFormData);
+        $objValidate = new FieldValidator ($this->_stepId);
+        $arrErrorsCodes = $objValidate->validate ($arrFormData);
 
         if ( !empty ($arrErrorsCodes) )
         {
@@ -260,7 +260,7 @@ class WorkflowStep
     {
         $objNotifications = new SendNotification();
         $objNotifications->setVariables (5, $this->_systemName);
-        $objNotifications->setProjectId($this->parentId);
+        $objNotifications->setProjectId ($this->parentId);
 
         $arrNotificationFields = $objNotifications->getMessageParameters ();
 
@@ -285,20 +285,20 @@ class WorkflowStep
                 $arrNotificationData['step_name'] = $this->_stepName;
             }
         }
-        
-        $objNotifications->setProjectId($this->parentId);
-        $objNotifications->setElementId($this->elementId);
-        
-        if(!empty($arrEmailAddresses)) {
-            $objNotifications->setArrEmailAddresses($arrEmailAddresses);
+
+        $objNotifications->setProjectId ($this->parentId);
+        $objNotifications->setElementId ($this->elementId);
+
+        if ( !empty ($arrEmailAddresses) )
+        {
+            $objNotifications->setArrEmailAddresses ($arrEmailAddresses);
         }
-        
+
         $objNotifications->buildEmail (5, $arrNotificationData);
     }
 
     private function completeAuditObject (array $arrCompleteData = [])
     {
-
         if ( is_numeric ($this->parentId) && is_numeric ($this->elementId) )
         {
             $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['claimed'] = $arrCompleteData['claimed'];
@@ -334,7 +334,7 @@ class WorkflowStep
 
         $arrWorkflow['request_id'] = $this->collectionId;
 
-        $objTrigger = new StepTrigger($this->nextStep);
+        $objTrigger = new StepTrigger ($this->nextStep);
 
         if ( $complete === true && $this->nextStep !== 0 && $this->nextStep != "" )
         {
@@ -404,7 +404,7 @@ class WorkflowStep
         $strWorkflow = json_encode ($this->objWorkflow);
 
         $objectId = isset ($this->parentId) && is_numeric ($this->parentId) ? $this->parentId : $this->elementId;
-        
+
         if ( !empty ($arrWorkflowData) )
         {
             $this->objMysql->_update ("workflow.workflow_data", array(

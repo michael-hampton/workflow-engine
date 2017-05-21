@@ -492,7 +492,7 @@ class Cases
             $response['data'] = array();
             $con = 0;
             foreach ($note_data['array']['notes'] as $value) {
-                
+
                 $response['data'][$con]['app_uid'] = $value['source_id'];
                 $response['data'][$con]['usr_uid'] = $value['username'];
                 $response['data'][$con]['note_date'] = $value['datetime'];
@@ -511,7 +511,7 @@ class Cases
                 $con++;
             }
         }
-        
+
         return $response;
     }
 
@@ -560,6 +560,140 @@ class Cases
         $html = $objFprmBuilder->buildForm ($arrFields, array());
 
         return $html;
+    }
+
+    /* Add New Case
+     *
+     * @param string $processUid Unique id of Project
+     * @param string $taskUid Unique id of Activity (task)
+     * @param string $userUid Unique id of Case
+     * @param array $variables
+     *
+     * return array Return an array with Task Case
+     */
+
+    public function addCase ($processUid, $userUid, $variables, $arrFiles = array())
+    {
+        try {
+            $oProcesses = new Process();
+
+            $pro = $oProcesses->processExists ($processUid);
+
+            if ( !$pro )
+            {
+                throw new Exception ("Process doesnt exist");
+            }
+
+            $arrData['form'] = array("description" => $variables['form']['description'],
+                "name" => $variables['form']['name'],
+                "priority" => 1,
+                "deptId" => 1,
+                "workflow_id" => $variables['workflowid'],
+                "added_by" => $_SESSION['user']['username'],
+                "date_created" => date ("Y-m-d"),
+                "project_status" => 1,
+                "dueDate" => date ("Y-m-d")
+            );
+
+            $arrData['form']['status'] = "NEW PROJECT";
+            $arrData['form']['dateCompleted'] = date ("Y-m-d H:i:s");
+            $arrData['form']['claimed'] = $_SESSION['user']['username'];
+
+            $projectId = $this->saveProject ($arrData, $processUid);
+            $this->projectUid ($projectId);
+            $errorCounter = 0;
+
+            $objElements = new Elements ($projectId);
+            $objWorkflow = new Workflow ($processUid);
+            $objStep = $objWorkflow->getNextStep ();
+
+            if ( isset ($arrFiles['fileUpload']) )
+            {
+                $arrFiles = $this->uploadCaseFiles ($arrFiles, $projectId, $objStep);
+
+                if ( !$arrFiles )
+                {
+                    $errorCounter++;
+                }
+            }
+
+            if ( $errorCounter === 0 )
+            {
+                if ( isset ($arrFiles) && !empty ($arrFiles) )
+                {
+                    $_POST['form']['file2'] = implode (",", $arrFiles);
+                }
+
+                $variables['form']['source_id'] = $projectId;
+
+                $variables['form']['status'] = "NEW";
+                $variables['form']['workflow_id'] = $processUid;
+                $variables['form']['claimed'] = $_SESSION["user"]["username"];
+                $variables['form']['dateCompleted'] = date ("Y-m-d H:i:s");
+
+                $validation = $objStep->save ($objElements, $variables['form']);
+
+                if ( $validation === false )
+                {
+                    $validate['validation'] = $objStep->getFieldValidation ();
+                    echo json_encode ($validate);
+                    return false;
+                }
+            }
+        } catch (Exception $ex) {
+            throw new Exception ($ex);
+        }
+    }
+
+    /**
+     * Uploads files that were saved as part of the new case process
+     * @see addCase
+     */
+    private function uploadCaseFiles ($arrFilesUploaded, $projectId, WorkflowStep $objStep)
+    {
+        if ( isset ($arrFilesUploaded['fileUpload']['name'][0]) && !empty ($arrFilesUploaded['fileUpload']['name'][0]) )
+        {
+            foreach ($arrFilesUploaded['fileUpload']['name'] as $key => $value) {
+
+                $fileContent = file_get_contents ($arrFilesUploaded['fileUpload']['tmp_name'][$key]);
+
+                $arrData = array(
+                    "source_id" => $projectId,
+                    "filename" => $value,
+                    "date_uploaded" => date ("Y-m-d H:i:s"),
+                    "uploaded_by" => $_SESSION['user']['username'],
+                    "contents" => $fileContent,
+                    "files" => $arrFilesUploaded,
+                    "step" => $objStep
+                );
+
+                $objAttachments = new Attachments();
+                $id = $arrFiles = $objAttachments->loadObject ($arrData);
+                $arrFiles[] = $id;
+            }
+        }
+        else
+        {
+            $arrErrors[] = "file";
+        }
+
+        if ( !empty ($arrErrors) )
+        {
+            return false;
+        }
+
+        return $arrFiles;
+    }
+
+    public function saveProject ($arrData, $workflowId)
+    {
+        $objSave = new Save();
+        $objWorkflow = new Workflow ($workflowId);
+        $objStep = $objWorkflow->getNextStep ();
+        $validation = $objStep->save ($objSave, $arrData['form']);
+        $projectId = $objSave->getId ();
+
+        return $projectId;
     }
 
 }
