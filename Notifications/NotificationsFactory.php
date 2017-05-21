@@ -178,16 +178,12 @@ class NotificationsFactory
 
             if ( !empty ($arrResult['case_id']) )
             {
-                $objElements = new Elements ($arrResult['project_id'], $arrResult['case_id']);
-                $arrAllMessages[$key]['project'] = $objElements;
+                $objCases = new Cases();
+                $objElement = $objCases->getCaseInfo($arrResult['project_id'], $arrResult['case_id']);
+                $arrAllMessages[$key]['project'] = $objElement;
 
                 $arrAllMessages[$key]['notifications'] = $objNotifications;
             }
-//            elseif ( !empty ($arrResult['project_id']) )
-//            {
-//                $objSave = new Save ($arrResult['project_id']);
-//                $arrAllMessages[$key]['project'] = $objSave;
-//            }
         }
 
         return $arrAllMessages;

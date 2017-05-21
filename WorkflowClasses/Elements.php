@@ -372,30 +372,6 @@ class Elements
         return $this->auditData;
     }
 
-    public function setAuditData ()
-    {
-        $arrWorkflowData = $this->objMysql->_select ("workflow.workflow_data", array(), array("object_id" => $this->source_id));
-        $auditData = json_decode ($arrWorkflowData[0]['workflow_data'], true);
-
-        if ( is_numeric ($this->id) )
-        {
-            $this->auditData = $auditData['elements'][$this->id];
-
-            $current_step = $this->auditData['current_step'];
-
-            $result = $this->objMysql->_query ("SELECT s.step_name FROM workflow.`status_mapping` m
-                                                INNER JOIN workflow.steps s ON s.step_id = m.`step_from`
-                                                WHERE m.id = ?", [$current_step]);
-
-            if ( empty ($result) )
-            {
-                return false;
-            }
-
-            $this->current_step = $result[0]['step_name'];
-        }
-    }
-
     public function getCurrent_step ()
     {
         return $this->current_step;

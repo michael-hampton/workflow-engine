@@ -172,10 +172,6 @@ class Lists
 
         if(isset($dataList['page']) && is_numeric ($dataList['page'])) {
             $page = $dataList['page'];
-            
-//            if($page > 0) {
-//                $page += 1;
-//            }
         }
         
          if(isset($dataList['page_limit']) && is_numeric ($dataList['page_limit'])) {
@@ -259,10 +255,10 @@ class Lists
         $arrProjects = [];
 
         foreach ($list as $parentId => $arrList) {
-            foreach ($arrList as $key => $id) {
-                $objElements = new Elements ($parentId, $id);
-                $objElements->setAuditData ();
-                $arrProjects[] = $objElements;
+            foreach ($arrList as $id) {
+                $objCases = new Cases();
+                $objElement = $objCases->getCaseInfo($parentId, $id);
+                $arrProjects[] = $objElement;
             }
         }
 

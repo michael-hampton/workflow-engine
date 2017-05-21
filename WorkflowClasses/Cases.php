@@ -286,10 +286,11 @@ class Cases
 
                 if ( isset ($arrCase['workflow_id']) )
                 {
-                    $workflow = $this->objMysql->_select ("workflow.workflows", array(), array("workflow_id" => $arrCase['workflow_id']));
-                    $objCase->setWorkflow_id ($workflow_id);
 
-                    if ( isset ($workflow[0]) && !empty ($workflow[0]) )
+                    $objCase->setWorkflow_id ($workflow_id);
+                    $workflowName = $this->getWorkflowName ($arrCase['workflow_id']);
+
+                    if ( $workflowName !== false )
                     {
                         $objCase->setWorkflowName ($workflow[0]['workflow_name']);
                     }
@@ -302,13 +303,12 @@ class Cases
 
                 if ( isset ($arrCase['current_step']) )
                 {
-                    $step = $this->objMysql->_query ("SELECT s.step_name FROM workflow.status_mapping m
-                                                    INNER JOIN workflow.steps s ON s.step_id = m.step_from
-                                                    WHERE m.id = ?", [$arrCase['current_step']]);
 
-                    if ( isset ($step[0]['step_name']) && !empty ($step[0]['step_name']) )
+                    $stepName = $this->getStepName ($arrCase['current_step']);
+
+                    if ( $stepName !== false )
                     {
-                        $objCase->setCurrent_step ($step[0]['step_name']);
+                        $objCase->setCurrent_step ($stepName);
                     }
                 }
 
@@ -348,19 +348,6 @@ class Cases
         $arrData['data'] = array_slice ($array, $start, $intPageLimit);
 
         return $arrData;
-    }
-
-    private function getPreviousStep ($currentStep, $workflowId)
-    {
-        $result1 = $this->objMysql->_select ("workflow.status_mapping", array("step_from"), array("id" => $currentStep, "workflow_id" => $workflowId));
-        $result = $this->objMysql->_select ("workflow.status_mapping", array("id"), array("step_to" => $result1[0]['step_from'], "workflow_id" => $workflowId));
-
-        if ( isset ($result[0]) && !empty ($result[0]) )
-        {
-            return $result[0]['id'];
-        }
-
-        return false;
     }
 
     /**
@@ -411,9 +398,21 @@ class Cases
                         }
 
                         $objElements = new Elements ($projectId, $elementId);
+                        
+                        $workflowName = $this->getWorkflowName($element['workflow_id']);
+                        
+                        if($workflowName !== false) {
+                            $objElements->setWorkflowName($workflowName);
+                        }
+                        
                         $objElements->setWorkflow_id ($element['workflow_id']);
                         $objElements->setCurrent_user ($audit['claimed']);
-                        $objElements->setCurrent_step ($element['current_step']);
+                        
+                        $stepName = $this->getStepName($element['current_step']);
+                        
+                        if($stepName !== false) {
+                            $objElements->setCurrent_step($stepName);
+                        }
 
                         return $objElements;
                     }
@@ -572,9 +571,7 @@ class Cases
      * return array Return an array with Task Case
      */
 
-    public function addCase ($processUid, $userUid, 
-            $variables, $arrFiles = array(), 
-            $blSaveProject = true, $projectId = null)
+    public function addCase ($processUid, $userUid, $variables, $arrFiles = array(), $blSaveProject = true, $projectId = null)
     {
         try {
             $oProcesses = new Process();
@@ -700,6 +697,45 @@ class Cases
         $projectId = $objSave->getId ();
 
         return $projectId;
+    }
+
+    private function getWorkflowName ($workflowId)
+    {
+        $workflow = $this->objMysql->_select ("workflow.workflows", array(), array("workflow_id" => $workflowId));
+
+        if ( isset ($workflow[0]['workflow_name']) && trim ($workflow[0]['workflow_name']) !== "" )
+        {
+            return $workflow[0]['workflow_name'];
+        }
+
+        return false;
+    }
+
+    private function getStepName ($stepName)
+    {
+        $step = $this->objMysql->_query ("SELECT s.step_name FROM workflow.status_mapping m
+                                                    INNER JOIN workflow.steps s ON s.step_id = m.step_from
+                                                    WHERE m.id = ?", [$stepName]);
+
+        if ( isset ($step[0]['step_name']) && trim ($step[0]['step_name']) !== "" )
+        {
+            return $step[0]['step_name'];
+        }
+
+        return false;
+    }
+
+    private function getPreviousStep ($currentStep, $workflowId)
+    {
+        $result1 = $this->objMysql->_select ("workflow.status_mapping", array("step_from"), array("id" => $currentStep, "workflow_id" => $workflowId));
+        $result = $this->objMysql->_select ("workflow.status_mapping", array("id"), array("step_to" => $result1[0]['step_from'], "workflow_id" => $workflowId));
+
+        if ( isset ($result[0]) && !empty ($result[0]) )
+        {
+            return $result[0]['id'];
+        }
+
+        return false;
     }
 
 }
