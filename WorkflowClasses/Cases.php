@@ -572,7 +572,9 @@ class Cases
      * return array Return an array with Task Case
      */
 
-    public function addCase ($processUid, $userUid, $variables, $arrFiles = array())
+    public function addCase ($processUid, $userUid, 
+            $variables, $arrFiles = array(), 
+            $blSaveProject = true, $projectId = null)
     {
         try {
             $oProcesses = new Process();
@@ -599,8 +601,12 @@ class Cases
             $arrData['form']['dateCompleted'] = date ("Y-m-d H:i:s");
             $arrData['form']['claimed'] = $_SESSION['user']['username'];
 
-            $projectId = $this->saveProject ($arrData, $processUid);
-            $this->projectUid ($projectId);
+            if ( $blSaveProject === true )
+            {
+                $projectId = $this->saveProject ($arrData, $processUid);
+                $this->projectUid ($projectId);
+            }
+
             $errorCounter = 0;
 
             $objElements = new Elements ($projectId);
