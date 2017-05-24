@@ -78,23 +78,6 @@ class Form extends FieldFactory
 
     /**
      * 
-     * @param type $name
-     * @return boolean
-     */
-    public function checkNameExists ($name)
-    {
-        $arrResult = $this->objMysql->_select ("workflow.fields", array("field_id"), array("field_name" => $name));
-
-        if ( isset ($arrResult[0]) && !empty ($arrResult[0]) )
-        {
-            return $arrResult[0]['field_id'];
-        }
-
-        return false;
-    }
-
-    /**
-     * 
      * @param type $arrData
      * @param type $arrFormData
      * @param type $checked
@@ -105,72 +88,18 @@ class Form extends FieldFactory
         $arrFields = json_decode ($arrData, true);
         $arrErrors = array();
 
+        $objFieldFactory = new FieldFactory();
+
+
         foreach ($arrFields as $arrField) {
 
-            if ( $arrField['type'] != "paragraph" && empty ($arrField['name']) )
+            $fieldId = $objFieldFactory->create ($arrField);
+
+            if ( !is_numeric ($fieldId) )
             {
-                $arrErrors[] = "fieldNameWarning";
+                throw new Exception ("Field could not be created");
             }
 
-            if ( empty ($arrField['label']) )
-            {
-                $arrErrors[] = "labelWarning";
-            }
-
-            if ( empty ($arrField['type']) )
-            {
-                $arrErrors[] = "field_typeWarning";
-            }
-
-            $check = $this->checkNameExists ($arrField['name']);
-
-
-            if ( count ($arrErrors) > 0 )
-            {
-                return array("errors" => $arrErrors);
-            }
-
-            $fieldType = $this->objMysql->_select ("workflow.field_types", array(), array("field_type" => $arrField['type']));
-            $fieldType = $fieldType[0]['field_type_id'];
-
-            $objStepField = new StepField();
-            $objStepField->setFieldType ($fieldType);
-            $objStepField->setFieldName ($arrField['name']);
-            $objStepField->setFieldId ($arrField['name']);
-            $objStepField->setLabel ($arrField['label']);
-            $objStepField->setFieldClass ($arrField['className']);
-
-            if ( isset ($arrField['value']) )
-            {
-                $objStepField->setDefaultValue ($arrField['value']);
-            }
-
-            if ( isset ($arrField['maxlength']) )
-            {
-                $objStepField->setMaxLength ($arrField['maxlength']);
-            }
-
-            if ( isset ($arrField['placeholder']) )
-            {
-                $objStepField->setPlaceholder ($arrField['placeholder']);
-            }
-
-            if ( isset ($arrField['value_type']) )
-            {
-                $objStepField->setType ($arrField['value_type']);
-            }
-
-            if ( isset ($arrField['validation']) )
-            {
-                $objStepField->setValidation ($arrField['validation']);
-            }
-
-            if ( isset ($check) && is_numeric ($check) )
-            {
-                $objStepField->setId ($check);
-            }
-
-            $fieldId = $objStepField->save ();
             $this->fieldId = $fieldId;
             $arrFieldIds[] = $fieldId;
 
@@ -203,17 +132,20 @@ class Form extends FieldFactory
                 }
                 elseif ( !empty ($arrFormData['databaseName']) && !empty ($arrFormData['tableName']) )
                 {
-                    $arrOptions = array(
-                        "databaseName" => $_REQUEST['databaseName'],
-                        "tableName" => $_REQUEST['tableName'],
-                        "idColumn" => $_REQUEST['columnName'],
-                        "valueColumn" => $_REQUEST['columnName'],
-                    );
+                    $objDatabaseOptions = new DatabaseOptions ($fieldId);
+                    $objDatabaseOptions->setDatabaseName ($arrFormData['databaseName']);
+                    $objDatabaseOptions->setIdColumn ($arrFormData['columnName']);
+                    $objDatabaseOptions->setTableName ($arrFormData['tableName']);
+                    $objDatabaseOptions->setValueColumn ($arrFormData['columnName']);
 
-                    $objFieldOptions = new FieldOptions ($fieldId);
-                    $objFieldOptions->setDataType (2);
-                    $objFieldOptions->set_strOptions ($arrOptions);
-                    $objFieldOptions->saveDataType ();
+                    if ( $objDatabaseOptions->validate () )
+                    {
+                        $objDatabaseOptions->save ();
+                    }
+                    else
+                    {
+                        
+                    }
                 }
             }
 
@@ -299,7 +231,7 @@ class Form extends FieldFactory
         $objFormBuilder = new FormBuilder();
         $buildSummary = false;
         $html = '';
-        
+
         $objAttachments = new Attachments();
         $arrAttachments = $objAttachments->getAllAttachments ($projectId);
         $attachmentHTML = $objFormBuilder->buildAttachments ($arrAttachments);

@@ -10,6 +10,24 @@ class FieldFactory
         $this->objMysql = new Mysql2();
     }
 
+    public function getFieldByIdentifier ($fieldIdentifier)
+    {
+
+        if ( $this->objMysql == null )
+        {
+            $this->createConnection ();
+        }
+
+        $result = $this->objMysql->_select ("workflow.fields", array(), array("field_identifier" => $fieldIdentifier));
+
+        if ( isset ($result[0]) && !empty ($result[0]) )
+        {
+            return $result[0]['field_id'];
+        }
+
+        return [];
+    }
+
     /**
      * 
      * @return \StepField|boolean
@@ -178,6 +196,38 @@ class FieldFactory
         $arrResult = $this->objMysql->_query ($query, $arrParameters);
 
         return $arrResult;
+    }
+
+    public function create ($aData)
+    {
+        try {
+            $oFields = new StepField();
+            $field = $this->getFieldByIdentifier ($aData['id']);
+
+            if ( !empty ($field) && is_numeric ($field) )
+            {
+                $oFields->setId ($field);
+            }
+
+            $oFields->loadObject ($aData);
+
+            if ( $oFields->validate () )
+            {
+                $id = $oFields->save ();
+                return $id;
+            }
+            else
+            {
+                $sMessage = '';
+                $aValidationFailures = $oFields->getValidationFailures ();
+                foreach ($aValidationFailures as $strMessage) {
+                    $sMessage .= $strMessage . '<br />';
+                }
+                throw(new Exception ('The field cannot be created!<br />' . $sMessage));
+            }
+        } catch (Exception $ex) {
+            throw($ex);
+        }
     }
 
     /**

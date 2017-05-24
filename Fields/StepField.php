@@ -24,9 +24,18 @@ class StepField
     private $stepId;
     private $value;
     private $isDisabled;
+    private $ValidationFailures;
+    private $arrayFieldDefinition = array(
+        "type" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getFieldType", "mutator" => "setFieldType"),
+        "required" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getTableName", "mutator" => "setTableName"),
+        "label" => array("type" => "string", "required" => true, "empty" => true, "accessor" => "getLabel", "mutator" => "setLabel"),
+        "placeholder" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getPlaceholder", "mutator" => "setPlaceholder"),
+        "className" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getFieldClass", "mutator" => "setFieldClass"),
+        "name" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getFieldName", "mutator" => "setFieldName"),
+    );
 
     /**
-     * 
+     *
      * @param type $fieldId
      * @param type $stepId
      */
@@ -45,6 +54,52 @@ class StepField
         $this->objMysql = new Mysql2();
     }
 
+    public function loadObject ($arrField)
+    {
+        foreach ($arrField as $formField => $formValue) {
+
+            if ( isset ($this->arrayFieldDefinition[$formField]) )
+            {
+                $mutator = $this->arrayFieldDefinition[$formField]['mutator'];
+
+                if ( method_exists ($this, $mutator) && is_callable (array($this, $mutator)) )
+                {
+                    if ( isset ($this->arrayFieldDefinition[$formField]) && trim ($formValue) != "" )
+                    {
+                        call_user_func (array($this, $mutator), $formValue);
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+    
+     public function validate ()
+    {
+        $errorCount = 0;
+
+        foreach ($this->arrayFieldDefinition as $fieldName => $arrField) {
+            if ( $arrField['required'] === true )
+            {
+                $accessor = $this->arrayFieldDefinition[$fieldName]['accessor'];
+
+                if ( trim ($this->$accessor ()) == "" )
+                {
+                    $this->ValidationFailures[] = $fieldName . " Is empty. It is a required field";
+                    $errorCount++;
+                }
+            }
+        }
+
+        if ( $errorCount > 0 )
+        {
+            return FALSE;
+        }
+
+        return TRUE;
+    }
+
     /**
      * @return mixed
      */
@@ -59,6 +114,20 @@ class StepField
     public function setId ($id)
     {
         $this->id = $id;
+    }
+    
+    public function getValidationFailures ()
+    {
+        return $this->ValidationFailures;
+    }
+
+    /**
+     * 
+     * @param type $ValidationFailures
+     */
+    public function setValidationFailures ($ValidationFailures)
+    {
+        $this->ValidationFailures = $ValidationFailures;
     }
 
     /**
@@ -250,28 +319,28 @@ class StepField
     {
         $this->type = $type;
     }
-    
+
     public function getValue ()
     {
         return $this->value;
     }
 
     /**
-     * 
+     *
      * @param type $value
      */
     public function setValue ($value)
     {
         $this->value = $value;
     }
-    
+
     public function getIsDisabled ()
     {
         return $this->isDisabled;
     }
 
     /**
-     * 
+     *
      * @param type $isDisabled
      */
     public function setIsDisabled ($isDisabled)
@@ -279,8 +348,6 @@ class StepField
         $this->isDisabled = $isDisabled;
     }
 
-    
-    
     public function save ()
     {
         if ( is_numeric ($this->id) )
@@ -326,7 +393,7 @@ class StepField
     }
 
     /**
-     * 
+     *
      */
     public function delete ()
     {
