@@ -10,7 +10,9 @@ class FormBuilder
     protected $html;
     protected $label;
     protected $key;
+    private $attachmentHtml;
     private $documentHTML;
+    private $arrUploadedFiles = array();
 
     public function __construct ($id = "pfbc")
     {
@@ -24,13 +26,8 @@ class FormBuilder
         $this->setForm ();
     }
 
-    public function buildForm ($arrFormFields, $arrDocs)
+    public function buildForm ($arrFormFields)
     {
-        if ( !empty ($arrDocs) )
-        {
-            $this->buildDocHTML($arrDocs);
-        }
-
         if ( !empty ($arrFormFields) )
         {
             foreach ($arrFormFields as $objFormField) {
@@ -48,7 +45,9 @@ class FormBuilder
                             "id" => $objFormField->getFieldId (),
                             "options" => $objFormField->getOptions (),
                             "field_conditions" => $objFormField->getFieldConditions (),
-                            "custom_javascript" => $objFormField->getCustomJavascript ()
+                            "custom_javascript" => $objFormField->getCustomJavascript (),
+                            "value" => $objFormField->getValue (),
+                            "is_disabled" => $objFormField->getIsDisabled ()
                         )
                 );
             }
@@ -57,36 +56,72 @@ class FormBuilder
         {
             throw new Exception ("No form fields were given");
         }
-
-        $html = $this->render ();
-        return $html;
     }
 
-    private function buildDocHTML ($arrDocs)
+    public function buildDocHTML ($arrDocs)
     {
         $this->documentHTML = '<div class="col-lg-12 pull-left m-t-sm m-b-sm" style="border: 1px dotted #CCC"></div>';
-            
+
         $this->documentHTML .= '<div class="form-group">
             <label class="col-lg-2 control-label">Document Type</label>
            <div class="col-lg-10">';
-           
-        
-        
+
+
+
         $this->documentHTML .= '<select class="form-control" name="document_type" id="document_type">';
 
-            foreach ($arrDocs as $objDocument) {
+        foreach ($arrDocs as $objDocument) {
 
-                if ( !$objDocument instanceof InputDocument )
-                {
-                    throw new Exception ("Invalid document format given.");
-                }
-
-                $this->documentHTML .= '<option value="' . $objDocument->getId () . '">' . $objDocument->getTitle () . '</option>';
+            if ( !$objDocument instanceof InputDocument )
+            {
+                throw new Exception ("Invalid document format given.");
             }
 
-            $this->documentHTML .= '</select>';
-            
-            $this->documentHTML .= '</div></div>';
+            $this->documentHTML .= '<option value="' . $objDocument->getId () . '">' . $objDocument->getTitle () . '</option>';
+        }
+
+        $this->documentHTML .= '</select>';
+
+        $this->documentHTML .= '</div></div>';
+    }
+
+    public function buildAttachments ($arrAttachments)
+    {
+        
+        $this->attachmentHtml = '<div class="col-lg-12 pull-left">';
+        foreach ($arrAttachments as $objAttachment) {
+
+            if ( !$objAttachment instanceof ProcessFiles )
+            {
+                throw new Exception ("Invalid attachment format given.");
+            }
+
+            if ( !in_array ($objAttachment->getId (), $this->arrUploadedFiles) )
+            {
+                
+                $this->attachmentHtml .= '<div class="file-box">
+                                        <div class="file">
+                                            <a href="/attachments/download/' . $objAttachment->getPrfPath () . '">
+                                                <div class="icon">
+                                                    <i class="fa fa-file"></i>
+                                                </div>
+                                                <div class="file-name">
+                                                   ' . $objAttachment->getPrfFielname () . '
+                                                    <br>
+                                                    <small>Added:' . $objAttachment->getUsrUid () . ' <br> ' . date ("M d, Y", strtotime ($objAttachment->getPrfCreateDate ())) . '</small>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    </div>';
+            }
+
+
+
+
+            $this->arrUploadedFiles[] = $objAttachment->getId ();
+        }
+
+        $this->attachmentHtml .= '</div>';
     }
 
     private function configure (array $properties = null)
@@ -270,8 +305,15 @@ class FormBuilder
 
             $this->html .= '</div>';
 
+          
+
             //$this->buildJavascript ();
         }
+        
+          if ( trim ($this->attachmentHtml) !== "" )
+            {
+                $this->html .= $this->attachmentHtml;
+            }
 
         return $this->html;
     }

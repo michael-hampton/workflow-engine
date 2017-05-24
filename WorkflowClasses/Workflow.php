@@ -148,6 +148,7 @@ class Workflow
                         r.request_id,
                         w.created_by,
                         w.date_created,
+                        w.parent_id,
                         u.firstName,
                         u.lastName,
                         u.username,
@@ -367,5 +368,28 @@ class Workflow
         }
         return $aProc;
     }
+    
+     /**
+     * Get data of a Process
+     *
+     * @param string $processUid Unique id of Process
+     *
+     * return array Return an array with data of a Process
+     */
+    public function getProcess()
+    {
+        try {
+            $process = new Process();
+            $process->throwExceptionIfNotExistsProcess($this->intWorkflowId);
+            $result = $this->objMysql->_select("workflow.workflows", array(), array("workflow_id" => $this->intWorkflowId));
+            
+            if(!isset($result[0]) || empty($result[0])) {
+                return [];
+            }
+            
+            return $result;
+        } catch (Exception $ex) {
 
-}
+        }
+    }
+    }

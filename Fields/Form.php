@@ -13,7 +13,7 @@ class Form extends FieldFactory
      * @param type $stepId
      * @param type $workflowId
      */
-    public function __construct ($stepId, $workflowId = null)
+    public function __construct ($stepId = null, $workflowId = null)
     {
         $this->stepId = $stepId;
         $this->objMysql = new Mysql2();
@@ -264,24 +264,119 @@ class Form extends FieldFactory
             "field_id" => $fieldId,
             "workflow_id" => $this->workflowId));
     }
-    
-    public function checkRequiredField($fieldId)
+
+    public function checkRequiredField ($fieldId)
     {
-        $result = $this->objMysql->_select("workflow.required_fields", array(), array("workflow_id" => $this->workflowId, "step_id" => $this->stepId, "field_id" => $fieldId));
-        
-        if(isset($result[0]) && !empty($result[0])) {
+        $result = $this->objMysql->_select ("workflow.required_fields", array(), array("workflow_id" => $this->workflowId, "step_id" => $this->stepId, "field_id" => $fieldId));
+
+        if ( isset ($result[0]) && !empty ($result[0]) )
+        {
             return $result;
         }
-        
+
         return [];
     }
-    
-    public function removeRequiredField($fieldId)
+
+    public function removeRequiredField ($fieldId)
     {
-        if(!empty($this->checkRequiredField ($fieldId))) {
-            throw new Exception('row doesnt exist.');
+        if ( !empty ($this->checkRequiredField ($fieldId)) )
+        {
+            throw new Exception ('row doesnt exist.');
         }
-        
-        $this->objMysql->_delete("workflow.required_fields", array("step_id" => $this->stepId, "workflow_id" => $this->workflowId, "field_id" => $fieldId));
+
+        $this->objMysql->_delete ("workflow.required_fields", array("step_id" => $this->stepId, "workflow_id" => $this->workflowId, "field_id" => $fieldId));
     }
+
+    public function buildFormForStep (WorkflowStep $objWorkflowStep, $projectId, $elementId = null)
+    {
+        $objCases = new Cases();
+        $objCase = $objCases->getCaseInfo ($projectId, $elementId);
+
+
+        $currentStepId = $objCase->getCurrentStepId ();
+
+        $stepId = $objWorkflowStep->getStepId ();
+        $objFormBuilder = new FormBuilder();
+        $buildSummary = false;
+        $html = '';
+        
+        $objAttachments = new Attachments();
+        $arrAttachments = $objAttachments->getAllAttachments ($projectId);
+        $attachmentHTML = $objFormBuilder->buildAttachments ($arrAttachments);
+
+        /*         * ************** Fields ************************* */
+        $arrFields = $objWorkflowStep->getFields ();
+
+        if ( empty ($arrFields) )
+        {
+            // display summary based on starting step
+            $firstStep = $objWorkflowStep->getFirstStepForWorkflow ();
+
+            if ( !empty ($firstStep) )
+            {
+                $objWorkflowStep = new WorkflowStep ($firstStep[0]['id']);
+                $arrFields = $objWorkflowStep->getFields ();
+            }
+        }
+
+
+        // Permissions
+
+        $objVariables = new StepVariable();
+
+        foreach ($arrFields as $key => $objField) {
+
+            // This eventually needs to be replaced so that everything comes from the variables
+            $fieldId = $objField->getFieldId ();
+
+            if ( $currentStepId !== $objWorkflowStep->getWorkflowStepId () )
+            {
+                $objField->setIsDisabled (1);
+            }
+
+            if ( isset ($objCase->objJobFields[$fieldId]) )
+            {
+                $accessor = $objCase->objJobFields[$fieldId]['accessor'];
+                $value = call_user_func (array($objCase, $accessor));
+
+                if ( trim ($value) !== "" )
+                {
+                    $objField->setValue (trim ($value));
+                }
+            }
+            else
+            {
+                $objVariable = $objVariables->getVariableForField ($fieldId);
+
+                if ( !empty ($objVariable) )
+                {
+                    $variable = $objVariable->getVariableName ();
+
+                    if ( trim ($variable) !== "" && isset ($objCase->arrElement[$variable]) )
+                    {
+                        $objField->setValue ($objCase->arrElement[$variable]);
+                    }
+                }
+            }
+        }
+
+        if ( !empty ($arrFields) )
+        {
+            $buildSummary = true;
+            $objFormBuilder->buildForm ($arrFields);
+        }
+
+        $objStepDocument = new StepDocument ($stepId);
+        $arrDocuments = $objStepDocument->getInputDocumentForStep ();
+
+        if ( !empty ($arrDocuments) )
+        {
+            $objFormBuilder->buildDocHTML ($arrDocuments);
+        }
+
+        $html = $objFormBuilder->render ();
+
+        return $html;
+    }
+
 }

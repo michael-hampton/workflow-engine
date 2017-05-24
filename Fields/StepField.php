@@ -22,6 +22,8 @@ class StepField
     private $validation;
     private $type;
     private $stepId;
+    private $value;
+    private $isDisabled;
 
     /**
      * 
@@ -248,7 +250,37 @@ class StepField
     {
         $this->type = $type;
     }
+    
+    public function getValue ()
+    {
+        return $this->value;
+    }
 
+    /**
+     * 
+     * @param type $value
+     */
+    public function setValue ($value)
+    {
+        $this->value = $value;
+    }
+    
+    public function getIsDisabled ()
+    {
+        return $this->isDisabled;
+    }
+
+    /**
+     * 
+     * @param type $isDisabled
+     */
+    public function setIsDisabled ($isDisabled)
+    {
+        $this->isDisabled = $isDisabled;
+    }
+
+    
+    
     public function save ()
     {
         if ( is_numeric ($this->id) )

@@ -377,28 +377,16 @@ class Attachments
 
             $filePath = str_replace ("C:/xampp/htdocs", "", $arrAttachment['file_destination']);
             $filePath = str_replace ($arrAttachment['filename'], "", $filePath);
+            
+            $objProcessFiles = new ProcessFiles();
+            $objProcessFiles->setFileType($arrAttachment['file_type']);
+            $objProcessFiles->setId($arrAttachment['id']);
+            $objProcessFiles->setPrfCreateDate($arrAttachment['date_uploaded']);
+            $objProcessFiles->setPrfFielname($arrAttachment['filename']);
+            $objProcessFiles->setUsrUid($arrAttachment['uploaded_by']);
+            $objProcessFiles->setPrfPath($arrAttachment['file_destination']);
 
-            $arrData = array(
-                'id' => $arrAttachment['id'],
-                'filename' => $arrAttachment['filename'],
-                'TYPE' => $arrAttachment['file_type'],
-                'date_uploaded' => $arrAttachment['date_uploaded'],
-                'uploaded_by' => $arrAttachment['uploaded_by'],
-                "FILE_PATH" => $arrAttachment['file_destination'],
-                "version" => $version,
-                "download_path" => $filePath
-            );
-
-            if ( $arrAttachment['filename'] != '' )
-            {
-                $arrData['TITLE'] = $arrAttachment['filename'];
-            }
-            else
-            {
-                //$aFields['TITLE'] = $aFields['APP_DOC_COMMENT'];
-            }
-
-            $aFields[] = $arrData;
+            $aFields[] = $objProcessFiles;
         }
 
         return $aFields;

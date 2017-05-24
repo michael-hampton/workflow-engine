@@ -270,7 +270,7 @@ class StepTrigger extends Trigger
     public function getAllTriggersForStep ()
     {
          if (!$this->stepTriggerExists($this->nextStep)) {
-                throw new Exception("ID_RECORD_DOES_NOT_EXIST_IN_TABLE");
+                //throw new Exception("ID_RECORD_DOES_NOT_EXIST_IN_TABLE");
             }
         
         $arrTriggers = $this->objMysql->_select ("workflow.status_mapping", array("step_trigger"), array("id" => $this->nextStep), array());

@@ -17,6 +17,7 @@ class Elements
     private $rejectionReason;
     private $workflowName;
     private $current_user;
+    private $currentStepId;
     public $arrElement = array();
     public $objJobFields = array(
         "location" => array("required" => "true", "type" => "string", "accessor" => "getLocation", "mutator" => "setLocation"),
@@ -37,7 +38,6 @@ class Elements
     );
     private $objMysql;
     private $arrToIgnore = array("claimed", "status", "dateCompleted");
-    
     private $status;
 
     public function __construct ($parentId, $id = null)
@@ -142,7 +142,7 @@ class Elements
     {
         return $this->name;
     }
-    
+
     public function getStatus ()
     {
         return $this->status;
@@ -299,7 +299,7 @@ class Elements
         $this->rejectionReason = $rejectionReason;
         $this->arrElement['rejectionReason'] = $rejectionReason;
     }
-    
+
     public function getWorkflowName ()
     {
         return $this->workflowName;
@@ -318,7 +318,17 @@ class Elements
     {
         $this->workflowName = $workflowName;
     }
+    
+    public function getCurrentStepId ()
+    {
+        return $this->currentStepId;
+    }
 
+    public function setCurrentStepId ($currentStepId)
+    {
+        $this->currentStepId = $currentStepId;
+    }
+    
     /**
      * 
      * @param type $current_user
@@ -345,6 +355,10 @@ class Elements
                         $this->loadObject ($element);
                     }
                 }
+            }
+            else
+            {
+                $this->loadObject ($JSON['job']);
             }
         }
 
@@ -441,4 +455,5 @@ class Elements
     {
         return $this->current_step;
     }
+
 }

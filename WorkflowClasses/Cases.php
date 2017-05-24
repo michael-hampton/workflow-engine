@@ -412,6 +412,7 @@ class Cases
                         
                         if($stepName !== false) {
                             $objElements->setCurrent_step($stepName);
+                            $objElements->setCurrentStepId($element['current_step']);
                         }
 
                         return $objElements;

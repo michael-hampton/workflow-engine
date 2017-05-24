@@ -436,5 +436,16 @@ class WorkflowStep
         }
         return true;
     }
+    
+    public function getFirstStepForWorkflow()
+    {
+        $result = $this->objMysql->_select("workflow.status_mapping", array(), array("workflow_id" => $this->workflowId, "first_step" => 1));
+    
+        if(isset($result[0]) && !empty($result[0])) {
+            return $result;
+        }
+        
+        return [];
+    }
 
 }
