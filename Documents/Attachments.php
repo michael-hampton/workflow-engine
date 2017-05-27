@@ -12,6 +12,7 @@ class Attachments
     private $filename;
     private $documentId;
     private $objMysql;
+    private $arrayValidation;
 
     public function __construct ()
     {
@@ -47,7 +48,9 @@ class Attachments
                 $this->documentId = $arrData['file_type'];
                 $this->stepId = $arrData['step']->getStepId ();
                 $this->projectId = $arrData['source_id'];
-                $this->uploadDocument ($arrData['files'], $arrData);
+                $result = $this->uploadDocument ($arrData['files'], $arrData);
+                
+                return $result;
             }
             else
             {
@@ -194,20 +197,20 @@ class Attachments
             {
                 throw new Exception ('UPLOADING_FILE_PROBLEM');
             }
-            
+
             $objFileUpload = new FileUpload();
 
             if ( isset ($_FILES['fileUpload']) )
             {
                 foreach ($_FILES['fileUpload']['name'] as $key => $name) {
-                    $objFileUpload->doUpload ($name, $path,  $_FILES['fileUpload']['error'][$key], $_FILES['fileUpload']['tmp_name'][$key]);
+                    $objFileUpload->doUpload ($name, $path, $_FILES['fileUpload']['error'][$key], $_FILES['fileUpload']['tmp_name'][$key]);
                 }
             }
             else
             {
                 $objFileUpload->doUpload ($_FILES['file']['name'], $path, $_FILES['file']['error'], $_FILES['file']['tmp_name']);
             }
-            
+
             return array();
         } catch (Exception $e) {
             throw $e;
@@ -233,23 +236,21 @@ class Attachments
 
         if ( !empty ($objStepDocument) )
         {
-            reset ($objStepDocument);
-            $first_key = key ($objStepDocument);
 
-            $unit = $objStepDocument[$first_key]->getFilesizeUnit ();
-            $extensions = $objStepDocument[$first_key]->getFileType ();
+            $unit = $objStepDocument[$this->documentId]->getFilesizeUnit ();
+            $extensions = $objStepDocument[$this->documentId]->getFileType ();
             $arrExtensions = explode (",", $extensions);
 
             foreach ($arrExtensions as $key => $extension) {
                 $arrExtensions[$key] = str_replace (".", "", $extension);
             }
 
-            $inputName = $objStepDocument[$first_key]->getTitle (); // input document name
+            $inputName = $objStepDocument[$this->documentId]->getTitle (); // input document name
             //$projectId = 1;
             $intCount = 0;
-            $versioning = $objStepDocument[$first_key]->getVersioning ();
-            $dir2 = $objStepDocument[$first_key]->getDestinationPath ();
-            $maxFileSize = $objStepDocument[$first_key]->getMaxFileSize ();
+            $versioning = $objStepDocument[$this->documentId]->getVersioning ();
+            $dir2 = $objStepDocument[$this->documentId]->getDestinationPath ();
+            $maxFileSize = $objStepDocument[$this->documentId]->getMaxFileSize ();
         }
 
         $arrUploadedFiles = array();
@@ -311,7 +312,7 @@ class Attachments
 
                 if ( !empty ($this->arrayValidation) )
                 {
-                    return $this->arrayValidation;
+                    return false;
                 }
 
                 if ( !is_dir ($dir) )
@@ -323,6 +324,7 @@ class Attachments
             if ( !move_uploaded_file ($file_tmp, $destination) )
             {
                 $this->arrayValidation[] = "File Could not be uploaded";
+                return false;
             }
 
             $this->object['file_destination'] = $destination;
@@ -344,6 +346,11 @@ class Attachments
         }
 
         return $arrUploadedFiles;
+    }
+    
+    public function getArrayValidation ()
+    {
+        return $this->arrayValidation;
     }
 
     /**
@@ -377,14 +384,15 @@ class Attachments
 
             $filePath = str_replace ("C:/xampp/htdocs", "", $arrAttachment['file_destination']);
             $filePath = str_replace ($arrAttachment['filename'], "", $filePath);
-            
+
             $objProcessFiles = new ProcessFiles();
-            $objProcessFiles->setFileType($arrAttachment['file_type']);
-            $objProcessFiles->setId($arrAttachment['id']);
-            $objProcessFiles->setPrfCreateDate($arrAttachment['date_uploaded']);
-            $objProcessFiles->setPrfFielname($arrAttachment['filename']);
-            $objProcessFiles->setUsrUid($arrAttachment['uploaded_by']);
-            $objProcessFiles->setPrfPath($arrAttachment['file_destination']);
+            $objProcessFiles->setFileType ($arrAttachment['file_type']);
+            $objProcessFiles->setId ($arrAttachment['id']);
+            $objProcessFiles->setPrfCreateDate ($arrAttachment['date_uploaded']);
+            $objProcessFiles->setPrfFielname ($arrAttachment['filename']);
+            $objProcessFiles->setUsrUid ($arrAttachment['uploaded_by']);
+            $objProcessFiles->setPrfPath ($arrAttachment['file_destination']);
+            $objProcessFiles->setDownloadPath($filePath);
 
             $aFields[] = $objProcessFiles;
         }

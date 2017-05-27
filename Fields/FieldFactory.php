@@ -47,7 +47,7 @@ class FieldFactory
                                                        ");
 
         foreach ($arrResult as $intKey => $arrField) {
-            $arrFields[$arrField['field_id']] = new StepField ($arrField['field_id']);
+            $arrFields[$arrField['field_id']] = new Field ($arrField['field_id']);
             $arrFields[$arrField['field_id']]->setFieldType ($arrField['field_type']);
             $arrFields[$arrField['field_id']]->setLabel ($arrField['label']);
             $arrFields[$arrField['field_id']]->setFieldName ($arrField['field_name']);
@@ -96,7 +96,7 @@ class FieldFactory
         $arrResult = $this->objMysql->_query ($query, $arrParameters);
 
         foreach ($arrResult as $intKey => $arrField) {
-            $arrFields[$arrField['field_id']] = new StepField ($arrField['field_id']);
+            $arrFields[$arrField['field_id']] = new Field ($arrField['field_id']);
             $arrFields[$arrField['field_id']]->setFieldType ($arrField['field_type']);
             $arrFields[$arrField['field_id']]->setLabel ($arrField['label']);
             $arrFields[$arrField['field_id']]->setFieldName ($arrField['field_name']);
@@ -201,7 +201,7 @@ class FieldFactory
     public function create ($aData)
     {
         try {
-            $oFields = new StepField();
+            $oFields = new Field();
             $field = $this->getFieldByIdentifier ($aData['id']);
 
             if ( !empty ($field) && is_numeric ($field) )
@@ -316,7 +316,7 @@ class FieldFactory
             $oFields = $this->retrieveByPK ($fieldId);
             if ( !empty ($oFields) )
             {
-                $oFields = new StepField ($fieldId, $stepId);
+                $oFields = new Field ($fieldId, $stepId);
                 $iResult = $oFields->delete ();
 
                 if ( $deleteFull === true )

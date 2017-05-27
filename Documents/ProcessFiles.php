@@ -15,6 +15,7 @@ class ProcessFiles
     private $New = true;
     private $fileType;
     private $PrfFielname;
+    private $downloadPath;
 
     /**
      * Array of ValidationFailed objects.
@@ -212,6 +213,10 @@ class ProcessFiles
         return $this->id;
     }
 
+    /**
+     * 
+     * @param type $id
+     */
     public function setId ($id)
     {
         $this->id = $id;
@@ -222,6 +227,10 @@ class ProcessFiles
         return $this->New;
     }
 
+    /**
+     * 
+     * @param type $New
+     */
     public function setNew ($New)
     {
         $this->New = $New;
@@ -232,11 +241,26 @@ class ProcessFiles
         return $this->fileType;
     }
 
+    /**
+     * 
+     * @param type $fileType
+     */
     public function setFileType ($fileType)
     {
         $this->fileType = $fileType;
     }
+    
+    public function getDownloadPath ()
+    {
+        return $this->downloadPath;
+    }
 
+    public function setDownloadPath ($downloadPath)
+    {
+        $this->downloadPath = $downloadPath;
+    }
+
+    
     private function doInsert ()
     {
         $id = $this->objMysql->_insert ("task_manager.attachments", array(

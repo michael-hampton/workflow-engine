@@ -175,14 +175,7 @@ class Form extends FieldFactory
      */
     public function saveFormField ($fieldId, $orderId)
     {
-        $this->objMysql->_insert (
-                "workflow.step_fields", array(
-            "field_id" => $fieldId,
-            "step_id" => $this->stepId,
-            "is_disabled" => 0,
-            "order_id" => $orderId
-                )
-        );
+       
     }
 
     /**
@@ -228,6 +221,7 @@ class Form extends FieldFactory
         $currentStepId = $objCase->getCurrentStepId ();
 
         $stepId = $objWorkflowStep->getStepId ();
+        $taskId = $objWorkflowStep->getWorkflowStepId();
         $objFormBuilder = new FormBuilder();
         $buildSummary = false;
         $html = '';
@@ -298,7 +292,7 @@ class Form extends FieldFactory
             $objFormBuilder->buildForm ($arrFields);
         }
 
-        $objStepDocument = new StepDocument ($stepId);
+        $objStepDocument = new StepDocument ($taskId);
         $arrDocuments = $objStepDocument->getInputDocumentForStep ();
 
         if ( !empty ($arrDocuments) )
