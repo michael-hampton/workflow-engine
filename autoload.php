@@ -18,6 +18,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/StepDocume
 
 /************************* Fields **************************************************/
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Fields/Field.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Fields/RequiredField.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Fields/StepField.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Fields/FieldFactory.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Fields/FieldOptions.php';

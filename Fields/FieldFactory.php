@@ -202,7 +202,7 @@ class FieldFactory
     {
         try {
             $oFields = new Field();
-            $field = $this->getFieldByIdentifier ($aData['id']);
+            $field = $this->getFieldByIdentifier (trim($aData['id']));
 
             if ( !empty ($field) && is_numeric ($field) )
             {

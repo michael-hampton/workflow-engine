@@ -115,15 +115,37 @@ class FieldOptions
      */
     public function saveDataType ()
     {
-        $id = $this->objMysql->_insert ("workflow.data_types", array("options" => $this->_strOptions, "field_id" => $this->fieldId, "data_object_type" => $this->dataType));
-        $this->dataTypeId = $id;
-        $this->updateField ();
-        return $id;
+        if ( $this->checkOptionExists () )
+        {
+            $this->objMysql->_update ("workflow.data_types", array("options" => $this->_strOptions), array("field_id" => $this->fieldId));
+        }
+        else
+        {
+            $id = $this->objMysql->_insert ("workflow.data_types", array("options" => $this->_strOptions, "field_id" => $this->fieldId, "data_object_type" => $this->dataType));
+            $this->dataTypeId = $id;
+            $this->updateField ();
+
+            return $id;
+        }
     }
 
     private function save ()
     {
         $this->_model->_update ("workflow.step_fields", array("field_conditions" => $this->_strOptions), array("field_id" => $this->fieldId, "step_id" => $this->stepId));
+    }
+
+    public function checkOptionExists ()
+    {
+        $result = $this->objMysql->_select ("workflow.data_types", array(), array("field_id" => $this->fieldId));
+        
+        if ( isset ($result[0]) && !empty ($result[0]) )
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     /**

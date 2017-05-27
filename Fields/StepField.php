@@ -8,6 +8,7 @@ class StepField
     private $isDisabled;
     private $orderId;
     private $objMysql;
+    private $arrayValidation;
     
     public function __construct ($stepId, $fieldId = null)
     {
@@ -75,6 +76,16 @@ class StepField
     {
         $this->orderId = $orderId;
     }
+    
+    public function getArrayValidation ()
+    {
+        return $this->arrayValidation;
+    }
+
+    public function setArrayValidation ($arrayValidation)
+    {
+        $this->arrayValidation = $arrayValidation;
+    }
 
     public function validate ()
     {
@@ -82,11 +93,13 @@ class StepField
 
         if ( trim ($this->stepId) === "" )
         {
+            $this->arrayValidation[] = "Step Id is missing";
             $errorCount++;
         }
 
         if ( trim ($this->fieldId) === "" )
         {
+            $this->arrayValidation[] = "Field id is missing";
             $errorCount++;
         }
 

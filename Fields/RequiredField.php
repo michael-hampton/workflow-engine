@@ -7,6 +7,7 @@ class RequiredField
     private $fieldId;
     private $objMysql;
     private $workflowId;
+    private $arrayValidation;
 
     public function __construct ($stepId, $fieldId, $workflowId)
     {
@@ -19,7 +20,64 @@ class RequiredField
     {
         $this->objMysql = new Mysql2();
     }
+    
+    public function getStepId ()
+    {
+        return $this->stepId;
+    }
 
+    public function getFieldId ()
+    {
+        return $this->fieldId;
+    }
+
+    public function getWorkflowId ()
+    {
+        return $this->workflowId;
+    }
+
+    public function getArrayValidation ()
+    {
+        return $this->arrayValidation;
+    }
+
+    /**
+     * 
+     * @param type $stepId
+     */
+    public function setStepId ($stepId)
+    {
+        $this->stepId = $stepId;
+    }
+
+    /**
+     * 
+     * @param type $fieldId
+     */
+    public function setFieldId ($fieldId)
+    {
+        $this->fieldId = $fieldId;
+    }
+
+    /**
+     * 
+     * @param type $workflowId
+     */
+    public function setWorkflowId ($workflowId)
+    {
+        $this->workflowId = $workflowId;
+    }
+
+    /**
+     * 
+     * @param type $arrayValidation
+     */
+    public function setArrayValidation ($arrayValidation)
+    {
+        $this->arrayValidation = $arrayValidation;
+    }
+
+    
     /**
      * 
      * @param type $fieldId
@@ -52,6 +110,36 @@ class RequiredField
         }
 
         return [];
+    }
+
+    public function validate ()
+    {
+        $errorCounter = 0;
+
+        if ( trim ($this->workflowId) === "" )
+        {
+            $this->arrayValidation[] = "Workflow Id is missing";
+            $errorCounter++;
+        }
+
+        if ( trim ($this->fieldId) == "" )
+        {
+            $this->arrayValidation[] = "Field Id is missing";
+            $errorCounter++;
+        }
+
+        if ( trim ($this->stepId) == "" )
+        {
+            $this->arrayValidation[] = "Step Id is missing";
+            $errorCounter++;
+        }
+
+        if ( $errorCounter === false )
+        {
+            return false;
+        }
+
+        return true;
     }
 
     public function delete ()

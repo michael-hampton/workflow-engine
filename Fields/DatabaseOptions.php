@@ -75,6 +75,20 @@ class DatabaseOptions
         return TRUE;
     }
 
+    public function checkOptionExists ()
+    {
+        $result = $this->objMysql->_select ("workflow.data_types", array(), array("field_id" => $this->fieldId));
+
+        if ( isset ($result[0]) && !empty ($result[0]) )
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     public function save ()
     {
         $arrDatabaseOptions = array(
@@ -88,14 +102,25 @@ class DatabaseOptions
 
         $strOptions = json_encode ($arrDatabaseOptions);
 
-        $id = $this->objMysql->_insert ("workflow.data_types", array(
-            "options" => $strOptions,
-            "field_id" => $this->fieldId,
-            "data_object_type" => 2
-                )
-        );
+        if ( $this->checkOptionExists () )
+        {
+            $this->objMysql->_update ("workflow.data_types", array(
+                "options" => $strOptions,
+                "data_object_type" => 2
+                    ), array("field_id" => $this->fieldId)
+            );
 
-        $this->objMysql->_update ("workflow.fields", array("data_type" => $id), array("field_id" => $this->fieldId));
+            $this->objMysql->_update ("workflow.fields", array("data_type" => $id), array("field_id" => $this->fieldId));
+        }
+        else
+        {
+            $id = $this->objMysql->_insert ("workflow.data_types", array(
+                "options" => $strOptions,
+                "field_id" => $this->fieldId,
+                "data_object_type" => 2
+                    )
+            );
+        }
     }
 
     public function getDatabaseName ()

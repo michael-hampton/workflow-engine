@@ -25,6 +25,7 @@ class Field
     private $value;
     private $isDisabled;
     private $ValidationFailures;
+    private $helpText;
     private $arrayFieldDefinition = array(
         "type" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getFieldType", "mutator" => "setFieldType"),
         "required" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getTableName", "mutator" => "setTableName"),
@@ -32,6 +33,11 @@ class Field
         "placeholder" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getPlaceholder", "mutator" => "setPlaceholder"),
         "className" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getFieldClass", "mutator" => "setFieldClass"),
         "name" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getFieldName", "mutator" => "setFieldName"),
+        "description" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getHelpText", "mutator" => "setHelpText"),
+        "id" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getFieldId", "mutator" => "setFieldId"),
+        "validation" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getValidation", "mutator" => "setValidation"),
+        "maxlength" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getMaxLength", "mutator" => "setMaxLength"),
+        "value" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getDefaultValue", "mutator" => "setDefaultValue"),
     );
 
     /**
@@ -74,8 +80,8 @@ class Field
 
         return true;
     }
-    
-     public function validate ()
+
+    public function validate ()
     {
         $errorCount = 0;
 
@@ -115,7 +121,7 @@ class Field
     {
         $this->id = $id;
     }
-    
+
     public function getValidationFailures ()
     {
         return $this->ValidationFailures;
@@ -325,6 +331,16 @@ class Field
         return $this->value;
     }
 
+    public function getHelpText ()
+    {
+        return $this->helpText;
+    }
+
+    public function setHelpText ($helpText)
+    {
+        $this->helpText = $helpText;
+    }
+
     /**
      *
      * @param type $value
@@ -358,7 +374,7 @@ class Field
                     "workflow.fields", array(
                 "field_type" => $this->fieldType,
                 "field_name" => !empty ($this->fieldName) ? $this->fieldName : "",
-                "field_identifier" => !empty ($this->fieldName) ? strtolower (str_replace (" ", "", $this->fieldName)) : "",
+                "field_identifier" => !empty ($this->fieldId) ? strtolower (str_replace (" ", "", $this->fieldId)) : $this->fieldName,
                 "label" => $this->label,
                 "field_class" => $this->fieldClass,
                 "default_value" => !empty ($this->defaultValue) ? $this->defaultValue : "",

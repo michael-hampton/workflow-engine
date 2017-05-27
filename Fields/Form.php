@@ -92,7 +92,7 @@ class Form extends FieldFactory
 
         foreach ($arrFields as $arrField) {
 
-            /********* Save Field **********************/
+            /*             * ******* Save Field ********************* */
             $fieldId = $objFieldFactory->create ($arrField);
 
             if ( !is_numeric ($fieldId) )
@@ -108,104 +108,109 @@ class Form extends FieldFactory
                 $arrRequired[] = $fieldId;
             }
 
-            /************** Save option values *******************************/
-            if ( $fieldType == 3 )
+            /*             * ************ Save option values ****************************** */
+            if ( isset ($arrField['values']) && !empty ($arrField['values']) )
             {
-                if ( isset ($arrField['values']) && !empty ($arrField['values']) )
-                {
-                    $optionCount = 0;
-                    $arrOptions = array();
-                    foreach ($arrField['values'] as $intKey => $arrValue) {
+                $optionCount = 0;
+                $arrOptions = array();
+                foreach ($arrField['values'] as $intKey => $arrValue) {
 
-                        $value = $arrValue['label'];
+                    $value = $arrValue['label'];
 
-                        $arrOptions[$optionCount]['id'] = $arrValue['value'];
-                        $arrOptions[$optionCount]['value'] = $value;
+                    $arrOptions[$optionCount]['id'] = $arrValue['value'];
+                    $arrOptions[$optionCount]['value'] = $value;
 
-                        $optionCount++;
-                    }
-
-                    $objFieldOptions = new FieldOptions ($fieldId);
-                    $objFieldOptions->setDataType (3);
-                    $objFieldOptions->set_strOptions ($arrOptions);
-                    $objFieldOptions->saveDataType ();
+                    $optionCount++;
                 }
-                
-                /****************** save database option values *************************/
-                elseif ( !empty ($arrFormData['databaseName']) && !empty ($arrFormData['tableName']) )
-                {
-                    $objDatabaseOptions = new DatabaseOptions ($fieldId);
-                    $objDatabaseOptions->setDatabaseName ($arrFormData['databaseName']);
-                    $objDatabaseOptions->setIdColumn ($arrFormData['columnName']);
-                    $objDatabaseOptions->setTableName ($arrFormData['tableName']);
-                    $objDatabaseOptions->setValueColumn ($arrFormData['columnName']);
 
-                    if ( $objDatabaseOptions->validate () )
-                    {
-                        $objDatabaseOptions->save ();
+                $objFieldOptions = new FieldOptions ($fieldId);
+                $objFieldOptions->setDataType (3);
+                $objFieldOptions->set_strOptions ($arrOptions);
+                $objFieldOptions->saveDataType ();
+            }
+
+            /*             * **************** save database option values ************************ */
+            elseif ( !empty ($arrFormData['databaseName']) && !empty ($arrFormData['tableName']) )
+            {
+                $objDatabaseOptions = new DatabaseOptions ($fieldId);
+                $objDatabaseOptions->setDatabaseName ($arrFormData['databaseName']);
+                $objDatabaseOptions->setIdColumn ($arrFormData['columnName']);
+                $objDatabaseOptions->setTableName ($arrFormData['tableName']);
+                $objDatabaseOptions->setValueColumn ($arrFormData['columnName']);
+
+                if ( $objDatabaseOptions->validate () )
+                {
+                    $objDatabaseOptions->save ();
+                }
+                else
+                {
+                    $msg = "";
+                    foreach ($objDatabaseOptions->getValidationFailures () as $validationFailure) {
+                        $msg = $msg . (($msg != "") ? "\n" : "") . $validationFailure;
                     }
-                    else
-                    {
-                        
-                    }
+                    throw new Exception ("Failed to create database options " . $msg);
                 }
             }
             
-            $objStepField = new StepField($this->stepId);
+            $objStepField = new StepField ($this->stepId);
 
+            /*             * ********************* Assign Field to step ********************** */
             if ( $checked == "true" )
             {
-                $objStepField->delete();
-                $this->objMysql->_delete ("workflow.required_fields", array("step_id" => $this->stepId));
+                $objStepField->delete ();
+                $objRequiredField = new RequiredField ($this->stepId, $fieldId, $this->workflowId);
+                $objRequiredField->removeAllRequiredFieldsFromStep ();
 
                 foreach ($arrFieldIds as $key => $fieldId) {
-                    $objStepField->setFieldId($fieldId);
-                    $objStepField->setOrderId($key);
-                    $objStepField->save();
+                    $objStepField->setFieldId ($fieldId);
+                    $objStepField->setOrderId ($key);
+
+                    if ( $objStepField->validate () )
+                    {
+                        $objStepField->save ();
+                    }
+                    else
+                    {
+
+                        $msg = "";
+                        foreach ($objStepField->getArrayValidation () as $validationFailure) {
+                            $msg = $msg . (($msg != "") ? "\n" : "") . $validationFailure;
+                        }
+                        throw new Exception ("Failed to assign field to step " . $msg);
+                    }
                 }
             }
 
+            /*             * **************************** Save Required Fields **************************** */
             if ( !empty ($arrRequired) )
             {
                 foreach ($arrRequired as $fieldId) {
-                    $this->saveRequiredField ($fieldId);
+                    $objRequiredField = new RequiredField ($this->stepId, $fieldId, $this->workflowId);
+
+                    if ( $objRequiredField->validate () )
+                    {
+                        $objRequiredField->save ();
+                    }
+                    else
+                    {
+                        $msg = "";
+                        foreach ($objRequiredField->getArrayValidation () as $validationFailure) {
+                            $msg = $msg . (($msg != "") ? "\n" : "") . $validationFailure;
+                        }
+                        throw new Exception ("Failed to save required field " . $msg);
+                    }
                 }
             }
+
+            /*             * ******************** Save Variables ***************************** */
+            if ( isset ($arrField['id']) && trim ($arrField['id']) !== "" )
+            {
+                $objVariable = new StepVariable ($fieldId);
+                $variableName = strtolower (trim (str_replace (" ", "", $arrField['id'])));
+
+                $objVariable->create ($fieldId, array("VAR_NAME" => $variableName, "VAR_FIELD_TYPE" => "string"));
+            }
         }
-    }
-
-    /**
-     * 
-     * @param type $fieldId
-     */
-    public function saveRequiredField ($fieldId)
-    {
-        $this->objMysql->_insert ("workflow.required_fields", array(
-            "step_id" => $this->stepId,
-            "field_id" => $fieldId,
-            "workflow_id" => $this->workflowId));
-    }
-
-    public function checkRequiredField ($fieldId)
-    {
-        $result = $this->objMysql->_select ("workflow.required_fields", array(), array("workflow_id" => $this->workflowId, "step_id" => $this->stepId, "field_id" => $fieldId));
-
-        if ( isset ($result[0]) && !empty ($result[0]) )
-        {
-            return $result;
-        }
-
-        return [];
-    }
-
-    public function removeRequiredField ($fieldId)
-    {
-        if ( !empty ($this->checkRequiredField ($fieldId)) )
-        {
-            throw new Exception ('row doesnt exist.');
-        }
-
-        $this->objMysql->_delete ("workflow.required_fields", array("step_id" => $this->stepId, "workflow_id" => $this->workflowId, "field_id" => $fieldId));
     }
 
     public function buildFormForStep (WorkflowStep $objWorkflowStep, $projectId, $elementId = null)
@@ -217,7 +222,7 @@ class Form extends FieldFactory
         $currentStepId = $objCase->getCurrentStepId ();
 
         $stepId = $objWorkflowStep->getStepId ();
-        $taskId = $objWorkflowStep->getWorkflowStepId();
+        $taskId = $objWorkflowStep->getWorkflowStepId ();
         $objFormBuilder = new FormBuilder();
         $buildSummary = false;
         $html = '';
