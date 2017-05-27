@@ -5,7 +5,7 @@
  *
  * @author michael.hampton
  */
-class Permissions
+class RolePermissions
 {
 
     private $permId;

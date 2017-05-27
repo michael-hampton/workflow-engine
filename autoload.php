@@ -36,6 +36,8 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/WorkflowClasses/Work
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/WorkflowClasses/WorkflowStep.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/WorkflowClasses/WorkflowCollectionFactory.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/WorkflowClasses/WorkflowCollection.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BPMN/BaseGateway.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/WorkflowClasses/Gateway.php';
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/WorkflowClasses/Trigger.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/WorkflowClasses/StepTrigger.php';
@@ -57,8 +59,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BPMN/BPMNWorkflow.ph
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BPMN/Task.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BPMN/Participant.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BPMN/Message.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BPMN/Flow.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BPMN/Gateway.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BPMN/Flow.php';;
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BPMN/Diagram.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BPMN/Conditions.php';
 
@@ -80,7 +81,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/Departme
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/Roles.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/Login.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/Teams.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/Permissions.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/RolePermissions.php';
 
 /* * *************************88 Dashboard *************************************** */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Dashboard/Dashboard.php';

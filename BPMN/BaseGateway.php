@@ -1,6 +1,6 @@
 <?php
 
-class Gateway
+class BaseGateway
 {
 
     private $workflowId;
@@ -178,7 +178,7 @@ class Gateway
         }
         if ( $this->conditionValue !== $conditionValue || $conditionValue === '' )
         {
-            $this->condition = $conditionValue;
+            $this->conditionValue = $conditionValue;
         }
     }
 
@@ -248,6 +248,8 @@ class Gateway
 
         if ( trim ($this->conditionValue) === "" )
         {
+            echo $this->conditionValue;
+            die;
             $this->arrayValidationErrors[] = "CONDITION VALUE IS MISSING";
             $errorCount++;
         }
