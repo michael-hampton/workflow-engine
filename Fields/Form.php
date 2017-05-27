@@ -90,9 +90,9 @@ class Form extends FieldFactory
 
         $objFieldFactory = new FieldFactory();
 
-
         foreach ($arrFields as $arrField) {
 
+            /********* Save Field **********************/
             $fieldId = $objFieldFactory->create ($arrField);
 
             if ( !is_numeric ($fieldId) )
@@ -108,9 +108,9 @@ class Form extends FieldFactory
                 $arrRequired[] = $fieldId;
             }
 
+            /************** Save option values *******************************/
             if ( $fieldType == 3 )
             {
-
                 if ( isset ($arrField['values']) && !empty ($arrField['values']) )
                 {
                     $optionCount = 0;
@@ -130,6 +130,8 @@ class Form extends FieldFactory
                     $objFieldOptions->set_strOptions ($arrOptions);
                     $objFieldOptions->saveDataType ();
                 }
+                
+                /****************** save database option values *************************/
                 elseif ( !empty ($arrFormData['databaseName']) && !empty ($arrFormData['tableName']) )
                 {
                     $objDatabaseOptions = new DatabaseOptions ($fieldId);
@@ -148,14 +150,18 @@ class Form extends FieldFactory
                     }
                 }
             }
+            
+            $objStepField = new StepField($this->stepId);
 
             if ( $checked == "true" )
             {
-                $this->objMysql->_delete ("workflow.step_fields", array("step_id" => $this->stepId));
+                $objStepField->delete();
                 $this->objMysql->_delete ("workflow.required_fields", array("step_id" => $this->stepId));
 
                 foreach ($arrFieldIds as $key => $fieldId) {
-                    $this->saveFormField ($fieldId, $key);
+                    $objStepField->setFieldId($fieldId);
+                    $objStepField->setOrderId($key);
+                    $objStepField->save();
                 }
             }
 
@@ -166,16 +172,6 @@ class Form extends FieldFactory
                 }
             }
         }
-    }
-
-    /**
-     * 
-     * @param type $fieldId
-     * @param type $orderId#
-     */
-    public function saveFormField ($fieldId, $orderId)
-    {
-       
     }
 
     /**

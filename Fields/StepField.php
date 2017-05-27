@@ -7,6 +7,18 @@ class StepField
     private $stepId;
     private $isDisabled;
     private $orderId;
+    private $objMysql;
+    
+    public function __construct ($stepId, $fieldId = null)
+    {
+        $this->fieldId = $fieldId;
+        $this->stepId = $stepId;
+    }
+
+    private function getConnection ()
+    {
+        $this->objMysql = new Mysql2();
+    }
 
     public function getFieldId ()
     {
@@ -78,11 +90,6 @@ class StepField
             $errorCount++;
         }
 
-        if ( trim ($this->orderId) === "" )
-        {
-            $errorCount++;
-        }
-
         if ( $errorCount > 0 )
         {
             return false;
@@ -93,6 +100,11 @@ class StepField
 
     public function save ()
     {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
         $this->objMysql->_insert (
                 "workflow.step_fields", array(
             "field_id" => $this->fieldId,
@@ -101,6 +113,21 @@ class StepField
             "order_id" => $this->orderId
                 )
         );
+    }
+
+    public function delete ()
+    {
+        if ( $this->validate () === false )
+        {
+            return false;
+        }
+
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        $this->objMysql->_delete ("workflow.step_fields", array("step_id" => $this->stepId));
     }
 
 }
