@@ -4,8 +4,18 @@ class Field
 {
 
     private $fieldId;
+
+    /**
+     * The value for the fieldType field.
+     * @var        string
+     */
     private $fieldType;
     private $isReadOnly;
+
+    /**
+     * The value for the fieldName field.
+     * @var        string
+     */
     private $fieldName;
     private $label;
     private $id;
@@ -137,7 +147,9 @@ class Field
     }
 
     /**
-     * @return mixed
+     * Get the fieldType column value.
+     * 
+     * @return     string
      */
     public function getFieldType ()
     {
@@ -153,7 +165,9 @@ class Field
     }
 
     /**
-     * @return mixed
+     * Get the isReadOnly column value.
+     * 
+     * @return     string
      */
     public function getIsReadOnly ()
     {
@@ -169,7 +183,9 @@ class Field
     }
 
     /**
-     * @return mixed
+     * Get the fieldName column value.
+     * 
+     * @return     string
      */
     public function getFieldName ()
     {
@@ -185,7 +201,9 @@ class Field
     }
 
     /**
-     * @return mixed
+     * Get the label column value.
+     * 
+     * @return     string
      */
     public function getLabel ()
     {
@@ -226,6 +244,11 @@ class Field
         $this->dataType = $dataType;
     }
 
+    /**
+     * Get the options column value.
+     * 
+     * @return     string
+     */
     function getOptions ()
     {
         return $this->options;
@@ -246,26 +269,51 @@ class Field
         $this->required_field = $required_field;
     }
 
+    /**
+     * Get the defaultValue column value.
+     * 
+     * @return     string
+     */
     function getDefaultValue ()
     {
         return $this->defaultValue;
     }
 
+    /**
+     * Get the fieldClass column value.
+     * 
+     * @return     string
+     */
     function getFieldClass ()
     {
         return $this->fieldClass;
     }
 
+    /**
+     * Get the placeholder column value.
+     * 
+     * @return     string
+     */
     function getPlaceholder ()
     {
         return $this->placeholder;
     }
 
+    /**
+     * Get the maxLength column value.
+     * 
+     * @return     int
+     */
     function getMaxLength ()
     {
         return $this->maxLength;
     }
 
+    /**
+     * Get the defaultValue column value.
+     * 
+     * @return     string
+     */
     function setDefaultValue ($defaultValue)
     {
         $this->defaultValue = $defaultValue;
@@ -296,6 +344,11 @@ class Field
         $this->fieldConditions = $fieldConditions;
     }
 
+    /**
+     * Get the customJavascript column value.
+     * 
+     * @return     string
+     */
     function getCustomJavascript ()
     {
         return $this->customJavascript;
@@ -326,11 +379,21 @@ class Field
         $this->type = $type;
     }
 
+    /**
+     * Get the value column value.
+     * 
+     * @return     string
+     */
     public function getValue ()
     {
         return $this->value;
     }
 
+    /**
+     * Get the helpText column value.
+     * 
+     * @return     string
+     */
     public function getHelpText ()
     {
         return $this->helpText;
