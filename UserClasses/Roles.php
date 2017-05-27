@@ -30,18 +30,13 @@ class Roles
      * @param type $roleId
      * @param type $permId
      */
-    public function __construct ($roleId = null, $permId = null)
+    public function __construct ($roleId = null)
     {
         $this->objMysql = new Mysql2();
 
         if ( $roleId !== null )
         {
             $this->roleId = $roleId;
-        }
-
-        if ( $permId !== null )
-        {
-            $this->permId = $permId;
         }
     }
 
@@ -100,15 +95,6 @@ class Roles
 
     /**
      * 
-     * @return type
-     */
-    function getPermName ()
-    {
-        return $this->permName;
-    }
-
-    /**
-     * 
      * @param type $roleId
      */
     function setRoleId ($roleId)
@@ -155,25 +141,7 @@ class Roles
 
         $this->permId = $permId;
     }
-
-    /**
-     * 
-     * @param type $permName
-     */
-    function setPermName ($permName)
-    {
-        // Since the native PHP type for this column is string,
-        // we will cast the input to a string (if it is not).
-        if ( $permName !== null && !is_string ($permName) )
-        {
-            $permName = (string) $permName;
-        }
-
-        $this->permName = $permName;
-        $this->arrPermissions['perm_name'] = $permName;
-        $this->arrPermissions['module'] = "task_manager";
-    }
-
+    
     /**
      * 
      * @return type
@@ -244,26 +212,6 @@ class Roles
     public function disableRole ()
     {
         $this->objMysql->_update ("user_management.roles", array("status" => $this->status), array("role_id" => $this->roleId));
-    }
-
-    /**
-     * 
-     */
-    public function savePermissions ()
-    {
-        if ( isset ($this->permId) && is_numeric ($this->permId) )
-        {
-            $this->objMysql->_update ("user_management.permissions", $this->arrPermissions, array("id" => $this->permId));
-        }
-        else
-        {
-            $permissionId = $this->objMysql->_insert ("user_management.permissions", $this->arrPermissions);
-
-            if ( isset ($this->roleId) && is_numeric ($this->roleId) )
-            {
-                $this->objMysql->_insert ("user_management.role_perms", array("role_id" => $this->roleId, "perm_id" => $permissionId));
-            }
-        }
     }
 
     /**
