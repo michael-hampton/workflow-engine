@@ -398,21 +398,23 @@ class Cases
                         }
 
                         $objElements = new Elements ($projectId, $elementId);
-                        
-                        $workflowName = $this->getWorkflowName($element['workflow_id']);
-                        
-                        if($workflowName !== false) {
-                            $objElements->setWorkflowName($workflowName);
+
+                        $workflowName = $this->getWorkflowName ($element['workflow_id']);
+
+                        if ( $workflowName !== false )
+                        {
+                            $objElements->setWorkflowName ($workflowName);
                         }
-                        
+
                         $objElements->setWorkflow_id ($element['workflow_id']);
                         $objElements->setCurrent_user ($audit['claimed']);
-                        
-                        $stepName = $this->getStepName($element['current_step']);
-                        
-                        if($stepName !== false) {
-                            $objElements->setCurrent_step($stepName);
-                            $objElements->setCurrentStepId($element['current_step']);
+
+                        $stepName = $this->getStepName ($element['current_step']);
+
+                        if ( $stepName !== false )
+                        {
+                            $objElements->setCurrent_step ($stepName);
+                            $objElements->setCurrentStepId ($element['current_step']);
                         }
 
                         return $objElements;
@@ -550,14 +552,17 @@ class Cases
     public function startCase ($workflowId)
     {
         $objWorkflow = new Workflow ($workflowId, null);
+
         $objStep = $objWorkflow->getNextStep ();
+
         $stepId = $objStep->getStepId ();
 
         $objForm = new Form ($stepId, $workflowId);
         $arrFields = $objForm->getFields ();
 
         $objFprmBuilder = new FormBuilder ("AddNewForm");
-        $html = $objFprmBuilder->buildForm ($arrFields, array());
+        $objFprmBuilder->buildForm ($arrFields, array());
+        $html = $objFprmBuilder->render ();
 
         return $html;
     }
@@ -584,8 +589,7 @@ class Cases
                 throw new Exception ("Process doesnt exist");
             }
 
-            $arrData['form'] = array("description" => $variables['form']['description'],
-                "name" => $variables['form']['name'],
+            $arrData['form'] = array(
                 "priority" => 1,
                 "deptId" => 1,
                 "workflow_id" => $variables['workflowid'],
@@ -594,6 +598,16 @@ class Cases
                 "project_status" => 1,
                 "dueDate" => date ("Y-m-d")
             );
+
+            if ( isset ($variables['form']['description']) )
+            {
+                $arrData['form']['description'] = $variables['form']['description'];
+            }
+
+            if ( isset ($variables['form']['name']) )
+            {
+                $arrData['form']['name'] = $variables['form']['name'];
+            }
 
             $arrData['form']['status'] = "NEW PROJECT";
             $arrData['form']['dateCompleted'] = date ("Y-m-d H:i:s");
@@ -653,7 +667,7 @@ class Cases
      * Uploads files that were saved as part of the new case process
      * @see addCase
      */
-    private function uploadCaseFiles ($arrFilesUploaded, $projectId, WorkflowStep $objStep)
+    public function uploadCaseFiles ($arrFilesUploaded, $projectId, WorkflowStep $objStep)
     {
         if ( isset ($arrFilesUploaded['fileUpload']['name'][0]) && !empty ($arrFilesUploaded['fileUpload']['name'][0]) )
         {
@@ -738,4 +752,5 @@ class Cases
 
         return false;
     }
+
 }

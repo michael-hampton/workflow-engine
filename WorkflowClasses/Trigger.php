@@ -13,7 +13,7 @@ class Trigger
     private $arrayValidationErrors = array();
 
     /**
-     * 
+     *
      * @param type $id
      */
     public function __construct ($id = null)
@@ -65,7 +65,7 @@ class Trigger
     }
 
     /**
-     * 
+     *
      * @param type $workflowId
      */
     function setWorkflowId ($workflowId)
@@ -74,7 +74,7 @@ class Trigger
     }
 
     /**
-     * 
+     *
      * @param type $triggerType
      */
     function setTriggerType ($triggerType)
@@ -83,7 +83,7 @@ class Trigger
     }
 
     /**
-     * 
+     *
      * @param type $stepTo
      */
     function setStepTo ($stepTo)
@@ -92,7 +92,7 @@ class Trigger
     }
 
     /**
-     * 
+     *
      * @param type $workflowTo
      */
     function setWorkflowTo ($workflowTo)
@@ -101,7 +101,7 @@ class Trigger
     }
 
     /**
-     * 
+     *
      * @param type $trigger
      */
     public function setTrigger ($trigger)
@@ -115,7 +115,7 @@ class Trigger
     }
 
     /**
-     * 
+     *
      * @return type
      */
     public function getId ()
@@ -124,7 +124,7 @@ class Trigger
     }
 
     /**
-     * 
+     *
      * @param type $id
      */
     public function setId ($id)
@@ -144,11 +144,21 @@ class Trigger
 
     public function save ()
     {
+        
+        $arrTrigger = array(
+            "moveTo" => array(
+                "workflow_id" => $this->getWorkflowId (),
+                "workflow_to" => $this->getWorkflowTo (),
+                "trigger_type" => $this->getTriggerType (),
+                "step_to" => $this->getStepTo ()
+            )
+        );
+
         $this->objMysql->_update (
                 "workflow.status_mapping", array(
-            "step_trigger" => json_encode ($this->arrTrigger)
+            "step_trigger" => json_encode ($arrTrigger)
                 ), array(
-            "step_from" => $this->id
+            "id" => $this->id
                 )
         );
 
@@ -156,7 +166,7 @@ class Trigger
     }
 
     /**
-     * 
+     *
      * @param type $id
      * @return boolean
      */
@@ -173,7 +183,7 @@ class Trigger
     }
 
     /**
-     * 
+     *
      * @return boolean
      */
     public function validate ()

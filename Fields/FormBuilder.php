@@ -14,7 +14,7 @@ class FormBuilder
     private $documentHTML;
     private $arrUploadedFiles = array();
 
-    public function __construct ($id = "pfbc")
+    public function __construct ($id = "BaseData")
     {
 
         $this->configure (array(

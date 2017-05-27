@@ -33,7 +33,7 @@ class StepTrigger extends Trigger
         if ( $this->nextStep !== null )
         {
             $nextTrigger = $this->objMysql->_select ("workflow.status_mapping", array("step_trigger"), array("id" => $this->nextStep));
-
+            
             if ( isset ($nextTrigger[0]['step_trigger']) )
             {
                 $stepTrigger = json_decode ($nextTrigger[0]['step_trigger'], true);
@@ -174,7 +174,14 @@ class StepTrigger extends Trigger
                 }
                 elseif ( $triggerType == "gateway" )
                 {
-                    $arrField = $this->objMysql->_select ("workflow.fields", array(), array("field_id" => $arrTrigger['moveTo']['field']));
+
+                    $arrField = $this->objMysql->_select ("workflow.fields", array(), array("field_identifier" => trim ($arrTrigger['moveTo']['field'])));
+
+                    if ( empty ($arrField) )
+                    {
+                        throw new Exception ("Field cannot be found");
+                    }
+
                     $strField = $arrField[0]['field_identifier'];
                     $strValue = $objMike->arrElement[$strField];
                     $conditionalValue = $arrTrigger['moveTo']['conditionValue'];
@@ -185,14 +192,22 @@ class StepTrigger extends Trigger
                         case "=":
                             if ( trim ($strValue) == trim ($conditionalValue) )
                             {
-                                $this->arrWorkflowObject['current_step'] = $trueField;
+                                 if(isset($this->arrWorkflowObject['elements'][$this->elementId])) {
+                                    $this->arrWorkflowObject['elements'][$this->elementId]['current_step'] = $trueField;
+                                }
                             }
                             else
                             {
-                                $this->arrWorkflowObject['current_step'] = $falseField;
+    
+                                if(isset($this->arrWorkflowObject['elements'][$this->elementId])) {
+                                    $this->arrWorkflowObject['elements'][$this->elementId]['current_step'] = $falseField;
+                                }
                             }
                             break;
                     }
+                    
+                     $blHasTrigger = true;
+                        $this->blMove = false;
                 }
             }
             else
@@ -240,39 +255,33 @@ class StepTrigger extends Trigger
             }
         }
 
-        if ( $blHasTrigger !== true )
-        {
-            if ( $strTriggerType != "step" )
-            {
-                
-            }
-        }
-
         return $blHasTrigger;
     }
-    
+
     /**
      * 
      * @param type $step
      * @return boolean
      */
-    private function stepExists($step)
+    private function stepExists ($step)
     {
-        $result = $this->objMysql->_select("workflow.status_mapping", array(), array("id" => $step));
-        
-        if(isset($result[0]) && !empty($result[0])) {
+        $result = $this->objMysql->_select ("workflow.status_mapping", array(), array("id" => $step));
+
+        if ( isset ($result[0]) && !empty ($result[0]) )
+        {
             return true;
         }
-        
+
         return false;
     }
 
     public function getAllTriggersForStep ()
     {
-         if (!$this->stepTriggerExists($this->nextStep)) {
-                //throw new Exception("ID_RECORD_DOES_NOT_EXIST_IN_TABLE");
-            }
-        
+        if ( !$this->stepTriggerExists ($this->nextStep) )
+        {
+            //throw new Exception("ID_RECORD_DOES_NOT_EXIST_IN_TABLE");
+        }
+
         $arrTriggers = $this->objMysql->_select ("workflow.status_mapping", array("step_trigger"), array("id" => $this->nextStep), array());
 
         if ( empty ($arrTriggers) )
@@ -285,7 +294,7 @@ class StepTrigger extends Trigger
         return $arrTriggers;
     }
 
-     /**
+    /**
      * Assign Trigger to a Step
      *
      * @param string $stepUid    Unique id of Step
@@ -296,13 +305,13 @@ class StepTrigger extends Trigger
     public function create ($stepUid, $aData)
     {
         try {
-            
-             if (!$this->stepExists($stepUid)) {
-                    throw new Exception("ID_STEP_DOES_NOT_EXIST");
-                }
+
+            if ( !$this->stepExists ($stepUid) )
+            {
+                throw new Exception ("ID_STEP_DOES_NOT_EXIST");
+            }
 
             $objects = $this->objMysql->_select ("workflow.status_mapping", array(), array("id" => $stepUid));
-
 
             foreach ($objects as $row) {
 
@@ -312,25 +321,32 @@ class StepTrigger extends Trigger
                 }
             }
 
-            $this->setStepTo ($aData['step_to']);
-            $this->setWorkflowId ($aData['workflow_id']);
-            $this->setId ($stepUid);
-            $this->setTriggerType ($aData['trigger_type']);
 
-            if ( $this->validate () )
+            if ( $aData['trigger_type'] === "gateway" )
             {
-                $arrTrigger = array(
-                    "moveTo" => array(
-                        "workflow_id" => $this->getWorkflowId (),
-                        "workflow_to" => $this->getWorkflowTo (),
-                        "trigger_type" => $this->getTriggerType (),
-                        "step_to" => $this->getStepTo ()
-                    )
-                );
-                
-                $this->setTrigger($arrTrigger);
+                $objClass = new Gateway ($stepUid);
 
-                $result = $this->save ();
+                $objClass->setCondition ($aData['condition']);
+                $objClass->setConditionValue ($aData['conditionValue']);
+                $objClass->setElse ($aData['else']);
+                $objClass->setField ($aData['field']);
+                $objClass->setStep_to ($aData['step_to']);
+                $objClass->setTriggerType ($aData['trigger_type']);
+                $objClass->setWorkflowId ($aData['workflow_id']);
+            }
+            else
+            {
+                $objClass = $this;
+
+                $objClass->setStepTo ($aData['step_to']);
+                $objClass->setWorkflowId ($aData['workflow_id']);
+                $objClass->setId ($stepUid);
+                $objClass->setTriggerType ($aData['trigger_type']);
+            }
+
+            if ( $objClass->validate () )
+            {
+                $result = $objClass->save ();
                 return $result;
             }
             else
@@ -388,7 +404,7 @@ class StepTrigger extends Trigger
     {
         try {
             $oObj = $this->retrieveByPK ($StepUid);
-             if ( isset ($oStepTrigger[0]) && !empty ($oStepTrigger[0]) )
+            if ( isset ($oStepTrigger[0]) && !empty ($oStepTrigger[0]) )
             {
                 return true;
             }
@@ -400,4 +416,5 @@ class StepTrigger extends Trigger
             throw ($oError);
         }
     }
+
 }
