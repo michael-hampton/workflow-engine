@@ -147,26 +147,38 @@ class StepPermissions
         $userMaster = explode (",", $permissions['master']['user']);
         $teamMaster = explode (",", $permissions['master']['team']);
 
-        $permissionFlag = 0;
+        $ROFlag = 0;
+        $masterFlag = 0;
 
         if ( in_array ($userId, $userList) )
         {
-            $permissionFlag = 2;
+            $ROFlag++;
         }
 
         if ( in_array ($userId, $userMaster) )
         {
-            $permissionFlag = 1;
+            $masterFlag++;
         }
 
         if ( in_array ($teamId, $teamList) )
         {
-            $permissionFlag = 2;
+            $ROFlag++;
         }
 
         if ( in_array ($teamId, $teamMaster) )
         {
-            $permissionFlag = 1;
+            $masterFlag++;
+        }
+
+        if ( $masterFlag > 0 )
+        {
+            return 1;
+        }
+        elseif ( $ROFlag > 0 )
+        {
+            return 2;
+        } else {
+            return false;
         }
 
         return $permissionFlag;
