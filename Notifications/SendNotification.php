@@ -217,7 +217,7 @@ class SendNotification extends Notifications
                 break;
         }
 
-        $headers = 'From:JobTracker<donotreply@jobtracker.kondor.local>' . "\r\n" .
+        $headers = 'From:EasyFlow<donotreply@easyflow.co.uk>' . "\r\n" .
                 'X-Mailer: PHP/' . phpversion ();
 
         $message = $sendto . " " . $message_subject . " " . $message_body;

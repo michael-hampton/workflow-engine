@@ -28,7 +28,7 @@ class NotificationsFactory
 
         if ( isset ($arrParameters['user']) && $arrParameters['user'] !== null )
         {
-            $query .= " AND recipient = ?";
+            $query .= " AND FIND_IN_SET(?, recipient) > 0";
             $arrWhere[] = $arrParameters['user'];
         }
 
@@ -70,8 +70,8 @@ class NotificationsFactory
         $query .= " ORDER BY " . $strOrderBy . " " . $strOrderDir;
 
         $arrResults = $this->objMysql->_query ($query, $arrWhere);
-        
-        $total = count($arrResults);
+
+        $total = count ($arrResults);
 
         return $total;
     }
@@ -99,7 +99,7 @@ class NotificationsFactory
 
         if ( isset ($arrParameters['user']) && $arrParameters['user'] !== null )
         {
-            $query .= " AND recipient = ?";
+            $query .= " AND FIND_IN_SET(?, recipient) > 0";
             $arrWhere[] = $arrParameters['user'];
         }
 
@@ -175,13 +175,12 @@ class NotificationsFactory
             $objNotifications->setHasRead ($arrResult['has_read']);
             $objNotifications->setDateSent ($arrResult['date_sent']);
             $objNotifications->setId ($arrResult['id']);
-            // $objNotifications->setStepData($arrResult['step_data']);
             $objNotifications->setStepName ($arrResult['step_name']);
 
             if ( !empty ($arrResult['case_id']) )
             {
                 $objCases = new Cases();
-                $objElement = $objCases->getCaseInfo($arrResult['project_id'], $arrResult['case_id']);
+                $objElement = $objCases->getCaseInfo ($arrResult['project_id'], $arrResult['case_id']);
                 $arrAllMessages[$key]['project'] = $objElement;
 
                 $arrAllMessages[$key]['notifications'] = $objNotifications;
