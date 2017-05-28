@@ -10,6 +10,24 @@ class FieldFactory
         $this->objMysql = new Mysql2();
     }
 
+    public function getFieldByIdentifier ($fieldIdentifier)
+    {
+
+        if ( $this->objMysql == null )
+        {
+            $this->createConnection ();
+        }
+
+        $result = $this->objMysql->_select ("workflow.fields", array(), array("field_identifier" => $fieldIdentifier));
+
+        if ( isset ($result[0]) && !empty ($result[0]) )
+        {
+            return $result[0]['field_id'];
+        }
+
+        return [];
+    }
+
     /**
      * 
      * @return \StepField|boolean
@@ -29,7 +47,7 @@ class FieldFactory
                                                        ");
 
         foreach ($arrResult as $intKey => $arrField) {
-            $arrFields[$arrField['field_id']] = new StepField ($arrField['field_id']);
+            $arrFields[$arrField['field_id']] = new Field ($arrField['field_id']);
             $arrFields[$arrField['field_id']]->setFieldType ($arrField['field_type']);
             $arrFields[$arrField['field_id']]->setLabel ($arrField['label']);
             $arrFields[$arrField['field_id']]->setFieldName ($arrField['field_name']);
@@ -78,7 +96,7 @@ class FieldFactory
         $arrResult = $this->objMysql->_query ($query, $arrParameters);
 
         foreach ($arrResult as $intKey => $arrField) {
-            $arrFields[$arrField['field_id']] = new StepField ($arrField['field_id']);
+            $arrFields[$arrField['field_id']] = new Field ($arrField['field_id']);
             $arrFields[$arrField['field_id']]->setFieldType ($arrField['field_type']);
             $arrFields[$arrField['field_id']]->setLabel ($arrField['label']);
             $arrFields[$arrField['field_id']]->setFieldName ($arrField['field_name']);
@@ -180,6 +198,38 @@ class FieldFactory
         return $arrResult;
     }
 
+    public function create ($aData)
+    {
+        try {
+            $oFields = new Field();
+            $field = $this->getFieldByIdentifier (trim($aData['id']));
+
+            if ( !empty ($field) && is_numeric ($field) )
+            {
+                $oFields->setId ($field);
+            }
+
+            $oFields->loadObject ($aData);
+
+            if ( $oFields->validate () )
+            {
+                $id = $oFields->save ();
+                return $id;
+            }
+            else
+            {
+                $sMessage = '';
+                $aValidationFailures = $oFields->getValidationFailures ();
+                foreach ($aValidationFailures as $strMessage) {
+                    $sMessage .= $strMessage . '<br />';
+                }
+                throw(new Exception ('The field cannot be created!<br />' . $sMessage));
+            }
+        } catch (Exception $ex) {
+            throw($ex);
+        }
+    }
+
     /**
      * get field by id
      * @param type $fieldId
@@ -266,7 +316,7 @@ class FieldFactory
             $oFields = $this->retrieveByPK ($fieldId);
             if ( !empty ($oFields) )
             {
-                $oFields = new StepField ($fieldId, $stepId);
+                $oFields = new Field ($fieldId, $stepId);
                 $iResult = $oFields->delete ();
 
                 if ( $deleteFull === true )

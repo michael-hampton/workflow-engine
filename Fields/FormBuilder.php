@@ -14,7 +14,7 @@ class FormBuilder
     private $documentHTML;
     private $arrUploadedFiles = array();
 
-    public function __construct ($id = "pfbc")
+    public function __construct ($id = "BaseData")
     {
 
         $this->configure (array(
@@ -32,11 +32,11 @@ class FormBuilder
         {
             foreach ($arrFormFields as $objFormField) {
 
-                if ( !$objFormField instanceof StepField )
+                if ( !$objFormField instanceof Field )
                 {
                     throw new Exception ("Invalid field format");
                 }
-
+                
                 $this->addElement (
                         array(
                             "type" => $objFormField->getFieldType (),
@@ -87,7 +87,7 @@ class FormBuilder
 
     public function buildAttachments ($arrAttachments)
     {
-        
+
         $this->attachmentHtml = '<div class="col-lg-12 pull-left">';
         foreach ($arrAttachments as $objAttachment) {
 
@@ -98,7 +98,7 @@ class FormBuilder
 
             if ( !in_array ($objAttachment->getId (), $this->arrUploadedFiles) )
             {
-                
+
                 $this->attachmentHtml .= '<div class="file-box">
                                         <div class="file">
                                             <a href="/attachments/download/' . $objAttachment->getPrfPath () . '">
@@ -305,15 +305,20 @@ class FormBuilder
 
             $this->html .= '</div>';
 
-          
+
 
             //$this->buildJavascript ();
         }
-        
-          if ( trim ($this->attachmentHtml) !== "" )
-            {
-                $this->html .= $this->attachmentHtml;
-            }
+
+        if ( trim ($this->attachmentHtml) !== "" )
+        {
+            $this->html .= $this->attachmentHtml;
+        }
+
+        if ( trim ($this->documentHTML) !== "" )
+        {
+            $this->html .= $this->documentHTML;
+        }
 
         return $this->html;
     }
@@ -399,11 +404,7 @@ class FormBuilder
 
     public function buildFileInput ()
     {
-        if ( isset ($this->documentHTML) && trim ($this->documentHTML) !== "" )
-        {
-            $this->html .= $this->documentHTML;
-        }
-
+        
         $this->html .= '<button id="uploadButton" type="button" class="btn btn-primary">' . $this->label . '</button>';
 
         $this->html .= '<div id="hideUglyUpload" style="display:none;">

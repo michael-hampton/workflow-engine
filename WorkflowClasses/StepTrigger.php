@@ -319,17 +319,6 @@ class StepTrigger extends Trigger
 
             if ( $this->validate () )
             {
-                $arrTrigger = array(
-                    "moveTo" => array(
-                        "workflow_id" => $this->getWorkflowId (),
-                        "workflow_to" => $this->getWorkflowTo (),
-                        "trigger_type" => $this->getTriggerType (),
-                        "step_to" => $this->getStepTo ()
-                    )
-                );
-                
-                $this->setTrigger($arrTrigger);
-
                 $result = $this->save ();
                 return $result;
             }

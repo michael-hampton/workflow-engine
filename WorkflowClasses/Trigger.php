@@ -144,9 +144,18 @@ class Trigger
 
     public function save ()
     {
+        $arrTrigger = array(
+            "moveTo" => array(
+                "workflow_id" => $this->getWorkflowId (),
+                "workflow_to" => $this->getWorkflowTo (),
+                "trigger_type" => $this->getTriggerType (),
+                "step_to" => $this->getStepTo ()
+            )
+        );
+
         $this->objMysql->_update (
                 "workflow.status_mapping", array(
-            "step_trigger" => json_encode ($this->arrTrigger)
+            "step_trigger" => json_encode ($arrTrigger)
                 ), array(
             "step_from" => $this->id
                 )

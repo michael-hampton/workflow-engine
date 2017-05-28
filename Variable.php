@@ -182,13 +182,14 @@ class Variable
             //$this->
         }
 
+
         if ( trim ($this->variableName) == "" )
         {
             $this->validationErrors[] = "VARIABLE NAME IS MISSING";
             $errorCounter++;
         }
 
-        if ( !preg_match ('^\S+\w{4,16}\S{1,}', $this->variableName) )
+        if ( preg_match ('#^[a-zA-Z0-9_]{4,10}$D#', $this->variableName) )
         {
             $this->validationErrors[] = "INCORRECT FORMAT FOR VARIABLE NAME";
             $errorCounter++;

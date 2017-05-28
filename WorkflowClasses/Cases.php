@@ -221,7 +221,7 @@ class Cases
                         $intSkip++;
                     }
 
-                    if ( is_numeric ($process) && $process != $workflowId )
+                    if ( is_numeric ($process) && trim($process) != trim($workflowId) )
                     {
                         $intSkip++;
                     }
@@ -244,10 +244,10 @@ class Cases
                             $intSkip++;
                         }
                     }
-
-
+  
                     if ( $intSkip == 0 && trim ($arrResult['object_id']) !== trim ($elementId) )
                     {
+                        
                         $arrCase = array(
                             "elementId" => $elementId,
                             "projectId" => $arrResult['object_id'],
@@ -398,21 +398,23 @@ class Cases
                         }
 
                         $objElements = new Elements ($projectId, $elementId);
-                        
-                        $workflowName = $this->getWorkflowName($element['workflow_id']);
-                        
-                        if($workflowName !== false) {
-                            $objElements->setWorkflowName($workflowName);
+
+                        $workflowName = $this->getWorkflowName ($element['workflow_id']);
+
+                        if ( $workflowName !== false )
+                        {
+                            $objElements->setWorkflowName ($workflowName);
                         }
-                        
+
                         $objElements->setWorkflow_id ($element['workflow_id']);
                         $objElements->setCurrent_user ($audit['claimed']);
-                        
-                        $stepName = $this->getStepName($element['current_step']);
-                        
-                        if($stepName !== false) {
-                            $objElements->setCurrent_step($stepName);
-                            $objElements->setCurrentStepId($element['current_step']);
+
+                        $stepName = $this->getStepName ($element['current_step']);
+
+                        if ( $stepName !== false )
+                        {
+                            $objElements->setCurrent_step ($stepName);
+                            $objElements->setCurrentStepId ($element['current_step']);
                         }
 
                         return $objElements;
@@ -555,10 +557,11 @@ class Cases
 
         $objForm = new Form ($stepId, $workflowId);
         $arrFields = $objForm->getFields ();
-
+        
         $objFprmBuilder = new FormBuilder ("AddNewForm");
-        $html = $objFprmBuilder->buildForm ($arrFields, array());
-
+        $objFprmBuilder->buildForm ($arrFields, array());
+        $html = $objFprmBuilder->render();
+        
         return $html;
     }
 
@@ -575,6 +578,12 @@ class Cases
     public function addCase ($processUid, $userUid, $variables, $arrFiles = array(), $blSaveProject = true, $projectId = null)
     {
         try {
+            // Check For Parent
+            $objWorkflow = new Workflow($processUid);
+            $arrWorkflow =$objWorkflow->getProcess();
+            
+            $workflowId = isset($arrWorkflow[0]['parent_id']) && is_numeric($arrWorkflow[0]['parent_id']) ? $arrWorkflow[0]['parent_id'] : $processUid;
+            
             $oProcesses = new Process();
 
             $pro = $oProcesses->processExists ($processUid);
@@ -588,7 +597,7 @@ class Cases
                 "name" => $variables['form']['name'],
                 "priority" => 1,
                 "deptId" => 1,
-                "workflow_id" => $variables['workflowid'],
+                "workflow_id" => $workflowId,
                 "added_by" => $_SESSION['user']['username'],
                 "date_created" => date ("Y-m-d"),
                 "project_status" => 1,
@@ -601,7 +610,8 @@ class Cases
 
             if ( $blSaveProject === true )
             {
-                $projectId = $this->saveProject ($arrData, $processUid);
+                $projectId = $this->saveProject ($arrData, $workflowId);
+                
                 $this->projectUid ($projectId);
             }
 
@@ -615,10 +625,10 @@ class Cases
             {
                 $arrFiles = $this->uploadCaseFiles ($arrFiles, $projectId, $objStep);
 
-                if ( !$arrFiles )
-                {
-                    $errorCounter++;
-                }
+//                if ( !$arrFiles )
+//                {
+//                    $errorCounter++;
+//                }
             }
 
             if ( $errorCounter === 0 )
@@ -653,7 +663,7 @@ class Cases
      * Uploads files that were saved as part of the new case process
      * @see addCase
      */
-    private function uploadCaseFiles ($arrFilesUploaded, $projectId, WorkflowStep $objStep)
+    public function uploadCaseFiles ($arrFilesUploaded, $projectId, WorkflowStep $objStep, $fileType = '')
     {
         if ( isset ($arrFilesUploaded['fileUpload']['name'][0]) && !empty ($arrFilesUploaded['fileUpload']['name'][0]) )
         {
@@ -671,8 +681,26 @@ class Cases
                     "step" => $objStep
                 );
 
+                if ( trim ($fileType) !== "" )
+                {
+                    $arrData['file_type'] = $fileType;
+                }
+
                 $objAttachments = new Attachments();
                 $id = $arrFiles = $objAttachments->loadObject ($arrData);
+
+                if ( $id === false )
+                {
+                    $messages = $objAttachments->getArrayValidation ();
+                    $html = '';
+
+                    foreach ($messages as $message) {
+                        $html .= $message . "</br>";
+                    }
+
+                    throw new Exception ("File could not be uploaded </br>" . $html);
+                }
+
                 $arrFiles[] = $id;
             }
         }
@@ -695,6 +723,11 @@ class Cases
         $objWorkflow = new Workflow ($workflowId);
         $objStep = $objWorkflow->getNextStep ();
         $validation = $objStep->save ($objSave, $arrData['form']);
+        
+        if($validation === false) {
+            
+        }
+
         $projectId = $objSave->getId ();
 
         return $projectId;
@@ -738,4 +771,10 @@ class Cases
 
         return false;
     }
+    
+    public function sendToAllParticipants()
+    {
+        
+    }
+
 }

@@ -75,6 +75,20 @@ class DatabaseOptions
         return TRUE;
     }
 
+    public function checkOptionExists ()
+    {
+        $result = $this->objMysql->_select ("workflow.data_types", array(), array("field_id" => $this->fieldId));
+
+        if ( isset ($result[0]) && !empty ($result[0]) )
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     public function save ()
     {
         $arrDatabaseOptions = array(
@@ -88,14 +102,25 @@ class DatabaseOptions
 
         $strOptions = json_encode ($arrDatabaseOptions);
 
-        $id = $this->objMysql->_insert ("workflow.data_types", array(
-            "options" => $strOptions,
-            "field_id" => $this->fieldId,
-            "data_object_type" => 2
-                )
-        );
+        if ( $this->checkOptionExists () )
+        {
+            $this->objMysql->_update ("workflow.data_types", array(
+                "options" => $strOptions,
+                "data_object_type" => 2
+                    ), array("field_id" => $this->fieldId)
+            );
 
-        $this->objMysql->_update ("workflow.fields", array("data_type" => $id), array("field_id" => $this->fieldId));
+            $this->objMysql->_update ("workflow.fields", array("data_type" => $id), array("field_id" => $this->fieldId));
+        }
+        else
+        {
+            $id = $this->objMysql->_insert ("workflow.data_types", array(
+                "options" => $strOptions,
+                "field_id" => $this->fieldId,
+                "data_object_type" => 2
+                    )
+            );
+        }
     }
 
     public function getDatabaseName ()
@@ -125,27 +150,72 @@ class DatabaseOptions
 
     public function setDatabaseName ($databaseName)
     {
-        $this->databaseName = $databaseName;
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ( $databaseName !== null && !is_string ($databaseName) )
+        {
+            $databaseName = (string) $databaseName;
+        }
+        if ( $this->databaseName !== $databaseName )
+        {
+            $this->databaseName = $databaseName;
+        }
     }
 
     public function setIdColumn ($idColumn)
     {
-        $this->idColumn = $idColumn;
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ( $idColumn !== null && !is_string ($idColumn) )
+        {
+            $idColumn = (string) $idColumn;
+        }
+        if ( $this->idColumn !== $idColumn )
+        {
+            $this->idColumn = $idColumn;
+        }
     }
 
     public function setValueColumn ($valueColumn)
     {
-        $this->valueColumn = $valueColumn;
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ( $valueColumn !== null && !is_string ($valueColumn) )
+        {
+            $valueColumn = (string) $valueColumn;
+        }
+        if ( $this->valueColumn !== $valueColumn )
+        {
+            $this->valueColumn = $valueColumn;
+        }
     }
 
     public function setWhereColumn ($whereColumn)
     {
-        $this->whereColumn = $whereColumn;
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ( $whereColumn !== null && !is_string ($whereColumn) )
+        {
+            $whereColumn = (string) $whereColumn;
+        }
+        if ( $this->whereColumn !== $whereColumn )
+        {
+            $this->whereColumn = $whereColumn;
+        }
     }
 
     public function setOrderBy ($orderBy)
     {
-        $this->orderBy = $orderBy;
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ( $orderBy !== null && !is_string ($orderBy) )
+        {
+            $orderBy = (string) $orderBy;
+        }
+        if ( $this->orderBy !== $orderBy )
+        {
+            $this->orderBy = $orderBy;
+        }
     }
 
     public function getTableName ()
@@ -155,7 +225,16 @@ class DatabaseOptions
 
     public function setTableName ($tableName)
     {
-        $this->tableName = $tableName;
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ( $tableName !== null && !is_string ($tableName) )
+        {
+            $tableName = (string) $tableName;
+        }
+        if ( $this->tableName !== $tableName )
+        {
+            $this->tableName = $tableName;
+        }
     }
 
     public function getValidationFailures ()

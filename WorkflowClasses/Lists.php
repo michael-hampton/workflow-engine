@@ -132,10 +132,9 @@ class Lists
         $inboxCount = 0;
         $draftCount = 0;
 
+        
         if ( $objUser !== null && is_object ($objUser) )
         {
-            $objUsers = new UsersFactory ($userUid);
-            $arrUser = $objUsers->getUsers ();
             $objNotificationsFactory = new NotificationsFactory();
 
             $inboxCount = $objNotificationsFactory->countNotifications (array("user" => $objUser->getUser_email (), "status" => 1), "ns.date_sent", "DESC");
