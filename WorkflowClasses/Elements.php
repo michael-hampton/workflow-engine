@@ -37,7 +37,8 @@ class Elements
         "current_step" => array("fieldName" => "current_step", "required" => "true", "type" => "int"),
     );
     private $objMysql;
-    private $arrToIgnore = array("claimed", "status", "dateCompleted", "priority", "dueDate", "deptId", "workflow", "added_by", "date_created", "project_status");
+
+    private $arrToIgnore = array("claimed", "status", "dateCompleted", "priority", "deptId", "workflow", "added_by", "date_created", "project_status", "dueDate");
     private $status;
 
     public function __construct ($parentId, $id = null)
@@ -103,6 +104,7 @@ class Elements
             }
             elseif ( !in_array ($formField, $this->arrToIgnore) )
             {
+
                 $objVariable = $objVariables->getVariableForField ($formField);
 
                 if ( empty ($objVariable) )
@@ -319,7 +321,7 @@ class Elements
     {
         $this->workflowName = $workflowName;
     }
-    
+
     public function getCurrentStepId ()
     {
         return $this->currentStepId;
@@ -329,7 +331,7 @@ class Elements
     {
         $this->currentStepId = $currentStepId;
     }
-    
+
     /**
      * 
      * @param type $current_user

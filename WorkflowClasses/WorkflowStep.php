@@ -344,7 +344,7 @@ class WorkflowStep
             {
                 $arrWorkflowObject = $objTrigger->arrWorkflowObject;
             }
-
+            
             if ( $objTrigger->blMove === true || $blHasTrigger === false )
             {
                 $blHasTrigger = false;
@@ -369,6 +369,7 @@ class WorkflowStep
             }
         }
 
+        
         $arrWorkflow['workflow_id'] = $this->workflowId;
 
         if ( !empty ($arrWorkflowData) )
@@ -380,7 +381,7 @@ class WorkflowStep
         {
             $this->objWorkflow = $arrWorkflow;
         }
-
+    
         if ( is_numeric ($this->parentId) && is_numeric ($this->elementId) && $blHasTrigger !== true )
         {
             $this->objWorkflow['elements'][$this->elementId] = $arrWorkflow;
@@ -404,7 +405,7 @@ class WorkflowStep
         $strWorkflow = json_encode ($this->objWorkflow);
 
         $objectId = isset ($this->parentId) && is_numeric ($this->parentId) ? $this->parentId : $this->elementId;
-
+        
         if ( !empty ($arrWorkflowData) )
         {
             $this->objMysql->_update ("workflow.workflow_data", array(

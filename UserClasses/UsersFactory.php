@@ -179,7 +179,7 @@ class UsersFactory
 
             return $arrAllDepartments;
         }
-        
+
         return [];
     }
 
@@ -191,16 +191,45 @@ class UsersFactory
      * @param type $strOrderDir
      * @return \Teams
      */
-    public function getTeams ($pageLimit = 10, $page = 0, $strOrderBy = "team_name", $strOrderDir = "ASC")
+    public function getTeams ($pageLimit = 10, $page = 0, $strOrderBy = "team_name", $strOrderDir = "ASC", $teamName = null)
     {
         $arrWhere = array();
 
+        $sql = "SELECT * FROM user_management.teams WHERE 1=1";
+
         if ( $this->teamId !== null )
         {
-            $arrWhere['team_id'] = $this->teamId;
+            $sql .= " AND team_id = ?";
+            $arrWhere[] = $this->teamId;
         }
 
-        $arrTeams = $this->objMysql->_select ("user_management.teams", array(), $arrWhere, array($strOrderBy => $strOrderDir), (int) $pageLimit, (int) $page);
+        if ( $teamName !== null )
+        {
+            $sql .= " AND team_name LIKE ?";
+            $arrWhere[] = "%" . $teamName . "%";
+        }
+
+        $sql .= " ORDER BY " . $strOrderBy . " " . $strOrderDir;
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        //
+        //      Pagination
+        //
+
+
+//        $current_page = $page;
+//        $startwith = $pageLimit * $page;
+//        $total_pages = $totalRows / $pageLimit;
+//        $_SESSION["pagination"]["current_page"] = $current_page;
+//
+//        // calculating displaying pages
+//        $_SESSION["pagination"]["total_pages"] = (int) ($totalRows / $pageLimit);
+//        if ( fmod ($totalRows, $pageLimit) > 0 )
+//            $_SESSION["pagination"]["total_pages"] ++;
+
+        $sql .= " LIMIT " . $page . ", " . $pageLimit;
+
+        $arrTeams = $this->objMysql->_query ($sql, $arrWhere);
 
         $arrAllTeams = array();
 

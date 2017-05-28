@@ -89,7 +89,7 @@ class Workflow
 
     public function getStepsForWorkflow ()
     {
-        $arrResult = $this->objMysql->_query ("SELECT s.*, m.step_condition, m.first_step, m.step_from, m.step_to, m.id FROM workflow.status_mapping m
+        $arrResult = $this->objMysql->_query ("SELECT s.*, m.step_condition, m.first_step, m.step_from, m.order_id, m.step_to, m.id FROM workflow.status_mapping m
                                                 INNER JOIN workflow.steps s ON s.step_id = m.step_from
                                                 WHERE m.workflow_id = ?
                                                 ORDER BY m.order_id ASC", [0 => $this->intWorkflowId]);
@@ -155,7 +155,7 @@ class Workflow
                         r.request_type
 
                 FROM workflow.workflows w
-                INNER JOIN user_management.poms_users u ON u.username = created_by
+                LEFT JOIN user_management.poms_users u ON u.username = created_by
                 INNER JOIN workflow.request_types r ON r.request_id = w.request_id
                 WHERE 1=1";
 

@@ -37,12 +37,52 @@ class StepPermissions
      */
     public function getProcessPermissions ()
     {
-        $results = $this->objMysql->_select ("workflow.step_permission", array(), array("step_id" => $this->stepId));
+        $arrPermissions = [];
 
+        $masterPermissions = $this->objMysql->_query ("SELECT permission_type, GROUP_CONCAT(permission SEPARATOR ', ') AS permissions
+                                                        FROM workflow.step_permission 
+                                                        WHERE access_level = 'master'
+                                                        GROUP BY permission_type");
+        $ROPermissions = $this->objMysql->_query ("SELECT permission_type, GROUP_CONCAT(permission SEPARATOR ', ') AS permissions
+                                                        FROM workflow.step_permission 
+                                                        WHERE access_level != 'master'
+                                                        GROUP BY permission_type");
 
-        if ( !empty ($results) )
+        if ( !empty ($masterPermissions) )
         {
-            return $results;
+
+            foreach ($masterPermissions as $masterPermission) {
+
+                if ( $masterPermission['permission_type'] == "team" )
+                {
+                    $arrPermissions['master']['team'] = $masterPermission['permissions'];
+                }
+                else
+                {
+                    $arrPermissions['master']['user'] = $masterPermission['permissions'];
+                }
+            }
+        }
+
+        if ( !empty ($ROPermissions) )
+        {
+            foreach ($ROPermissions as $ROPermission) {
+
+                if ( $ROPermission['permission_type'] == "team" )
+                {
+                    $arrPermissions['RO']['team'] = $ROPermission['permissions'];
+                }
+                else
+                {
+                    $arrPermissions['RO']['user'] = $ROPermission['permissions'];
+                }
+            }
+        }
+
+
+        if ( !empty ($arrPermissions) )
+        {
+            return $arrPermissions;
         }
 
         return false;
@@ -62,49 +102,22 @@ class StepPermissions
         try {
 
             $objPermissions = new Permissions ($this->stepId);
-            $objPermissions->setPermissionType ($data['permissionType']);
 
-            foreach ($data['masterPermissions'] as $id) {
-                if ( $data['permissionType'] == "team" )
+            foreach ($data['selectedPermissions'] as $permission) {
+                $objPermissions->setPermissionType (trim ($permission['objectType']));
+                $objPermissions->setAccessLevel (trim ($permission['permissionType']));
+
+                if ( $permission['objectType'] == "team" )
                 {
-
-                    $objPermissions->setTeamId ($id);
-                }
-                elseif ( $data['permissionType'] == "user" )
-                {
-
-
-                    $objPermissions->setUserId ($id);
+                    $objPermissions->setTeamId ($permission['id']);
                 }
                 else
                 {
-
-                    $objPermissions->setDeptId ($id);
+                    $objPermissions->setUserId ($permission['id']);
                 }
+
+                $objPermissions->save ();
             }
-
-            $objPermissions->save ("master");
-
-            foreach ($data['selectedPermissions'] as $id) {
-                if ( $data['permissionType'] == "team" )
-                {
-
-                    $objPermissions->setTeamId ($id);
-                }
-                elseif ( $data['permissionType'] == "user" )
-                {
-
-
-                    $objPermissions->setUserId ($id);
-                }
-                else
-                {
-
-                    $objPermissions->setDeptId ($id);
-                }
-            }
-
-            $objPermissions->save ();
         } catch (Exception $ex) {
             throw $ex;
         }
@@ -117,73 +130,58 @@ class StepPermissions
      */
     public function validateUserPermissions (Users $objUser)
     {
-        
+
         $permissions = $this->getProcessPermissions ();
+        $teamId = $objUser->getTeam_id ();
+        $userId = $objUser->getUserId ();
+
+        // 1 for master 2 for RO
 
         if ( empty ($permissions) )
         {
             return true;
         }
 
-        $permissionType = $permissions[0]['permission_type'];
+        $userList = explode (",", $permissions['RO']['user']);
+        $teamList = explode (",", $permissions['RO']['team']);
+        $userMaster = explode (",", $permissions['master']['user']);
+        $teamMaster = explode (",", $permissions['master']['team']);
 
-        $lists = $permissions[0]['permission'];
-        $masterList = $permissions[0]['master_permission'];
-        $arrLists = explode (",", $lists);
-        $arrMaster = explode (",", $masterList);
+        $ROFlag = 0;
+        $masterFlag = 0;
 
-        switch ($permissionType) {
-            case "team":
-                $teamId = $objUser->getTeam_id ();
-                
-                if ( in_array ($teamId, $arrMaster) )
-                {
-                    return 1;
-                }
-                elseif ( in_array ($teamId, $arrLists) )
-                {
-                    return 2;
-                }
-                else
-                {
-                    return false;
-                }
-                break;
-
-            case "user":
-                $userId = $objUser->getUserId ();
-
-                if ( in_array ($userId, $arrMaster) )
-                {
-                    return 1;
-                }
-                elseif ( in_array ($userId, $arrLists) )
-                {
-                    return 2;
-                }
-                else
-                {
-                    return false;
-                }
-                break;
-
-            case "department":
-                $deptId = $objUser->getDept_id ();
-
-                if ( in_array ($deptId, $arrMaster) )
-                {
-                    return 1;
-                }
-                elseif ( in_array ($deptId, $arrLists) )
-                {
-                    return 2;
-                }
-                else
-                {
-                    return false;
-                }
-                break;
+        if ( in_array ($userId, $userList) )
+        {
+            $ROFlag++;
         }
+
+        if ( in_array ($userId, $userMaster) )
+        {
+            $masterFlag++;
+        }
+
+        if ( in_array ($teamId, $teamList) )
+        {
+            $ROFlag++;
+        }
+
+        if ( in_array ($teamId, $teamMaster) )
+        {
+            $masterFlag++;
+        }
+
+        if ( $masterFlag > 0 )
+        {
+            return 1;
+        }
+        elseif ( $ROFlag > 0 )
+        {
+            return 2;
+        } else {
+            return false;
+        }
+
+        return $permissionFlag;
     }
 
 }

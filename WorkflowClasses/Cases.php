@@ -552,7 +552,9 @@ class Cases
     public function startCase ($workflowId)
     {
         $objWorkflow = new Workflow ($workflowId, null);
+
         $objStep = $objWorkflow->getNextStep ();
+
         $stepId = $objStep->getStepId ();
 
         $objForm = new Form ($stepId, $workflowId);
@@ -560,8 +562,8 @@ class Cases
         
         $objFprmBuilder = new FormBuilder ("AddNewForm");
         $objFprmBuilder->buildForm ($arrFields, array());
-        $html = $objFprmBuilder->render();
-        
+        $html = $objFprmBuilder->render ();
+
         return $html;
     }
 
@@ -593,8 +595,7 @@ class Cases
                 throw new Exception ("Process doesnt exist");
             }
 
-            $arrData['form'] = array("description" => $variables['form']['description'],
-                "name" => $variables['form']['name'],
+            $arrData['form'] = array(
                 "priority" => 1,
                 "deptId" => 1,
                 "workflow_id" => $workflowId,
@@ -603,6 +604,16 @@ class Cases
                 "project_status" => 1,
                 "dueDate" => date ("Y-m-d")
             );
+
+            if ( isset ($variables['form']['description']) )
+            {
+                $arrData['form']['description'] = $variables['form']['description'];
+            }
+
+            if ( isset ($variables['form']['name']) )
+            {
+                $arrData['form']['name'] = $variables['form']['name'];
+            }
 
             $arrData['form']['status'] = "NEW PROJECT";
             $arrData['form']['dateCompleted'] = date ("Y-m-d H:i:s");
@@ -771,10 +782,4 @@ class Cases
 
         return false;
     }
-    
-    public function sendToAllParticipants()
-    {
-        
-    }
-
 }

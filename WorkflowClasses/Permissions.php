@@ -9,6 +9,7 @@ class Permissions
     private $userId;
     private $teamId;
     private $permissionType;
+    private $accessLevel;
     public $lists = array();
     private $objMysql;
     private $stepId;
@@ -59,7 +60,6 @@ class Permissions
         if ( $this->validateUserId ($userId) === true )
         {
             $this->userId = $userId;
-            $this->lists['users'][] = $userId;
         }
     }
 
@@ -78,8 +78,7 @@ class Permissions
     {
         if ( $this->validateTeamId ($teamId) === true )
         {
-            $this->teamId = $teamId;
-            $this->lists['teams'][] = $teamId;
+            $this->userId = $teamId;
         }
     }
 
@@ -99,42 +98,29 @@ class Permissions
         $this->permissionType = $permissionType;
     }
 
+    public function getAccessLevel ()
+    {
+        return $this->accessLevel;
+    }
+
+    public function setAccessLevel ($accessLevel)
+    {
+        $this->accessLevel = $accessLevel;
+    }
+
     /**
      * 
      * @param type $type
      */
-    public function save ($type = '')
+    public function save ()
     {
-        switch ($this->permissionType) {
-            case "user":
-                $lists = implode (",", $this->lists['users']);
-                break;
+        $this->objMysql->_query ("INSERT INTO workflow.step_permission (step_id, permission, permission_type, access_level) VALUES (?, ?, ?, ?)
+  				ON DUPLICATE KEY UPDATE permission = ?", [$this->stepId, $this->userId, $this->permissionType, $this->accessLevel, $this->userId]);
 
-            case "team":
-                $lists = implode (",", $this->lists['teams']);
 
-                break;
-
-            case "department":
-                $lists = implode (",", $this->lists['dept']);
-                break;
-        }
-
-        if ( $type == "master" )
-        {
-            $this->objMysql->_query ("INSERT INTO workflow.step_permission (step_id, master_permission, permission_type) VALUES (?,?, ?)
-  				ON DUPLICATE KEY UPDATE master_permission = ?, permission_type = ?", [$this->stepId, $lists, $this->permissionType, $lists, $this->permissionType]);
-        }
-        else
-        {
-            $this->objMysql->_query ("INSERT INTO workflow.step_permission (step_id, permission, permission_type) VALUES (?,?, ?)
-  				ON DUPLICATE KEY UPDATE permission = ?, permission_type = ?", [$this->stepId, $lists, $this->permissionType, $lists, $this->permissionType]);
-        }
-
-        unset ($this->lists);
         unset ($this->userId);
-        unset ($this->deptId);
-        unset ($this->teamId);
+        unset($this->permissionType);
+        unset($this->accessLevel);
     }
 
     /**
