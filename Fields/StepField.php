@@ -9,7 +9,7 @@ class StepField
     private $orderId;
     private $objMysql;
     private $arrayValidation;
-    
+
     public function __construct ($stepId, $fieldId = null)
     {
         $this->fieldId = $fieldId;
@@ -76,7 +76,7 @@ class StepField
     {
         $this->orderId = $orderId;
     }
-    
+
     public function getArrayValidation ()
     {
         return $this->arrayValidation;
@@ -85,6 +85,78 @@ class StepField
     public function setArrayValidation ($arrayValidation)
     {
         $this->arrayValidation = $arrayValidation;
+    }
+
+    public function checkRequiredFields ($fields)
+    {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        $mandatoryFields = [26, 27, 29];
+
+        $result = $this->objMysql->_select ("workflow.status_mapping", array(), array("step_from" => $this->stepId));
+
+        if ( !isset ($result[0]) || empty ($result[0]) )
+        {
+            return FALSE;
+        }
+
+        $firstStep = $result[0]['first_step'];
+
+        if ( $firstStep === 1 )
+        {
+            foreach ($mandatoryFields as $mandatoryField) {
+                if ( !in_array ($mandatoryField, $fields) )
+                {   
+                    return false;
+                }
+            }
+        }
+        
+        return true;
+    }
+
+    /**
+     * Saves multiple fields to a step
+     *
+     * @param array $aData Fields with field ids
+     * @return string
+     */
+    public function create ($arrFields)
+    {
+        try {
+            // check all mandatory fields are present
+            if ( !$this->checkRequiredFields ($arrFields) )
+            {
+                throw new Exception ("There are some required fields missing");
+            }
+
+            foreach ($arrFields as $key => $fieldId) {
+                $this->setFieldId ($fieldId);
+                $this->setOrderId ($key);
+                $this->setIsDisabled (0);
+
+                if ( $this->validate () )
+                {
+                    $this->save ();
+                    unset ($this->fieldId);
+                    unset ($this->orderId);
+                    unset ($this->isDisabled);
+                }
+                else
+                {
+                    $msg = '';
+                    foreach ($this->getArrayValidation () as $strMessage) {
+                        $msg .= $strMessage . "<br/>";
+                    }
+                    throw (new Exception ('The row cannot be created! ' . $msg));
+                }
+            }
+        } catch (Exception $ex) {
+            throw ($ex);
+        }
     }
 
     public function validate ()

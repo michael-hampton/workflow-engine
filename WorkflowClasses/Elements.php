@@ -37,7 +37,7 @@ class Elements
         "current_step" => array("fieldName" => "current_step", "required" => "true", "type" => "int"),
     );
     private $objMysql;
-    private $arrToIgnore = array("claimed", "status", "dateCompleted");
+    private $arrToIgnore = array("claimed", "status", "dateCompleted", "priority", "dueDate", "deptId", "workflow", "added_by", "date_created", "project_status");
     private $status;
 
     public function __construct ($parentId, $id = null)
@@ -107,6 +107,7 @@ class Elements
 
                 if ( empty ($objVariable) )
                 {
+                    echo $formField;
                     return false;
                 }
 

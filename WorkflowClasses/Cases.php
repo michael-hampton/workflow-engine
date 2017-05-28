@@ -557,7 +557,7 @@ class Cases
 
         $objForm = new Form ($stepId, $workflowId);
         $arrFields = $objForm->getFields ();
-
+        
         $objFprmBuilder = new FormBuilder ("AddNewForm");
         $objFprmBuilder->buildForm ($arrFields, array());
         $html = $objFprmBuilder->render();
@@ -611,6 +611,7 @@ class Cases
             if ( $blSaveProject === true )
             {
                 $projectId = $this->saveProject ($arrData, $workflowId);
+                
                 $this->projectUid ($projectId);
             }
 
@@ -722,6 +723,11 @@ class Cases
         $objWorkflow = new Workflow ($workflowId);
         $objStep = $objWorkflow->getNextStep ();
         $validation = $objStep->save ($objSave, $arrData['form']);
+        
+        if($validation === false) {
+            
+        }
+
         $projectId = $objSave->getId ();
 
         return $projectId;
@@ -764,6 +770,11 @@ class Cases
         }
 
         return false;
+    }
+    
+    public function sendToAllParticipants()
+    {
+        
     }
 
 }

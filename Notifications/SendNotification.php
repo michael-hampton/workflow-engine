@@ -83,7 +83,7 @@ class SendNotification extends Notifications
      * @param type $system
      * @return boolean
      */
-    public function buildEmail ($status, $arrData, $system = "task_manager")
+    public function buildEmail ($status, $arrData, $system = "task_manager", $blSendToAllParticipants = true)
     {
         error_reporting (0);
         $this->setVariables ($status, $system);
@@ -103,7 +103,35 @@ class SendNotification extends Notifications
         }
         else
         {
-            $this->recipient = $this->message['to'];
+            if ( $blSendToAllParticipants === true )
+            {
+                $case = new Cases();
+                $p = $case->getUsersParticipatedInCase ($this->projectId);
+
+                $noteRecipientsList = array();
+
+                foreach ($p as $userParticipated) {
+                    if ( $userParticipated != '' )
+                    {
+                        $objUsers = new UsersFactory();
+                        $arrUser = $objUsers->getUsers (trim ($userParticipated));
+
+                        if ( isset ($arrUser[0]) && !empty ($arrUser[0]) )
+                        {
+                            $emailAddress = $arrUser[0]->getUser_email ();
+                            $noteRecipientsList[] = $emailAddress;
+                        }
+                    }
+                }
+
+                $noteRecipientsList[] = $this->message['to'];
+
+                $noteRecipients = implode (",", $noteRecipientsList);
+                
+                 $this->recipient = $noteRecipients;
+            } else {
+                 $this->recipient = $this->message['to'];
+            }
         }
 
         $pattern = "/\[([^\]]+)\]/";

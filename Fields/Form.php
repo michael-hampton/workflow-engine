@@ -92,6 +92,15 @@ class Form extends FieldFactory
 
         foreach ($arrFields as $arrField) {
 
+            $fieldType = $this->objMysql->_select ("workflow.field_types", array(), array("field_type" => $arrField['type']));
+
+            if ( !isset ($fieldType[0]) || empty ($fieldType[0]) )
+            {
+                throw new Exception ("Field type is unrecognized");
+            }
+
+           $arrField['type'] = $fieldType[0]['field_type_id'];
+
             /*             * ******* Save Field ********************* */
             $fieldId = $objFieldFactory->create ($arrField);
 
@@ -151,7 +160,7 @@ class Form extends FieldFactory
                     throw new Exception ("Failed to create database options " . $msg);
                 }
             }
-            
+
             $objStepField = new StepField ($this->stepId);
 
             /*             * ********************* Assign Field to step ********************** */
