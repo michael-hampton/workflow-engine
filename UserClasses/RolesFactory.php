@@ -53,7 +53,7 @@ class RolesFactory
     public function getPermissionsWithRoles ()
     {
         $arrPermissions = $this->objMysql->_query ("SELECT * FROM user_management.`role_perms` rp
-                                                    INNER JOIN user_management.permissions p ON p.perm_id = rp.`perm_id`
+                                                    INNER JOIN user_management.permissions p ON p.id = rp.`perm_id`
                                                     INNER JOIN user_management.roles r ON r.role_id = rp.`role_id");
 
         $arrAllPermissions = array();

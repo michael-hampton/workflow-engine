@@ -3,26 +3,24 @@
 class Roles
 {
 
-    private $roleId;
-    private $roleName;
-    private $permId;
-    private $permName;
-    private $status;
-
+    protected $roleId;
+    protected $roleName;
+    protected $permId;
+    protected $status;
+    public $permName;
     /**
      * Array of ValidationFailed objects.
      * @var        array ValidationFailed[]
      */
-    private $validationFailures = array();
+    protected $validationFailures = array();
     private $arrFieldMapping = array(
         "role_id" => array("accessor" => "getRoleId", "mutator" => "setRoleId", "required" => false),
         "role_name" => array("accessor" => "getRoleName", "mutator" => "setRoleName", "required" => true),
         "perm_id" => array("accessor" => "getPermId", "mutator" => "setPermId", "required" => false),
-        "perm_name" => array("accessor" => "getPermName", "mutator" => "setPermName", "required" => false),
         "status" => array("accessor" => "getStatus", "mutator" => "setStatus", "required" => false),
+        "perm_name" => array("accessor" => "getPermName", "mutator" => "setPermName", "required" => false),
     );
     public $arrRoles = array();
-    public $arrPermissions = array();
     private $objMysql;
 
     /**
@@ -38,6 +36,36 @@ class Roles
         {
             $this->roleId = $roleId;
         }
+    }
+
+    public function getConnection ()
+    {
+        $this->objMysql = new Mysql2();
+    }
+
+    /**
+     * 
+     * @return type
+     */
+    function getPermName ()
+    {
+        return $this->permName;
+    }
+    
+     /**
+     * 
+     * @param type $permName
+     */
+    function setPermName ($permName)
+    {
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ( $permName !== null && !is_string ($permName) )
+        {
+            $permName = (string) $permName;
+        }
+
+        $this->permName = $permName;
     }
 
     /**
@@ -141,7 +169,7 @@ class Roles
 
         $this->permId = $permId;
     }
-    
+
     /**
      * 
      * @return type
@@ -182,15 +210,20 @@ class Roles
      */
     public function save ()
     {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
         if ( isset ($this->roleId) && is_numeric ($this->roleId) )
         {
             if ( $this->validate () === true )
             {
                 $this->objMysql->_update ("user_management.roles", $this->arrRoles, array("id" => $this->roleId));
-            
+
                 return true;
             }
-            
+
             return false;
         }
         else
@@ -198,10 +231,10 @@ class Roles
             if ( $this->validate () === true )
             {
                 $this->objMysql->_insert ("user_management.roles", $this->arrRoles);
-            
+
                 return true;
             }
-            
+
             return false;
         }
     }
@@ -211,6 +244,11 @@ class Roles
      */
     public function disableRole ()
     {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
         $this->objMysql->_update ("user_management.roles", array("status" => $this->status), array("role_id" => $this->roleId));
     }
 
@@ -219,11 +257,21 @@ class Roles
      */
     public function deleteRolePerms ()
     {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
         $this->objMysql->_delete ("user_management.role_perms", array("role_id" => $this->roleId, "perm_id" => $this->permId));
     }
 
     public function addRolePerms ()
     {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
         $this->objMysql->_insert ("user_management.role_perms", array("role_id" => $this->roleId, "perm_id" => $this->permId));
     }
 
@@ -232,8 +280,14 @@ class Roles
      * @param type $name
      * @return boolean
      */
-    public function checkNameExists ($name)
+    private function checkNameExists ($name)
     {
+
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
         $result = $this->objMysql->_select ("user_management.roles", array(), array("role_name" => $name));
 
         if ( isset ($result[0]['role_name']) && !empty ($result[0]['role_name']) )
@@ -246,11 +300,12 @@ class Roles
      * 
      * @return boolean
      */
-    public function validate ()
+    private function validate ()
     {
         $errorCount = 0;
-        
-        if($this->checkNameExists ($this->roleName)) {
+
+        if ( $this->checkNameExists ($this->roleName) )
+        {
             $this->validationFailures[] = "exists";
             $errorCount++;
         }

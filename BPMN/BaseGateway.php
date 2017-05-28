@@ -248,8 +248,6 @@ class BaseGateway
 
         if ( trim ($this->conditionValue) === "" )
         {
-            echo $this->conditionValue;
-            die;
             $this->arrayValidationErrors[] = "CONDITION VALUE IS MISSING";
             $errorCount++;
         }

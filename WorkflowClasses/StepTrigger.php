@@ -33,7 +33,7 @@ class StepTrigger extends Trigger
         if ( $this->nextStep !== null )
         {
             $nextTrigger = $this->objMysql->_select ("workflow.status_mapping", array("step_trigger"), array("id" => $this->nextStep));
-            
+
             if ( isset ($nextTrigger[0]['step_trigger']) )
             {
                 $stepTrigger = json_decode ($nextTrigger[0]['step_trigger'], true);
@@ -192,22 +192,24 @@ class StepTrigger extends Trigger
                         case "=":
                             if ( trim ($strValue) == trim ($conditionalValue) )
                             {
-                                 if(isset($this->arrWorkflowObject['elements'][$this->elementId])) {
+                                if ( isset ($this->arrWorkflowObject['elements'][$this->elementId]) )
+                                {
                                     $this->arrWorkflowObject['elements'][$this->elementId]['current_step'] = $trueField;
                                 }
                             }
                             else
                             {
-    
-                                if(isset($this->arrWorkflowObject['elements'][$this->elementId])) {
+
+                                if ( isset ($this->arrWorkflowObject['elements'][$this->elementId]) )
+                                {
                                     $this->arrWorkflowObject['elements'][$this->elementId]['current_step'] = $falseField;
                                 }
                             }
                             break;
                     }
-                    
-                     $blHasTrigger = true;
-                        $this->blMove = false;
+
+                    $blHasTrigger = true;
+                    $this->blMove = false;
                 }
             }
             else
@@ -321,32 +323,14 @@ class StepTrigger extends Trigger
                 }
             }
 
+            $this->setStepTo ($aData['step_to']);
+            $this->setWorkflowId ($aData['workflow_id']);
+            $this->setId ($stepUid);
+            $this->setTriggerType ($aData['trigger_type']);
 
-            if ( $aData['trigger_type'] === "gateway" )
+            if ( $this->validate () )
             {
-                $objClass = new Gateway ($stepUid);
-
-                $objClass->setCondition ($aData['condition']);
-                $objClass->setConditionValue ($aData['conditionValue']);
-                $objClass->setElse ($aData['else']);
-                $objClass->setField ($aData['field']);
-                $objClass->setStep_to ($aData['step_to']);
-                $objClass->setTriggerType ($aData['trigger_type']);
-                $objClass->setWorkflowId ($aData['workflow_id']);
-            }
-            else
-            {
-                $objClass = $this;
-
-                $objClass->setStepTo ($aData['step_to']);
-                $objClass->setWorkflowId ($aData['workflow_id']);
-                $objClass->setId ($stepUid);
-                $objClass->setTriggerType ($aData['trigger_type']);
-            }
-
-            if ( $objClass->validate () )
-            {
-                $result = $objClass->save ();
+                $result = $this->save ();
                 return $result;
             }
             else
