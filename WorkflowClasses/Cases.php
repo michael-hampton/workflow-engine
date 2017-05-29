@@ -221,7 +221,7 @@ class Cases
                         $intSkip++;
                     }
 
-                    if ( is_numeric ($process) && trim($process) != trim($workflowId) )
+                    if ( is_numeric ($process) && trim ($process) != trim ($workflowId) )
                     {
                         $intSkip++;
                     }
@@ -244,10 +244,10 @@ class Cases
                             $intSkip++;
                         }
                     }
-  
+
                     if ( $intSkip == 0 && trim ($arrResult['object_id']) !== trim ($elementId) )
                     {
-                        
+
                         $arrCase = array(
                             "elementId" => $elementId,
                             "projectId" => $arrResult['object_id'],
@@ -559,7 +559,7 @@ class Cases
 
         $objForm = new Form ($stepId, $workflowId);
         $arrFields = $objForm->getFields ();
-        
+
         $objFprmBuilder = new FormBuilder ("AddNewForm");
         $objFprmBuilder->buildForm ($arrFields, array());
         $html = $objFprmBuilder->render ();
@@ -581,11 +581,11 @@ class Cases
     {
         try {
             // Check For Parent
-            $objWorkflow = new Workflow($processUid);
-            $arrWorkflow =$objWorkflow->getProcess();
-            
-            $workflowId = isset($arrWorkflow[0]['parent_id']) && is_numeric($arrWorkflow[0]['parent_id']) ? $arrWorkflow[0]['parent_id'] : $processUid;
-            
+            $objWorkflow = new Workflow ($processUid);
+            $arrWorkflow = $objWorkflow->getProcess ();
+
+            $workflowId = isset ($arrWorkflow[0]['parent_id']) && is_numeric ($arrWorkflow[0]['parent_id']) ? $arrWorkflow[0]['parent_id'] : $processUid;
+
             $oProcesses = new Process();
 
             $pro = $oProcesses->processExists ($processUid);
@@ -622,7 +622,7 @@ class Cases
             if ( $blSaveProject === true )
             {
                 $projectId = $this->saveProject ($arrData, $workflowId);
-                
+
                 $this->projectUid ($projectId);
             }
 
@@ -734,8 +734,9 @@ class Cases
         $objWorkflow = new Workflow ($workflowId);
         $objStep = $objWorkflow->getNextStep ();
         $validation = $objStep->save ($objSave, $arrData['form']);
-        
-        if($validation === false) {
+
+        if ( $validation === false )
+        {
             
         }
 
@@ -782,4 +783,41 @@ class Cases
 
         return false;
     }
+
+    public function updateStatus (Elements $objElement, $status, $rejectionReason = '')
+    {
+        $arrStepData = array(
+            'claimed' => $_SESSION["user"]["username"],
+            "dateCompleted" => date ("Y-m-d H:i;s"),
+            "status" => $status
+        );
+        
+        if($rejectionReason !== "") {
+            $arrStepData['rejectionReason'] = $rejectionReason;
+        }
+
+        $objSteps = new WorkflowStep (null, $objElement);
+
+        if ( $status === "COMPLETE" )
+        {
+            $objSteps->complete ($objElement, $arrStepData);
+        }
+        else
+        {
+            $objStep->save ($objElement, $arrStepData);
+        }
+    }
+
+    public function assignUsers (Elements $objElements)
+    {
+        $arrStepData = array(
+            'claimed' => $_SESSION["user"]["username"],
+            "dateCompleted" => date ("Y-m-d H:i;s"),
+            "status" => "CLAIMED"
+        );
+
+        $objStep = new WorkflowStep (null, $objElements);
+        $objStep->assignUserToStep ($objElements, $arrStepData);
+    }
+
 }
