@@ -150,7 +150,7 @@ class Teams
                 $this->objMysql->_update ("user_management.teams", $this->arrTeam, array("id" => $this->id));
                 return true;
             }
-            
+
             return false;
         }
         else
@@ -160,7 +160,7 @@ class Teams
                 $this->objMysql->_insert ("user_management.teams", $this->arrTeam);
                 return true;
             }
-            
+
             return false;
         }
     }
@@ -178,8 +178,9 @@ class Teams
     public function validate ()
     {
         $errorCount = 0;
-        
-        if($this->checkNameExists ($this->teamName)) {
+
+        if ( $this->checkNameExists ($this->teamName) )
+        {
             $this->validationFailures[] = "exists";
             $errorCount++;
         }
@@ -202,4 +203,15 @@ class Teams
 
         return TRUE;
     }
+
+    public function removeUserOfGroup ($groupUid, $userUid)
+    {
+        if ( !is_numeric ($groupUid) || !is_numeric ($userUid) )
+        {
+            throw new Exception ("Invalid ids given");
+        }
+
+        $this->objMysql->_update ("user_management.poms_users", array("team_id" => null), array("usrid" => $userUid));
+    }
+
 }
