@@ -116,6 +116,16 @@ class RolesFactory
         throw new Exception ("User doesnt exist");
     }
 
+    public function throwExceptionIfItsAssignedUserToRole ($roleId, $userId)
+    {
+        $result = $this->objMysql->_select ("user_management.user_roles", array(), array("roleId" => $roleId, "userId" => $userId));
+
+        if ( isset ($result[0]) && !empty ($result[0]) )
+        {
+            throw new Exception ("User is already assigned to role");
+        }
+    }
+
     /* Assign User to Role
      *
      * @param string $roleUid   Unique id of Role
@@ -131,9 +141,9 @@ class RolesFactory
             $this->throwExceptionIfDataIsEmpty ($arrayData);
             //Set data
             //Verify data
-            $this->throwExceptionIfNotExistsRole ($roleUid, $this->arrayFieldNameForException["roleUid"]);
+            $this->throwExceptionIfNotExistsRole ($roleUid);
             $this->throwExceptionIfNotExistsUser ($arrayData["USR_UID"]);
-            $this->throwExceptionIfItsAssignedUserToRole ($roleUid);
+            $this->throwExceptionIfItsAssignedUserToRole ($roleUid, $arrayData["USR_UID"]);
 
             //Create
 
