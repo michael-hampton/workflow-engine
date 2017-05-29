@@ -34,6 +34,7 @@ class Lists
 
     private function participated ()
     {
+        
         if ( isset ($this->audit['steps']) && !empty ($this->audit['steps']) )
         {
             foreach ($this->audit['steps'] as $step) {
@@ -132,6 +133,14 @@ class Lists
     {
         $inboxCount = 0;
         $draftCount = 0;
+        
+        $this->abandoned();
+        $this->assigned();
+        $this->completed();
+        $this->participated();
+        $this->paused();
+        $this->rejected();
+        //$this->unassigned();
 
 
         if ( $objUser !== null && is_object ($objUser) )
@@ -292,6 +301,7 @@ class Lists
             foreach ($arrList as $id) {
                 $objCases = new Cases();
                 $objElement = $objCases->getCaseInfo ($parentId, $id);
+                
                 $arrProjects[] = $objElement;
             }
         }
