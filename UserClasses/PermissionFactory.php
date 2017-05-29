@@ -19,7 +19,10 @@ class PermissionFactory
 
     private function retrieveByPK ($roleId, $permId)
     {
+        
         $result = $this->objMysql->_select ("user_management.role_perms", array(), array("role_id" => $roleId, "perm_id" => $permId));
+        
+        return $result;
     }
 
     /**
@@ -31,7 +34,7 @@ class PermissionFactory
      *
      * return void Throw exception if it's assigned the Permission to Role
      */
-    public function throwExceptionIfItsAssignedPermissionToRole ($roleUid, $permissionUid, $fieldNameForException)
+    public function throwExceptionIfItsAssignedPermissionToRole ($roleUid, $permissionUid)
     {
         try {
             $obj = $this->retrieveByPK ($roleUid, $permissionUid);
@@ -83,7 +86,7 @@ class PermissionFactory
      *
      * return void Throw exception if not it's assigned the Permission to Role
      */
-    public function throwExceptionIfNotItsAssignedPermissionToRole ($roleUid, $permissionUid, $fieldNameForException)
+    public function throwExceptionIfNotItsAssignedPermissionToRole ($roleUid, $permissionUid)
     {
         try {
             $obj = $this->retrieveByPK ($roleUid, $permissionUid);
@@ -116,8 +119,8 @@ class PermissionFactory
             $role = new Roles();
             $this->throwExceptionIfNotExistsRole ($roleUid);
           
-            $this->throwExceptionIfNotExistsPermission ($arrayData["PER_UID"]);
-            $this->throwExceptionIfItsAssignedPermissionToRole ($roleUid, $arrayData["PER_UID"]);
+            $this->throwExceptionIfNotExistsPermission ($arrayData["perm_id"]);
+            $this->throwExceptionIfItsAssignedPermissionToRole ($roleUid, $arrayData["perm_id"]);
             
             //Create
 
@@ -170,13 +173,14 @@ class PermissionFactory
     {
         try {
             
-            $criteria = "SELECT p.perm_id, p.perm_name FROM user_management.permissions p";
+            $criteria = "SELECT p.perm_id, p.perm_name, rp.role_id, r.role_name FROM user_management.permissions p";
             $criteriaWhere = " WHERE 1=1";
             $arrWhere = array();
 
             if ( $roleUid != "" )
             {
                 $criteria .= " LEFT JOIN user_management.role_perms rp ON rp.perm_id = p.perm_id";
+                $criteria .= " LEFT JOIN user_management.roles r ON r.role_id = rp.role_id";
                 $criteriaWhere .= " AND rp.role_id = ?";
                 $arrWhere[] = $roleUid;
             }
@@ -189,7 +193,7 @@ class PermissionFactory
             
             $criteria = $criteria . $criteriaWhere;
             
-            return $criteria;
+            return array("sql" => $criteria, "where" => $arrWhere);
         } catch (Exception $e) {
             throw $e;
         }
@@ -250,6 +254,10 @@ class PermissionFactory
                 case "PERMISSIONS":
                     //Criteria
                     $criteria = $this->getPermissionCriteria ($roleUid);
+                    $arrWhere = $criteria['where'];
+                    $criteria = $criteria['sql'];
+                    
+                    
                     break;
                 case "AVAILABLE-PERMISSIONS":
                     //Get Uids
@@ -267,8 +275,9 @@ class PermissionFactory
             }
             if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"]) && trim ($arrayFilterData["filter"]) != "" )
             {
-                $criteria .= "AND p.perm_name LIKE %" . $arrayFilterData["filter"] . "%";
+                $criteria .= " AND p.perm_name LIKE '%" . $arrayFilterData["filter"] . "%'";
             }
+            
             //SQL
             if ( !is_null ($sortField) && trim ($sortField) != "" )
             {
@@ -304,6 +313,7 @@ class PermissionFactory
             foreach ($results as $row) {
                 $arrayPermission[] = $this->getPermissionDataFromRecord ($row);
             }
+            
             //Return
             return $arrayPermission;
         } catch (Exception $e) {
