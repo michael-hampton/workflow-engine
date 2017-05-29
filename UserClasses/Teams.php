@@ -172,18 +172,13 @@ class Teams
 
     public function deleteTeam ()
     {
-        $this->objMysql->_delete ("user_management.teams", array("team_id" => $this->teamId));
+        
+        $this->objMysql->_delete ("user_management.teams", array("team_id" => $this->id));
     }
 
     public function validate ()
     {
         $errorCount = 0;
-
-        if ( $this->checkNameExists ($this->teamName) )
-        {
-            $this->validationFailures[] = "exists";
-            $errorCount++;
-        }
 
         foreach ($this->arrFieldMapping as $fieldName => $arrField) {
             if ( $arrField['required'] === true )
