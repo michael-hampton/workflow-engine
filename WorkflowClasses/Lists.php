@@ -5,20 +5,7 @@ class Lists
 
     use Validator;
 
-    private $paused = array();
-    private $pausedCounter = 0;
-    private $completed = array();
-    private $completedCounter = 0;
-    private $unassigned = array();
-    private $unassignedCounter = 0;
-    private $assigned = array();
-    private $assignedCounter = 0;
-    private $abandoned = array();
-    private $abandonedCounter = 0;
-    private $rejected = array();
-    private $rejectedCounter = 0;
-    private $participated = array();
-    private $participatedCounter = 0;
+
     private $audit;
     private $projectId;
     private $lastStep;
@@ -34,7 +21,7 @@ class Lists
 
     private function participated ()
     {
-        
+
         if ( isset ($this->audit['steps']) && !empty ($this->audit['steps']) )
         {
             foreach ($this->audit['steps'] as $step) {
@@ -42,12 +29,7 @@ class Lists
                 {
                     if ( $step['claimed'] == $_SESSION['user']['username'] )
                     {
-
-                        if ( !in_array ($this->projectId, $this->participated) )
-                        {
-                            $this->participated[$this->parentId][] = $this->projectId;
-                            $this->participatedCounter++;
-                        }
+                        return array("parentId" => $this->parentId, "projectId" => $this->projectId);
                     }
                 }
             }
@@ -60,11 +42,7 @@ class Lists
         {
             if ( $this->lastStep['claimed'] == $_SESSION['user']['username'] )
             {
-                if ( !in_array ($this->projectId, $this->assigned) )
-                {
-                    $this->assigned[$this->parentId][] = $this->projectId;
-                    $this->assignedCounter++;
-                }
+                return array("parentId" => $this->parentId, "projectId" => $this->projectId);
             }
         }
     }
@@ -75,11 +53,7 @@ class Lists
         {
             if ( $this->lastStep['status'] == "HELD" )
             {
-                if ( !in_array ($this->projectId, $this->paused) )
-                {
-                    $this->paused[$this->parentId][] = $this->projectId;
-                    $this->pausedCounter++;
-                }
+                return array("parentId" => $this->parentId, "projectId" => $this->projectId);
             }
         }
     }
@@ -90,11 +64,7 @@ class Lists
         {
             if ( $this->lastStep['status'] == "REJECTED" )
             {
-                if ( !in_array ($this->projectId, $this->rejected) )
-                {
-                    $this->rejected[$this->parentId][] = $this->projectId;
-                    $this->rejectedCounter++;
-                }
+                return array("parentId" => $this->parentId, "projectId" => $this->projectId);
             }
         }
     }
@@ -105,11 +75,7 @@ class Lists
         {
             if ( $this->lastStep['status'] == "ABANDONED" )
             {
-                if ( !in_array ($this->projectId, $this->abandoned) )
-                {
-                    $this->abandoned[$this->parentId][] = $this->projectId;
-                    $this->abandonedCounter++;
-                }
+                return array("parentId" => $this->parentId, "projectId" => $this->projectId);
             }
         }
     }
@@ -120,11 +86,7 @@ class Lists
         {
             if ( $this->lastStep['status'] == "COMPLETE" && $lastStepInProcess == $this->lastStep['current_step'] )
             {
-                if ( !in_array ($this->projectId, $this->completed) )
-                {
-                    $this->completed[$this->parentId][] = $this->projectId;
-                    $this->completedCounter++;
-                }
+                return array("parentId" => $this->parentId, "projectId" => $this->projectId);
             }
         }
     }
@@ -134,14 +96,7 @@ class Lists
         $inboxCount = 0;
         $draftCount = 0;
         
-        $this->abandoned();
-        $this->assigned();
-        $this->completed();
-        $this->participated();
-        $this->paused();
-        $this->rejected();
-        //$this->unassigned();
-
+        $response = array();
 
         if ( $objUser !== null && is_object ($objUser) )
         {
@@ -150,19 +105,27 @@ class Lists
             $inboxCount = $objNotificationsFactory->countNotifications (array("user" => $objUser->getUser_email (), "status" => 1), "ns.date_sent", "DESC");
             $draftCount = $objNotificationsFactory->countNotifications (array("user" => $objUser->getUser_email (), "status" => 2), "ns.date_sent", "DESC");
         }
-
-        $response = array(
-            array('count' => $inboxCount, 'item' => 'CASES_INBOX'),
-            array('count' => $draftCount, 'item' => 'CASES_DRAFT'),
-            array('count' => $this->abandonedCounter, 'item' => 'ABANDONED'),
-            array('count' => $this->participatedCounter, 'item' => 'PARTICIPATED'),
-            array('count' => $this->pausedCounter, 'item' => 'PAUSED'),
-            array('count' => $this->completedCounter, 'item' => 'COMPLETED'),
-            array('count' => $this->unassignedCounter, 'item' => 'UNASSIGNED'),
-            array('count' => $this->assignedCounter, 'item' => 'ASSIGNED'),
-            array('count' => $this->rejectedCounter, 'item' => 'REJECTED')
-        );
-
+        
+        $allFunctions = array('abandoned', 'assigned', 'rejected', 'paused', 'completed', 'participated');
+        $count = 0;
+        foreach ($allFunctions as $allFunction) {
+            $list = $this->loadLists($allFunction);
+            $response[$count]['count'] = count($list);
+            $response[$count]['item'] = strtoupper($allFunction);
+            
+            $count++;
+        }
+        
+        $count++;
+        
+        $response[$count]['count'] = $inboxCount;
+        $response[$count]['item'] = "CASES_INBOX";
+        
+        $count++;
+        
+        $response[$count]['count'] = $draftCount;
+        $response[$count]['item'] = "CASES_DRAFT";
+        
         return $response;
     }
 
@@ -200,6 +163,71 @@ class Lists
             $pageLimit = $dataList['page_limit'];
         }
 
+        //error_reporting (0);
+        
+        $objNotificationsFactory = new NotificationsFactory();
+
+        switch ($listName) {
+            case "CASES_INBOX":
+            case "inbox":
+                return $objNotificationsFactory->getNotifications (array("status" => 1, "user" => $arrUser[0]->getUser_email ()));
+                break;
+
+            case "CASES_DRAFT":
+            case "draft":
+                return $objNotificationsFactory->getNotifications (array("status" => 2, "user" => $arrUser[0]->getUser_email ()));
+                break;
+
+            case "ABANDONED":
+                $function = "abandoned";
+                break;
+
+            case "PARTICIPATED":
+                $function = "participated";
+                break;
+
+            case "PAUSED":
+                $function = "paused";
+                break;
+
+            case "COMPLETED":
+                $function = "completed";
+                break;
+
+            case "UNASSIGNED":
+                $function = "unassigned";
+                break;
+
+            case "ASSIGNED":
+                $function = "assigned";
+                break;
+
+            case "REJECTED":
+                $function = "rejected";
+                break;
+        }
+
+        $arrLists = $this->loadLists ($function);
+
+        if ( !empty ($arrLists) )
+        {
+            $arrProjects = $this->loadProjects ($arrLists);
+
+            if ( isset ($page) && isset ($pageLimit) )
+            {
+                $arrrPaginated = $this->paginate ($arrProjects, $pageLimit, $page);
+
+                return $arrrPaginated;
+            }
+            
+            return $arrProjects;
+        }
+    }
+
+    public function loadLists ($function)
+    {
+        $arrLists = array();
+
         $results = $this->objMysql->_select ("workflow.workflow_data", array(), array());
 
         foreach ($results as $result) {
@@ -220,77 +248,18 @@ class Lists
 
                     $currentStep = $workflow['elements'][$elementId];
                     $this->lastStepInProcess = $this->getLastStep ($currentStep);
+
+                    $list = $this->$function ();
+
+                    if ( $list['parentId'] != $list['projectId'] )
+                    {
+                        $arrLists[$list['parentId']][] = $list['projectId'];
+                    }
                 }
             }
         }
 
-        if ( $listName !== "" )
-        {
-            $objNotificationsFactory = new NotificationsFactory();
-
-            switch ($listName) {
-                case "CASES_INBOX":
-                case "inbox":
-                    return $objNotificationsFactory->getNotifications (array("status" => 1, "user" => $arrUser[0]->getUser_email ()));
-                    break;
-
-                case "CASES_DRAFT":
-                case "draft":
-                    return $objNotificationsFactory->getNotifications (array("status" => 2, "user" => $arrUser[0]->getUser_email ()));
-                    break;
-
-                case "ABANDONED":
-                    $this->abandoned ();
-                    $list['list'] = $this->abandoned;
-                    break;
-
-                case "PARTICIPATED":
-                    $this->participated ();
-                    $list['list'] = $this->participated;
-                    break;
-
-                case "PAUSED":
-                    $this->paused ();
-                    $list['list'] = $this->paused;
-                    break;
-
-                case "COMPLETED":
-                    $this->completed ();
-                    $list['list'] = $this->completed;
-                    break;
-
-                case "UNASSIGNED":
-                    $this->unassigned ();
-                    $list['list'] = $this->unassigned;
-                    break;
-
-                case "ASSIGNED":
-                    $this->assigned ();
-                    $list['list'] = $this->assigned;
-                    break;
-
-                case "REJECTED":
-                    $this->rejected ();
-                    $list['list'] = $this->rejected;
-                    break;
-            }
-
-            if ( isset ($list['list']) && !empty ($list['list']) )
-            {
-                $arrProjects = $this->loadProjects ($list['list']);
-
-                if ( isset ($page) && isset ($pageLimit) )
-                {
-                    $arrrPaginated = $this->paginate ($arrProjects, $pageLimit, $page);
-
-                    return $arrrPaginated;
-                }
-
-                return $arrProjects;
-            }
-        }
-       
-        return $response;
+        return $arrLists;
     }
 
     public function loadProjects ($list)
@@ -299,9 +268,10 @@ class Lists
 
         foreach ($list as $parentId => $arrList) {
             foreach ($arrList as $id) {
+
                 $objCases = new Cases();
                 $objElement = $objCases->getCaseInfo ($parentId, $id);
-                
+
                 $arrProjects[] = $objElement;
             }
         }
