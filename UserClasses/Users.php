@@ -457,6 +457,16 @@ class Users
             return false;
         }
     }
+    
+     public function assignUserToRole ()
+    {
+        $this->objMysql->_insert ("user_management.user_roles", array("roleId" => $this->roleId, "userId" => $this->userId));
+    }
+    
+    public function removeRoleFromUser()
+    {
+        $this->objMysql->_delete("user_management.user_roles", array("roleId" => $this->roleId, "userId" => $this->userId));
+    }
 
     /**
      * 

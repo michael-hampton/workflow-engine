@@ -8,6 +8,7 @@ class Roles
     protected $permId;
     protected $status;
     public $permName;
+
     /**
      * Array of ValidationFailed objects.
      * @var        array ValidationFailed[]
@@ -51,8 +52,8 @@ class Roles
     {
         return $this->permName;
     }
-    
-     /**
+
+    /**
      * 
      * @param type $permName
      */
@@ -238,6 +239,7 @@ class Roles
             return false;
         }
     }
+
 
     /**
      * 
