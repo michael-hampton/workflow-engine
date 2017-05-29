@@ -202,15 +202,4 @@ class Teams
 
         return TRUE;
     }
-
-    public function checkNameExists ($name)
-    {
-        $result = $this->objMysql->_select ("user_management.teams", array(), array("team_name" => $name));
-
-        if ( isset ($result[0]['team_name']) && !empty ($result[0]['team_name']) )
-        {
-            return true;
-        }
-    }
-
 }
