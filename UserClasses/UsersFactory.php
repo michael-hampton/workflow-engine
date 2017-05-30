@@ -405,5 +405,73 @@ class UsersFactory
             throw $e;
         }
     }
+    
+    /**
+     * Save Department
+     * @var string $dep_data. Data for Process
+     * @var string $create. Flag for create or update
+     *
+     * @access public
+     *
+     * @return array
+     */
+    public function saveDepartment($dep_data, $create = true)
+    {
+        $this->isArray($dep_data, '$dep_data');
+        $this->isNotEmpty($dep_data, '$dep_data');
+        $this->isBoolean($create, '$create');
+
+        if ($create) {
+            unset($dep_data["DEP_UID"]);
+        }
+
+        $oDepartment = new Department();
+
+        if (isset($dep_data['DEP_UID']) && $dep_data['DEP_UID'] != '') {
+            $this->depUid($dep_data['DEP_UID']);
+        }
+        
+        if (isset($dep_data['DEP_MANAGER']) && $dep_data['DEP_MANAGER'] != '') {
+            $this->usrUid($dep_data['DEP_MANAGER'], 'dep_manager');
+        }
+        if (isset($dep_data['DEP_STATUS'])) {
+            $this->depStatus($dep_data['DEP_STATUS']);
+        }
+
+	$oDepartment->loadObject($dep_data);
+
+        if ($create) {
+            if (isset($dep_data['DEP_TITLE'])) {
+                $this->throwExceptionIfExistsTitle($dep_data["DEP_TITLE"], strtolower("DEP_TITLE"));
+            } else {
+                throw (new Exception("Title is missing"));
+            }
+	}
+
+            $dep_uid = $oDepartment->save();
+            $response = $this->getDepartment($dep_uid);
+            return $response;
+    }
+
+    /**
+     * Delete department
+     * @var string $dep_uid. Uid for department
+     *
+     * @access public
+     *
+     * @return array
+     */
+    public function deleteDepartment($dep_uid)
+    {
+        $dep_uid = $this->depUid($dep_uid);
+        $oDepartment = new Department();
+        $countUsers = $oDepartment->cantUsersInDepartment($dep_uid);
+        if ($countUsers != 0) {
+            throw (new Exception("ID_CANT_DELETE_DEPARTMENT_HAS_USERS"));
+        }
+        
+        $oDepartment->delete($dep_uid);
+    }
+
 
 }
