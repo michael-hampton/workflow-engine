@@ -379,16 +379,7 @@ class UsersFactory
            
 
             if (isset($arrayData["USR_ROLE"])) {
-                require_once (PATH_RBAC_HOME . "engine" . PATH_SEP . "classes" . PATH_SEP . "model" . PATH_SEP . "Roles.php");
-
-                $criteria = new \Criteria("rbac");
-
-                $criteria->add(\RolesPeer::ROL_CODE, $arrayData["USR_ROLE"]);
-                $rsCriteria = \RolesPeer::doSelectRS($criteria);
-
-                if (!$rsCriteria->next()) {
-                    throw new \Exception(\G::LoadTranslation("ID_INVALID_VALUE_FOR", array($this->arrayFieldNameForException["usrRole"])));
-                }
+                
             }
 
            
@@ -397,11 +388,11 @@ class UsersFactory
                 $department = new \Department();
 
                 if (!$department->existsDepartment($arrayData["DEP_UID"])) {
-                    throw new \Exception(\G::LoadTranslation("ID_DEPARTMENT_NOT_EXIST", array($this->arrayFieldNameForException["depUid"], $arrayData["DEP_UID"])));
+                    throw new Exception("ID_DEPARTMENT_NOT_EXIST");
                 }
             }
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             throw $e;
         }
     }
