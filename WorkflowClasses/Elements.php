@@ -479,17 +479,17 @@ class Elements
 
     private function doAudit()
     {
-        $result = $this->database->_select($this->tablename, array("system_data"), array("pk" => $this->projectId));
-        $data = json_decode($result[0]['system_data'], true);
+        $result = $this->objMysql->_select("task_manager.projects", array(), array("id" => $this->source_id));
+        $data = json_decode($result[0]['step_data'], true);
 
-        $FieldsBefore = $data['elements'][$this->id];
+        $FieldsBefore =  $data['elements'][$this->id];
 
-        $aApplicationFields = $this->object['elements'][$this->id];
+        $aApplicationFields = $this->arrElement;
         $FieldsDifference = $this->arrayRecursiveDiff($FieldsBefore, $aApplicationFields);
         $fieldsOnBoth = $this->array_key_intersect($FieldsBefore, $aApplicationFields);
 
         if ((is_array($FieldsDifference)) && (count($FieldsDifference) > 0)) {
-            $appHistory = new \KondorCoreLibrary\WorkflowAudit();
+            $appHistory = new Audit();
 
             $FieldsDifference['before'] = $fieldsOnBoth;
 
@@ -498,8 +498,8 @@ class Elements
                 "system_id" => 14,
                 "workflow_id" => 120,
                 "element_id" => $this->id,
-                "update_date" => date("Y-m-d"),
-                "username" => $_SESSION['user']['user'][0]['username'],
+                "update_date" => date("Y-m-d H:i:s"),
+                "username" => $_SESSION['user']['username'],
                 "before" => $fieldsOnBoth,
                 "message" => "Field Updated"
             );
