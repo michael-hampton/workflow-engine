@@ -247,5 +247,163 @@ class UsersFactory
 
         return [];
     }
+    
+      /**
+     * Create User
+     *
+     * @param array $arrayData Data
+     *
+     * return array Return data of the new User created
+     */
+    public function create(array $arrayData)
+    {
+        try {
+
+            //Verify data
+
+            $this->throwExceptionIfDataIsNotArray($arrayData);
+            $this->throwExceptionIfDataIsEmpty($arrayData);
+
+            //Set data
+   
+
+            /*----------------------------------********---------------------------------*/
+
+            $this->throwExceptionIfDataIsInvalid("", $arrayData);
+
+            //Create
+
+            try {
+                $user = new Users();
+
+                $arrayData["USR_CREATE_DATE"]      = date("Y-m-d H:i:s");
+                $arrayData["USR_UPDATE_DATE"]      = date("Y-m-d H:i:s");
+
+                
+                //
+                //$arrayData["USR_STATUS"] = $userStatus;
+
+		$user->loadObject($arrayData);
+
+		 if ($this->validate()) {
+
+			 $userUid = $user->save($arrayData);
+		} else {
+
+		}
+
+               
+
+		 if ($sRolCode != '') {
+            		$this->assignRoleToUser( $userUid, $sRolCode );
+        	}
+
+
+                //Return
+                return $this->getUser($userUid);
+            } catch (\Exception $e) {
+                $cnn->rollback();
+
+                throw $e;
+            }
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+	public function update ($fields)
+    {
+        
+        try {
+           $user = new Users();
+		$user->loadObject($fields);
+
+            if ($this->validate()) {
+                $result = $this->save();
+                return $result;
+            } else {
+                $con->rollback();
+                throw (new Exception(G::LoadTranslation("ID_FAILED_VALIDATION_IN_CLASS1", SYS_LANG, array("CLASS" => get_class($this)))));
+            }
+        } catch (Exception $e) {
+            $con->rollback();
+            throw ($e);
+        }
+    }
+
+    public function remove ($UsrUid)
+    {
+        try {
+            $this->setUsrUid( $UsrUid );
+            $result = $this->delete();
+            return $result;
+        } catch (Exception $e) {
+            throw ($e);
+        }
+    }
+
+
+ /**
+     * Validate the data if they are invalid (INSERT and UPDATE)
+     *
+     * @param string $userUid   Unique id of User
+     * @param array  $arrayData Data
+     *
+     * return void Throw exception if data has an invalid value
+     */
+    public function throwExceptionIfDataIsInvalid($userUid, array $arrayData)
+    {
+        try {
+            //Set variables
+            $arrayUserData = ($userUid == "")? array() : $this->getUser($userUid, true);
+            $flagInsert = ($userUid == "")? true : false;
+
+            $arrayFinalData = array_merge($arrayUserData, $arrayData);
+
+
+            //Verify data
+            if (isset($arrayData["USR_USERNAME"])) {
+                $this->throwExceptionIfExistsName($arrayData["USR_USERNAME"], $this->arrayFieldNameForException["usrUsername"], $userUid);
+            }
+
+            if (isset($arrayData["USR_EMAIL"])) {
+                if (!filter_var($arrayData["USR_EMAIL"], FILTER_VALIDATE_EMAIL)) {
+                    throw new \Exception($this->arrayFieldNameForException["usrEmail"] . ": " . \G::LoadTranslation("ID_INCORRECT_EMAIL"));
+                }
+            }
+
+            if (isset($arrayData["USR_NEW_PASS"])) {
+                $this->throwExceptionIfPasswordIsInvalid($arrayData["USR_NEW_PASS"], $this->arrayFieldNameForException["usrNewPass"]);
+            }
+
+           
+
+            if (isset($arrayData["USR_ROLE"])) {
+                require_once (PATH_RBAC_HOME . "engine" . PATH_SEP . "classes" . PATH_SEP . "model" . PATH_SEP . "Roles.php");
+
+                $criteria = new \Criteria("rbac");
+
+                $criteria->add(\RolesPeer::ROL_CODE, $arrayData["USR_ROLE"]);
+                $rsCriteria = \RolesPeer::doSelectRS($criteria);
+
+                if (!$rsCriteria->next()) {
+                    throw new \Exception(\G::LoadTranslation("ID_INVALID_VALUE_FOR", array($this->arrayFieldNameForException["usrRole"])));
+                }
+            }
+
+           
+
+            if (isset($arrayData["DEP_UID"]) && $arrayData["DEP_UID"] != "") {
+                $department = new \Department();
+
+                if (!$department->existsDepartment($arrayData["DEP_UID"])) {
+                    throw new \Exception(\G::LoadTranslation("ID_DEPARTMENT_NOT_EXIST", array($this->arrayFieldNameForException["depUid"], $arrayData["DEP_UID"])));
+                }
+            }
+
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
 
 }
