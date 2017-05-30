@@ -14,7 +14,6 @@ class Departments
      * @var        array ValidationFailed[]
      */
     private $validationFailures = array();
-    
     private $arrFieldMapping = array(
         "id" => array("accessor" => "getId", "mutator" => "setId", "required" => false),
         "department" => array("accessor" => "getDepartment", "mutator" => "setDepartment", "required" => true),
@@ -188,7 +187,7 @@ class Departments
                 $this->objMysql->_update ("user_management.departments", $this->arrDepartment, array("id" => $this->id));
                 return true;
             }
-            
+
             return false;
         }
         else
@@ -198,7 +197,7 @@ class Departments
                 $this->objMysql->_insert ("user_management.departments", $this->arrDepartment);
                 return true;
             }
-            
+
             return false;
         }
     }
@@ -220,6 +219,44 @@ class Departments
     }
 
     /**
+     * Verify if exists the title of a Department
+     *
+     * @param string $departmentTitle       Title
+     * @param string $departmentUidExclude  Unique id of Department to exclude
+     *
+     * return void Throw exception if exists the title of a Department
+     */
+    public function throwExceptionIfExistsTitle ($departmentTitle)
+    {
+        try {
+            if ( $this->checkNameExists ($departmentTitle) )
+            {
+                throw new Exception ("ID_DEPARTMENT_TITLE_ALREADY_EXISTS");
+            }
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+    /*
+     * Return the count of Users In Department
+     * @param string $sDepUID
+     * @return int
+     */
+
+    public function countUsersInDepartment ($deptId)
+    {
+        $result = $this->objMysql->_query ("SELECT COUNT(*) AS COUNT FROM poms_users WHERE dept_id = ?", [$deptId]);
+
+        if ( isset ($result[0]) && !empty ($result[0]) )
+        {
+            return $result[0]['COUNT'];
+        }
+
+        return 0;
+    }
+
+    /**
      * 
      * @param type $name
      * @return boolean
@@ -232,8 +269,13 @@ class Departments
         {
             return true;
         }
-        
+
         return false;
+    }
+
+    public function delete ()
+    {
+        $this->objMysql->_delete ("user_management.departments", array("id" => $this->id));
     }
 
     /**

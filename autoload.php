@@ -92,3 +92,6 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Dashboard/DashboardI
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Dashboard/DashboardBuilder.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Dashboard/DashboardFactory.php';
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Audit/BaseAudit.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Audit/Audit.php';
+

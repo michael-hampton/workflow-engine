@@ -5,20 +5,20 @@ class Audit extends BaseAudit
 
     public function insertHistory ($aData)
     {
-        // id of case
+        // id of project
         $this->setAppUid ($aData['APP_UID']);
+        
+        // id of case
+        $this->setTasUid($aData['TAS_UID']);
 
         // id of process
         $this->setProUid ($aData['PRO_UID']);
-
-        // id of step
-        $this->setTasUid ($aData['TAS_UID']);
 
         // user id
         $this->setUsrUid ($aData['USER_UID']);
 
         // status
-        $this->setAppStatus ($aData['APP_STATUS']);
+        //$this->setAppStatus ($aData['APP_STATUS']);
 
         // date
         $this->setHistoryDate ($aData['APP_UPDATE_DATE']);

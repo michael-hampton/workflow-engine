@@ -137,6 +137,10 @@ class Cases
         try {
             $workflowObject = $this->objMysql->_select ("workflow.workflow_data", array(), array("object_id" => $projectId));
 
+            if(!isset($workflowObject[0]) || empty($workflowObject[0])) {
+                return false;
+            }
+            
             $workflowData = json_decode ($workflowObject[0]['workflow_data'], true);
             $auditData = json_decode ($workflowObject[0]['audit_data'], true);
 
@@ -584,7 +588,7 @@ class Cases
             $objWorkflow = new Workflow ($processUid);
             $arrWorkflow = $objWorkflow->getProcess ();
 
-            $workflowId = isset ($arrWorkflow[0]['parent_id']) && is_numeric ($arrWorkflow[0]['parent_id']) ? $arrWorkflow[0]['parent_id'] : $processUid;
+            $workflowId = isset ($arrWorkflow[0]['parent_id']) && $arrWorkflow[0]['parent_id'] !== '0' ? $arrWorkflow[0]['parent_id'] : $processUid;
 
             $oProcesses = new Process();
 
@@ -732,12 +736,13 @@ class Cases
     {
         $objSave = new Save();
         $objWorkflow = new Workflow ($workflowId);
+        
         $objStep = $objWorkflow->getNextStep ();
         $validation = $objStep->save ($objSave, $arrData['form']);
 
         if ( $validation === false )
         {
-            
+            print_r($objStep->getFieldValidation());
         }
 
         $projectId = $objSave->getId ();

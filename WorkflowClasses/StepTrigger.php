@@ -174,91 +174,38 @@ class StepTrigger extends Trigger
                 }
                 elseif ( $triggerType == "gateway" )
                 {
+                    $objGateway = new Gateway ($this->arrWorkflowObject['elements'][$this->parentId]['current_step']);
+                    $this->arrWorkflowObject = $objGateway->updateStep ($arrTrigger, $this->arrWorkflowObject, $objMike);
+                }
+
+                $blHasTrigger = true;
+                $this->blMove = false;
+            }
+        }
+        else
+        {
+            if ( $this->arrWorkflowObject['elements'][$this->elementId]['workflow_id'] == $workflow )
+            {
+                if ( $triggerType == "step" )
+                {
+                    $this->arrWorkflowObject['elements'][$this->elementId]['current_step'] = $arrTrigger['step_to'];
+                    $strTriggerType = "step";
+                    $this->blMove = true;
+                    $blHasTrigger = true;
+                }
+                elseif ( $triggerType == "workflow" )
+                {
+                    $this->arrWorkflowObject['elements'][$this->elementId]['workflow_id'] = $arrTrigger['workflow_to'];
+                    $strTriggerType = "workflow";
+                }
+                elseif ( $triggerType == "gateway" )
+                {
                     $objGateway = new Gateway();
-                    $this->arrWorkflowObject = $objGateway->updateStep($arrTrigger, $this->arrWorkflowObject, $objMike);
+                    $this->arrWorkflowObject = $objGateway->updateStep ($arrTrigger, $this->arrWorkflowObject, $objMike);
 
-                    /*$arrField = $this->objMysql->_select ("workflow.fields", array(), array("field_identifier" => trim ($arrTrigger['moveTo']['field'])));
-
-                    if ( empty ($arrField) )
-                    {
-                        throw new Exception ("Field cannot be found");
-                    }
-
-                    $strField = $arrField[0]['field_identifier'];
-                    $strValue = $objMike->arrElement[$strField];
-                    $conditionalValue = $arrTrigger['moveTo']['conditionValue'];
-                    $trueField = $arrTrigger['moveTo']['step_to'];
-                    $falseField = $arrTrigger['moveTo']['else'];
-
-                    switch ($arrTrigger['moveTo']['condition']) {
-                        case "=":
-                            if ( trim ($strValue) == trim ($conditionalValue) )
-                            {
-                                if ( isset ($this->arrWorkflowObject['elements'][$this->elementId]) )
-                                {
-                                    $this->arrWorkflowObject['elements'][$this->elementId]['current_step'] = $trueField;
-                                }
-                            }
-                            else
-                            {
-
-                                if ( isset ($this->arrWorkflowObject['elements'][$this->elementId]) )
-                                {
-                                    $this->arrWorkflowObject['elements'][$this->elementId]['current_step'] = $falseField;
-                                }
-                            }*/
-                            break;
-                    }
 
                     $blHasTrigger = true;
                     $this->blMove = false;
-                }
-            }
-            else
-            {
-                if ( $this->arrWorkflowObject['elements'][$this->elementId]['workflow_id'] == $workflow )
-                {
-                    if ( $triggerType == "step" )
-                    {
-                        $this->arrWorkflowObject['elements'][$this->elementId]['current_step'] = $arrTrigger['step_to'];
-                        $strTriggerType = "step";
-                        $this->blMove = true;
-                        $blHasTrigger = true;
-                    }
-                    elseif ( $triggerType == "workflow" )
-                    {
-                        $this->arrWorkflowObject['elements'][$this->elementId]['workflow_id'] = $arrTrigger['workflow_to'];
-                        $strTriggerType = "workflow";
-                    }
-                    elseif ( $triggerType == "gateway" )
-                    {
-                        /*$arrField = $this->objMysql->_select ("workflow.fields", array(), array("field_id" => $arrTrigger['moveTo']['field']));
-                        $strField = $arrField[0]['field_identifier'];
-                        $strValue = $objMike->arrElement[$strField];
-                        $conditionalValue = $arrTrigger['moveTo']['conditionValue'];
-                        $trueField = $arrTrigger['moveTo']['step_to'];
-                        $falseField = $arrTrigger['moveTo']['else'];
-
-                        switch ($arrTrigger['moveTo']['condition']) {
-                            case "=":
-                                if ( trim ($strValue) == trim ($conditionalValue) )
-                                {
-                                    $this->arrWorkflowObject['elements'][$this->elementId]['current_step'] = $trueField;
-                                }
-                                else
-                                {
-                                    $this->arrWorkflowObject['elements'][$this->elementId]['current_step'] = $falseField;
-                                }*/
-                                
-                                
-                                 $objGateway = new Gateway();
-                                $this->arrWorkflowObject = $objGateway->updateStep($arrTrigger, $this->arrWorkflowObject, $objMike);
-                                break;
-                        }
-
-                        $blHasTrigger = true;
-                        $this->blMove = false;
-                    }
                 }
             }
         }

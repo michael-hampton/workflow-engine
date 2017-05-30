@@ -483,35 +483,39 @@ class Elements
         $data = json_decode($result[0]['step_data'], true);
 
         $FieldsBefore =  $data['elements'][$this->id];
+        
+        $this->arrElement['location'] = "Mike";
 
         $aApplicationFields = $this->arrElement;
         $FieldsDifference = $this->arrayRecursiveDiff($FieldsBefore, $aApplicationFields);
         $fieldsOnBoth = $this->array_key_intersect($FieldsBefore, $aApplicationFields);
-
+ 
         if ((is_array($FieldsDifference)) && (count($FieldsDifference) > 0)) {
             $appHistory = new Audit();
-
+            
             $FieldsDifference['before'] = $fieldsOnBoth;
 
             $aFieldsHistory = array(
-                "project_id" => $this->projectId,
+                "APP_UID" => $this->source_id,
                 "system_id" => 14,
-                "workflow_id" => 120,
-                "element_id" => $this->id,
-                "update_date" => date("Y-m-d H:i:s"),
-                "username" => $_SESSION['user']['username'],
+                "PRO_UID" => 120,
+                "TAS_UID" => $this->id,
+                "APP_UPDATE_DATE" => date("Y-m-d H:i:s"),
+                "USER_UID" => $_SESSION['user']['username'],
                 "before" => $fieldsOnBoth,
                 "message" => "Field Updated"
             );
+            $aFieldsHistory['APP_DATA']['BEFORE'] = $fieldsOnBoth;
             $aFieldsHistory['APP_DATA'] = serialize($FieldsDifference);
             $appHistory->insertHistory($aFieldsHistory);
+    
         }
     }
 
     public function save ()
     {
         $objMysql = new Mysql2();
-
+        
         if ( $this->id == "" )
         {
             $id = $this->buildObjectId ($this->source_id, $this->workflow_id);

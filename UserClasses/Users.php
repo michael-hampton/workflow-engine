@@ -34,7 +34,7 @@ class Users
         "img_src" => array("accessor" => "getImg_src", "mutator" => "setImg_src", "required" => false),
         "userId" => array("accessor" => "getUserId", "mutator" => "setUserId", "required" => false),
         "status" => array("accessor" => "getStatus", "mutator" => "setStatus", "required" => true),
-        "password" => array("accessor" => "getPassword", "mutator" => "setPassword", "required" => true),
+        "password" => array("accessor" => "getPassword", "mutator" => "setPassword", "required" => false),
         "user_email" => array("accessor" => "getUser_email", "mutator" => "setUser_email", "required" => true),
         "role_name" => array("accessor" => "getRoleName", "mutator" => "setRoleName", "required" => false),
         "department" => array("accessor" => "getDepartment", "mutator" => "setDepartment", "required" => false),
@@ -457,22 +457,6 @@ class Users
             return false;
         }
     }
-
-    /**
-     * 
-     * @param type $username
-     * @return boolean
-     */
-    public function checkUsernameExists ($username)
-    {
-        $result = $this->objMysql->_select ("user_management.poms_users", array(), array("username" => $username));
-
-        if ( isset ($result[0]['username']) && !empty ($result[0]['username']) )
-        {
-            return true;
-        }
-    }
-
     /**
      * 
      * @return boolean
@@ -480,35 +464,6 @@ class Users
     public function validate ()
     {
         $errorCount = 0;
-
-        if ( is_numeric ($this->dept_id) && $this->validateDeptId ($this->dept_id) === false )
-        {
-            $this->validationFailures[] = "dept_id";
-            $errorCount++;
-        }
-
-        if ( filter_var ($this->user_email, FILTER_VALIDATE_EMAIL) === false )
-        {
-            $this->validationFailures[] = "email";
-            $errorCount++;
-        }
-
-        if ( is_numeric ($this->team_id) && $this->validateTeamId ($this->team_id) )
-        {
-            $this->validationFailures[] = "team_id";
-            $errorCount++;
-        }
-
-        if ( !preg_match ("/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{8,}$/", $this->password) )
-        {
-            $this->validationFailures[] = "passwordMessage";
-        }
-
-        if ( $this->checkUsernameExists ($this->username) )
-        {
-            $this->validationFailures[] = "exists";
-            $errorCount++;
-        }
 
         foreach ($this->arrFieldMapping as $fieldName => $arrField) {
             if ( $arrField['required'] === true )

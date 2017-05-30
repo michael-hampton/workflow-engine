@@ -27,14 +27,15 @@ trait Validator
         {
             throw (new Exception ("PROJECT DOES NOT EXIST"));
         }
-        
-        $result = $this->connection->_select("task_manager.projects", array(), array("id" => $project_uid));
-        
-        if(isset($result[0]) && !empty($result[0])) {
+
+        $result = $this->connection->_select ("task_manager.projects", array(), array("id" => $project_uid));
+
+        if ( isset ($result[0]) && !empty ($result[0]) )
+        {
             return $project_uid;
         }
-        
-         throw (new Exception ("PROJECT DOES NOT EXIST"));
+
+        throw (new Exception ("PROJECT DOES NOT EXIST"));
     }
 
     /**
@@ -199,6 +200,28 @@ trait Validator
     }
 
     /**
+     * Validate dep_status
+     * @var string $dep_uid. Uid for Departament
+     * @var string $nameField. Name of field for message
+     *
+     * @access public
+     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
+     * @copyright Colosa - Bolivia
+     *
+     * @return string
+     */
+    public function depStatus ($dep_status)
+    {
+        $dep_status = (string) trim ($dep_status);
+        $values = array('0', '1');
+        if ( !in_array ($dep_status, $values) )
+        {
+            throw (new Exception ("ID_DEPARTMENT_NOT_EXIST"));
+        }
+        return $dep_status;
+    }
+
+    /**
      * Validate is boolean
      * @var boolean $field. Field type boolean
      *
@@ -222,7 +245,7 @@ trait Validator
      *
      * return void Throw exception if data is not array
      */
-    public function throwExceptionIfDataIsNotArray ($data, $dataNameForException)
+    public function throwExceptionIfDataIsNotArray ($data)
     {
         try {
             if ( !is_array ($data) )
