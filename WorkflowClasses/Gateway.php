@@ -41,6 +41,8 @@ class Gateway extends BaseGateway
     
     public function updateStep($arrTrigger, $arrWorkflowObject, $objMike)
     {
+         $this->elementId = $objMike->getId ();
+    
           $arrField = $this->objMysql->_select ("workflow.fields", array(), array("field_identifier" => trim ($arrTrigger['moveTo']['field'])));
                     if ( empty ($arrField) )
                     {
