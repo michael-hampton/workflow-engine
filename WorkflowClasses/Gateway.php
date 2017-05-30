@@ -69,6 +69,8 @@ class Gateway extends BaseGateway
                                     $arrWorkflowObject['elements'][$this->elementId]['current_step'] = $falseField;
                                 }
                             }
+                            
+                            return $arrWorkflowObject;
     
     }
 
