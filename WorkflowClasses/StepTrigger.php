@@ -174,8 +174,10 @@ class StepTrigger extends Trigger
                 }
                 elseif ( $triggerType == "gateway" )
                 {
+                    $objGateway = new Gateway();
+                    $this->arrWorkflowObject = $objGateway->updateStep($arrTrigger, $this->arrWorkflowObject, $objMike);
 
-                    $arrField = $this->objMysql->_select ("workflow.fields", array(), array("field_identifier" => trim ($arrTrigger['moveTo']['field'])));
+                    /*$arrField = $this->objMysql->_select ("workflow.fields", array(), array("field_identifier" => trim ($arrTrigger['moveTo']['field'])));
 
                     if ( empty ($arrField) )
                     {
@@ -204,7 +206,7 @@ class StepTrigger extends Trigger
                                 {
                                     $this->arrWorkflowObject['elements'][$this->elementId]['current_step'] = $falseField;
                                 }
-                            }
+                            }*/
                             break;
                     }
 
@@ -230,7 +232,7 @@ class StepTrigger extends Trigger
                     }
                     elseif ( $triggerType == "gateway" )
                     {
-                        $arrField = $this->objMysql->_select ("workflow.fields", array(), array("field_id" => $arrTrigger['moveTo']['field']));
+                        /*$arrField = $this->objMysql->_select ("workflow.fields", array(), array("field_id" => $arrTrigger['moveTo']['field']));
                         $strField = $arrField[0]['field_identifier'];
                         $strValue = $objMike->arrElement[$strField];
                         $conditionalValue = $arrTrigger['moveTo']['conditionValue'];
@@ -246,7 +248,11 @@ class StepTrigger extends Trigger
                                 else
                                 {
                                     $this->arrWorkflowObject['elements'][$this->elementId]['current_step'] = $falseField;
-                                }
+                                }*/
+                                
+                                
+                                 $objGateway = new Gateway();
+                                $this->arrWorkflowObject = $objGateway->updateStep($arrTrigger, $this->arrWorkflowObject, $objMike);
                                 break;
                         }
 
