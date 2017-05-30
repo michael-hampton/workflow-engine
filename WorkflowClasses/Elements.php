@@ -426,6 +426,87 @@ class Elements
     {
         return $this->id;
     }
+    
+    /**
+     * This function return an array without difference
+     *
+     *
+     * @name arrayRecursiveDiff
+     * @param  array $aArray1
+     * @param  array $aArray2
+     * @access public
+     * @return $aReturn
+     */
+    public function arrayRecursiveDiff($aArray1, $aArray2)
+    {
+        $aReturn = array();
+        foreach ($aArray1 as $mKey => $mValue) {
+            if (is_array($aArray2) && array_key_exists($mKey, $aArray2)) {
+                if (is_array($mValue)) {
+                    $aRecursiveDiff = $this->arrayRecursiveDiff($mValue, $aArray2[$mKey]);
+                    if (count($aRecursiveDiff)) {
+                        $aReturn[$mKey] = $aRecursiveDiff;
+                    }
+                } else {
+                    if ($mValue != $aArray2[$mKey]) {
+                        $aReturn[$mKey] = $aArray2[$mKey];
+                    }
+                }
+            } else {
+                $aReturn[$mKey] = isset($aArray2[$mKey]) ? $aArray2[$mKey] : null;
+            }
+        }
+        return $aReturn;
+    }
+
+    public function array_key_intersect(&$a, &$b) {
+        $array = array();
+        while (list($key, $value) = each($a)) {
+            if (isset($b[$key])) {
+                if (is_object($b[$key]) && is_object($value)) {
+                    if (serialize($b[$key]) === serialize($value)) {
+                        $array[$key] = $value;
+                    }
+                } else {
+                    if ($b[$key] !== $value) {
+                        $array[$key] = $value;
+                    }
+                }
+            }
+        }
+        return $array;
+    }
+
+    private function doAudit()
+    {
+        $result = $this->database->_select($this->tablename, array("system_data"), array("pk" => $this->projectId));
+        $data = json_decode($result[0]['system_data'], true);
+
+        $FieldsBefore = $data['elements'][$this->id];
+
+        $aApplicationFields = $this->object['elements'][$this->id];
+        $FieldsDifference = $this->arrayRecursiveDiff($FieldsBefore, $aApplicationFields);
+        $fieldsOnBoth = $this->array_key_intersect($FieldsBefore, $aApplicationFields);
+
+        if ((is_array($FieldsDifference)) && (count($FieldsDifference) > 0)) {
+            $appHistory = new \KondorCoreLibrary\WorkflowAudit();
+
+            $FieldsDifference['before'] = $fieldsOnBoth;
+
+            $aFieldsHistory = array(
+                "project_id" => $this->projectId,
+                "system_id" => 14,
+                "workflow_id" => 120,
+                "element_id" => $this->id,
+                "update_date" => date("Y-m-d"),
+                "username" => $_SESSION['user']['user'][0]['username'],
+                "before" => $fieldsOnBoth,
+                "message" => "Field Updated"
+            );
+            $aFieldsHistory['APP_DATA'] = serialize($FieldsDifference);
+            $appHistory->insertHistory($aFieldsHistory);
+        }
+    }
 
     public function save ()
     {
@@ -448,6 +529,7 @@ class Elements
         }
         else
         {
+            $this->doAudit();
             $this->JSON['elements'][$this->id] = $this->arrElement;
 
             $objMysql->_update ("task_manager.projects", array("step_data" => json_encode ($this->JSON)), array("id" => $this->source_id));
