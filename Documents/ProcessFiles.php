@@ -1,6 +1,6 @@
 <?php
 
-class ProcessFiles
+abstract class ProcessFiles
 {
 
     private $objMysql;
