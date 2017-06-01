@@ -1,6 +1,6 @@
 <?php
 
-class Notifications
+abstract class Notifications
 {
 
     protected $status;
