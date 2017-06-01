@@ -1,6 +1,6 @@
 <?php
 
-class Trigger
+abstract class Trigger
 {
 
     private $objMysql;
