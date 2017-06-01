@@ -1,6 +1,6 @@
 <?php
 
-class NotificationsFactory
+class NotificationsFactory extends Notifications
 {
 
     private $objMysql;
