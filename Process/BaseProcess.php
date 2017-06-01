@@ -1,6 +1,6 @@
 <?php
 
-class BaseProcess
+abstract class BaseProcess
 {
 
     private $objMysql;
