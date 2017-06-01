@@ -1,6 +1,6 @@
 <?php
 
-class ProcessUser
+class ProcessUser extends BaseProcessUser
 {
 
     private $objMysql;
