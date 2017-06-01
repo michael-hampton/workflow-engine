@@ -1,6 +1,6 @@
 <?php
 
-class Variable
+abstract class Variable
 {
 
     private $variableName;
