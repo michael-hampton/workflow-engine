@@ -1,6 +1,6 @@
 <?php
 
-class InputDocument
+class BaseInputDocument
 {
 
     private $title;
