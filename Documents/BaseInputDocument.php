@@ -117,7 +117,7 @@ abstract class BaseInputDocument
      * 
      * @param type $title
      */
-    protected function setTitle ($title)
+    public function setTitle ($title)
     {
         $this->title = $title;
     }
@@ -126,7 +126,7 @@ abstract class BaseInputDocument
      * 
      * @param type $description
      */
-    protected function setDescription ($description)
+    public function setDescription ($description)
     {
         $this->description = $description;
     }
@@ -135,7 +135,7 @@ abstract class BaseInputDocument
      * 
      * @param type $versioning
      */
-    protected function setVersioning ($versioning)
+    public function setVersioning ($versioning)
     {
         $this->versioning = $versioning;
     }
@@ -144,7 +144,7 @@ abstract class BaseInputDocument
      * 
      * @param type $destinationPath
      */
-    protected function setDestinationPath ($destinationPath)
+    public function setDestinationPath ($destinationPath)
     {
         $this->destinationPath = $destinationPath;
     }
@@ -153,7 +153,7 @@ abstract class BaseInputDocument
      * 
      * @param type $fileType
      */
-    protected function setFileType ($fileType)
+    public function setFileType ($fileType)
     {
         $this->fileType = $fileType;
     }
@@ -162,7 +162,7 @@ abstract class BaseInputDocument
      * 
      * @param type $maxFileSize
      */
-    protected function setMaxFileSize ($maxFileSize)
+    public function setMaxFileSize ($maxFileSize)
     {
         $this->maxFileSize = $maxFileSize;
     }
@@ -171,7 +171,7 @@ abstract class BaseInputDocument
      * 
      * @param type $filesizeUnit
      */
-    protected function setFilesizeUnit ($filesizeUnit)
+    public function setFilesizeUnit ($filesizeUnit)
     {
         $this->filesizeUnit = $filesizeUnit;
     }

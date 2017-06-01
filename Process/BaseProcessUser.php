@@ -17,6 +17,11 @@ abstract class BaseProcessUser
 
     public function __construct ()
     {
+        
+    }
+
+    public function getConnection ()
+    {
         $this->objMysql = new Mysql2();
     }
 
@@ -152,6 +157,11 @@ abstract class BaseProcessUser
 
     public function delete ()
     {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
         if ( trim ($this->pu_id) == "" || !is_numeric ($this->pu_id) )
         {
             throw new Exception ("Invalid id given");
@@ -164,6 +174,11 @@ abstract class BaseProcessUser
 
     public function save ()
     {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
         $this->objMysql->_insert ("workflow.process_supervisors", array(
             "workflow_id" => $this->pro_uid,
             "user_id" => $this->usr_uid,

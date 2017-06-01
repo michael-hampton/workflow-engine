@@ -1,3 +1,4 @@
+<?php
 class Trigger extends BaseTrigger
 {
 /**
@@ -11,7 +12,6 @@ class Trigger extends BaseTrigger
     public function create ($stepUid, $aData)
     {
         try {
-          
             $this->setStepTo ($aData['step_to']);
             $this->setWorkflowId ($aData['workflow_id']);
             $this->setId ($stepUid);

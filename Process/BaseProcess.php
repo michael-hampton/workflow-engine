@@ -26,6 +26,11 @@ abstract class BaseProcess
         $this->objMysql = new Mysql2();
     }
 
+    public function getConnection ()
+    {
+        $this->objMysql = new Mysql2();
+    }
+
     /**
      * 
      * @param type $arrData
@@ -249,6 +254,11 @@ abstract class BaseProcess
 
     public function save ()
     {
+
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
 
         $id = $this->objMysql->_insert (
                 "workflow.workflows", array(

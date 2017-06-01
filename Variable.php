@@ -1,4 +1,5 @@
-class Variable extends  BaseVariable
+<?php
+class Variable extends BaseVariable
 {
     public function create()
     {
