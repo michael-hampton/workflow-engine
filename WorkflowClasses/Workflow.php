@@ -392,4 +392,52 @@ class Workflow extends Process
 
         }
     }
+    
+    /**
+     * Creates the Process
+     *
+     * @param array $aData Fields with :
+     * $aData['PRO_UID'] the process id
+     * $aData['USR_UID'] the userid
+     * $aData['PRO_CATEGORY'] the id category
+     * @return string
+     */
+    public function create($aData)
+    {
+        try {
+            if($this->validate()) {
+                $this->save();
+            } else {
+                $msg = '';
+                foreach ($this->getValidationFailures() as $strMessage) {
+                    $msg .= $strMessage . "<br/>";
+                }
+                throw (new Exception( 'The row cannot be created! ' . $msg));
+            }
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+    public function update()
+    {
+        try {
+            if($this->validate()) {
+                $this->save();
+            } else {
+                $msg = '';
+                foreach ($this->getValidationFailures() as $strMessage) {
+                    $msg .= $strMessage . "<br/>";
+                }
+                throw (new Exception( 'The row cannot be created! ' . $msg));
+            }
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+    public function delete()
+    {
+        $this->delete();
+    }
     }
