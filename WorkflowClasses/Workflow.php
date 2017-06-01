@@ -1,6 +1,6 @@
 <?php
 
-class Workflow extends Process
+class Workflow extends BaseProcess
 {
 
     private $intWorkflowId;
