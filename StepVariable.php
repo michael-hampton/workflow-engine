@@ -1,6 +1,6 @@
 <?php
 
-class StepVariable extends Variable
+class StepVariable
 {
 
     private $objMysql;
