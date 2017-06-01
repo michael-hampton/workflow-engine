@@ -1,6 +1,6 @@
 <?php
 
-class Permissions
+abstract class Permissions
 {
 
     use Validator;
