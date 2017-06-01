@@ -11,17 +11,7 @@ class Trigger extends BaseTrigger
     public function create ($stepUid, $aData)
     {
         try {
-            if ( !$this->stepExists ($stepUid) )
-            {
-                throw new Exception ("ID_STEP_DOES_NOT_EXIST");
-            }
-            $objects = $this->objMysql->_select ("workflow.status_mapping", array(), array("id" => $stepUid));
-            foreach ($objects as $row) {
-                if ( !empty ($row['step_trigger']) )
-                {
-                    $this->remove ($stepUid);
-                }
-            }
+          
             $this->setStepTo ($aData['step_to']);
             $this->setWorkflowId ($aData['workflow_id']);
             $this->setId ($stepUid);
