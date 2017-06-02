@@ -12,6 +12,7 @@ abstract class BaseWorkflowCollection
     private $objMysql;
     private $arrValidationErrors;
     private $new;  
+    private $processCout;
 
  private $arrFieldMapping = array(
         "description" => array("accessor" => "getDescription", "mutator" => "setDescription", "required" => false),
@@ -40,6 +41,24 @@ public function loadObject ($arrData)
         }
     }
 
+
+ /**
+     * 
+     * @return type
+     */
+    public function getProcessCout ()
+    {
+        return $this->processCout;
+    }
+
+    /**
+     * 
+     * @param type $processCout
+     */
+    public function setProcessCout ($processCout)
+    {
+        $this->processCout = $processCout;
+    }
 
 /**
      * @return mixed
