@@ -7,7 +7,7 @@ class WorkflowCollection extends BaseWorkflowCollection
     private $objMysql;
   
     private $processCout = 0;
-    p
+ 
     public $arrCollection = array();
 
     public function __construct ($intWorkflowCollectionId = null, $objMike = null)
@@ -77,23 +77,7 @@ class WorkflowCollection extends BaseWorkflowCollection
 
  
     
-    /**
-     * 
-     * @return type
-     */
-    public function getProcessCout ()
-    {
-        return $this->processCout;
-    }
-
-    /**
-     * 
-     * @param type $processCout
-     */
-    public function setProcessCout ($processCout)
-    {
-        $this->processCout = $processCout;
-    }
+   
 
     public function getNextWorkflow ()
     {
