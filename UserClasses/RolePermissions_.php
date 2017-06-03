@@ -1,6 +1,6 @@
 <?php
 
-class RolePermissions extends Roles
+class RolePermissions2 extends Roles
 {
 
     public $permName;

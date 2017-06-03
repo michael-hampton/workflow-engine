@@ -89,6 +89,8 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Process/ProcessUser.
 //require_once $_SERVER['DOCUMENT_ROOT'].'/core/app/library/Users.php'
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/Password.php';;
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/BaseUser.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/BasePermission.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/Permission.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/Users.php';;
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/UsersFactory.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/RoleUser.php';
@@ -98,6 +100,8 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/Depart
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/BaseDepartment.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/Departments.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/BaseRole.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/BaseRolePermissions.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/RolePermissions.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/Roles.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/Login.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/BaseTeam.php';
@@ -106,6 +110,10 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/GroupU
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/Team.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/RolePermissions.php';
 
+
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/RolePermission.php';
+
+//require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/RolePermissions.php';
 
 /* * *************************88 Dashboard *************************************** */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Dashboard/Dashboard.php';

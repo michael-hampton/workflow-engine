@@ -117,5 +117,22 @@ class Roles extends BaseRole
 
         return count ($result);
     }
+    
+     function assignPermissionRole($sData) {
+        $o = new RolePermissions();
+        
+        $o->setPerUid($sData['perm_id']);
+        $o->setRolUid($sData['ROL_UID']);
+        
+        $o->save();
+      
+    }
+    
+     function deletePermissionRole($ROL_UID, $PER_UID) {
+        $o = new RolePermissions();
+        $o->setPerUid($PER_UID);
+        $o->setRolUid($ROL_UID);
+        $o->delete();
+    }
 
 }
