@@ -362,5 +362,27 @@ trait Validator
 
         return false;
     }
+    
+     /**
+     * Validate dep_uid
+     * @var string $dep_uid. Uid for Departament
+     * @var string $nameField. Name of field for message
+     *
+     * @access public
+     *
+     * @return string
+     */
+    public function depUid($dep_uid, $nameField = 'dep_uid')
+    {
+        $dep_uid = trim($dep_uid);
+        if ($dep_uid == '') {
+            throw (new Exception("ID_DEPARTMENT_NOT_EXIST"));
+        }
+        $oDepartment = new Departments();
+        if (!($oDepartment->existsDepartment ($dep_uid))) {
+            throw (new Exception("ID_DEPARTMENT_NOT_EXIST"));
+        }
+        return $dep_uid;
+    }
 
 }

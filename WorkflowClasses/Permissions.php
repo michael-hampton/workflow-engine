@@ -1,9 +1,7 @@
 <?php
 
-class Permissions
+abstract class Permissions
 {
-
-    use Validator;
 
     private $deptId;
     private $userId;
@@ -37,11 +35,8 @@ class Permissions
      */
     public function setDeptId ($deptId)
     {
-        if ( $this->validateDeptId ($deptId) === true )
-        {
-            $this->deptId[] = $deptId;
-            $this->lists['dept'] = $deptId;
-        }
+        $this->deptId[] = $deptId;
+        $this->lists['dept'] = $deptId;
     }
 
     /**
@@ -57,10 +52,7 @@ class Permissions
      */
     public function setUserId ($userId)
     {
-        if ( $this->validateUserId ($userId) === true )
-        {
-            $this->userId = $userId;
-        }
+        $this->userId = $userId;
     }
 
     /**
@@ -76,10 +68,7 @@ class Permissions
      */
     public function setTeamId ($teamId)
     {
-        if ( $this->validateTeamId ($teamId) === true )
-        {
-            $this->userId = $teamId;
-        }
+        $this->userId = $teamId;
     }
 
     /**
@@ -119,8 +108,8 @@ class Permissions
 
 
         unset ($this->userId);
-        unset($this->permissionType);
-        unset($this->accessLevel);
+        unset ($this->permissionType);
+        unset ($this->accessLevel);
     }
 
     /**

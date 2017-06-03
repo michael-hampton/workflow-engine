@@ -1,6 +1,6 @@
 <?php
 
-class StepPermissions
+class StepPermissions extends Permissions
 {
 
     /**

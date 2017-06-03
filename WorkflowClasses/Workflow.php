@@ -1,6 +1,6 @@
 <?php
 
-class Workflow
+class Workflow extends BaseProcess
 {
 
     private $intWorkflowId;
@@ -368,28 +368,90 @@ class Workflow
         }
         return $aProc;
     }
-    
-     /**
+
+    /**
      * Get data of a Process
      *
      * @param string $processUid Unique id of Process
      *
      * return array Return an array with data of a Process
      */
-    public function getProcess()
+    public function getProcess ()
     {
         try {
             $process = new Process();
-            $process->throwExceptionIfNotExistsProcess($this->intWorkflowId);
-            $result = $this->objMysql->_select("workflow.workflows", array(), array("workflow_id" => $this->intWorkflowId));
-            
-            if(!isset($result[0]) || empty($result[0])) {
+            $process->throwExceptionIfNotExistsProcess ($this->intWorkflowId);
+            $result = $this->objMysql->_select ("workflow.workflows", array(), array("workflow_id" => $this->intWorkflowId));
+
+            if ( !isset ($result[0]) || empty ($result[0]) )
+            {
                 return [];
             }
-            
+
             return $result;
         } catch (Exception $ex) {
-
+            
         }
     }
+
+    /**
+     * Creates the Process
+     *
+     * @param array $aData Fields with :
+     * $aData['PRO_UID'] the process id
+     * $aData['USR_UID'] the userid
+     * $aData['PRO_CATEGORY'] the id category
+     * @return string
+     */
+    public function create ($aData)
+    {
+        try {
+            $this->loadObject ($aData);
+
+            if ( $this->validate () )
+            {
+                $id = $this->save ();
+                return $id;
+            }
+            else
+            {
+                $msg = '';
+                foreach ($this->getArrValidationErrors () as $strMessage) {
+                    $msg .= $strMessage . "<br/>";
+                }
+                throw (new Exception ('The row cannot be created! ' . $msg));
+            }
+        } catch (Exception $e) {
+            throw $e;
+        }
     }
+
+    public function update ($arrData)
+    {
+        try {
+
+            $this->loadObject ($arrData);
+
+            if ( $this->validate () )
+            {
+                $this->save ();
+            }
+            else
+            {
+                $msg = '';
+                foreach ($this->getArrValidationErrors () as $strMessage) {
+                    $msg .= $strMessage . "<br/>";
+                }
+                throw (new Exception ('The row cannot be created! ' . $msg));
+            }
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+    public function delete ()
+    {
+        $this->deleteWorkflow ();
+    }
+
+}

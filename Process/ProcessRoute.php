@@ -1,74 +1,60 @@
 <?php
 
-class ProcessRoute
+class ProcessRoute extends BaseProcessRoute
 {
 
     private $objMysql;
-    private $from;
-    private $to;
-    private $firstWorkflow;
 
-    public function __construct ()
+    private function getConnection ()
     {
         $this->objMysql = new Mysql2();
     }
 
-    public function getFrom ()
+    /**
+     * 
+     * @param type $arrUpdate
+     * @throws Exception
+     */
+    public function updateRoute ($arrUpdate)
     {
-        return $this->from;
-    }
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
 
-    public function getTo ()
-    {
-        return $this->to;
-    }
+        if ( !isset ($arrUpdate['to']) || empty ($arrUpdate['to']) )
+        {
+            throw new Exception ("UPDATE ARRAY IS INCOMPLETE");
+        }
 
-    public function getFirstWorkflow ()
-    {
-        return $this->firstWorkflow;
+        if ( !isset ($arrUpdate['where']) || empty ($arrUpdate['where']) )
+        {
+            throw new Exception ("UPDATE ARRAY IS INCOMPLETE");
+        }
+
+        $this->objMysql->_update ("workflow.workflow_mapping", $arrUpdate['to'], $arrUpdate['where']);
     }
 
     /**
-     * 
-     * @param type $from
+     * Create Route
+     *
+     * @param string $processUid
+     * @param string $taskUid
+     * @param string $nextTaskUid
+     * @param string $type
+     * @param bool   $delete
+     *
+     * return string Return UID of new Route
+     *
+     * @access public
      */
-    public function setFrom ($from)
+    public function defineRoute ($from, $to, $firstWorkflow)
     {
-        $this->from = $from;
-    }
+        $this->setFrom ($from);
+        $this->setTo ($to);
+        $this->setFirstWorkflow ($firstWorkflow);
 
-    /**
-     * 
-     * @param type $to
-     */
-    public function setTo ($to)
-    {
-        $this->to = $to;
-    }
-
-    /**
-     * 
-     * @param type $firstWorkflow
-     */
-    public function setFirstWorkflow ($firstWorkflow)
-    {
-        $this->firstWorkflow = $firstWorkflow;
-    }
-
-    public function saveMapping ()
-    {
-        $this->objMysql->_insert (
-                "workflow.workflow_mapping", array(
-            "workflow_from" => $this->from,
-            "workflow_to" => $this->to,
-            "first_workflow" => $this->firstWorkflow
-                )
-        );
-    }
-
-    public function updateMapping ($from, $firstWorkflow = 0)
-    {
-        $this->objMysql ("workflow.workflow_mapping", array("workflow_to" => $this->id), array("workflow_from" => $from));
+        $this->saveMapping ();
     }
 
 }

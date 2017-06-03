@@ -1,6 +1,6 @@
 <?php
 
-class BaseProcess
+abstract class BaseProcess
 {
 
     private $objMysql;
@@ -22,6 +22,11 @@ class BaseProcess
     );
 
     public function __construct ()
+    {
+        $this->objMysql = new Mysql2();
+    }
+
+    public function getConnection ()
     {
         $this->objMysql = new Mysql2();
     }
@@ -249,6 +254,11 @@ class BaseProcess
 
     public function save ()
     {
+
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
 
         $id = $this->objMysql->_insert (
                 "workflow.workflows", array(
