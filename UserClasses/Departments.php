@@ -85,6 +85,12 @@ class Departments extends BaseDepartment
         return !empty ($result[0]) > 0 ? $result[0] : null;
     }
 
+    public function getDepartmentObject ($deptUid)
+    {
+        $oPro = $this->loadDepartmentRecord ($this->retrieveByPK ($deptUid));
+        return $oPro;
+    }
+
     /**
      * Update the Dep row
      *
@@ -95,8 +101,8 @@ class Departments extends BaseDepartment
     public function update ($aData)
     {
         try {
-           $oPro = $this->loadDepartmentRecord($this->retrieveByPK($aData['id']));
-           
+            $oPro = $this->loadDepartmentRecord ($this->retrieveByPK ($aData['id']));
+
             if ( is_object ($oPro) && get_class ($oPro) == 'Departments' )
             {
                 $oPro->loadObject ($aData);
@@ -110,7 +116,7 @@ class Departments extends BaseDepartment
                     {
                         $oPro->setStatus ($aData['status']);
                     }
-                  
+
                     if ( isset ($aData['department_manager']) )
                     {
                         $oPro->setDepartmentManager ($aData['department_manager']);
@@ -245,8 +251,8 @@ class Departments extends BaseDepartment
      */
     public function existsDepartment ($DepUid)
     {
-        $result = $this->objMysql->_select("user_management.departments", [], ["id" => $DepUid]);
-        $oPro = $this->loadDepartmentRecord($result[0]);
+        $result = $this->objMysql->_select ("user_management.departments", [], ["id" => $DepUid]);
+        $oPro = $this->loadDepartmentRecord ($result[0]);
         if ( is_object ($oPro) && get_class ($oPro) == 'Departments' )
         {
             return true;
@@ -266,6 +272,44 @@ class Departments extends BaseDepartment
         $objDepartment->setStatus ($record['status']);
 
         return $objDepartment;
+    }
+
+    public function addUserToDepartment ($departmentUid, $userUid)
+    {
+
+        try {
+            
+            $objUser = new Users();
+            $objUser->setDept_id ($departmentUid);
+            $objUser->setUserId ($userUid);
+            $objUser->save ();
+        } catch (Exception $ex) {
+            throw $ex;
+        }
+    }
+
+    public function updateDepartmentManager ($deptUid, $deptManager)
+    {
+        try {
+            $this->setId ($deptUid);
+            $this->setDepartmentManager ($deptManager);
+            $this->save ();
+        } catch (Exception $ex) {
+            throw $ex;
+        }
+    }
+
+    public function removeUserFromDepartment ($depUid, $userUid)
+    {
+        try {
+            $objUser = new Users();
+            $objUser->setDept_id (0);
+            $objUser->setUserId ($userUid);
+        } catch (Exception $ex) {
+            throw $ex;
+        }
+
+        $objUser->save ();
     }
 
 }

@@ -393,7 +393,7 @@ abstract class BaseUser
 
         $this->roleId = $roleId;
     }
-    
+
     public function getSupervisor ()
     {
         return $this->supervisor;
@@ -404,7 +404,6 @@ abstract class BaseUser
         $this->supervisor = $supervisor;
     }
 
-    
     /**
      * 
      * @return type
@@ -440,37 +439,36 @@ abstract class BaseUser
     {
         if ( isset ($this->userId) && is_numeric ($this->userId) )
         {
-            if ( $this->validate () === true )
+
+            $this->objMysql->_update ("user_management.poms_users", $this->arrUser, array("usrid" => $this->userId));
+
+
+            if ( $this->roleId != "" && is_numeric ($this->roleId) )
             {
-                $this->objMysql->_update ("user_management.poms_users", $this->arrUser, array("usrid" => $this->userId));
-
-
-                if ( $this->roleId != "" && is_numeric ($this->roleId) )
-                {
-                    $this->objMysql->_update ("user_management.user_roles", array("roleId" => $this->roleId), array("userId" => $this->userId));
-                }
-                return true;
+                $this->objMysql->_update ("user_management.user_roles", array("roleId" => $this->roleId), array("userId" => $this->userId));
             }
+            return true;
+
 
             return false;
         }
         else
         {
-            if ( $this->validate () === true )
+
+            $this->objMysql->_insert ("user_management.poms_users", $this->arrUser);
+
+            if ( $this->roleId != "" && is_numeric ($this->roleId) )
             {
-                $this->objMysql->_insert ("user_management.poms_users", $this->arrUser);
-
-                if ( $this->roleId != "" && is_numeric ($this->roleId) )
-                {
-                    $this->objMysql->_insert ("user_management.user_roles", array("roleId" => $this->roleId, "userId" => $this->userId));
-                }
-
-                return true;
+                $this->objMysql->_insert ("user_management.user_roles", array("roleId" => $this->roleId, "userId" => $this->userId));
             }
+
+            return true;
+
 
             return false;
         }
     }
+
     /**
      * 
      * @return boolean
