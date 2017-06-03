@@ -9,12 +9,13 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BaseComments.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Comments.php';
 
 /* * *********************** Documents ******************************************** */
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/BaseProcessFiles.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/ProcessFiles.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/FileUpload.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/BaseDocumentVersion.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/BaseInputDocument.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/DocumentVersion.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/Attachments.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/Attachments.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/InputDocument.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/StepDocument.php';
 
@@ -39,6 +40,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/Valida
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Process/BaseProcess.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/WorkflowClasses/Workflow.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/WorkflowClasses/WorkflowStep.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/WorkflowClasses/BaseWorkflowCollection.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/WorkflowClasses/WorkflowCollection.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/WorkflowCollectionFactory.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BPMN/BaseGateway.php';
@@ -84,10 +86,15 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Process/ProcessUser.
 
 
 /* * ******************* Users ******************************************* */
-//require_once $_SERVER['DOCUMENT_ROOT'].'/core/app/library/Users.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/UsersFactory.php';
+//require_once $_SERVER['DOCUMENT_ROOT'].'/core/app/library/Users.php'
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/Password.php';;
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/BaseUser.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/Users.php';;
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/UsersFactory.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/RolesFactory.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/Users.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/Department.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/BaseDepartment.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/Departments.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/Roles.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/UserClasses/Login.php';

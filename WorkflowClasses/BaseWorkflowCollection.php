@@ -1,7 +1,8 @@
 <?php
+
 abstract class BaseWorkflowCollection
 {
-  
+
     private $deptId;
     private $name;
     private $description;
@@ -11,10 +12,9 @@ abstract class BaseWorkflowCollection
     private $systemId;
     private $objMysql;
     private $arrValidationErrors;
-    private $new;  
+    private $new;
     private $processCout;
-
- private $arrFieldMapping = array(
+    private $arrFieldMapping = array(
         "description" => array("accessor" => "getDescription", "mutator" => "setDescription", "required" => false),
         "request_type" => array("accessor" => "getName", "mutator" => "setName", "required" => true),
         "system_id" => array("accessor" => "getSystemId", "mutator" => "setSystemId", "required" => true),
@@ -22,9 +22,12 @@ abstract class BaseWorkflowCollection
     );
     public $arrCollection = array();
 
+    public function getConnection ()
+    {
+        $this->objMysql = new Mysql2();
+    }
 
-
-public function loadObject ($arrData)
+    public function loadObject ($arrData)
     {
         foreach ($arrData as $formField => $formValue) {
             if ( isset ($this->arrFieldMapping[$formField]) )
@@ -41,8 +44,7 @@ public function loadObject ($arrData)
         }
     }
 
-
- /**
+    /**
      * 
      * @return type
      */
@@ -60,13 +62,14 @@ public function loadObject ($arrData)
         $this->processCout = $processCout;
     }
 
-/**
+    /**
      * @return mixed
      */
     public function getDeptId ()
     {
         return $this->deptId;
     }
+
     /**
      * @param mixed $deptId
      */
@@ -75,6 +78,7 @@ public function loadObject ($arrData)
         $this->arrCollection['dept_id'] = $deptId;
         $this->deptId = $deptId;
     }
+
     /**
      * @return mixed
      */
@@ -82,6 +86,7 @@ public function loadObject ($arrData)
     {
         return $this->name;
     }
+
     /**
      * @param mixed $name
      */
@@ -90,15 +95,18 @@ public function loadObject ($arrData)
         $this->name = $name;
         $this->arrCollection['request_type'] = $name;
     }
+
     public function getSystemId ()
     {
         return $this->systemId;
     }
+
     public function setSystemId ($systemId)
     {
         $this->systemId = $systemId;
         $this->arrCollection['system_id'] = $systemId;
     }
+
     /**
      * @return mixed
      */
@@ -106,6 +114,7 @@ public function loadObject ($arrData)
     {
         return $this->description;
     }
+
     /**
      * @param mixed $description
      */
@@ -114,6 +123,7 @@ public function loadObject ($arrData)
         $this->description = $description;
         $this->arrCollection['description'] = $description;
     }
+
     /**
      * @return mixed
      */
@@ -121,14 +131,17 @@ public function loadObject ($arrData)
     {
         return $this->requestId;
     }
+
     public function getNew ()
     {
         return $this->new;
     }
+
     public function setNew ($new)
     {
         $this->new = $new;
     }
+
     /**
      * @param mixed $requestId
      */
@@ -136,6 +149,7 @@ public function loadObject ($arrData)
     {
         $this->requestId = $requestId;
     }
+
     /**
      * 
      * @return type
@@ -144,6 +158,7 @@ public function loadObject ($arrData)
     {
         return $this->parentId;
     }
+
     /**
      * 
      * @param type $parentId
@@ -153,8 +168,7 @@ public function loadObject ($arrData)
         $this->parentId = $parentId;
     }
 
-
- public function validate ()
+    public function validate ()
     {
         $errorCount = 0;
         foreach ($this->arrFieldMapping as $fieldName => $arrField) {
@@ -173,18 +187,24 @@ public function loadObject ($arrData)
         }
         return TRUE;
     }
+
     public function save ()
     {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
         if ( $this->new === true )
         {
             $this->objMysql->_insert ("workflow.request_types", $this->arrCollection);
         }
         else
         {
-            
+            // do update
         }
     }
-   
+
     public function delete ()
     {
         if ( !is_numeric ($this->requestId) )

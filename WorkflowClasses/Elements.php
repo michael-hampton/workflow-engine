@@ -483,8 +483,6 @@ class Elements
         $data = json_decode($result[0]['step_data'], true);
 
         $FieldsBefore =  $data['elements'][$this->id];
-        
-        $this->arrElement['location'] = "Mike";
 
         $aApplicationFields = $this->arrElement;
         $FieldsDifference = $this->arrayRecursiveDiff($FieldsBefore, $aApplicationFields);
