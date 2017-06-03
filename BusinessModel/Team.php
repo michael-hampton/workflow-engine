@@ -1,6 +1,6 @@
 <?php
 
-class TeamFactory
+class Team
 {
 
     /**
@@ -25,10 +25,21 @@ class TeamFactory
      *
      * return bool Return true if exists the title of a Group, false otherwise
      */
-    public function existsTitle ($groupTitle)
+    public function existsTitle ($groupTitle, $teamId = null)
     {
         try {
-            $result = $this->objMysql->_select ("user_management.teams", array(), array("team_name" => $groupTitle));
+
+            $arrWhere = array();
+            $sql = "SELECT * FROM user_management.teams WHERE team_name = ?";
+            $arrWhere[] = $groupTitle;
+
+            if ( $teamId !== null )
+            {
+                $sql .= " AND team_id != ?";
+                $arrWhere[] = $teamId;
+            }
+
+            $result = $this->objMysql->_query ($sql, $arrWhere);
 
             if ( isset ($result[0]['team_name']) && !empty ($result[0]['team_name']) )
             {
@@ -36,7 +47,7 @@ class TeamFactory
             }
 
             return false;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             throw $e;
         }
     }
@@ -82,10 +93,10 @@ class TeamFactory
      *
      * return void Throw exception if exists the title of a Group
      */
-    public function throwExceptionIfExistsTitle ($groupTitle)
+    public function throwExceptionIfExistsTitle ($groupTitle, $teamId = null)
     {
         try {
-            if ( $this->existsTitle ($groupTitle) )
+            if ( $this->existsTitle ($groupTitle, $teamId) )
             {
                 throw new Exception ("GROUP TITLE ALREADY EXISTS");
             }
@@ -104,11 +115,11 @@ class TeamFactory
     public function create ($arrayData)
     {
         try {
+            //Verify data
             $this->throwExceptionIfExistsTitle ($arrayData["team_name"]);
             //Create
             $group = new Teams();
-            $group->loadObject ($arrayData);
-            $groupUid = $group->save ();
+            $groupUid = $group->create ($arrayData);
             //Return
             $arrayData = array_merge (array("GRP_UID" => $groupUid), $arrayData);
 
@@ -129,17 +140,19 @@ class TeamFactory
     public function update ($groupUid, $arrayData)
     {
         try {
+            //Verify data
             $this->throwExceptionIfNotExistsGroup ($groupUid);
-            //if ( isset ($arrayData["team_name"]) )
-            //{
-                //$this->throwExceptionIfExistsTitle ($arrayData["team_name"]);
-            //}
+            if ( isset ($arrayData["team_name"]) )
+            {
+                $this->throwExceptionIfExistsTitle ($arrayData["team_name"], $groupUid);
+            }
             //Update
             $group = new Teams();
-            $group->setId ($groupUid);
-            $group->loadObject ($arrayData);
-            $result = $group->save ();
+            $arrayData["team_id"] = $groupUid;
+            $result = $group->update ($arrayData);
             //Return
+            unset ($arrayData["GRP_UID"]);
+
             return $arrayData;
         } catch (Exception $e) {
             throw $e;
@@ -161,15 +174,15 @@ class TeamFactory
             $arrayTotalTasksByGroup = $this->getTotalTasksByGroup ($groupUid);
             if ( isset ($arrayTotalTasksByGroup[$groupUid]) && $arrayTotalTasksByGroup[$groupUid] > 0 )
             {
-                throw new Exception ("ID GROUP CANNOT DELETE WHILE ASSIGNED TO TASK");
+                throw new Exception ("ID_GROUP_CANNOT_DELETE_WHILE_ASSIGNED_TO_TASK");
             }
             
-            $team = new Teams();
-            $team->setId($groupUid);
-            $team->deleteTeam();
-            
+            //Delete
+            $group = new Teams();
+            $result = $group->remove ($groupUid);
 
-            $objPermissions = new Permissions (null);
+
+            $objPermissions = new ObjectPermissions (null);
             $objPermissions->deleteAll ("team", $groupUid);
         } catch (Exception $e) {
             throw $e;
@@ -206,7 +219,7 @@ class TeamFactory
             }
 
             $sql .= " GROUP BY t.team_id";
-            
+
             $results = $this->objMysql->_query ($sql, $arrParameters);
 
             foreach ($results as $row) {
@@ -253,7 +266,7 @@ class TeamFactory
                     }
                 }
             }
-            
+
 
             $arrGroups = array();
 
@@ -261,14 +274,14 @@ class TeamFactory
             {
                 foreach ($arrUsers as $strUser) {
                     $objUsersFactory = new UsersFactory();
-                    $arrUser = $objUsersFactory->getUsers ($strUser);
-                    $teamId = $arrUser[0]->getTeam_id ();
+                    $arrUser = $objUsersFactory->getUsers (array("filter" => "user", "filterOption" => $strUser));
 
-                    $arrGroups[$teamId] = isset($arrGroups[$teamId]) ? $arrGroups[$teamId]++ : 1;
-   
+                    $teamId = $arrUser['data'][0]->getTeam_id ();
+
+                    $arrGroups[$teamId] = isset ($arrGroups[$teamId]) ? $arrGroups[$teamId] ++ : 1;
                 }
             }
- 
+
             //Return
             return $arrGroups;
         } catch (Exception $e) {
@@ -307,7 +320,7 @@ class TeamFactory
      *
      * return array Return an array with all Groups
      */
-    public function getGroups ($teamName = null, $sortField = null, $sortDir = null, $start = null, $limit = null)
+    public function getGroups ($arrayFilterData = null, $sortField = null, $sortDir = null, $start = null, $limit = null)
     {
         try {
             $arrayGroup = array();
@@ -326,7 +339,7 @@ class TeamFactory
                     "data" => $arrayGroup
                 );
             }
-            
+
             //Set variables
             $arrayTotalUsersByGroup = $this->getTotalUsersByGroup ();
             $arrayTotalTasksByGroup = $this->getTotalTasksByGroup ();
@@ -338,11 +351,11 @@ class TeamFactory
                 $criteria .= " AND team_name LIKE ?";
                 $arrWhere[] = "%" . $arrayFilterData['filter'] . "%";
             }
-            
+
             //Number records total
 
             $numRecTotal = (int) $this->getTotalGroups ();
-            
+
             //Query
             if ( !is_null ($sortField) && trim ($sortField) != "" )
             {
@@ -373,12 +386,13 @@ class TeamFactory
             }
 
             $results = $this->objMysql->_query ($criteria, $arrWhere);
-            
+
             foreach ($results as $row) {
                 $row["GRP_USERS"] = (isset ($arrayTotalUsersByGroup[$row["team_id"]])) ? $arrayTotalUsersByGroup[$row["team_id"]] : 0;
                 $row["GRP_TASKS"] = (isset ($arrayTotalTasksByGroup[$row["team_id"]])) ? $arrayTotalTasksByGroup[$row["team_id"]] : 0;
                 $arrayGroup[] = $this->getGroupDataFromRecord ($row);
             }
+
             //Return
             return array(
                 "total" => $numRecTotal,
@@ -442,7 +456,8 @@ class TeamFactory
 
             //Return
             $arrResult = $this->getGroupDataFromRecord ($result[0]);
-            
+
+            return $arrResult;
         } catch (Exception $e) {
             throw $e;
         }
@@ -462,8 +477,8 @@ class TeamFactory
         try {
             $arrWhere = array();
             $sqlWhere = ' WHERE 1=1 ';
-            
-            $sql = "SELECT usrid, username, firstName, lastName, user_email, u.status "
+
+            $sql = "SELECT usrid, username, firstName, lastName, user_email, u.status, u.team_id "
                     . "FROM user_management.poms_users u";
 
             $flag = !is_null ($arrayWhere) && is_array ($arrayWhere);
@@ -495,9 +510,9 @@ class TeamFactory
                 $arrWhere[] = "%" . $arrayWhere['filter'] . "%";
                 $arrWhere[] = "%" . $arrayWhere['filter'] . "%";
             }
-            
+
             $sql = $sql . $sqlWhere;
-            
+
             return array("sql" => $sql, "where" => $arrWhere);
         } catch (Exception $e) {
             throw $e;
@@ -566,22 +581,30 @@ class TeamFactory
                 case "USERS":
                     //Criteria
                     $criteria = $this->getUserCriteria ($groupUid, $arrayFilterData);
-                     $arrWhere = $criteria['where'];
+                    $arrWhere = $criteria['where'];
                     $criteria = $criteria['sql'];
-                   
+
                     break;
                 case "AVAILABLE-USERS":
                     //Get Uids
                     $arrayUid = array();
-                    $criteria = $this->getUserCriteria ($groupUid);
-                    $rsCriteria = \UsersPeer::doSelectRS ($criteria);
-                    $rsCriteria->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
-                    while ($rsCriteria->next ()) {
-                        $row = $rsCriteria->getRow ();
-                        $arrayUid[] = $row["USR_UID"];
+                    $criteria = $this->getUserCriteria ();
+                    $criteria = $criteria['sql'];
+
+                    $results = $this->objMysql->_query ($criteria);
+
+                    foreach ($results as $row)
+                        if ( (int) $row['team_id'] === 0 )
+                        {
+                            $arrayUid[] = $row["usrid"];
+                        }
+                    foreach ($arrayUid as $userId) {
+                        $objUser = new UsersFactory();
+                        $arrayUser[] = $objUser->getUser ($userId);
                     }
-                    //Criteria
-                    $criteria = $this->getUserCriteria ("", $arrayFilterData, $arrayUid);
+                    
+                    return $arrayUser;
+
                     break;
             }
             //SQL
@@ -612,8 +635,9 @@ class TeamFactory
             {
                 $criteria .= " LIMIT " . ((int) ($limit));
             }
-            
+
             $results = $this->objMysql->_query ($criteria, $arrWhere);
+
 
             foreach ($results as $row) {
                 $arrayUser[] = $this->getUserDataFromRecord ($row);

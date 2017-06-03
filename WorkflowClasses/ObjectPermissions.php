@@ -3,12 +3,19 @@
 class ObjectPermissions extends Permissions
 {
 
+    private $objMysql;
+
+    private function getConnection ()
+    {
+        $this->objMysql = new Mysql2();
+    }
+
     public function create ($permission)
     {
         try {
             $this->setPermissionType (trim ($permission['objectType']));
             $this->setAccessLevel (trim ($permission['permissionType']));
-            
+
             if ( $permission['objectType'] == "team" )
             {
                 $this->setTeamId ($permission['id']);
@@ -86,6 +93,16 @@ class ObjectPermissions extends Permissions
             $oConnection->rollback ();
             throw ($e);
         }
+    }
+
+    public function deleteAll ($permissionType, $permission)
+    {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        $this->objMysql->_delete ("workflow.step_permission", array("permission_type" => $permission, "permission" => $permission));
     }
 
 }

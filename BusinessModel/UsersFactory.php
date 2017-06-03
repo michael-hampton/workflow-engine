@@ -25,7 +25,10 @@ class UsersFactory
         $this->permId = $permId;
         $this->teamId = $teamId;
 
-        define ("PATH_IMAGES_ENVIRONMENT_USERS", $_SERVER['DOCUMENT_ROOT'] . "/FormBuilder/public/img/users");
+        if ( !defined ("PATH_IMAGES_ENVIRONMENT_USERS") )
+        {
+            define ("PATH_IMAGES_ENVIRONMENT_USERS", $_SERVER['DOCUMENT_ROOT'] . "/FormBuilder/public/img/users");
+        }
     }
 
     /**
@@ -60,9 +63,7 @@ class UsersFactory
         }
         if ( $flagFilter && trim ($arrayWhere['filter']) != '' )
         {
-            $search = $arraySearch[
-                    (isset ($arrayWhere['filterOption'])) ? $arrayWhere['filterOption'] : ''
-            ];
+            $search = (isset ($arrayWhere['filterOption'])) ? $arrayWhere['filterOption'] : '';
 
             $criteria .= " AND (u.username LIKE ? OR u.firstName LIKE ? OR lastName LIKE ?)";
             $arrWhere[] = "%" . $search . "%";
@@ -112,7 +113,7 @@ class UsersFactory
     {
         try {
             $obj = $this->getUser ($userUid);
-            
+
             if ( !is_object ($obj) || empty ($obj) )
             {
                 throw new Exception ("ID_USER_DOES_NOT_EXIST");
@@ -328,8 +329,8 @@ class UsersFactory
             $this->throwExceptionIfDataIsNotArray ($arrayData, "\$arrayData");
             $this->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
             //Set data
-           
-          
+
+
             /* ----------------------------------********--------------------------------- */
             //Verify data
             $this->throwExceptionIfNotExistsUser ($userUid);
@@ -338,18 +339,18 @@ class UsersFactory
             $countPermission = 0;
             //$permission = $this->loadUserRolePermission ("PROCESSMAKER", $userUidLogged);
             //foreach ($permission as $key => $value) {
-                //if ( preg_match ('/^(?:PM_USERS|PM_EDITPERSONALINFO)$/', $value['PER_CODE']) )
-                //{
-                    //$countPermission = $countPermission + 1;
-                    //break;
-                //}
+            //if ( preg_match ('/^(?:PM_USERS|PM_EDITPERSONALINFO)$/', $value['PER_CODE']) )
+            //{
+            //$countPermission = $countPermission + 1;
+            //break;
+            //}
             //}
             //if ( $countPermission == 0 )
             //{
-                //throw new \Exception (\G::LoadTranslation ("ID_USER_CAN_NOT_UPDATE", array($userUidLogged)));
+            //throw new \Exception (\G::LoadTranslation ("ID_USER_CAN_NOT_UPDATE", array($userUidLogged)));
             //}
             //Update
-            
+
             try {
                 $user = new Users();
                 if ( isset ($arrayData['password']) )
@@ -362,8 +363,8 @@ class UsersFactory
                 $arrayData["USR_UPDATE_DATE"] = date ("Y-m-d H:i:s");
 
                 //Update in rbac
-                $arrayData['dept_id'] = trim($arrayData['dept_id']) !== "" ? $arrayData['dept_id'] : 1;
-               
+                $arrayData['dept_id'] = trim ($arrayData['dept_id']) !== "" ? $arrayData['dept_id'] : 1;
+
                 if ( isset ($arrayData["role_id"]) )
                 {
                     $result = $user->updateUser ($arrayData, $arrayData["role_id"]);
@@ -374,8 +375,8 @@ class UsersFactory
                 }
                 //Update in workflow
                 //Save Calendar assigment
-              
-            
+
+
                 return true;
             } catch (Exception $e) {
                 throw $e;
@@ -427,9 +428,7 @@ class UsersFactory
             $filterName = "filter";
             if ( $flagFilter )
             {
-                $filterName = $arrayAux[
-                        (isset ($arrayWhere['filterOption'])) ? $arrayWhere['filterOption'] : ''
-                ];
+                $filterName = (isset ($arrayWhere['filterOption'])) ? $arrayWhere['filterOption'] : '';
             }
             //Get data
             if ( !is_null ($limit) && (string) ($limit) == '0' )
@@ -460,9 +459,7 @@ class UsersFactory
             }
             if ( $flagFilter && trim ($arrayWhere['filter']) != '' )
             {
-                $search = $arraySearch[
-                        (isset ($arrayWhere['filterOption'])) ? $arrayWhere['filterOption'] : ''
-                ];
+                $search = (isset ($arrayWhere['filterOption'])) ? $arrayWhere['filterOption'] : '';
 
                 $criteria .= " AND (u.username LIKE ? OR u.firstName LIKE ? OR lastName LIKE ?)";
                 $arrWhere[] = "%" . $search . "%";
@@ -496,19 +493,19 @@ class UsersFactory
             if ( !is_null ($limit) )
             {
                 $criteria .= " LIMIT " . ((int) ($limit));
+                // calculating displaying pages
+                $_SESSION["pagination"]["total_pages"] = (int) ceil (($numRecTotal / $limit));
             }
 
             if ( !is_null ($start) )
             {
                 $criteria .= " OFFSET " . ((int) ($start));
+                $current_page = $start;
+                $_SESSION["pagination"]["current_page"] = $current_page;
             }
 
-            $_SESSION["pagination"]["total_counter"] = $numRecTotal;
-            $current_page = $start;
-            $_SESSION["pagination"]["current_page"] = $current_page;
 
-            // calculating displaying pages
-            $_SESSION["pagination"]["total_pages"] = (int) ceil (($numRecTotal / $limit));
+            $_SESSION["pagination"]["total_counter"] = $numRecTotal;
 
             $records = $this->objMysql->_query ($criteria, $arrWhere);
 
@@ -552,7 +549,7 @@ class UsersFactory
             $objUsers->setFirstName ($record['firstName']);
             $objUsers->setLastName ($record['lastName']);
             $objUsers->setDept_id ($record['dept_id']);
-            $objUsers->setImg_src ($img_src);
+            $objUsers->setImg_src ($pathPhotoUser);
             $objUsers->setStatus ($record['status']);
             $objUsers->setPassword ($record['password']);
             $objUsers->setUsername ($record['username']);
