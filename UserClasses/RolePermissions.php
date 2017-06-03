@@ -1,128 +1,83 @@
 <?php
 
-class RolePermissions extends Roles
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/**
+ * Description of RolePermissions
+ *
+ * @author michael.hampton
+ */
+class RolePermissions extends BaseRolePermissions
 {
 
-    public $permName;
-    private $arrFieldMapping = array(
-        "perm_id" => array("accessor" => "getPermId", "mutator" => "setPermId", "required" => false),
-        "perm_name" => array("accessor" => "getPermName", "mutator" => "setPermName", "required" => false),
-        "status" => array("accessor" => "getStatus", "mutator" => "setStatus", "required" => false),
-        "role_id" => array("accessor" => "getRoleId", "mutator" => "setRoleId", "required" => false),
-         "role_name" => array("accessor" => "getRoleName", "mutator" => "setRoleName", "required" => false),
-    );
+    private $objMysql;
+    public $permission_name;
 
-    /**
-     * 
-     * @param type $permId
-     */
-    public function __construct ($permId = null)
+    public function __construct ()
     {
         $this->objMysql = new Mysql2();
-
-        if ( $permId !== null )
-        {
-            $this->permId = $permId;
-        }
     }
 
     /**
      * 
-     * @param type $arrRole
+     * @param array $aData
      * @return boolean
      */
-    public function loadObject ($arrRole)
+    function create ($aData)
     {
-        
-        foreach ($arrRole as $formField => $formValue) {
+        try {
+            $result = $this->objMysql->_select ("user_management.role_perms", [], ["perm_id" => $aData['PER_UID'], "role_id" => $aData['ROL_UID']]);
 
-            if ( isset ($this->arrFieldMapping[$formField]) )
+
+            if ( is_array ($result) && !empty ($result) )
             {
-                $mutator = $this->arrFieldMapping[$formField]['mutator'];
-
-                if ( method_exists ($this, $mutator) && is_callable (array($this, $mutator)) )
-                {
-                    if ( isset ($this->arrFieldMapping[$formField]) && trim ($formValue) != "" )
-                    {
-                        call_user_func (array($this, $mutator), $formValue);
-                    }
-                } else {
-                    echo "No";
-                }
+                return true;
             }
-        }
 
-        return true;
-    }
-
-    /**
-     * 
-     * @param type $name
-     * @return boolean
-     */
-    private function checkNameExists ($name)
-    {
-        $result = $this->objMysql->_select ("user_management.permissions", array(), array("perm_name" => $name));
-
-        if ( isset ($result[0]['perm_name']) && !empty ($result[0]['perm_name']) )
-        {
+            $this->setPerUid ($aData['PER_UID']);
+            $this->setRolUid ($aData['ROL_UID']);
+            $iResult = $this->save ();
             return true;
+        } catch (Exception $oError) {
+            throw($oError);
         }
-    }
-
-    private function validate ()
-    {
-        $errorCount = 0;
-
-        if ( $this->checkNameExists ($this->permName) )
-        {
-            $this->validationFailures[] = "exists";
-            $errorCount++;
-        }
-
-        foreach ($this->arrFieldMapping as $fieldName => $arrField) {
-            if ( $arrField['required'] === true )
-            {
-                if ( !isset ($this->arrPermissions[$fieldName]) || trim ($this->arrPermissions[$fieldName]) == "" )
-                {
-                    $this->validationFailures[] = $fieldName;
-                    $errorCount++;
-                }
-            }
-        }
-
-        if ( $errorCount > 0 )
-        {
-            return FALSE;
-        }
-
-        return TRUE;
     }
 
     /**
      * 
+     * @param string $name
      */
-    public function save ()
+    public function setPermissionName ($name)
     {
-        if ( $this->validate () )
+        if ( $this->getPerUid () == '' )
         {
-            if ( isset ($this->permId) && is_numeric ($this->permId) )
-            {
-                $this->objMysql->_update ("user_management.permissions", array("perm_name" => $this->permName, "module" => "task_manager"), array("id" => $this->permId));
-            }
-            else
-            {
-                $permissionId = $this->objMysql->_insert ("user_management.permissions", array("perm_name" => $this->permName, "module" => "task_manager"));
-
-                if ( isset ($this->roleId) && is_numeric ($this->roleId) )
-                {
-                    $this->setPermId($permissionId);
-                    $this->addRolePerms();
-                }
-            }
-        } else {
-            return false;
+            throw (new Exception ("Error in setPerTitle, the PER_UID can't be blank"));
         }
+        if ( $name !== null && !is_string ($name) )
+        {
+            $name = (string) $name;
+        }
+
+        if ( $this->permission_name !== $name || $name === '' )
+        {
+            $this->permission_name = $name;
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getPermissionName ()
+    {
+        if ( $this->getPerUid () == '' )
+        {
+            throw (new Exception ("Error in getPerName, the PER_UID can't be blank"));
+        }
+        return $this->permission_name;
     }
 
 }

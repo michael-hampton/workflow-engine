@@ -502,5 +502,20 @@ abstract class BaseUser
     {
         $this->objMysql->_update ("user_management.poms_users", array("status" => $this->status), array("userId" => $this->userId));
     }
+    
+    public function removeRolesFromUser($usrId, $roleId = null) {
+        $arrWhere['userId'] = $usrId;
+        
+        if($roleId !== null) {
+            $arrWhere['roleId'] = $roleId;
+        }
+        
+        $this->objMysql->_delete("user_management.user_roles", $arrWhere);
+    }
+    
+    public function assignRoleToUser($userId, $roleId)
+    {
+        $this->objMysql->_insert("user_management.user_roles", array("userId" => $userId, "roleId" => $roleId));
+    }
 
 }
