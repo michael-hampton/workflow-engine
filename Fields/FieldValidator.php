@@ -212,7 +212,7 @@ class FieldValidator
 
                     if ( isset ($arrRequiredField["maxlength"]) && $arrRequiredField['maxlength'] > 0 )
                     {
-                        if ( isset ($arrFormData[$field]) && !(strlen ($arrFormData[$field] . "") > (int) ($arrRequiredField["maxlength"])) )
+                        if ( isset ($arrFormData[$field]) && (strlen ($arrFormData[$field] . "") > (int) ($arrRequiredField["maxlength"])) )
                         {
                             $result["success"] = false;
                             $arrErrorsCodes[$intCount] = str_replace (
@@ -232,14 +232,14 @@ class FieldValidator
                         }
                     }
 
-//                    if (
-//                            !isset ($arrFormData[$arrRequiredField['field_identifier']]) ||
-//                            trim ($arrFormData[$arrRequiredField['field_identifier']]) == "" ||
-//                            $arrFormData[$arrRequiredField['field_identifier']] == "null" )
-//                    {
-//                        $arrErrorsCodes[$intCount]['id'] = $arrRequiredField['field_identifier'];
-//                        $arrErrorsCodes[$intCount]['message'] = "data_missing";
-//                    }
+                    if (
+                            !isset ($arrFormData[$arrRequiredField['field_identifier']]) ||
+                            trim ($arrFormData[$arrRequiredField['field_identifier']]) == "" ||
+                            $arrFormData[$arrRequiredField['field_identifier']] == "null" )
+                    {
+                        $arrErrorsCodes[$intCount]['id'] = $arrRequiredField['field_identifier'];
+                        $arrErrorsCodes[$intCount]['message'] = "data_missing";
+                    }
 
                     if ( isset ($arrRequiredField['expected_output']) && !empty ($arrRequiredField['expected_output']) )
                     {

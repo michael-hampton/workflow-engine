@@ -7,7 +7,7 @@ class SendNotification extends Notifications
     private $arrEmailAddresses = array();
 
     /**
-     * 
+     *
      * @param type $status
      * @param type $system
      */
@@ -20,7 +20,7 @@ class SendNotification extends Notifications
     }
 
     /**
-     * 
+     *
      * @param type $projectId
      */
     public function setProjectId ($projectId)
@@ -39,7 +39,7 @@ class SendNotification extends Notifications
     }
 
     /**
-     * 
+     *
      * @param type $elementId
      */
     public function setElementId ($elementId)
@@ -77,13 +77,13 @@ class SendNotification extends Notifications
     }
 
     /**
-     * 
+     *
      * @param type $status
      * @param type $arrData
      * @param type $system
      * @return boolean
      */
-    public function buildEmail ($status, $arrData, $system = "task_manager")
+    public function buildEmail ($status, $arrData, $system = "task_manager", $blSendToAllParticipants = true)
     {
         error_reporting (0);
         $this->setVariables ($status, $system);
@@ -103,7 +103,41 @@ class SendNotification extends Notifications
         }
         else
         {
-            $this->recipient = $this->message['to'];
+            if ( $blSendToAllParticipants === true )
+            {
+                $case = new Cases();
+                $p = $case->getUsersParticipatedInCase ($this->projectId);
+
+                $noteRecipientsList = array();
+
+                if ( !empty ($p) )
+                {
+                    foreach ($p as $userParticipated) {
+                        if ( $userParticipated != '' )
+                        {
+                            $objUsers = new UsersFactory();
+                            $arrUser = $objUsers->getUsers (trim ($userParticipated));
+
+                            if ( isset ($arrUser[0]) && !empty ($arrUser[0]) )
+                            {
+                                $emailAddress = $arrUser[0]->getUser_email ();
+                                $noteRecipientsList[] = $emailAddress;
+                            }
+                        }
+                    }
+                }
+
+
+                $noteRecipientsList[] = $this->message['to'];
+
+                $noteRecipients = implode (",", $noteRecipientsList);
+
+                $this->recipient = $noteRecipients;
+            }
+            else
+            {
+                $this->recipient = $this->message['to'];
+            }
         }
 
         $pattern = "/\[([^\]]+)\]/";
@@ -140,13 +174,13 @@ class SendNotification extends Notifications
     }
 
     /**
-     * 
+     *
      */
     public function save ()
     {
-        $this->objMysql->_query ("UPDATE workflow.notifications_sent 
-                                SET status = 2 
-                                WHERE case_id = ? 
+        $this->objMysql->_query ("UPDATE workflow.notifications_sent
+                                SET status = 2
+                                WHERE case_id = ?
                                 AND status != 3", [$this->elementId]
         );
 
@@ -165,7 +199,7 @@ class SendNotification extends Notifications
     }
 
     /**
-     * 
+     *
      * @param type $sendto
      * @param type $message_subject
      * @param type $message_body
@@ -189,7 +223,7 @@ class SendNotification extends Notifications
                 break;
         }
 
-        $headers = 'From:JobTracker<donotreply@jobtracker.kondor.local>' . "\r\n" .
+        $headers = 'From:EasyFlow<donotreply@easyflow.co.uk>' . "\r\n" .
                 'X-Mailer: PHP/' . phpversion ();
 
         $message = $sendto . " " . $message_subject . " " . $message_body;

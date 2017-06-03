@@ -4,270 +4,59 @@ class StepField
 {
 
     private $fieldId;
-    private $fieldType;
-    private $isReadOnly;
-    private $fieldName;
-    private $label;
-    private $id;
-    private $dataType;
-    private $options;
-    private $required_field;
-    private $defaultValue;
-    private $fieldClass;
-    private $placeholder;
-    private $maxLength;
-    private $fieldConditions;
-    private $customJavascript;
-    private $objMysql;
-    private $validation;
-    private $type;
     private $stepId;
-    private $value;
     private $isDisabled;
+    private $orderId;
+    private $objMysql;
+    private $arrayValidation;
 
-    /**
-     * 
-     * @param type $fieldId
-     * @param type $stepId
-     */
-    public function __construct ($fieldId = null, $stepId = null)
+    public function __construct ($stepId, $fieldId = null)
     {
-        if ( $fieldId !== null )
-        {
-            $this->fieldId = $fieldId;
-        }
+        $this->fieldId = $fieldId;
+        $this->stepId = $stepId;
+    }
 
-        if ( $stepId !== null )
-        {
-            $this->stepId = $stepId;
-        }
-
+    private function getConnection ()
+    {
         $this->objMysql = new Mysql2();
     }
 
-    /**
-     * @return mixed
-     */
-    public function getId ()
-    {
-        return $this->id;
-    }
-
-    /**
-     * @param mixed $id
-     */
-    public function setId ($id)
-    {
-        $this->id = $id;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getFieldType ()
-    {
-        return $this->fieldType;
-    }
-
-    /**
-     * @param mixed $fieldType
-     */
-    public function setFieldType ($fieldType)
-    {
-        $this->fieldType = $fieldType;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getIsReadOnly ()
-    {
-        return $this->isReadOnly;
-    }
-
-    /**
-     * @param mixed $isReadOnly
-     */
-    public function setIsReadOnly ($isReadOnly)
-    {
-        $this->isReadOnly = $isReadOnly;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getFieldName ()
-    {
-        return $this->fieldName;
-    }
-
-    /**
-     * @param mixed $fieldName
-     */
-    public function setFieldName ($fieldName)
-    {
-        $this->fieldName = $fieldName;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getLabel ()
-    {
-        return $this->label;
-    }
-
-    /**
-     * @param mixed $label
-     */
-    public function setLabel ($label)
-    {
-        $this->label = $label;
-    }
-
-    /**
-     * @return mixed
-     */
     public function getFieldId ()
     {
         return $this->fieldId;
     }
 
+    public function getStepId ()
+    {
+        return $this->stepId;
+    }
+
+    public function getIsDisabled ()
+    {
+        return $this->isDisabled;
+    }
+
+    public function getOrderId ()
+    {
+        return $this->orderId;
+    }
+
     /**
-     * @param mixed $fieldId
+     * 
+     * @param type $fieldId
      */
     public function setFieldId ($fieldId)
     {
         $this->fieldId = $fieldId;
     }
 
-    function getDataType ()
-    {
-        return $this->dataType;
-    }
-
-    function setDataType ($dataType)
-    {
-        $this->dataType = $dataType;
-    }
-
-    function getOptions ()
-    {
-        return $this->options;
-    }
-
-    function setOptions ($options)
-    {
-        $this->options = $options;
-    }
-
-    function getRequired_field ()
-    {
-        return $this->required_field;
-    }
-
-    function setRequired_field ($required_field)
-    {
-        $this->required_field = $required_field;
-    }
-
-    function getDefaultValue ()
-    {
-        return $this->defaultValue;
-    }
-
-    function getFieldClass ()
-    {
-        return $this->fieldClass;
-    }
-
-    function getPlaceholder ()
-    {
-        return $this->placeholder;
-    }
-
-    function getMaxLength ()
-    {
-        return $this->maxLength;
-    }
-
-    function setDefaultValue ($defaultValue)
-    {
-        $this->defaultValue = $defaultValue;
-    }
-
-    function setFieldClass ($fieldClass)
-    {
-        $this->fieldClass = $fieldClass;
-    }
-
-    function setPlaceholder ($placeholder)
-    {
-        $this->placeholder = $placeholder;
-    }
-
-    function setMaxLength ($maxLength)
-    {
-        $this->maxLength = $maxLength;
-    }
-
-    function getFieldConditions ()
-    {
-        return $this->fieldConditions;
-    }
-
-    function setFieldConditions ($fieldConditions)
-    {
-        $this->fieldConditions = $fieldConditions;
-    }
-
-    function getCustomJavascript ()
-    {
-        return $this->customJavascript;
-    }
-
-    function setCustomJavascript ($customJavascript)
-    {
-        $this->customJavascript = $customJavascript;
-    }
-
-    public function getValidation ()
-    {
-        return $this->validation;
-    }
-
-    public function getType ()
-    {
-        return $this->type;
-    }
-
-    public function setValidation ($validation)
-    {
-        $this->validation = $validation;
-    }
-
-    public function setType ($type)
-    {
-        $this->type = $type;
-    }
-    
-    public function getValue ()
-    {
-        return $this->value;
-    }
-
     /**
      * 
-     * @param type $value
+     * @param type $stepId
      */
-    public function setValue ($value)
+    public function setStepId ($stepId)
     {
-        $this->value = $value;
-    }
-    
-    public function getIsDisabled ()
-    {
-        return $this->isDisabled;
+        $this->stepId = $stepId;
     }
 
     /**
@@ -279,58 +68,151 @@ class StepField
         $this->isDisabled = $isDisabled;
     }
 
-    
-    
-    public function save ()
+    /**
+     * 
+     * @param type $orderId
+     */
+    public function setOrderId ($orderId)
     {
-        if ( is_numeric ($this->id) )
-        {
-            $id = $this->id;
+        $this->orderId = $orderId;
+    }
 
-            $this->objMysql->_update (
-                    "workflow.fields", array(
-                "field_type" => $this->fieldType,
-                "field_name" => !empty ($this->fieldName) ? $this->fieldName : "",
-                "field_identifier" => !empty ($this->fieldName) ? strtolower (str_replace (" ", "", $this->fieldName)) : "",
-                "label" => $this->label,
-                "field_class" => $this->fieldClass,
-                "default_value" => !empty ($this->defaultValue) ? $this->defaultValue : "",
-                "placeholder" => !empty ($this->placeholder) ? $this->placeholder : "",
-                "maxlength" => !empty ($this->maxLength) ? $this->maxLength : null,
-                "type" => !empty ($this->type) ? $this->type : '',
-                "validation" => !empty ($this->validation) ? $this->validation : '',
-                    ), array(
-                "field_id" => $this->id
-                    )
-            );
-        }
-        else
+    public function getArrayValidation ()
+    {
+        return $this->arrayValidation;
+    }
+
+    public function setArrayValidation ($arrayValidation)
+    {
+        $this->arrayValidation = $arrayValidation;
+    }
+
+    public function checkRequiredFields ($fields)
+    {
+        if ( $this->objMysql === null )
         {
-            $id = $this->objMysql->_insert (
-                    "workflow.fields", array(
-                "field_type" => $this->fieldType,
-                "field_name" => !empty ($this->fieldName) ? $this->fieldName : "",
-                "field_identifier" => !empty ($this->fieldName) ? strtolower (str_replace (" ", "", $this->fieldName)) : "",
-                "label" => $this->label,
-                "field_class" => $this->fieldClass,
-                "default_value" => !empty ($this->defaultValue) ? $this->defaultValue : "",
-                "placeholder" => !empty ($this->placeholder) ? $this->placeholder : "",
-                "maxlength" => !empty ($this->maxLength) ? $this->maxLength : null,
-                    )
-            );
+            $this->getConnection ();
         }
 
+        $mandatoryFields = [26, 27, 29];
 
+        $result = $this->objMysql->_select ("workflow.status_mapping", array(), array("step_from" => $this->stepId));
 
-        return $id;
+        if ( !isset ($result[0]) || empty ($result[0]) )
+        {
+            return FALSE;
+        }
+
+        $firstStep = $result[0]['first_step'];
+
+        if ( $firstStep === 1 )
+        {
+            foreach ($mandatoryFields as $mandatoryField) {
+                if ( !in_array ($mandatoryField, $fields) )
+                {   
+                    return false;
+                }
+            }
+        }
+        
+        return true;
     }
 
     /**
-     * 
+     * Saves multiple fields to a step
+     *
+     * @param array $aData Fields with field ids
+     * @return string
      */
+    public function create ($arrFields)
+    {
+        try {
+            // check all mandatory fields are present
+            if ( !$this->checkRequiredFields ($arrFields) )
+            {
+                throw new Exception ("There are some required fields missing");
+            }
+
+            foreach ($arrFields as $key => $fieldId) {
+                $this->setFieldId ($fieldId);
+                $this->setOrderId ($key);
+                $this->setIsDisabled (0);
+
+                if ( $this->validate () )
+                {
+                    $this->save ();
+                    unset ($this->fieldId);
+                    unset ($this->orderId);
+                    unset ($this->isDisabled);
+                }
+                else
+                {
+                    $msg = '';
+                    foreach ($this->getArrayValidation () as $strMessage) {
+                        $msg .= $strMessage . "<br/>";
+                    }
+                    throw (new Exception ('The row cannot be created! ' . $msg));
+                }
+            }
+        } catch (Exception $ex) {
+            throw ($ex);
+        }
+    }
+
+    public function validate ()
+    {
+        $errorCount = 0;
+
+        if ( trim ($this->stepId) === "" )
+        {
+            $this->arrayValidation[] = "Step Id is missing";
+            $errorCount++;
+        }
+
+        if ( trim ($this->fieldId) === "" )
+        {
+            $this->arrayValidation[] = "Field id is missing";
+            $errorCount++;
+        }
+
+        if ( $errorCount > 0 )
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function save ()
+    {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        $this->objMysql->_insert (
+                "workflow.step_fields", array(
+            "field_id" => $this->fieldId,
+            "step_id" => $this->stepId,
+            "is_disabled" => $this->isDisabled,
+            "order_id" => $this->orderId
+                )
+        );
+    }
+
     public function delete ()
     {
-        $this->objMysql->_delete ("workflow.step_fields", array("field_id" => $this->fieldId, "step_id" => $this->stepId));
+        if ( $this->validate () === false )
+        {
+            return false;
+        }
+
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        $this->objMysql->_delete ("workflow.step_fields", array("step_id" => $this->stepId));
     }
 
 }

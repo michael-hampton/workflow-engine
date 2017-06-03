@@ -1,6 +1,6 @@
 <?php
 
-class ProcessUser
+class ProcessUser extends BaseProcessUser
 {
 
     private $objMysql;
@@ -31,17 +31,16 @@ class ProcessUser
             }
         }
 
-        $oProcessUser = new BaseProcessUser();
-        $oProcessUser->loadObject ($aData);
+        $this->loadObject ($aData);
 
-        if ( $oProcessUser->validate () )
+        if ( $this->validate () )
         {
-            $oProcessUser->save();
+            $this->save();
         }
         else
         {
             $sMessage = '';
-            $aValidationFailures = $oProcessUser->getValidationFailures ();
+            $aValidationFailures = $this->getValidationFailures ();
             foreach ($aValidationFailures as $oValidationFailure) {
                 $sMessage .= $oValidationFailure . '<br />';
             }
@@ -58,7 +57,7 @@ class ProcessUser
     {
         $result = $this->objMysql->_select ("workflow.process_supervisors", array(), array("id" => $puId));
 
-        $base = new BaseProcessUser();
+        $base = new ProcessUser();
         $base->setPu_id ($puId);
 
         if ( !empty ($result) )
@@ -89,7 +88,7 @@ class ProcessUser
             {
                 throw(new Exception ('This row doesn\'t exist!'));
             }
-        } catch (Exception $ex) {
+        } catch (Exception $oError) {
             throw($oError);
         }
     }

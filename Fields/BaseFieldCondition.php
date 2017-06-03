@@ -3,10 +3,29 @@
 class BaseFieldCondition
 {
 
+    /**
+     * The value for the event field.
+     * @var        string
+     */
     private $event;
+
+    /**
+     * The value for the action field.
+     * @var        string
+     */
     private $action;
+
+    /**
+     * The value for the field field.
+     * @var        string
+     */
     private $field;
     private $fieldIdentifier;
+
+    /**
+     * The value for the step id field.
+     * @var        int
+     */
     private $stepId;
     private $objMysql;
     private $validationFailures = array();
@@ -116,12 +135,30 @@ class BaseFieldCondition
 
     public function setEvent ($event)
     {
-        $this->event = $event;
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ( $event !== null && !is_string ($event) )
+        {
+            $event = (string) $event;
+        }
+        if ( $this->event !== $event )
+        {
+            $this->event = $event;
+        }
     }
 
     public function setAction ($action)
     {
-        $this->action = $action;
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ( $action !== null && !is_string ($action) )
+        {
+            $action = (string) $action;
+        }
+        if ( $this->action !== $action )
+        {
+            $this->action = $action;
+        }
     }
 
     public function setField ($field)

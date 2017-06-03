@@ -32,51 +32,49 @@ class StepVariable
     {
         try {
             //Verify data
-            //Validator::proUid($processUid, '$prj_uid');
-            $this->existsName ($fieldId, $arrayData["VAR_NAME"], "");
-            //$this->throwExceptionFieldDefinition($arrayData);
+            //$this->existsName ($fieldId, $arrayData["VAR_NAME"], "");
 
-            $variable = new Variable ($arrayData['FIELD_ID']);
+            $variable = new Variable ($fieldId);
+
+            if ( isset ($arrayData["VAR_NAME"]) && trim ($arrayData['VAR_NAME']) !== "" )
+            {
+                $variable->setVariableName ($arrayData["VAR_NAME"]);
+            }
+            else
+            {
+                throw new Exception ("Variable Name cant be empty");
+            }
+
+            if ( isset ($arrayData["VAR_FIELD_TYPE"]) )
+            {
+                $variable->setValidationType ($arrayData["VAR_FIELD_TYPE"]);
+            }
+            else
+            {
+                throw new Exception ("Validation type cannot be empty");
+            }
+
+            if ( isset ($arrayData["VAR_DBCONNECTION"]) )
+            {
+                $variable->setVarDbconnection ($arrayData["VAR_DBCONNECTION"]);
+            }
+            else
+            {
+                $variable->setVarDbconnection ("");
+            }
+
+            if ( isset ($arrayData["VAR_SQL"]) )
+            {
+                $variable->setVarSql ($arrayData["VAR_SQL"]);
+            }
+            else
+            {
+                $variable->setVarSql ("");
+            }
 
             if ( $variable->validate () )
             {
-                if ( isset ($arrayData["VAR_NAME"]) )
-                {
-                    $variable->setVariableName ($arrayData["VAR_NAME"]);
-                }
-                else
-                {
-                    throw new Exception ("ID_CAN_NOT_BE_NULL");
-                }
-
-                if ( isset ($arrayData["VAR_FIELD_TYPE"]) )
-                {
-                    $variable->setValidationType ($arrayData["VAR_FIELD_TYPE"]);
-                }
-                else
-                {
-                    throw new Exception ("ID_CAN_NOT_BE_NULL");
-                }
-
-                if ( isset ($arrayData["VAR_DBCONNECTION"]) )
-                {
-                    $variable->setVarDbconnection ($arrayData["VAR_DBCONNECTION"]);
-                }
-                else
-                {
-                    $variable->setVarDbconnection ("");
-                }
-
-                if ( isset ($arrayData["VAR_SQL"]) )
-                {
-                    $variable->setVarSql ($arrayData["VAR_SQL"]);
-                }
-                else
-                {
-                    $variable->setVarSql ("");
-                }
-
-                if ( $this->checkFieldHasVariable ($arrayData['FIELD_ID']) === true )
+                if ( $this->checkFieldHasVariable ($fieldId) === true )
                 {
                     $variable->update ();
                 }
@@ -91,7 +89,7 @@ class StepVariable
                 foreach ($variable->getValidationErrors () as $validationFailure) {
                     $msg = $msg . (($msg != "") ? "\n" : "") . $validationFailure;
                 }
-                throw new Exception ("ID_RECORD_CANNOT_BE_CREATED " . $msg);
+                throw new Exception ("Cannot create variable " . $msg);
             }
         } catch (Exception $e) {
             throw $e;
@@ -115,7 +113,7 @@ class StepVariable
             {
                 if ( $variableName == $result[0]["variable_name"] )
                 {
-                    throw new Exception ("DYNAFIELD_ALREADY_EXIST");
+                    throw new Exception ("Field already exists");
                 }
             }
         } catch (\Exception $e) {
@@ -138,12 +136,11 @@ class StepVariable
             $this->throwExceptionIfNotExistsVariable ($variableUid);
             //Verify variable
 
-            $isUsed = $pmDynaform->isUsed ($processUid, $variable);
+            $isUsed = $this->isUsed ($processUid, $variable);
 
             if ( $isUsed !== false )
             {
-                $titleDynaform = $pmDynaform->getDynaformTitle ($isUsed);
-                throw new \Exception (\G::LoadTranslation ("ID_VARIABLE_IN_USE", array($titleDynaform)));
+                throw new Exception ("Variable is assigned to other fields");
             }
 
             $this->objMysql->_delete ("workflow.workflow_variables", array("field_id" => $this->fieldId));
@@ -262,18 +259,18 @@ class StepVariable
     }
 
     /**
-     * Verify if does not exist the variable in table PROCESS_VARIABLES
+     * Check if the variable exists
      *
-     * @param string $variableUid           Unique id of variable
+     * @param string $fieldId           Unique id of field
      *
-     * return void Throw exception if does not exist the variable in table PROCESS_VARIABLES
+     * return void Throw exception if it doesnt exist
      */
     public function throwExceptionIfNotExistsVariable ($fieldId)
     {
         try {
             if ( $this->checkFieldHasVariable ($fieldId) === false )
             {
-                throw new Exception ("ID_DOES_NOT_EXIST");
+                throw new Exception ("Could not find Variable");
             }
         } catch (\Exception $e) {
             throw $e;
@@ -283,12 +280,8 @@ class StepVariable
     /**
      * Get Variable record by name
      *
-     * @param string $projectUid                    Unique id of Project
      * @param string $variableName                  Variable name
-     * @param array  $arrayVariableNameForException Variable name for exception
-     * @param bool   $throwException Flag to throw the exception if the main parameters are invalid or do not exist
-     *                               (TRUE: throw the exception; FALSE: returns FALSE)
-     *
+
      * @return array Returns an array with Variable record, ThrowTheException/FALSE otherwise
      */
     public function getVariableRecordByName ($variableName, $throwException = true)
