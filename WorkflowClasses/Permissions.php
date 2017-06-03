@@ -142,5 +142,10 @@ abstract class Permissions
         // save back again
         $this->save ();
     }
+    
+    public function deleteAll($permissionType, $permission)
+    {
+        $this->objMysql->_delete("workflow.step_permission", array("permission_type" => $permission, "permission" => $permission));
+    }
 
 }

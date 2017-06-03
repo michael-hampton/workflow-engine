@@ -1,215 +1,185 @@
 <?php
 
-class Teams
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/**
+ * Description of Teams
+ *
+ * @author michael.hampton
+ */
+class Teams extends BaseTeam
 {
 
-    private $id;
-    private $teamName;
     private $objMysql;
-    private $status;
-    private $deptId;
-    private $teamId;
-
-    /**
-     * Array of ValidationFailed objects.
-     * @var        array ValidationFailed[]
-     */
-    private $validationFailures = array();
-    private $arrFieldMapping = array(
-        "id" => array("accessor" => "getId", "mutator" => "setId", "required" => false),
-        "team_id" => array("accessor" => "getId", "mutator" => "setId", "required" => false),
-        "team_name" => array("accessor" => "getTeamName", "mutator" => "setTeamName", "required" => true),
-        "status" => array("accessor" => "getStatus", "mutator" => "setStatus", "required" => true),
-        "dept_id" => array("accessor" => "getDeptId", "mutator" => "setDeptId", "required" => true),
-    );
-    public $arrTeam = array();
 
     public function __construct ($deptId = null, $teamId = null)
     {
         $this->objMysql = new Mysql2();
-
-        if ( $deptId !== null )
-        {
-            $this->id = $deptId;
-        }
-
-        if ( $teamId !== null )
-        {
-            $this->teamId = $teamId;
-        }
-    }
-
-    public function loadObject ($arrDepartment)
-    {
-        foreach ($arrDepartment as $formField => $formValue) {
-
-            if ( isset ($this->arrFieldMapping[$formField]) )
-            {
-                $mutator = $this->arrFieldMapping[$formField]['mutator'];
-
-                if ( method_exists ($this, $mutator) && is_callable (array($this, $mutator)) )
-                {
-                    if ( isset ($this->arrFieldMapping[$formField]) && trim ($formValue) != "" )
-                    {
-                        call_user_func (array($this, $mutator), $formValue);
-                    }
-                }
-            }
-        }
-
-        return true;
-    }
-
-    function getId ()
-    {
-        return $this->id;
-    }
-
-    function setId ($id)
-    {
-        // Since the native PHP type for this column is integer,
-        // we will cast the input value to an int (if it is not).
-        if ( $id !== null && !is_int ($id) && is_numeric ($id) )
-        {
-            $id = (int) $id;
-        }
-
-        $this->id = $id;
-    }
-
-    function getStatus ()
-    {
-        return $this->status;
-    }
-
-    function setStatus ($status)
-    {
-        // Since the native PHP type for this column is integer,
-        // we will cast the input value to an int (if it is not).
-        if ( $status !== null && !is_int ($status) && is_numeric ($status) )
-        {
-            $status = (int) $status;
-        }
-
-        $this->status = $status;
-        $this->arrTeam['status'] = $status;
-    }
-
-    function getTeamName ()
-    {
-        return $this->teamName;
-    }
-
-    function getDeptId ()
-    {
-        return $this->deptId;
-    }
-
-    function setTeamName ($teamName)
-    {
-        // Since the native PHP type for this column is string,
-        // we will cast the input to a string (if it is not).
-        if ( $teamName !== null && !is_string ($teamName) )
-        {
-            $teamName = (string) $teamName;
-        }
-
-        $this->teamName = $teamName;
-        $this->arrTeam['team_name'] = $teamName;
-    }
-
-    function setDeptId ($deptId)
-    {
-        // Since the native PHP type for this column is integer,
-        // we will cast the input value to an int (if it is not).
-        if ( $deptId !== null && !is_int ($deptId) && is_numeric ($deptId) )
-        {
-            $deptId = (int) $deptId;
-        }
-
-        $this->deptId = $deptId;
-        $this->arrTeam['dept_id'] = $deptId;
+        parent::__construct ($deptId, $teamId);
     }
 
     /**
-     * Gets any ValidationFailed objects that resulted from last call to validate().
-     * @return     array ValidationFailed[]
-     * @see        validate()
+     * Creates the Group
+     *
+     * @param array $aData $oData is not necessary
+     * @return void
      */
-    public function getValidationFailures ()
+    public function create ($aData)
     {
-        return $this->validationFailures;
-    }
-
-    public function save ()
-    {
-        if ( isset ($this->id) && is_numeric ($this->id) )
-        {
-            if ( $this->validate () === true )
+        //$oData is not necessary
+        try {
+            if ( isset ($aData['GRP_UID']) )
             {
-                $this->objMysql->_update ("user_management.teams", $this->arrTeam, array("id" => $this->id));
-                return true;
+                $this->setGrpUid ($aData['GRP_UID']);
             }
-            
-            return false;
-        }
-        else
-        {
-            if ( $this->validate () === true )
+
+            if ( isset ($aData['team_name']) )
             {
-                $this->objMysql->_insert ("user_management.teams", $this->arrTeam);
-                return true;
+                $this->setTeamName ($aData['team_name']);
             }
-            
-            return false;
-        }
-    }
-
-    public function disableTeam ()
-    {
-        $this->objMysql->_update ("user_management.teams", array("status" => $this->status), array("id" => $this->id));
-    }
-
-    public function deleteTeam ()
-    {
-        $this->objMysql->_delete ("user_management.teams", array("team_id" => $this->teamId));
-    }
-
-    public function validate ()
-    {
-        $errorCount = 0;
-        
-        if($this->checkNameExists ($this->teamName)) {
-            $this->validationFailures[] = "exists";
-            $errorCount++;
-        }
-
-        foreach ($this->arrFieldMapping as $fieldName => $arrField) {
-            if ( $arrField['required'] === true )
+            else
             {
-                if ( !isset ($this->arrTeam[$fieldName]) || trim ($this->arrTeam[$fieldName]) == "" )
+                throw new Exception ("Team name is empty");
+            }
+
+            if ( isset ($aData['dept_id']) )
+            {
+                $this->setDeptId ($aData['dept_id']);
+            }
+            else
+            {
+                
+            }
+
+            if ( isset ($aData['status']) )
+            {
+                $this->setStatus ($aData['status']);
+            }
+            else
+            {
+                $this->setStatus (1);
+            }
+
+
+            if ( $this->validate () )
+            {
+                $res = $this->save ();
+                return $this->getId ();
+            }
+            else
+            {
+                $msg = '';
+                foreach ($this->getValidationFailures () as $message) {
+                    $msg .= $message . "<br/>";
+                }
+                throw (new Exception ('The row cannot be created! ' . $msg));
+            }
+        } catch (Exception $e) {
+            throw ($e);
+        }
+    }
+
+    public function retrieveByPk ($groupUid)
+    {
+        $result = $this->objMysql->_select ("user_management.teams", array(), array("team_id" => $groupUid));
+
+        if ( isset ($result[0]) && !empty ($result[0]) )
+        {
+            return $this->loadObjectFromArray ($result[0]);
+        }
+
+        throw new Exception ("Record could not be found");
+    }
+
+    public function loadObjectFromArray ($record)
+    {
+        $objTeam = new self();
+        $objTeam->setDeptId ($record['dept_id']);
+        $objTeam->setId ($record['team_id']);
+        $objTeam->setTeamName ($record['team_name']);
+        $objTeam->setStatus ($record['status']);
+
+        return $objTeam;
+    }
+
+    /**
+     * Update the Group row
+     *
+     * @param array $aData
+     * @return variant
+     *
+     */
+    public function update ($aData)
+    {
+        try {
+            $oPro = $this->retrieveByPk ($aData['team_id']);
+
+            if ( is_object ($oPro) && get_class ($oPro) == 'Teams' )
+            {
+                $oPro->loadObject ($aData);
+                if ( $oPro->validate () )
                 {
-                    $this->validationFailures[] = $fieldName;
-                    $errorCount++;
+                    $res = $oPro->save ();
+                    return $res;
+                }
+                else
+                {
+                    $msg = '';
+                    foreach ($this->getValidationFailures () as $message) {
+                        $msg .= $message . "<br/>";
+                    }
+                    throw (new Exception ('The row cannot be created! ' . $msg));
                 }
             }
+            else
+            {
+                $con->rollback ();
+                throw (new Exception ("The row '" . $aData['GRP_UID'] . "' in table Group doesn't exist!"));
+            }
+        } catch (Exception $oError) {
+            throw ($oError);
         }
-
-        if ( $errorCount > 0 )
-        {
-            return FALSE;
-        }
-
-        return TRUE;
     }
 
-    public function checkNameExists ($name)
+    public function addUserToGroup ($groupUid, $userUid)
     {
-        $result = $this->objMysql->_select ("user_management.teams", array(), array("team_name" => $name));
+        $this->removeUserOfGroup ($userUid);
+        $this->addUserOfGroup ($groupUid, $userUid);
+    }
 
-        if ( isset ($result[0]['team_name']) && !empty ($result[0]['team_name']) )
+    public function removeUsersFromGroup ($userUid, $groupUid = null)
+    {
+        if ( $groupUid === null )
         {
-            return true;
+            $this->removeUserOfGroup ($userUid);
+        }
+    }
+
+    /**
+     * Remove the Prolication document registry
+     *
+     * @param array $aData or string $ProUid
+     * @return string
+     *
+     */
+    public function remove ($groupUid)
+    {
+        try {
+            $oPro = $this->retrieveByPk($groupUid);
+            if ( is_object ($oPro) && get_class ($oPro) === "Teams" )
+            {
+                return $oPro->deleteTeam();
+            }
+            else
+            {
+                throw (new Exception ("The row '$ProUid' in table Group doesn't exist!"));
+            }
+        } catch (Exception $oError) {
+            throw ($oError);
         }
     }
 

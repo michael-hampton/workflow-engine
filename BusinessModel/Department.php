@@ -410,4 +410,58 @@ class Department
         }
     }
 
+    /**
+     * Assign User to Department
+     *
+     * @param string $departmentUid Unique id of Department
+     * @param array  $arrayData     Data
+     *
+     * return array Return data of the User assigned to Department
+     */
+    public function assignUser ($departmentUid, array $arrayData)
+    {
+        try {
+            //Verify data
+            $this->throwExceptionIfDataIsNotArray ($arrayData, "\$arrayData");
+            $this->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
+            //Set data
+            //Set variables
+            //Verify data
+            $departmentUid = $this->depUid ($departmentUid);
+            $this->validateUserId ($arrayData["USR_UID"]);
+            //Assign User
+            $department = new Departments();
+            $department->addUserToDepartment ($departmentUid, $arrayData["USR_UID"]);
+            //Return
+            $arrayData = array_merge (array("DEP_UID" => $departmentUid), $arrayData);
+            return $arrayData;
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * Post Unassign User
+     *
+     * @access public
+     *
+     * @return void
+     */
+    public function unassignUser ($dep_uid, $usr_uid)
+    {
+        $dep_uid = $this->depUid ($dep_uid);
+        $usr_uid = $this->validateUserId ($usr_uid);
+        $this->throwExceptionUserNotExistsInDepartment ($dep_uid, $usr_uid);
+        $dep = new Departments();
+        $objDept = $dep->getDepartmentObject ();
+
+        $manager = $objDept->getDepartmentManager();
+        $dep->removeUserFromDepartment ($dep_uid, $usr_uid);
+        
+        if ( $usr_uid == $manager )
+        {
+            $dep->updateDepartmentManager ($dep_uid, 0);
+        }
+    }
+
 }
