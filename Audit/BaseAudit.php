@@ -44,6 +44,13 @@ class BaseAudit
      * @var        string
      */
     protected $history_data;
+    
+    private $objMysql;
+    
+    public function getConnection()
+    {
+        $this->objMysql = new Mysql2();
+    }
 
     /**
      * Get the [app_uid] column value.
@@ -178,7 +185,6 @@ class BaseAudit
         if ( $this->pro_uid !== $v || $v === '' )
         {
             $this->pro_uid = $v;
-            $this->modifiedColumns[] = AppHistoryPeer::PRO_UID;
         }
     }
 
@@ -200,7 +206,6 @@ class BaseAudit
         if ( $this->tas_uid !== $v || $v === '' )
         {
             $this->tas_uid = $v;
-            $this->modifiedColumns[] = AppHistoryPeer::TAS_UID;
         }
     }
 
@@ -221,7 +226,6 @@ class BaseAudit
         if ( $this->usr_uid !== $v || $v === '' )
         {
             $this->usr_uid = $v;
-            $this->modifiedColumns[] = AppHistoryPeer::USR_UID;
         }
     }
 
@@ -242,7 +246,6 @@ class BaseAudit
         if ( $this->app_status !== $v || $v === '' )
         {
             $this->app_status = $v;
-            $this->modifiedColumns[] = AppHistoryPeer::APP_STATUS;
         }
     }
 
@@ -264,8 +267,7 @@ class BaseAudit
             }
             if ( $ts === -1 || $ts === false )
             {
-                throw new PropelException ("Unable to parse date/time value for [history_date] from input: " .
-                var_export ($v, true));
+                throw new Exception ("Unable to parse date/time value for [history_date] from input: ");
             }
         }
         else
@@ -274,8 +276,7 @@ class BaseAudit
         }
         if ( $this->history_date !== $ts )
         {
-            $this->history_date = $ts;
-            $this->modifiedColumns[] = AppHistoryPeer::HISTORY_DATE;
+            $this->history_date = date("Y-m-d H;i:s", $ts);
         }
     }
 
@@ -296,7 +297,6 @@ class BaseAudit
         if ( $this->history_data !== $v )
         {
             $this->history_data = $v;
-            $this->modifiedColumns[] = AppHistoryPeer::HISTORY_DATA;
         }
     }
 
@@ -342,21 +342,14 @@ class BaseAudit
      */
     public function save ($con = null)
     {
-        if ( $this->isDeleted () )
+       
+        if ( $this->objMysql === null )
         {
-            throw new PropelException ("You cannot save an object that has been deleted.");
-        }
-        if ( $con === null )
-        {
-            $con = Propel::getConnection (AppHistoryPeer::DATABASE_NAME);
+            $this->getConnection();
         }
         try {
-            $con->begin ();
-            $affectedRows = $this->doSave ($con);
-            $con->commit ();
-            return $affectedRows;
+            $this->objMysql->_insert("task_manager.audit", array("username" => $this->usr_uid, "audit_date" => $this->history_date, "project_id" => $this->app_uid, "message" => $this->history_data, "case_id" => $this->tas_uid, "workflow_id" => $this->pro_uid));
         } catch (PropelException $e) {
-            $con->rollback ();
             throw $e;
         }
     }
@@ -458,18 +451,7 @@ class BaseAudit
      */
     protected function doValidate ($columns = null)
     {
-        if ( !$this->alreadyInValidation )
-        {
-            $this->alreadyInValidation = true;
-            $retval = null;
-            $failureMap = array();
-            if ( ($retval = AppHistoryPeer::doValidate ($this, $columns)) !== true )
-            {
-                $failureMap = array_merge ($failureMap, $retval);
-            }
-            $this->alreadyInValidation = false;
-        }
-        return (!empty ($failureMap) ? $failureMap : true);
+        return true;
     }
 
     /**

@@ -7,7 +7,7 @@ class SendNotification extends Notifications
     private $arrEmailAddresses = array();
 
     /**
-     * 
+     *
      * @param type $status
      * @param type $system
      */
@@ -20,7 +20,7 @@ class SendNotification extends Notifications
     }
 
     /**
-     * 
+     *
      * @param type $projectId
      */
     public function setProjectId ($projectId)
@@ -39,7 +39,7 @@ class SendNotification extends Notifications
     }
 
     /**
-     * 
+     *
      * @param type $elementId
      */
     public function setElementId ($elementId)
@@ -77,7 +77,7 @@ class SendNotification extends Notifications
     }
 
     /**
-     * 
+     *
      * @param type $status
      * @param type $arrData
      * @param type $system
@@ -110,27 +110,33 @@ class SendNotification extends Notifications
 
                 $noteRecipientsList = array();
 
-                foreach ($p as $userParticipated) {
-                    if ( $userParticipated != '' )
-                    {
-                        $objUsers = new UsersFactory();
-                        $arrUser = $objUsers->getUsers (trim ($userParticipated));
-
-                        if ( isset ($arrUser[0]) && !empty ($arrUser[0]) )
+                if ( !empty ($p) )
+                {
+                    foreach ($p as $userParticipated) {
+                        if ( $userParticipated != '' )
                         {
-                            $emailAddress = $arrUser[0]->getUser_email ();
-                            $noteRecipientsList[] = $emailAddress;
+                            $objUsers = new UsersFactory();
+                            $arrUser = $objUsers->getUsers (trim ($userParticipated));
+
+                            if ( isset ($arrUser[0]) && !empty ($arrUser[0]) )
+                            {
+                                $emailAddress = $arrUser[0]->getUser_email ();
+                                $noteRecipientsList[] = $emailAddress;
+                            }
                         }
                     }
                 }
 
+
                 $noteRecipientsList[] = $this->message['to'];
 
                 $noteRecipients = implode (",", $noteRecipientsList);
-                
-                 $this->recipient = $noteRecipients;
-            } else {
-                 $this->recipient = $this->message['to'];
+
+                $this->recipient = $noteRecipients;
+            }
+            else
+            {
+                $this->recipient = $this->message['to'];
             }
         }
 
@@ -168,13 +174,13 @@ class SendNotification extends Notifications
     }
 
     /**
-     * 
+     *
      */
     public function save ()
     {
-        $this->objMysql->_query ("UPDATE workflow.notifications_sent 
-                                SET status = 2 
-                                WHERE case_id = ? 
+        $this->objMysql->_query ("UPDATE workflow.notifications_sent
+                                SET status = 2
+                                WHERE case_id = ?
                                 AND status != 3", [$this->elementId]
         );
 
@@ -193,7 +199,7 @@ class SendNotification extends Notifications
     }
 
     /**
-     * 
+     *
      * @param type $sendto
      * @param type $message_subject
      * @param type $message_body
