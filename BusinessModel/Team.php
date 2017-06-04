@@ -398,7 +398,7 @@ class Team
                 "total" => $numRecTotal,
                 "start" => (int) ((!is_null ($start)) ? $start : 0),
                 "limit" => (int) ((!is_null ($limit)) ? $limit : 0),
-                $filterName => (!is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"])) ? $arrayFilterData["filter"] : "",
+                //$filterName => (!is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"])) ? $arrayFilterData["filter"] : "",
                 "data" => $arrayGroup
             );
         } catch (Exception $e) {
