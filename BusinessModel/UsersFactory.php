@@ -170,7 +170,7 @@ class UsersFactory
         try {
             if ( $this->existsName ($userName, $userUidToExclude) )
             {
-                throw new Exception ("ID_USER_NAME_ALREADY_EXISTS");
+                throw new Exception ("Username already exists");
             }
         } catch (Exception $e) {
             throw $e;
@@ -301,6 +301,12 @@ class UsersFactory
                 $arrayData["USR_UPDATE_DATE"] = date ("Y-m-d H:i:s");
 
                 $userUid = $user->createUser ($arrayData, $arrayData["role_id"]);
+
+                if ( isset ($_FILES['upload']) && !empty ($_FILES['upload']['name']) )
+                {
+
+                    $objUsers->uploadImage ($userUid);
+                }
 
                 //Create in workflow
                 //Return
@@ -457,9 +463,10 @@ class UsersFactory
             {
                 $criteria .= " AND u.status = 1";
             }
+
             if ( $flagFilter && trim ($arrayWhere['filter']) != '' )
             {
-                $search = (isset ($arrayWhere['filterOption'])) ? $arrayWhere['filterOption'] : '';
+                $search = isset ($arrayWhere['filterOption']) ? $arrayWhere['filterOption'] : '';
 
                 $criteria .= " AND (u.username LIKE ? OR u.firstName LIKE ? OR lastName LIKE ?)";
                 $arrWhere[] = "%" . $search . "%";
@@ -571,30 +578,36 @@ class UsersFactory
     public function uploadImage ($userUid)
     {
         try {
+
             //Verify data
-            $this->throwExceptionIfNotExistsUser ($userUid, $this->arrayFieldNameForException["usrUid"]);
+            $this->throwExceptionIfNotExistsUser ($userUid);
             if ( !$_FILES )
             {
-                throw new \Exception (\G::LoadTranslation ("ID_UPLOAD_ERR_NO_FILE"));
+                throw new Exception ("ID_UPLOAD_ERR_NO_FILE");
             }
-            if ( !isset ($_FILES["USR_PHOTO"]) )
+
+            if ( !isset ($_FILES["upload"]) )
             {
-                throw new \Exception (\G::LoadTranslation ("ID_UNDEFINED_VALUE_IS_REQUIRED", array($this->arrayFieldNameForException["usrPhoto"])));
+                throw new Exception ("ID_UNDEFINED_VALUE_IS_REQUIRED");
             }
-            if ( $_FILES['USR_PHOTO']['error'] != 1 )
+
+            if ( $_FILES['upload']['error'] != 1 )
             {
-                if ( $_FILES['USR_PHOTO']['tmp_name'] != '' )
+                if ( $_FILES['upload']['tmp_name'] != '' )
                 {
-                    $aAux = explode ('.', $_FILES['USR_PHOTO']['name']);
-                    \G::uploadFile ($_FILES['USR_PHOTO']['tmp_name'], PATH_IMAGES_ENVIRONMENT_USERS, $userUid . '.' . $aAux[1]);
+                    $objFile = new FileUpload();
+
+                    $aAux = explode ('.', $_FILES['upload']['name']);
+                    $objFile->uploadFile ($_FILES['upload']['tmp_name'], PATH_IMAGES_ENVIRONMENT_USERS, $userUid . '.' . $aAux[1]);
+                    die;
                     \G::resizeImage (PATH_IMAGES_ENVIRONMENT_USERS . $userUid . '.' . $aAux[1], 96, 96, PATH_IMAGES_ENVIRONMENT_USERS . $userUid . '.gif');
                 }
             }
             else
             {
-                throw new \Exception (\G::LoadTranslation ('ID_ERROR') . ' ' . $_FILES['USR_PHOTO']['error']);
+                throw new Exception ('Error uploading file' . ' ' . $_FILES['USR_PHOTO']['error']);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             throw $e;
         }
     }

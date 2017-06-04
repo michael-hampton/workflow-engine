@@ -439,34 +439,15 @@ abstract class BaseUser
     {
         if ( isset ($this->userId) && is_numeric ($this->userId) )
         {
-
             $this->objMysql->_update ("user_management.poms_users", $this->arrUser, array("usrid" => $this->userId));
-
-
-            if ( $this->roleId != "" && is_numeric ($this->roleId) )
-            {
-                $this->objMysql->_update ("user_management.user_roles", array("roleId" => $this->roleId), array("userId" => $this->userId));
-            }
-            return true;
-
-
-            return false;
         }
         else
         {
-
-            $this->objMysql->_insert ("user_management.poms_users", $this->arrUser);
-
-            if ( $this->roleId != "" && is_numeric ($this->roleId) )
-            {
-                $this->objMysql->_insert ("user_management.user_roles", array("roleId" => $this->roleId, "userId" => $this->userId));
-            }
-
-            return true;
-
-
-            return false;
+            $id = $this->objMysql->_insert ("user_management.poms_users", $this->arrUser);
+            return $id;
         }
+        
+        return true;
     }
 
     /**

@@ -348,7 +348,7 @@ class Team
             $criteria = $this->getGroupCriteria ();
             if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"]) && trim ($arrayFilterData["filter"]) != "" )
             {
-                $criteria .= " AND team_name LIKE ?";
+                $criteria .= " WHERE team_name LIKE ?";
                 $arrWhere[] = "%" . $arrayFilterData['filter'] . "%";
             }
 
@@ -384,7 +384,7 @@ class Team
             {
                 $criteria .= " LIMIT " . ((int) ($limit));
             }
-
+            
             $results = $this->objMysql->_query ($criteria, $arrWhere);
 
             foreach ($results as $row) {

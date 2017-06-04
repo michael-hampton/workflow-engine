@@ -19,7 +19,7 @@ class Users extends BaseUser
             if ( $this->validate () )
             {
                 $userId = $this->save ();
-
+                
                 return $userId;
             }
             else
@@ -125,11 +125,8 @@ class Users extends BaseUser
             $aData['status'] = 0;
         }
 
-
         $sUserUID = $this->create ($aData);
-
-
-
+        
         if ( $sRolCode != '' )
         {
 
