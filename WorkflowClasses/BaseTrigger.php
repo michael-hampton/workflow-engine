@@ -11,6 +11,10 @@ abstract class BaseTrigger
     private $id;
     private $arrTrigger = array();
     private $arrayValidationErrors = array();
+    private $title;
+    private $description;
+    private $triggerId;
+    private $New;
 
     /**
      *
@@ -132,6 +136,46 @@ abstract class BaseTrigger
         $this->id = $id;
     }
 
+    public function getTitle ()
+    {
+        return $this->title;
+    }
+
+    public function getDescription ()
+    {
+        return $this->description;
+    }
+
+    public function setTitle ($title)
+    {
+        $this->title = $title;
+    }
+
+    public function setDescription ($description)
+    {
+        $this->description = $description;
+    }
+
+    public function getTriggerId ()
+    {
+        return $this->triggerId;
+    }
+
+    public function setTriggerId ($triggerId)
+    {
+        $this->triggerId = $triggerId;
+    }
+
+    public function getNew ()
+    {
+        return $this->New;
+    }
+
+    public function setNew ($New)
+    {
+        $this->New = $New;
+    }
+
     public function getArrayValidationErrors ()
     {
         return $this->arrayValidationErrors;
@@ -144,22 +188,38 @@ abstract class BaseTrigger
 
     public function save ()
     {
-        $arrTrigger = array(
-            "moveTo" => array(
-                "workflow_id" => $this->getWorkflowId (),
-                "workflow_to" => $this->getWorkflowTo (),
-                "trigger_type" => $this->getTriggerType (),
-                "step_to" => $this->getStepTo ()
-            )
-        );
+        if ( $this->New === true )
+        {
+            $id = $this->objMysql->_insert ("workflow.step_trigger", array(
+                "workflow_id" => $this->workflowId,
+                "workflow_to" => $this->workflowTo,
+                "trigger_type" => $this->triggerType,
+                "step_to" => $this->stepTo,
+                "step_id" => $this->id,
+                "title" => $this->title,
+                "description" => $this->description
+            ));
+            
+             $this->triggerId = $id;
+        }
+        else
+        {
+            $this->objMysql->_update ("workflow.step_trigger", array(
+                "workflow_id" => $this->workflowId,
+                "workflow_to" => $this->workflowTo,
+                "trigger_type" => $this->triggerType,
+                "step_to" => $this->stepTo,
+                "step_id" => $this->id,
+                "title" => $this->title,
+                "description" => $this->description
+                    ), array(
+                "id" => $this->triggerId
+            ));
+        }
 
-        $this->objMysql->_update (
-                "workflow.status_mapping", array(
-            "step_trigger" => json_encode ($arrTrigger)
-                ), array(
-            "id" => $this->id
-                )
-        );
+
+       
+
 
         return true;
     }
@@ -176,7 +236,7 @@ abstract class BaseTrigger
             throw new Exception ("Invalid id given");
         }
 
-        $this->objMysql->_update ("workflow.status_mapping", array("step_trigger" => ""), array("id" => $id));
+        $this->objMysql->_delete ("workflow.step_trigger", array("id" => $id));
 
         return true;
     }
@@ -219,6 +279,18 @@ abstract class BaseTrigger
         }
 
         return true;
+    }
+
+    /**
+     * Retrieve a single object by pkey.
+     *
+     * @param      mixed $pk the primary key.
+     * @return     Triggers
+     */
+    public function retrieveByPK ($pk)
+    {
+        $v = $this->objMysql->_select ("workflow.step_trigger", [], ["id" => $pk]);
+        return !empty ($v) > 0 ? $v[0] : null;
     }
 
 }

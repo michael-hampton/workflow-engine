@@ -149,8 +149,8 @@ class Lists
             $this->validateUserId ($dataList["userId"]);
             $userUid = $dataList["userId"];
 
-            $objUsers = new UsersFactory ($userUid);
-            $arrUser = $objUsers->getUsers ();
+            $objUsers = new UsersFactory();
+            $arrUser = $objUsers->getUser($userUid);
         }
 
         if ( isset ($dataList['page']) && is_numeric ($dataList['page']) )
@@ -170,7 +170,7 @@ class Lists
         switch ($listName) {
             case "CASES_INBOX":
             case "inbox":
-                return $objNotificationsFactory->getNotifications (array("status" => 1, "user" => $arrUser[0]->getUser_email ()));
+                return $objNotificationsFactory->getNotifications (array("status" => 1, "user" => $arrUser->getUser_email ()));
                 break;
 
             case "CASES_DRAFT":

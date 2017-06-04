@@ -1,24 +1,26 @@
 <?php
 
-class StepTrigger extends Trigger
+class StepTrigger
 {
 
     public $arrWorkflowObject = array();
     private $objMysql;
     private $elementId;
     public $blMove = false;
+    private $workflowId;
+    private $currentStep;
     private $nextStep;
 
     /**
      * 
      * @param type $nextStep
      */
-    public function __construct ($nextStep = null)
+    public function __construct ($currentStep = null, $nextStep = null)
     {
-        parent::__construct ();
 
         $this->objMysql = new Mysql2();
 
+        $this->currentStep = $currentStep;
         $this->nextStep = $nextStep;
     }
 
@@ -28,56 +30,19 @@ class StepTrigger extends Trigger
      */
     public function getTriggers ()
     {
-        $arrTriggers = $this->objMysql->_select ("workflow.status_mapping", array("step_trigger"), array("id" => $this->_workflowStepId));
+        $arrTriggers = $this->getAllTriggersForStep ();
 
-        if ( $this->nextStep !== null )
+        // check gateways
+
+        $objGateway = new StepGateway ($this->currentStep);
+        $arrGateways = $objGateway->getGateways ();
+
+        if ( !empty ($arrGateways) )
         {
-            $nextTrigger = $this->objMysql->_select ("workflow.status_mapping", array("step_trigger"), array("id" => $this->nextStep));
-
-            if ( isset ($nextTrigger[0]['step_trigger']) )
-            {
-                $stepTrigger = json_decode ($nextTrigger[0]['step_trigger'], true);
-
-                if ( isset ($stepTrigger['moveTo']) && $stepTrigger['moveTo']['trigger_type'] == "gateway" )
-                {
-                    $arrTriggers = $nextTrigger;
-                }
-            }
+            $arrTriggers = $arrGateways;
         }
 
-        if ( !empty ($arrTriggers) )
-        {
-
-            $arrTrigger = json_decode ($arrTriggers[0]['step_trigger'], true);
-
-            if ( !isset ($arrTrigger['moveTo']) || !isset ($arrTrigger['moveTo']['trigger_type']) )
-            {
-                return false;
-            }
-
-            switch ($arrTrigger['moveTo']['trigger_type']) {
-                case "step":
-                    return array(
-                        "step_to" => $arrTrigger['moveTo']['step_to'],
-                        "workflow_from" => $arrTrigger['moveTo']['workflow_id'],
-                        "trigger_type" => "step"
-                    );
-                    break;
-
-                case "workflow":
-                    return array(
-                        "workflow_to" => $arrTrigger['moveTo']['workflow_to'],
-                        "workflow_from" => $arrTrigger['moveTo']['workflow_id'],
-                        "trigger_type" => "workflow"
-                    );
-                    break;
-                default :
-                    return $arrTrigger;
-                    break;
-            }
-        }
-
-        return false;
+        return $arrTriggers;
     }
 
     /**
@@ -131,81 +96,84 @@ class StepTrigger extends Trigger
 
         if ( isset ($this->arrWorkflowObject['elements'][$this->elementId]) )
         {
-            $this->_workflowStepId = $this->arrWorkflowObject['elements'][$this->elementId]['current_step'];
+            $this->currentStep = $this->arrWorkflowObject['elements'][$this->elementId]['current_step'];
+            $this->workflowId = $this->arrWorkflowObject['elements'][$this->elementId]['workflow_id'];
         }
         else
         {
             $this->blMove = true;
-            $this->_workflowStepId = $this->arrWorkflowObject['current_step'];
+            $this->currentStep = $this->arrWorkflowObject['current_step'];
+            $this->workflowId = $this->arrWorkflowObject['workflow_id'];
         }
 
-        $arrTrigger = $this->getTriggers ();
-
+        $arrTriggers = $this->getTriggers ();
         $blHasTrigger = false;
-        $strTriggerType = null;
 
-        $workflow = isset ($arrTrigger['workflow_from']) ? $arrTrigger['workflow_from'] : $arrTrigger['moveTo']['workflow_id'];
-        $triggerType = isset ($arrTrigger['trigger_type']) ? $arrTrigger['trigger_type'] : $arrTrigger['moveTo']['trigger_type'];
+        foreach ($arrTriggers as $arrTrigger) {
 
+            $strTriggerType = null;
 
-        if ( $arrTrigger !== false && !empty ($arrTrigger) )
-        {
-            if ( $workflow == $this->arrWorkflowObject['workflow_id'] )
+            $workflow = isset ($arrTrigger['workflow_from']) ? $arrTrigger['workflow_from'] : $arrTrigger['workflow_id'];
+            $triggerType = isset ($arrTrigger['trigger_type']) ? $arrTrigger['trigger_type'] : '';
+
+            if ( $arrTrigger !== false && !empty ($arrTrigger) )
             {
-                if ( $triggerType == "step" )
+                if ( $workflow == $this->arrWorkflowObject['workflow_id'] )
                 {
-                    $this->arrWorkflowObject['current_step'] = $arrTrigger['step_to'];
-                    $blHasTrigger = true;
-                    $this->blMove = true;
-
-                    if ( isset ($this->arrWorkflowObject['elements'][$this->parentId]) )
+                    if ( $triggerType == "step" )
                     {
+                        $this->arrWorkflowObject['current_step'] = $arrTrigger['step_to'];
+                        $blHasTrigger = true;
+                        $this->blMove = true;
 
-                        if ( $this->arrWorkflowObject['elements'][$this->parentId]['workflow_id'] == $arrTrigger['workflow_from'] )
+                        if ( isset ($this->arrWorkflowObject['elements'][$this->parentId]) )
                         {
-                            $this->arrWorkflowObject['elements'][$this->parentId]['current_step'] = $arrTrigger['step_to'];
-                            $blHasTrigger = true;
+                            if ( $this->arrWorkflowObject['elements'][$this->parentId]['workflow_id'] == $arrTrigger['workflow_from'] )
+                            {
+                                $this->arrWorkflowObject['elements'][$this->parentId]['current_step'] = $arrTrigger['step_to'];
+                                $blHasTrigger = true;
+                            }
                         }
                     }
-                }
-                elseif ( $triggerType == "workflow" )
-                {
-                    $this->arrWorkflowObject['workflow_id'] = $arrTrigger['workflow_to'];
-                }
-                elseif ( $triggerType == "gateway" )
-                {
-                    $objGateway = new Gateway ($this->arrWorkflowObject['elements'][$this->parentId]['current_step']);
-                    $this->arrWorkflowObject = $objGateway->updateStep ($arrTrigger, $this->arrWorkflowObject, $objMike);
-                }
-
-                $blHasTrigger = true;
-                $this->blMove = false;
-            }
-        }
-        else
-        {
-            if ( $this->arrWorkflowObject['elements'][$this->elementId]['workflow_id'] == $workflow )
-            {
-                if ( $triggerType == "step" )
-                {
-                    $this->arrWorkflowObject['elements'][$this->elementId]['current_step'] = $arrTrigger['step_to'];
-                    $strTriggerType = "step";
-                    $this->blMove = true;
-                    $blHasTrigger = true;
-                }
-                elseif ( $triggerType == "workflow" )
-                {
-                    $this->arrWorkflowObject['elements'][$this->elementId]['workflow_id'] = $arrTrigger['workflow_to'];
-                    $strTriggerType = "workflow";
-                }
-                elseif ( $triggerType == "gateway" )
-                {
-                    $objGateway = new Gateway();
-                    $this->arrWorkflowObject = $objGateway->updateStep ($arrTrigger, $this->arrWorkflowObject, $objMike);
-
+                    elseif ( $triggerType == "workflow" )
+                    {
+                        $this->arrWorkflowObject['workflow_id'] = $arrTrigger['workflow_to'];
+                    }
+                    elseif ( $triggerType == "gateway" )
+                    {
+                        $objGateway = new Gateway ($this->arrWorkflowObject['elements'][$this->parentId]['current_step']);
+                        $this->arrWorkflowObject = $objGateway->updateStep ($arrTrigger, $this->arrWorkflowObject, $objMike);
+                    }
 
                     $blHasTrigger = true;
                     $this->blMove = false;
+                }
+            }
+            else
+            {
+                if ( $this->arrWorkflowObject['elements'][$this->elementId]['workflow_id'] == $workflow )
+                {
+                    if ( $triggerType == "step" )
+                    {
+                        $this->arrWorkflowObject['elements'][$this->elementId]['current_step'] = $arrTrigger['step_to'];
+                        $strTriggerType = "step";
+                        $this->blMove = true;
+                        $blHasTrigger = true;
+                    }
+                    elseif ( $triggerType == "workflow" )
+                    {
+                        $this->arrWorkflowObject['elements'][$this->elementId]['workflow_id'] = $arrTrigger['workflow_to'];
+                        $strTriggerType = "workflow";
+                    }
+                    elseif ( $triggerType == "gateway" )
+                    {
+                        $objGateway = new Gateway();
+                        $this->arrWorkflowObject = $objGateway->updateStep ($arrTrigger, $this->arrWorkflowObject, $objMike);
+
+
+                        $blHasTrigger = true;
+                        $this->blMove = false;
+                    }
                 }
             }
         }
@@ -237,53 +205,122 @@ class StepTrigger extends Trigger
             //throw new Exception("ID_RECORD_DOES_NOT_EXIST_IN_TABLE");
         }
 
-        $arrTriggers = $this->objMysql->_select ("workflow.status_mapping", array("step_trigger"), array("id" => $this->nextStep), array());
+        $criteria = $this->getTriggerCriteria ();
 
-        if ( empty ($arrTriggers) )
+        $criteria .= " WHERE step_id = ?";
+        $criteria .= " ORDER BY title ASC";
+
+        $result = $this->objMysql->_query ($criteria, array($this->currentStep));
+
+        if ( empty ($result) )
         {
             return [];
         }
 
-        $arrTriggers = json_decode ($arrTriggers[0]['step_trigger'], true);
-
-        return $arrTriggers;
+        return $result;
     }
 
     /**
-     * Assign Trigger to a Step
+     * Save Data for Trigger
+     * @var string $sProcessUID. Uid for Process
+     * @var string $dataTrigger. Data for Trigger
+     * @var string $create. Create o Update Trigger
+     * @var string $sTriggerUid. Uid for Trigger
      *
-     * @param string $stepUid    Unique id of Step
-     * @param array  $aData  Data
-     *
-     * return array Data of the Trigger assigned to a Step
+     * @return array
      */
-    public function create ($stepUid, $aData)
+    public function create ($stepUid = '', $dataTrigger = array(), $create = false, $sTriggerUid = '')
     {
         try {
+
+            if ( ($stepUid == '') || (count ($dataTrigger) == 0) )
+            {
+                return false;
+            }
 
             if ( !$this->stepExists ($stepUid) )
             {
                 throw new Exception ("ID_STEP_DOES_NOT_EXIST");
             }
 
-            $objects = $this->objMysql->_select ("workflow.status_mapping", array(), array("id" => $stepUid));
+            if ( $create && (isset ($dataTrigger['triggerId'])) )
+            {
+                unset ($dataTrigger['triggerId']);
+            }
 
-            foreach ($objects as $row) {
+            $dataTrigger = (array) $dataTrigger;
 
-                if ( !empty ($row['step_trigger']) )
+            if ( isset ($dataTrigger['title']) )
+            {
+                if ( $this->verifyNameTrigger ($stepUid, $dataTrigger['title'], $sTriggerUid) )
                 {
-                    $this->remove ($stepUid);
+                    throw new Exception ("ID_CANT_SAVE_TRIGGER");
                 }
             }
-            
-            $trigger = new Trigger();
-            $result = $trigger->create($stepUid, $aData);
-            
-            return $result;
-         
+
+            $dataTrigger['step_id'] = $stepUid;
+
+            $oTrigger = new Trigger ($stepUid);
+
+            if ( $create )
+            {
+                $oTrigger->create ($stepUid, $dataTrigger);
+                $dataTrigger['TRI_UID'] = $oTrigger->getTriggerId ();
+            }
+            else
+            {
+                $oTrigger->update ($dataTrigger);
+            }
+
+            return true;
         } catch (Exception $e) {
             throw ($e);
         }
+    }
+
+    /**
+     * Delete Trigger
+     * @var string $sTriggerUID. Uid for Trigger
+     *
+     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
+     * @copyright Colosa - Bolivia
+     *
+     * @return void
+     */
+    public function deleteTrigger ($sTriggerUID)
+    {
+        $oTrigger = new \Trigger();
+        $oTrigger->remove( $sTriggerUID );
+        //$oStepTrigger->removeTrigger( $sTriggerUID );
+        
+    }
+
+    /**
+     * Verify name for trigger in process
+     * @var string $stepId. Uid for Step
+     * @var string $sTriggerName. Name for Trigger
+     * @var string $sTriggerUid. Uid for Trigger
+     *
+     * @return boolean
+     */
+    public function verifyNameTrigger ($stepId, $sTriggerName, $sTriggerUid = '')
+    {
+        $arrWhere = array();
+
+        $sql = "SELECT id from workflow.step_trigger WHERE step_id = ? AND title = ?";
+        $arrWhere[] = $stepId;
+        $arrWhere[] = $sTriggerName;
+
+
+        if ( $sTriggerUid != '' )
+        {
+            $sql .= " AND id != ?";
+            $arrWhere[] = $sTriggerUid;
+        }
+
+        $result = $this->objMysql->_query ($sql, $arrWhere);
+
+        return (isset ($result[0]) && !empty ($result[0])) ? true : false;
     }
 
     /**
@@ -291,9 +328,9 @@ class StepTrigger extends Trigger
      * @param type $id
      * @return type
      */
-    private function retrieveByPK ($id)
+    public function retrieveByPK ($id)
     {
-        $result = $this->objMysql->_select ("workflow.status_mapping", array(), array("id" => $id));
+        $result = $this->objMysql->_select ("workflow.step_trigger", array(), array("step_id" => $id));
         return $result;
     }
 
@@ -331,6 +368,7 @@ class StepTrigger extends Trigger
     public function stepTriggerExists ($StepUid)
     {
         try {
+
             $oObj = $this->retrieveByPK ($StepUid);
             if ( isset ($oStepTrigger[0]) && !empty ($oStepTrigger[0]) )
             {
@@ -343,6 +381,36 @@ class StepTrigger extends Trigger
         } catch (Exception $oError) {
             throw ($oError);
         }
+    }
+
+    /**
+     * Get criteria for Trigger
+     *
+     * return object
+     */
+    public function getTriggerCriteria ()
+    {
+        try {
+            $criteria = "SELECT title, description, id, workflow_id, workflow_to, trigger_type, step_to, step_id, workflow_from FROM workflow.step_trigger";
+            return $criteria;
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * Get data for TriggerUid
+     * @var int $sTriggerUID. Uid for Trigger
+     *
+     *
+     * @return array
+     */
+    public function getDataTrigger ($sTriggerUID = NULL)
+    {
+        $triggerO = new \Trigger();
+        $triggerArray = $triggerO->load ($sTriggerUID);
+
+        return $triggerArray;
     }
 
 }
