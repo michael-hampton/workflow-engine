@@ -193,11 +193,7 @@ class StepPermissions
     }
 
     /**
-     * Validate Task Uid
-     * @var string $tas_uid. Uid for task
-     *
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
+     * Validate Step Uid
      *
      * @return string
      */
