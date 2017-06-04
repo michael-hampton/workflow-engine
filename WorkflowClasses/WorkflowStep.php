@@ -334,17 +334,17 @@ class WorkflowStep
 
         $arrWorkflow['request_id'] = $this->collectionId;
 
-        $objTrigger = new StepTrigger ($this->nextStep);
+        $objTrigger = new StepTrigger ($this->_workflowStepId, $this->nextStep);
 
         if ( $complete === true && $this->nextStep !== 0 && $this->nextStep != "" )
         {
             $blHasTrigger = $objTrigger->checkTriggers ($objMike);
+   
 
             if ( $blHasTrigger === true )
             {
                 $arrWorkflowObject = $objTrigger->arrWorkflowObject;
             }
-
             if ( $objTrigger->blMove === true || $blHasTrigger === false )
             {
                 $blHasTrigger = false;
@@ -381,7 +381,8 @@ class WorkflowStep
         {
             $this->objWorkflow = $arrWorkflow;
         }
-
+        
+        
         if ( is_numeric ($this->parentId) && is_numeric ($this->elementId) && $blHasTrigger !== true )
         {
             $this->objWorkflow['elements'][$this->elementId] = $arrWorkflow;
@@ -392,6 +393,8 @@ class WorkflowStep
             $arrCompleteData['status'] = "COMPLETE";
             $this->objWorkflow['elements'][$this->elementId]['status'] = "WORKFLOW COMPLETE";
         }
+        
+        
 
         if ( isset ($arrCompleteData['dateCompleted']) && isset ($arrCompleteData['claimed']) )
         {

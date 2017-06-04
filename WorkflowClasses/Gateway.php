@@ -19,6 +19,7 @@ class Gateway extends BaseGateway
     {
         try {
 
+            $this->setNew (TRUE);
             $this->setCondition ($aData['condition']);
             $this->setConditionValue ($aData['conditionValue']);
             $this->setElse ($aData['else']);
@@ -26,6 +27,12 @@ class Gateway extends BaseGateway
             $this->setStep_to ($aData['next_step']);
             $this->setTriggerType ($aData['trigger_type']);
             $this->setWorkflowId ($aData['workflow_id']);
+
+            $title = isset ($aData['title']) && trim ($aData['title']) !== "" ? $aData['title'] : '';
+            $this->setTitle ($title);
+
+            $description = isset ($aData['description']) && trim ($aData['description']) !== "" ? $aData['description'] : '';
+            $this->setDescription ($description);
 
             if ( $this->validate () )
             {
@@ -36,8 +43,8 @@ class Gateway extends BaseGateway
             {
                 $sMessage = '';
                 $aValidationFailures = $this->getArrayValidationErrors ();
-                foreach ($aValidationFailures as $oValidationFailure) {
-                    $sMessage .= $oValidationFailure . '<br />';
+                foreach ($aValidationFailures as $strMessage) {
+                    $sMessage .= $strMessage . '<br />';
                 }
                 throw (new Exception ('The registry cannot be created!<br />' . $sMessage));
             }
@@ -46,45 +53,100 @@ class Gateway extends BaseGateway
         }
     }
 
-    public function updateStep ($arrTrigger, $arrWorkflowObject, $objMike)
+    public function update ($aData)
     {
+        try {
+
+            $this->setNew (false);
+            $this->setCondition ($aData['condition']);
+            $this->setConditionValue ($aData['conditionValue']);
+            $this->setElse ($aData['else']);
+            $this->setField ($aData['field']);
+            $this->setStep_to ($aData['next_step']);
+            $this->setTriggerType ($aData['trigger_type']);
+            $this->setWorkflowId ($aData['workflow_id']);
+            $this->setGatewayId ($aData['gatewayId']);
+
+            $title = isset ($aData['title']) && trim ($aData['title']) !== "" ? $aData['title'] : '';
+            $this->setTitle ($title);
+
+            $description = isset ($aData['description']) && trim ($aData['description']) !== "" ? $aData['description'] : '';
+            $this->setDescription ($description);
+
+            if ( $this->validate () )
+            {
+                $result = $this->save ();
+                return $result;
+            }
+            else
+            {
+                throw (new Exception ("Failed Validation in class " . get_class ($this) . "."));
+            }
+        } catch (Exception $e) {
+            throw ($e);
+        }
+    }
+
+    public function remove ($GatewayUid)
+    {
+        try {
+            $oGateWay = $this->retrieveByPK ($GatewayUid);
+            if ( !is_null ($oGateWay) )
+            {
+                
+                $iResult = $this->delete ();
+                return true;
+            }
+            else
+            {
+                throw (new Exception ('This row does not exist!'));
+            }
+        } catch (Exception $oError) {
+            throw ($oError);
+        }
+    }
+
+    /**
+     * Retrieve a single object by pkey.
+     *
+     * @param      mixed $pk the primary key.
+     * @param      Connection $con the connection to use
+     * @return     Gateway
+     */
+    public function retrieveByPK ($pk)
+    {
+
         if ( $this->objMysql === null )
         {
             $this->getConnection ();
         }
 
-        $this->elementId = $objMike->getId ();
+        $v = $this->objMysql->_select ("workflow.gateways", [], ["id" => $pk]);
 
-        $arrField = $this->objMysql->_select ("workflow.fields", array(), array("field_identifier" => trim ($arrTrigger['moveTo']['field'])));
-        if ( empty ($arrField) )
+        if ( isset ($v[0]) && !empty ($v[0]) )
         {
-            throw new Exception ("Field cannot be found");
-        }
-        $strField = $arrField[0]['field_identifier'];
-        $strValue = $objMike->arrElement[$strField];
-        $conditionalValue = $arrTrigger['moveTo']['conditionValue'];
-        $trueField = $arrTrigger['moveTo']['step_to'];
-        $falseField = $arrTrigger['moveTo']['else'];
-        switch ($arrTrigger['moveTo']['condition']) {
-            case "=":
-                if ( trim ($strValue) == trim ($conditionalValue) )
-                {
-                    if ( isset ($arrWorkflowObject['elements'][$this->elementId]) )
-                    {
-                        $arrWorkflowObject['elements'][$this->elementId]['current_step'] = $trueField;
-                    }
-                }
-                else
-                {
-                    if ( isset ($arrWorkflowObject['elements'][$this->elementId]) )
-                    {
-                        $arrWorkflowObject['elements'][$this->elementId]['current_step'] = $falseField;
-                    }
-                }
-                break;
+            $this->setGatewayId ($pk);
+            return $v[0];
         }
 
-        return $arrWorkflowObject;
+        return null;
+    }
+
+    public function load ($GatewayUid)
+    {
+        try {
+            $oRow = $this->retrieveByPK ($GatewayUid);
+            if ( !is_null ($oRow) )
+            {
+                return $oRow;
+            }
+            else
+            {
+                throw (new Exception ("The row '" . $GatewayUid . "' in table Gateway doesn't exist!"));
+            }
+        } catch (Exception $oError) {
+            throw ($oError);
+        }
     }
 
 }

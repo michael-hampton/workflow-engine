@@ -16,6 +16,10 @@ class BaseGateway
     private $else;
     private $objMysql;
     private $arrayValidationErrors;
+    private $title;
+    private $description;
+    private $gatewayId;
+    private $New;
 
     /**
      * The value for the tas_uid field.
@@ -24,7 +28,7 @@ class BaseGateway
     private $taskId;
     private $triggerType;
 
-    public function __construct ($taskId)
+    public function __construct ($taskId = null)
     {
         $this->taskId = $taskId;
     }
@@ -34,6 +38,16 @@ class BaseGateway
         $this->objMysql = new Mysql2();
     }
 
+    public function getNew ()
+    {
+        return $this->New;
+    }
+
+    public function setNew ($New)
+    {
+        $this->New = $New;
+    }
+
     public function save ()
     {
         if ( $this->objMysql === null )
@@ -41,25 +55,36 @@ class BaseGateway
             $this->getConnection ();
         }
 
-        $arrTrigger = array(
-            "moveTo" => array(
-                "field" => $this->getField (),
-                "conditionValue" => $this->getConditionValue (),
-                "trigger_type" => $this->getTriggerType (),
-                "step_to" => $this->getStep_to (),
-                "else" => $this->else,
-                "condition" => $this->condition,
-                "workflow_id" => $this->getWorkflowId ()
-            )
-        );
-
-        $this->objMysql->_update (
-                "workflow.status_mapping", array(
-            "step_trigger" => json_encode ($arrTrigger)
-                ), array(
-            "id" => $this->taskId
-                )
-        );
+        if ( $this->New === true )
+        {
+            $this->objMysql->_insert ("workflow.gateways", array(
+                "title" => $this->title,
+                "description" => $this->description,
+                "field_name" => $this->field,
+                "conditionValue" => $this->conditionValue,
+                "step_to" => $this->step_to,
+                "else_step" => $this->else,
+                "condition_type" => $this->condition,
+                "workflow_id" => $this->workflowId,
+                "step_id" => $this->taskId
+                    )
+            );
+        }
+        else
+        {
+            $this->objMysql->_update ("workflow.gateways", array(
+                "title" => $this->title,
+                "description" => $this->description,
+                "field_name" => $this->field,
+                "conditionValue" => $this->conditionValue,
+                "step_to" => $this->step_to,
+                "else_step" => $this->else,
+                "condition_type" => $this->condition,
+                "workflow_id" => $this->workflowId,
+                "step_id" => $this->taskId
+                    ), array("id" => $this->gatewayId)
+            );
+        }
     }
 
     /**
@@ -140,6 +165,44 @@ class BaseGateway
         }
     }
 
+    public function getTitle ()
+    {
+        return $this->title;
+    }
+
+    public function getDescription ()
+    {
+        return $this->description;
+    }
+
+    public function setTitle ($title)
+    {
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ( $title !== null && !is_string ($title) )
+        {
+            $title = (string) $title;
+        }
+        if ( $this->title !== $title || $title === '' )
+        {
+            $this->title = $title;
+        }
+    }
+
+    public function setDescription ($description)
+    {
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ( $description !== null && !is_string ($description) )
+        {
+            $description = (string) $description;
+        }
+        if ( $this->description !== $description || $description === '' )
+        {
+            $this->description = $description;
+        }
+    }
+
     public function setField ($field)
     {
         // Since the native PHP type for this column is string,
@@ -194,6 +257,16 @@ class BaseGateway
         {
             $this->else = $else;
         }
+    }
+
+    public function getGatewayId ()
+    {
+        return $this->gatewayId;
+    }
+
+    public function setGatewayId ($gatewayId)
+    {
+        $this->gatewayId = $gatewayId;
     }
 
     /**
@@ -268,6 +341,16 @@ class BaseGateway
     public function setArrayValidationErrors ($arrayValidationErrors)
     {
         $this->arrayValidationErrors = $arrayValidationErrors;
+    }
+
+    public function delete ()
+    {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        $this->objMysql->_delete ("workflow.gateways", array("id" => $this->gatewayId));
     }
 
 }

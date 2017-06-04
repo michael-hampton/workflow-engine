@@ -86,91 +86,100 @@ class SendNotification extends Notifications
     public function buildEmail ($status, $arrData, $system = "task_manager", $blSendToAllParticipants = true)
     {
         error_reporting (0);
-        $this->setVariables ($status, $system);
-        $arrParameters = $this->getMessageParameters ();
 
-        if ( empty ($this->message) )
-        {
-            return false;
-        }
+        try {
+            $this->setVariables ($status, $system);
+            $arrParameters = $this->getMessageParameters ();
 
-        $this->subject = $this->message['message_subject'];
-        $this->body = $this->message['message_body'];
-
-        if ( !empty ($this->arrEmailAddresses) )
-        {
-            $this->recipient = implode (",", $this->arrEmailAddresses);
-        }
-        else
-        {
-            if ( $blSendToAllParticipants === true )
+            if ( empty ($this->message) )
             {
-                $case = new Cases();
-                $p = $case->getUsersParticipatedInCase ($this->projectId);
+                return false;
+            }
 
-                $noteRecipientsList = array();
+            $this->subject = $this->message['message_subject'];
+            $this->body = $this->message['message_body'];
 
-                if ( !empty ($p) )
-                {
-                    foreach ($p as $userParticipated) {
-                        if ( $userParticipated != '' )
-                        {
-                            $objUsers = new UsersFactory();
-                            $arrUser = $objUsers->getUsers (trim ($userParticipated));
-
-                            if ( isset ($arrUser[0]) && !empty ($arrUser[0]) )
-                            {
-                                $emailAddress = $arrUser[0]->getUser_email ();
-                                $noteRecipientsList[] = $emailAddress;
-                            }
-                        }
-                    }
-                }
-
-
-                $noteRecipientsList[] = $this->message['to'];
-
-                $noteRecipients = implode (",", $noteRecipientsList);
-
-                $this->recipient = $noteRecipients;
+            if ( !empty ($this->arrEmailAddresses) )
+            {
+                $this->recipient = implode (",", $this->arrEmailAddresses);
             }
             else
             {
-                $this->recipient = $this->message['to'];
+                if ( $blSendToAllParticipants === true )
+                {
+                    $case = new Cases();
+                    $p = $case->getUsersParticipatedInCase ($this->projectId);
+
+                    $noteRecipientsList = array();
+
+                    if ( !empty ($p) )
+                    {
+                        foreach ($p as $userParticipated) {
+                            if ( $userParticipated != '' )
+                            {
+                                $objUsers = new UsersFactory();
+                                $arrUser = $objUsers->getUsers (array("filter" => "mike", "filterOption" => trim ($userParticipated)));
+                                
+                                if(isset($arrUser['data'][0]) && !empty($arrUser['data'][0])) {
+                                    $objUser = $arrUser['data'][0];
+                                }
+  
+                                if ( is_object ($objUser) && get_class ($objUser) === "Users" )
+                                {
+                                    $emailAddress = $objUser->getUser_email ();
+                                    $noteRecipientsList[] = $emailAddress;
+                                }
+                            }
+                        }
+                    }
+
+
+                    $noteRecipientsList[] = $this->message['to'];
+
+                    $noteRecipients = implode (",", $noteRecipientsList);
+
+                    $this->recipient = $noteRecipients;
+                }
+                else
+                {
+                    $this->recipient = $this->message['to'];
+                }
             }
-        }
 
-        $pattern = "/\[([^\]]+)\]/";
-        $found = preg_match_all ($pattern, $this->message['message_subject'], $subjectKeys);
-        $found = preg_match_all ($pattern, $this->message['message_body'], $bodyKeys);
+            $pattern = "/\[([^\]]+)\]/";
+            $found = preg_match_all ($pattern, $this->message['message_subject'], $subjectKeys);
+            $found = preg_match_all ($pattern, $this->message['message_body'], $bodyKeys);
 
 
-        foreach ($subjectKeys[0] as $subjectKey) {
-            $subjectKey2 = str_replace ("[", "", $subjectKey);
-            $subjectKey2 = str_replace ("]", "", $subjectKey2);
+            foreach ($subjectKeys[0] as $subjectKey) {
+                $subjectKey2 = str_replace ("[", "", $subjectKey);
+                $subjectKey2 = str_replace ("]", "", $subjectKey2);
 
-            if ( isset ($arrData[$subjectKey2]) )
-            {
-                $this->subject = str_replace ($subjectKey, $arrData[$subjectKey2], $this->subject);
+                if ( isset ($arrData[$subjectKey2]) )
+                {
+                    $this->subject = str_replace ($subjectKey, $arrData[$subjectKey2], $this->subject);
+                }
             }
-        }
 
-        foreach ($bodyKeys[0] as $bodyKey) {
-            $subjectKey2 = str_replace ("[", "", $bodyKey);
-            $subjectKey2 = str_replace ("]", "", $subjectKey2);
+            foreach ($bodyKeys[0] as $bodyKey) {
+                $subjectKey2 = str_replace ("[", "", $bodyKey);
+                $subjectKey2 = str_replace ("]", "", $subjectKey2);
 
-            if ( isset ($arrData[$subjectKey2]) )
-            {
-                $this->body = str_replace ($bodyKey, $arrData[$subjectKey2], $this->body);
+                if ( isset ($arrData[$subjectKey2]) )
+                {
+                    $this->body = str_replace ($bodyKey, $arrData[$subjectKey2], $this->body);
+                }
             }
+
+            $this->save ();
+
+            //	sending email notification
+            $this->notificationEmail ($this->recipient, $this->subject, $this->body);
+
+            return true;
+        } catch (Exception $ex) {
+            throw $ex;
         }
-
-        $this->save ();
-
-        //	sending email notification
-        $this->notificationEmail ($this->recipient, $this->subject, $this->body);
-
-        return true;
     }
 
     /**

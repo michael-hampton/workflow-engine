@@ -48,6 +48,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/WorkflowClasses/Gate
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/WorkflowClasses/BaseTrigger.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/WorkflowClasses/Trigger.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/StepGateway.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/StepTrigger.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/WorkflowClasses/Permissions.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/WorkflowClasses/ObjectPermissions.php';

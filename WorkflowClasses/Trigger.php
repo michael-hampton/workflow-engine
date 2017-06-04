@@ -1,7 +1,9 @@
 <?php
+
 class Trigger extends BaseTrigger
 {
-/**
+
+    /**
      * Assign Trigger to a Step
      *
      * @param string $stepUid    Unique id of Step
@@ -12,6 +14,14 @@ class Trigger extends BaseTrigger
     public function create ($stepUid, $aData)
     {
         try {
+            $triTitle = isset ($aData['title']) ? $aData['title'] : '';
+            $this->setTitle ($triTitle);
+
+            $this->setNew (TRUE);
+
+            $triDescription = isset ($aData['description']) ? $aData['description'] : '';
+            $this->setDescription ($triDescription);
+
             $this->setStepTo ($aData['step_to']);
             $this->setWorkflowId ($aData['workflow_id']);
             $this->setId ($stepUid);
@@ -29,4 +39,68 @@ class Trigger extends BaseTrigger
             throw ($e);
         }
     }
+
+    public function update ($fields)
+    {
+        try {
+            $triTitle = isset ($fields['title']) ? $fields['title'] : '';
+            $this->setTitle ($triTitle);
+            
+             $triDescription = isset ($fields['description']) ? $fields['description'] : '';
+            $this->setDescription ($triDescription);
+            
+            $this->setId ($fields['step_id']);
+            $this->setTriggerType ($fields['trigger_type']);
+            $this->setWorkflowId ($fields['workflow_id']);
+            $this->setStepTo ($fields['step_to']);
+            $this->setTriggerId($fields['triggerId']);
+            if ( $this->validate () )
+            {
+                $this->setNew (false);
+                $result = $this->save ();
+                return $result;
+            }
+            else
+            {
+                $validationE = new Exception ("Failed Validation in class " . get_class ($this) . ".");
+                $validationE->aValidationFailures = $this->getArrayValidationErrors ();
+                throw($validationE);
+            }
+        } catch (Exception $e) {
+            throw($e);
+        }
     }
+
+    public function load ($TriUid)
+    {
+        try {
+            $oRow = $this->retrieveByPK ($TriUid);
+            if ( !is_null ($oRow) )
+            {
+
+                return $oRow;
+            }
+            else
+            {
+                throw( new Exception ("The row '$TriUid' in table TRIGGERS doesn't exist!"));
+            }
+        } catch (Exception $oError) {
+            throw($oError);
+        }
+    }
+    
+    public function remove($TriUid)
+    {
+        try {
+            $result = false;
+            $oTri = $this->retrieveByPK($TriUid);
+            if (!is_null($oTri)) {
+                $result = $this->delete($TriUid);
+            }
+            return $result;
+        } catch (Exception $e) {
+            throw($e);
+        }
+    }
+
+}
