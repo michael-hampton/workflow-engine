@@ -32,11 +32,11 @@ class ObjectPermissions extends Permissions
         }
     }
 
-    public function Exists ($Uid)
+    public function PermissionExists ($permission, $permissionType)
     {
         try {
-            $oPro = ObjectPermissionPeer::retrieveByPk ($Uid);
-            if ( is_object ($oPro) && get_class ($oPro) == 'ObjectPermission' )
+            $oPro = $this->retrieveByPk ($permission, $permissionType);
+            if ( $oPro !== null && is_array ($oPro) && !empty($oPro) )
             {
                 return true;
             }
@@ -46,28 +46,6 @@ class ObjectPermissions extends Permissions
             }
         } catch (Exception $oError) {
             throw ($oError);
-        }
-    }
-
-    public function remove ($Uid)
-    {
-        $con = Propel::getConnection (ObjectPermissionPeer::DATABASE_NAME);
-        try {
-            $oObjPer = ObjectPermissionPeer::retrieveByPK ($Uid);
-            if ( is_object ($oObjPer) && get_class ($oObjPer) == 'ObjectPermission' )
-            {
-                $con->begin ();
-                $iResult = $oObjPer->delete ();
-                $con->commit ();
-                return $iResult;
-            }
-            else
-            {
-                throw (new Exception ("The row '" . $Uid . "' in table CaseTrackerObject doesn't exist!"));
-            }
-        } catch (exception $e) {
-            $con->rollback ();
-            throw ($e);
         }
     }
 
@@ -102,7 +80,23 @@ class ObjectPermissions extends Permissions
             $this->getConnection ();
         }
 
-        $this->objMysql->_delete ("workflow.step_permission", array("permission_type" => $permission, "permission" => $permission));
+        try {
+
+            if ( !$this->PermissionExists ($permission, $permissionType, $stepId = null) )
+            {
+                throw new Exception ("Permission doesnt exist");
+            }
+            
+            $arrWhere = array("permission_type" => $permissionType, "permission" => $permission);
+            
+            if($stepId !== NULL) {
+                $arrWhere['step_id'] = $stepId;
+            }
+
+            $this->objMysql->_delete ("workflow.step_permission", $arrWhere);
+        } catch (Exception $ex) {
+            throw $ex;
+        }
     }
 
 }

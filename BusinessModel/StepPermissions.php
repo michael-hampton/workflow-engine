@@ -2,7 +2,7 @@
 
 class StepPermissions
 {
-    
+
     use Validator;
 
     /**
@@ -40,15 +40,18 @@ class StepPermissions
     public function getProcessPermissions ()
     {
         $arrPermissions = [];
+        $this->validateStepUid();
 
         $masterPermissions = $this->objMysql->_query ("SELECT permission_type, GROUP_CONCAT(permission SEPARATOR ', ') AS permissions
                                                         FROM workflow.step_permission 
                                                         WHERE access_level = 'master'
-                                                        GROUP BY permission_type");
+                                                        AND step_id = ?
+                                                        GROUP BY permission_type", [$this->stepId]);
         $ROPermissions = $this->objMysql->_query ("SELECT permission_type, GROUP_CONCAT(permission SEPARATOR ', ') AS permissions
                                                         FROM workflow.step_permission 
                                                         WHERE access_level != 'master'
-                                                        GROUP BY permission_type");
+                                                        AND step_id = ?
+                                                        GROUP BY permission_type", [$this->stepId]);
 
         if ( !empty ($masterPermissions) )
         {
@@ -102,22 +105,24 @@ class StepPermissions
     public function saveProcessPermission ($data)
     {
         try {
+            
+            $this->validateStepUid();
 
             $objPermissions = new ObjectPermissions ($this->stepId);
 
             foreach ($data['selectedPermissions'] as $permission) {
-               
+
 
                 if ( $permission['objectType'] == "team" )
                 {
-                    $this->validateTeamId($permission['id']);
+                    $this->validateTeamId ($permission['id']);
                 }
                 else
                 {
-                    $this->validateUserId($permission['id']);
+                    $this->validateUserId ($permission['id']);
                 }
 
-                $objPermissions->create($permission);
+                $objPermissions->create ($permission);
             }
         } catch (Exception $ex) {
             throw $ex;
@@ -178,11 +183,39 @@ class StepPermissions
         elseif ( $ROFlag > 0 )
         {
             return 2;
-        } else {
+        }
+        else
+        {
             return false;
         }
 
         return $permissionFlag;
+    }
+
+    /**
+     * Validate Task Uid
+     * @var string $tas_uid. Uid for task
+     *
+     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
+     * @copyright Colosa - Bolivia
+     *
+     * @return string
+     */
+    public function validateStepUid ()
+    {
+        $this->stepId = trim ($this->stepId);
+        if ( $this->stepId == '' )
+        {
+            throw (new Exception ("STEP ID HAS NOT BEEN SET"));
+        }
+       
+        $objWorkflowStep = new WorkflowStep();
+        
+        if ( !($objWorkflowStep->stepExists ($this->stepId)) )
+        {
+            throw (new Exception ("STEP ID DOES NOT EXIST"));
+        }
+        return $this->stepId;
     }
 
 }

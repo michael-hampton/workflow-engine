@@ -344,7 +344,7 @@ class WorkflowStep
             {
                 $arrWorkflowObject = $objTrigger->arrWorkflowObject;
             }
-            
+
             if ( $objTrigger->blMove === true || $blHasTrigger === false )
             {
                 $blHasTrigger = false;
@@ -369,7 +369,7 @@ class WorkflowStep
             }
         }
 
-        
+
         $arrWorkflow['workflow_id'] = $this->workflowId;
 
         if ( !empty ($arrWorkflowData) )
@@ -381,7 +381,7 @@ class WorkflowStep
         {
             $this->objWorkflow = $arrWorkflow;
         }
-    
+
         if ( is_numeric ($this->parentId) && is_numeric ($this->elementId) && $blHasTrigger !== true )
         {
             $this->objWorkflow['elements'][$this->elementId] = $arrWorkflow;
@@ -405,7 +405,7 @@ class WorkflowStep
         $strWorkflow = json_encode ($this->objWorkflow);
 
         $objectId = isset ($this->parentId) && is_numeric ($this->parentId) ? $this->parentId : $this->elementId;
-        
+
         if ( !empty ($arrWorkflowData) )
         {
             $this->objMysql->_update ("workflow.workflow_data", array(
@@ -437,16 +437,29 @@ class WorkflowStep
         }
         return true;
     }
-    
-    public function getFirstStepForWorkflow()
+
+    public function getFirstStepForWorkflow ()
     {
-        $result = $this->objMysql->_select("workflow.status_mapping", array(), array("workflow_id" => $this->workflowId, "first_step" => 1));
-    
-        if(isset($result[0]) && !empty($result[0])) {
+        $result = $this->objMysql->_select ("workflow.status_mapping", array(), array("workflow_id" => $this->workflowId, "first_step" => 1));
+
+        if ( isset ($result[0]) && !empty ($result[0]) )
+        {
             return $result;
         }
-        
+
         return [];
+    }
+
+    public function stepExists ($stepId)
+    {
+        $result = $this->objMysql->_select ("workflow.steps", [], ["step_id" => $stepId]);
+
+        if ( isset ($result[0]) && !empty ($result[0]) )
+        {
+            return true;
+        }
+
+        return false;
     }
 
 }

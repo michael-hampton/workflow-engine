@@ -21,6 +21,11 @@ abstract class Permissions
         $this->objMysql = new Mysql2();
         $this->stepId = $stepId;
     }
+    
+    private function getConnection()
+    {
+        $this->objMysql = new Mysql2();
+    }
 
     /**
      * @return mixed
@@ -142,10 +147,23 @@ abstract class Permissions
         // save back again
         $this->save ();
     }
-    
-    public function deleteAll($permissionType, $permission)
-    {
-        $this->objMysql->_delete("workflow.step_permission", array("permission_type" => $permission, "permission" => $permission));
-    }
 
+    /**
+     * Retrieve a single object by pkey.
+     *
+     * @param      mixed $pk the primary key.
+     * @param      Connection $con the connection to use
+     * @return     ObjectPermission
+     */
+    public function retrieveByPK ($permission, $permissionType)
+    {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection();
+        }
+
+       $v = $this->objMysql->_select("workflow.step_permission", [], ["permission_type" => $permissionType, "permission" => $permission, "step_id" => $this->stepId]);
+       
+        return !empty ($v) > 0 ? $v[0] : null;
+    }
 }
