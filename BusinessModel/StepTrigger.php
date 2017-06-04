@@ -141,7 +141,7 @@ class StepTrigger
                     }
                     elseif ( $triggerType == "gateway" )
                     {
-                        $objGateway = new Gateway ($this->arrWorkflowObject['elements'][$this->parentId]['current_step']);
+                        $objGateway = new StepGateway ($this->arrWorkflowObject['elements'][$this->parentId]['current_step']);
                         $this->arrWorkflowObject = $objGateway->updateStep ($arrTrigger, $this->arrWorkflowObject, $objMike);
                     }
 
@@ -167,7 +167,7 @@ class StepTrigger
                     }
                     elseif ( $triggerType == "gateway" )
                     {
-                        $objGateway = new Gateway();
+                        $objGateway = new StepGateway(null);
                         $this->arrWorkflowObject = $objGateway->updateStep ($arrTrigger, $this->arrWorkflowObject, $objMike);
 
 

@@ -102,13 +102,13 @@ class RoleUser
             $role->throwExceptionIfNotExistsRole ($roleUid);
             $this->validateUserId ($arrayData["USR_UID"]);
             $this->throwExceptionIfItsAssignedUserToRole ($roleUid, $arrayData["USR_UID"]);
-            
+
             //Create
             $role = new \Roles();
             $arrayData = array_merge (array("ROL_UID" => $roleUid), $arrayData);
             $role->assignUserToRole ($arrayData);
             //Return
-          
+
             return $arrayData;
         } catch (\Exception $e) {
             throw $e;
@@ -132,7 +132,7 @@ class RoleUser
             $this->validateUserId ($userUid);
             $this->throwExceptionIfNotItsAssignedUserToRole ($roleUid, $userUid);
 
-   
+
             //Delete
             $role = new Roles();
             $role->deleteUserRole ($roleUid, $userUid);
@@ -141,4 +141,26 @@ class RoleUser
         }
     }
 
+    public function getRolesForUser ($userId)
+    {
+        $results = $this->objMysql->_query ("SELECT * FROM user_management.user_roles ur
+                                    INNER JOIN user_management.roles r ON r.role_id = ur.roleId
+                                    WHERE ur.userId = ?
+                                    GROUP BY r.role_id", [$userId]);
+
+        return $results;
+    }
+
+    function getAllPermissions ($sRolUid, $sUsrUid)
+    {
+        try {
+            $results = $this->objMysql->_query ("SELECT p.* FROM user_management.role_perms rp
+                                                    INNER JOIN user_management.permissions p ON p.perm_id = rp.perm_id
+                                                    WHERE rp.role_id = ?", [$sRolUid]);
+            return $results;
+        } catch (Exception $oError) {
+            throw($oError);
+        }
+    }
 }
+    

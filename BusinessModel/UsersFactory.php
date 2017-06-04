@@ -8,6 +8,7 @@ class UsersFactory
     private $deptId;
     private $permId;
     private $teamId;
+    private $aUserInfo;
 
     use Validator;
 
@@ -640,6 +641,73 @@ class UsersFactory
             //Return
             return (!$flagGetRecord) ? $this->__getUserCustomRecordFromRecord ($result[0]) : $result[0];
         } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+
+     * Gets the roles and permission for one RBAC_user
+
+     * gets the Role and their permissions for one User
+
+     * @access public
+
+     * @param string $sUser the user
+
+     * @return $this->aUserInfo[ $sSystem ]
+
+     */
+    public function loadUserRolePermission ($sUser)
+    {
+        $objUserRole = new RoleUser();
+        $fieldsRoles = $objUserRole->getRolesForUser ($sUser);
+
+        $fieldsPermissions = [];
+
+        foreach ($fieldsRoles as $fieldsRole) {
+            $fieldsPermissions[] = $objUserRole->getAllPermissions ($fieldsRole['role_id'], $sUser);
+        }
+
+        $permissions = [];
+
+        foreach ($fieldsPermissions as $fieldsPermission) {
+            foreach ($fieldsPermission as $field) {
+                $permissions[] = $field;
+            }
+        }
+ 
+        $this->aUserInfo['USER_INFO'] = $this->getUser ($sUser);
+        $this->aUserInfo['ROLE'] = $fieldsRoles;
+
+        $this->aUserInfo['PERMISSIONS'] = $fieldsPermissions;
+
+        return $permissions;
+    }
+
+    public function checkPermission ($userUid, $permissionCode)
+    {
+
+        try {
+
+            $flagPermission = false;
+
+            $arrayUserRolePermission = $this->loadUserRolePermission ($userUid);
+
+            foreach ($arrayUserRolePermission as $value) {
+
+                if ( trim(strtolower($value["perm_name"])) == trim(strtolower($permissionCode)) )
+                {
+
+                    $flagPermission = true;
+
+                    break;
+                }
+            }
+
+            return $flagPermission;
+        } catch (\Exception $e) {
+
             throw $e;
         }
     }
