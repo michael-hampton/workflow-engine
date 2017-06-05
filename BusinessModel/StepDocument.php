@@ -125,6 +125,12 @@ class StepDocument
             //$process = new \ProcessMaker\BusinessModel\Process();
             //$process->throwExceptionIfNotExistsProcess ($processUid, $this->arrayFieldNameForException["processUid"]);
             //$process->throwExceptionIfDataNotMetFieldDefinition ($arrayData, $this->arrayFieldDefinition, $this->arrayFieldNameForException, true);
+
+            $objStep = new WorkflowStep();
+            if ( !$objStep->stepExists ($this->stepId) )
+            {
+                throw new Exception ("Step does not exist");
+            }
             $this->throwExceptionIfExistsTitle ($this->stepId, $arrayData["INP_DOC_TITLE"]);
 
             //Flags
@@ -240,7 +246,6 @@ class StepDocument
             //Load InputDocument
             $inputDocument = new InputDocument ($this->stepId);
 
-
             //Verify data
 
             if ( isset ($arrayData["INP_DOC_TITLE"]) )
@@ -268,11 +273,19 @@ class StepDocument
     {
         try {
             //Verify data
+
+            $objWorkflowStep = new WorkflowStep();
+
+            if ( !$objWorkflowStep->stepExists ($this->stepId) )
+            {
+                throw new Exception ("Step doews not exist");
+            }
+
             $this->throwExceptionIfNotExistsInputDocument ($inputDocumentUid);
             $this->throwExceptionIfItsAssignedInOtherObjects ($inputDocumentUid);
 
             $inputDocument = new InputDocument ($this->stepId);
-            $inputDocument->delete($inputDocumentUid);
+            $inputDocument->delete ($inputDocumentUid);
         } catch (Exception $e) {
             throw $e;
         }
