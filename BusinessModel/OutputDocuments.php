@@ -14,6 +14,13 @@
 class OutputDocuments
 {
 
+    private $objMysql;
+
+    public function __construct ()
+    {
+        $this->objMysql = new Mysql2();
+    }
+
     /**
      * Return output documents of a project
      * @param string $sProcessUID
@@ -24,40 +31,16 @@ class OutputDocuments
     public function getOutputDocuments ($sProcessUID = '')
     {
         try {
-            $sDelimiter = \DBAdapter::getStringDelimiter ();
-            $oCriteria = new \Criteria ('workflow');
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_UID);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_TYPE);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::PRO_UID);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_REPORT_GENERATOR);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_LANDSCAPE);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_MEDIA);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_LEFT_MARGIN);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_RIGHT_MARGIN);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_TOP_MARGIN);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_BOTTOM_MARGIN);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_GENERATE);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_TYPE);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_CURRENT_REVISION);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_FIELD_MAPPING);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_VERSIONING);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_DESTINATION_PATH);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_TAGS);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_PDF_SECURITY_ENABLED);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_PDF_SECURITY_OPEN_PASSWORD);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_PDF_SECURITY_OWNER_PASSWORD);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_PDF_SECURITY_PERMISSIONS);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_OPEN_TYPE);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_TITLE);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_DESCRIPTION);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_FILENAME);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_TEMPLATE);
-            $oCriteria->add (\OutputDocumentPeer::PRO_UID, $sProcessUID);
-            $oDataset = \OutputDocumentPeer::doSelectRS ($oCriteria);
-            $oDataset->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
-            $oDataset->next ();
+            $arrWhere = [];
+
+            if ( trim ($sProcessUID) !== "" )
+            {
+                $arrWhere['id'] = $sProcessUID;
+            }
+
+            $results = $this->objMysql->_select ("workflow.output_document", [], $arrWhere);
             $outputDocArray = array();
-            while ($aRow = $oDataset->getRow ()) {
+            foreach ($results as $aRow) {
                 if ( ($aRow['OUT_DOC_TITLE'] == null) || ($aRow['OUT_DOC_TITLE'] == "") )
                 {
                     // There is no transaltion for this Document name, try to get/regenerate the label
@@ -91,7 +74,6 @@ class OutputDocuments
                         'out_doc_pdf_security_permissions' => $aRow['OUT_DOC_PDF_SECURITY_PERMISSIONS'],
                         "out_doc_open_type" => $aRow["OUT_DOC_OPEN_TYPE"]);
                 }
-                $oDataset->next ();
             }
             return $outputDocArray;
         } catch (Exception $e) {
@@ -110,76 +92,7 @@ class OutputDocuments
     public function getOutputDocument ($sProcessUID = '', $sOutputDocumentUID = '')
     {
         try {
-            $sDelimiter = \DBAdapter::getStringDelimiter ();
-            $oCriteria = new \Criteria ('workflow');
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_UID);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_TYPE);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::PRO_UID);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_REPORT_GENERATOR);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_LANDSCAPE);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_MEDIA);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_LEFT_MARGIN);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_RIGHT_MARGIN);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_TOP_MARGIN);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_BOTTOM_MARGIN);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_GENERATE);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_TYPE);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_CURRENT_REVISION);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_FIELD_MAPPING);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_VERSIONING);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_DESTINATION_PATH);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_TAGS);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_PDF_SECURITY_ENABLED);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_PDF_SECURITY_OPEN_PASSWORD);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_PDF_SECURITY_OWNER_PASSWORD);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_PDF_SECURITY_PERMISSIONS);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_OPEN_TYPE);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_TITLE);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_DESCRIPTION);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_FILENAME);
-            $oCriteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_TEMPLATE);
-            $oCriteria->add (\OutputDocumentPeer::OUT_DOC_UID, $sOutputDocumentUID);
-            $oCriteria->add (\OutputDocumentPeer::PRO_UID, $sProcessUID);
-            $oDataset = \OutputDocumentPeer::doSelectRS ($oCriteria);
-            $oDataset->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
-            $oDataset->next ();
-            $outputDocArray = array();
-            while ($aRow = $oDataset->getRow ()) {
-                if ( ($aRow['OUT_DOC_TITLE'] == null) || ($aRow['OUT_DOC_TITLE'] == "") )
-                {
-                    // There is no transaltion for this Document name, try to get/regenerate the label
-                    $outputDocument = new \OutputDocument();
-                    $outputDocumentObj = $outputDocument->load ($aRow['OUT_DOC_UID']);
-                    $aRow['OUT_DOC_TITLE'] = $outputDocumentObj['OUT_DOC_TITLE'];
-                    $aRow['OUT_DOC_DESCRIPTION'] = $outputDocumentObj['OUT_DOC_DESCRIPTION'];
-                }
-                else
-                {
-                    $outputDocArray = array('out_doc_uid' => $aRow['OUT_DOC_UID'],
-                        'out_doc_title' => $aRow['OUT_DOC_TITLE'],
-                        'out_doc_description' => $aRow['OUT_DOC_DESCRIPTION'],
-                        'out_doc_filename' => $aRow['OUT_DOC_FILENAME'],
-                        'out_doc_template' => $aRow['OUT_DOC_TEMPLATE'],
-                        'out_doc_report_generator' => $aRow['OUT_DOC_REPORT_GENERATOR'],
-                        'out_doc_landscape' => $aRow['OUT_DOC_LANDSCAPE'],
-                        'out_doc_media' => $aRow['OUT_DOC_MEDIA'],
-                        'out_doc_left_margin' => $aRow['OUT_DOC_LEFT_MARGIN'],
-                        'out_doc_right_margin' => $aRow['OUT_DOC_RIGHT_MARGIN'],
-                        'out_doc_top_margin' => $aRow['OUT_DOC_TOP_MARGIN'],
-                        'out_doc_bottom_margin' => $aRow['OUT_DOC_BOTTOM_MARGIN'],
-                        'out_doc_generate' => $aRow['OUT_DOC_GENERATE'],
-                        'out_doc_type' => $aRow['OUT_DOC_TYPE'],
-                        'out_doc_current_revision' => $aRow['OUT_DOC_CURRENT_REVISION'],
-                        'out_doc_field_mapping' => $aRow['OUT_DOC_FIELD_MAPPING'],
-                        'out_doc_versioning' => $aRow['OUT_DOC_VERSIONING'],
-                        'out_doc_destination_path' => $aRow['OUT_DOC_DESTINATION_PATH'],
-                        'out_doc_tags' => $aRow['OUT_DOC_TAGS'],
-                        'out_doc_pdf_security_enabled' => $aRow['OUT_DOC_PDF_SECURITY_ENABLED'],
-                        'out_doc_pdf_security_permissions' => $aRow['OUT_DOC_PDF_SECURITY_PERMISSIONS'],
-                        "out_doc_open_type" => $aRow["OUT_DOC_OPEN_TYPE"]);
-                }
-                $oDataset->next ();
-            }
+            $outputDocArray = $this->getOutputDocuments ($sProcessUID);
             return $outputDocArray;
         } catch (Exception $e) {
             throw $e;
