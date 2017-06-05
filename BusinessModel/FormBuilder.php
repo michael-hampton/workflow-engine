@@ -13,9 +13,11 @@ class FormBuilder
     private $attachmentHtml;
     private $documentHTML;
     private $arrUploadedFiles = array();
+    private $noOfColumns;
 
-    public function __construct ($id = "BaseData")
+    public function __construct ($id = "BaseData", $noOfColumns = null)
     {
+        $this->noOfColumns = $noOfColumns === null ? 1 : $noOfColumns;
 
         $this->configure (array(
             "action" => basename ($_SERVER["SCRIPT_NAME"]),
@@ -36,7 +38,7 @@ class FormBuilder
                 {
                     throw new Exception ("Invalid field format");
                 }
-                
+
                 $this->addElement (
                         array(
                             "type" => $objFormField->getFieldType (),
@@ -262,52 +264,86 @@ class FormBuilder
     public function render ()
     {
         $this->setForm ();
+        $rows = count ($this->_elements);
 
-        foreach ($this->_elements as $key => $arrElement) {
+        if ( $rows > 0 )
+        {
+            $colCount = ceil (12 / $this->noOfColumns);
+            $counter = 1;     // Counter used to identify if we need to start or end a row
+            $nbsp = $this->noOfColumns - ($rows % $this->noOfColumns);    // Calculate the number of blank columns
 
-            $this->html .= '<div class="form-group">';
-            $this->label = $arrElement['label'];
-            $this->key = $key;
-            $this->buildLabel ();
+            $container_class = 'container-fluid';  // Parent container class name
+            $row_class = 'row';    // Row class name
+            $col_class = 'col-sm-' . $colCount; // Column class name
 
-            switch ($arrElement['type']) {
-                case "text":
-                    $this->buildTextField ();
-                    break;
+            $this->html .= '<div class="' . $container_class . '">';    // Container open
 
-                case "select":
-                    $this->buildSelect ();
-                    break;
+            foreach ($this->_elements as $key => $arrElement) {
 
-                case "textarea":
-                    $this->buildTextarea ();
-                    break;
+                if ( ($counter % $this->noOfColumns) == 1 || $this->noOfColumns === 1 )
+                {    // Check if it's new row
+                    $this->html .= '<div class="' . $row_class . '">'; // Start a new row
+                }
 
-                case "file":
-                    $this->buildFileInput ();
-                    break;
-                case "button":
-                    $this->buildButton ();
-                    break;
+                $this->html .= '<div class="' . $col_class . '">';
 
-                case "checkbox":
-                    $this->buildCheckbox ();
-                    break;
+                $this->html .= '<div class="form-group">';
+                $this->label = $arrElement['label'];
+                $this->key = $key;
+                $this->buildLabel ();
 
-                case "date":
-                    $this->buildDateField ();
-                    break;
+                switch ($arrElement['type']) {
+                    case "text":
+                        $this->buildTextField ();
+                        break;
 
-                case "paragraph":
-                    $this->buildParagraph ();
-                    break;
+                    case "select":
+                        $this->buildSelect ();
+                        break;
+
+                    case "textarea":
+                        $this->buildTextarea ();
+                        break;
+
+                    case "file":
+                        $this->buildFileInput ();
+                        break;
+                    case "button":
+                        $this->buildButton ();
+                        break;
+
+                    case "checkbox":
+                        $this->buildCheckbox ();
+                        break;
+
+                    case "date":
+                        $this->buildDateField ();
+                        break;
+
+                    case "paragraph":
+                        $this->buildParagraph ();
+                        break;
+                }
+                $this->html .= '</div>';
+
+                $this->html .= '</div>';
+
+                if ( ($counter % $this->noOfColumns) == 0 )
+                { // If it's last column in each row then counter remainder will be zero
+                    $this->html .= '</div>';  //  Close the row
+                }
+                $counter++;    // Increase the counter
+                //$this->buildJavascript ();
             }
-
             $this->html .= '</div>';
 
-
-
-            //$this->buildJavascript ();
+            if ( $nbsp > 0 )
+            { // Adjustment to add unused column in last row if they exist
+                for ($i = 0; $i < $nbsp; $i++) {
+                    $this->html .= '<div class="' . $col_class . '">&nbsp;</div>';
+                }
+                //$this->html .= '</div>';  // Close the row
+            }
         }
 
         if ( trim ($this->attachmentHtml) !== "" )
@@ -404,7 +440,7 @@ class FormBuilder
 
     public function buildFileInput ()
     {
-        
+
         $this->html .= '<button id="uploadButton" type="button" class="btn btn-primary">' . $this->label . '</button>';
 
         $this->html .= '<div id="hideUglyUpload" style="display:none;">

@@ -13,9 +13,11 @@ class FormBuilder
     private $attachmentHtml;
     private $documentHTML;
     private $arrUploadedFiles = array();
+    private $noOfColumns;
 
-    public function __construct ($id = "BaseData")
+    public function __construct ($id = "BaseData", $noOfColumns = null)
     {
+        $this->noOfColumns = $noOfColumns === null ? 1 : $noOfColumns;
 
         $this->configure (array(
             "action" => basename ($_SERVER["SCRIPT_NAME"]),
@@ -36,7 +38,7 @@ class FormBuilder
                 {
                     throw new Exception ("Invalid field format");
                 }
-                
+
                 $this->addElement (
                         array(
                             "type" => $objFormField->getFieldType (),
@@ -263,51 +265,93 @@ class FormBuilder
     {
         $this->setForm ();
 
-        foreach ($this->_elements as $key => $arrElement) {
+        $rows = count ($this->_elements);
 
-            $this->html .= '<div class="form-group">';
-            $this->label = $arrElement['label'];
-            $this->key = $key;
-            $this->buildLabel ();
+        if ( $rows > 0 )
+        {
+            $colCount = ceil (12 / $this->noOfColumns);
+            $counter = 1;     // Counter used to identify if we need to start or end a row
+            $nbsp = $this->noOfColumns - ($rows % $this->noOfColumns);    // Calculate the number of blank columns
 
-            switch ($arrElement['type']) {
-                case "text":
-                    $this->buildTextField ();
-                    break;
+            $container_class = 'container-fluid';  // Parent container class name
+            $row_class = 'row';    // Row class name
+            $col_class = 'col-sm-' . $colCount; // Column class name
 
-                case "select":
-                    $this->buildSelect ();
-                    break;
+            $this->html .= '<div class="' . $container_class . '">';    // Container open
+            
+            die("Here");
 
-                case "textarea":
-                    $this->buildTextarea ();
-                    break;
+            foreach ($this->_elements as $key => $arrElement) {
 
-                case "file":
-                    $this->buildFileInput ();
-                    break;
-                case "button":
-                    $this->buildButton ();
-                    break;
+                if ( ($counter % $cols) == 1 || $cols === 1 )
+                {    // Check if it's new row
+                    $this->html .= '<div class="' . $row_class . '">'; // Start a new row
+                }
 
-                case "checkbox":
-                    $this->buildCheckbox ();
-                    break;
+                $this->html .= '<div class="' . $col_class . '">';
 
-                case "date":
-                    $this->buildDateField ();
-                    break;
 
-                case "paragraph":
-                    $this->buildParagraph ();
-                    break;
+                $this->html .= '<div class = "form-group">';
+                $this->label = $arrElement['label'];
+                $this->key = $key;
+                $this->buildLabel ();
+
+                switch ($arrElement['type']) {
+                    case "text":
+                        $this->buildTextField ();
+                        break;
+
+                    case "select":
+                        $this->buildSelect ();
+                        break;
+
+                    case "textarea":
+                        $this->buildTextarea ();
+                        break;
+
+                    case "file":
+                        $this->buildFileInput ();
+                        break;
+                    case "button":
+                        $this->buildButton ();
+                        break;
+
+                    case "checkbox":
+                        $this->buildCheckbox ();
+                        break;
+
+                    case "date":
+                        $this->buildDateField ();
+                        break;
+
+                    case "paragraph":
+                        $this->buildParagraph ();
+                        break;
+                }
+
+                $this->html .= '</div>';
+                $this->html .= '</div>';
+
+
+                if ( ($counter % $cols) == 0 )
+                { // If it's last column in each row then counter remainder will be zero
+                    $this->html .= '</div>';  //  Close the row
+                }
+                $counter++;    // Increase the counter
+                //$this->buildJavascript ();
             }
 
             $this->html .= '</div>';
+        }
 
 
-
-            //$this->buildJavascript ();
+        //$result->free();
+        if ( $nbsp > 0 )
+        { // Adjustment to add unused column in last row if they exist
+            for ($i = 0; $i < $nbsp; $i++) {
+                $this->html .= '<div class="' . $col_class . '">&nbsp;</div>';
+            }
+            $this->html .= '</div>';  // Close the row
         }
 
         if ( trim ($this->attachmentHtml) !== "" )
@@ -330,34 +374,38 @@ class FormBuilder
 
     public function buildTextField ()
     {
-        $disabled = isset ($this->_elements[$this->key]['is_disabled']) && $this->_elements[$this->key]['is_disabled'] == 1 ? 'disabled="disabled"' : '';
+        $disabled = isset ($this->_elements[$this->key]['is_disabled']) && $this->_elements[$this->key]['is_disabled
+
+                '] == 1 ? 'disabled =
+
+                "disabled"' : '';
         $placeholder = isset ($this->_elements[$this->key]['placeholder']) && !empty ($this->_elements[$this->key]['placeholder']) ? $this->_elements[$this->key]['placeholder'] : '';
         $fieldClass = isset ($this->_elements[$this->key]['field_class']) && !empty ($this->_elements[$this->key]['field_class']) && $this->_elements[$this->key]['field_class'] != "form-control" ? $this->_elements[$this->key]['field_class'] : '';
         $maxLength = isset ($this->_elements[$this->key]['max_length']) && !empty ($this->_elements[$this->key]['max_length']) ? $this->_elements[$this->key]['max_length'] : '';
 
-        $this->html .= '<div class="col-lg-10">
-            <input maxlength="' . $maxLength . '" placeholder="' . $placeholder . '" ' . $disabled . ' id = "' . $this->_elements[$this->key]['id'] . '" name="' . $this->_elements[$this->key]['name'] . '" type="text" placeholder="' . $this->label . '" class="form-control ' . $fieldClass . '" value="' . (isset ($this->_elements[$this->key]['value']) && !empty ($this->_elements[$this->key]['value']) ? $this->_elements[$this->key]['value'] : '') . '"> 
-        </div>';
+        $this->html .= '<div class = "col-lg-10">
+                        <input maxlength = "' . $maxLength . '" placeholder = "' . $placeholder . '" ' . $disabled . ' id = "' . $this->_elements[$this->key]['id'] . '" name = "' . $this->_elements[$this->key]['name'] . '" type = "text" placeholder = "' . $this->label . '" class = "form-control ' . $fieldClass . '" value = "' . (isset ($this->_elements[$this->key]['value']) && !empty ($this->_elements[$this->key]['value']) ? $this->_elements[$this->key]['value'] : '') . '">
+                        </div>';
 
-        $this->html .= '<div id="' . $this->_elements[$this->key]['id'] . 'Warning" class="formValidation">
-            ' . $this->_elements[$this->key]['id'] . ' cannot be blank.
-        </div>';
+        $this->html .= '<div id = "' . $this->_elements[$this->key]['id'] . 'Warning" class = "formValidation">
+                        ' . $this->_elements[$this->key]['id'] . ' cannot be blank.
+                        </div>';
     }
 
     public function buildTextarea ()
     {
         $placeholder = isset ($this->_elements[$this->key]['placeholder']) && !empty ($this->_elements[$this->key]['placeholder']) ? $this->_elements[$this->key]['placeholder'] : '';
         $fieldClass = isset ($this->_elements[$this->key]['field_class']) && !empty ($this->_elements[$this->key]['field_class']) && $this->_elements[$this->key]['field_class'] != "form-control" ? $this->_elements[$this->key]['field_class'] : '';
-        $disabled = isset ($this->_elements[$this->key]['is_disabled']) && $this->_elements[$this->key]['is_disabled'] == 1 ? 'disabled="disabled"' : '';
+        $disabled = isset ($this->_elements[$this->key]['is_disabled']) && $this->_elements[$this->key]['is_disabled'] == 1 ? 'disabled = "disabled"' : '';
         $maxLength = isset ($this->_elements[$this->key]['max_length']) && !empty ($this->_elements[$this->key]['max_length']) ? $this->_elements[$this->key]['max_length'] : '';
 
-        $this->html .= '<div class="col-lg-10">
-            <textarea maxlength="' . $maxLength . '" ' . $disabled . ' placeholder="' . $placeholder . '" id = "' . $this->_elements[$this->key]['id'] . '" name="' . $this->_elements[$this->key]['name'] . '" placeholder="' . $this->label . '" class="form-control ' . $fieldClass . '">' . $this->_elements[$this->key]['value'] . '</textarea>
-        </div>';
+        $this->html .= '<div class = "col-lg-10">
+                        <textarea maxlength = "' . $maxLength . '" ' . $disabled . ' placeholder = "' . $placeholder . '" id = "' . $this->_elements[$this->key]['id'] . '" name = "' . $this->_elements[$this->key]['name'] . '" placeholder = "' . $this->label . '" class = "form-control ' . $fieldClass . '">' . $this->_elements[$this->key]['value'] . '</textarea>
+                        </div>';
 
-        $this->html .= '<div id="' . $this->_elements[$this->key]['id'] . 'Warning" class="formValidation">
-            ' . $this->_elements[$this->key]['id'] . ' cannot be blank.
-        </div>';
+        $this->html .= '<div id = "' . $this->_elements[$this->key]['id'] . 'Warning" class = "formValidation">
+                        ' . $this->_elements[$this->key]['id'] . ' cannot be blank.
+                        </div>';
     }
 
     public function buildSelect ()
@@ -369,12 +417,12 @@ class FormBuilder
         }
 
         $fieldClass = isset ($this->_elements[$this->key]['field_class']) && !empty ($this->_elements[$this->key]['field_class']) && $this->_elements[$this->key]['field_class'] != "form-control" ? $this->_elements[$this->key]['field_class'] : '';
-        $disabled = isset ($this->_elements[$this->key]['is_disabled']) && $this->_elements[$this->key]['is_disabled'] == 1 ? 'disabled="disabled"' : '';
+        $disabled = isset ($this->_elements[$this->key]['is_disabled']) && $this->_elements[$this->key]['is_disabled'] == 1 ? 'disabled = "disabled"' : '';
 
 
-        $this->html .= '<div class="col-lg-10">
-            <select ' . $disabled . ' class="form-control ' . $fieldClass . ' m-b" id="' . $this->_elements[$this->key]['id'] . '" name="' . $this->_elements[$this->key]['name'] . '">';
-        $this->html .= '<option value="">Select One</option>';
+        $this->html .= '<div class = "col-lg-10">
+                        <select ' . $disabled . ' class = "form-control ' . $fieldClass . ' m-b" id = "' . $this->_elements[$this->key]['id'] . '" name = "' . $this->_elements[$this->key]['name'] . '">';
+        $this->html .= '<option value = "">Select One</option>';
 
         foreach ($this->_elements[$this->key]['options'] as $value => $name) {
 
@@ -386,50 +434,55 @@ class FormBuilder
 
             if ( !empty ($this->_elements[$this->key]['value']) && $this->_elements[$this->key]['value'] == $value )
             {
-                $strSelected = 'selected="selected"';
+                $ strSelecte d = 'selected = "selected"';
             }
             else
             {
                 $strSelected = '';
             }
-            $this->html .= '<option value="' . $value . '" ' . $strSelected . '>' . $name . '</option>';
+            $this->html .= '<option value = "' . $value . '" ' . $strSelected . '>' . $name . '</option>';
         }
         $this->html .= '</select>
-        </div>';
+                        </div>';
 
-        $this->html .= '<div id="' . $this->_elements[$this->key]['id'] . 'Warning" class="formValidation">
-            ' . $this->_elements[$this->key]['id'] . ' cannot be blank.
-        </div>';
+        $this->html .= '<div id = "' . $this->_elements[$this->key]['id'] . 'Warning" class = "formValidation">
+                        ' . $this->_elements[$this->key]['id'] . ' cannot be blank.
+                        </div>';
     }
 
     public function buildFileInput ()
     {
-        
-        $this->html .= '<button id="uploadButton" type="button" class="btn btn-primary">' . $this->label . '</button>';
 
-        $this->html .= '<div id="hideUglyUpload" style="display:none;">
-            <input multiple="multiple" type="file" name="' . $this->_elements[$this->key]['name'] . '[]" id="' . $this->_elements[$this->key]['id'] . '"/>
-        </div>';
+        $this->html .= '<button id = "uploadButton" type = "button" class = "btn btn-primary">' . $this->label . '</button>';
 
-        $this->html .= '<div style=" display:table-row; text-align: center; width:100%; font-size: 16px;">
-            <div style="float: left; text-align: center; width:100%; display:table-column;  ">
-                <div id="filelist" name="filelist" style="width: 100%"></div>
-            </div>		
-	</div>
-						
-        <div style=" display:table-row; width:100%;">
-            <div id="progress" style="float: left; width:100%; display:table-column;  "></div>		
-	</div>';
+        $this->html .= '<div id = "hideUglyUpload" style = "display:none;">
+                        <input multiple = "multiple" type = "file" name = "' . $this->_elements[$this->key]['name'] . '[]" id = "' . $this->_elements[$this->key]['id'] . '"/>
+                        </div>';
+
+        $this->html .= '<div style = " display:table-row; text-align: center; width:100%; font-size: 16px;">
+                        <div style = "float: left; text-align: center; width:100%; display:table-column;  ">
+                        <div id = "filelist" name = "filelist" style = "width: 100%"></div>
+                        </div>
+                        </div>
+
+                        <div style = " display:table-row; width:100%;">
+                        <div id = "progress" style = "float: left; width:100%; display:table-column;  "></div>
+                        </div>';
 
 
-        $this->html .= '<div id="filelist"></div>';
+        $this->html .= '<div id = "filelist"></div>';
 
         $this->html .= '<script>
-            $("#uploadButton").on("click",function(evt){
-                evt.preventDefault();
-                $("#' . $this->_elements[$this->key]['id'] . '").trigger("click");
-            });
-        </script>';
+                        $("#uploadButton").on("click", function(evt){
+                        evt.preventDefault();
+                        $("#' . $this->_elements[$this->key]['id'] . '").trigger("click");
+                        }); </script>         
+
+                        
+
+                     
+
+                ';
     }
 
 }
