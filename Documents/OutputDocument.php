@@ -13,6 +13,13 @@
  */
 class OutputDocument extends BaseOutputDocument
 {
+    private $objMysql;
+    
+    public function __construct ()
+    {
+        $this->objMysql = new Mysql2();
+        parent::__construct ();
+    }
 
     public function getByUid ($sOutDocUid)
     {
@@ -537,7 +544,17 @@ class OutputDocument extends BaseOutputDocument
 
     public function retrieveByPk ($pk)
     {
+        $result = $this->objMysql->_select("workflow.output_document", [], ["id" => $pk]);
         
+        if(!empty($result)) {
+            $oDocument = new OutputDocument();
+            $oDocument->setOutDocUid($pk);
+            $oDocument->loadObject($result);
+            
+            return $oDocument;
+        }
+        
+        return [];
     }
 
     /**

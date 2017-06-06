@@ -169,15 +169,13 @@ class OutputDocuments
             {
                 $oOutputDocument->setOutDocFieldMapping (null);
             }
-            
+
             $outDocUid = $oOutputDocument->create ($outputDocumentData);
-            
-            die("Mike");
-          
+ 
             $this->updateOutputDocument ($sProcessUID, $outputDocumentData, 1, $outDocUid);
             //Return
             unset ($outputDocumentData["PRO_UID"]);
-            
+
             $outputDocumentData["out_doc_uid"] = $outDocUid;
             return $outputDocumentData;
         } catch (\Exception $e) {
@@ -205,12 +203,13 @@ class OutputDocuments
             }
             else
             {
-                throw new \Exception (\G::LoadTranslation ("ID_INVALID_VALUE_FOR", array('out_doc_pdf_security_permissions')));
+                throw new \Exception ("ID_INVALID_VALUE_FOR");
             }
         }
         try {
             $outputDocument = new OutputDocument();
-            $oOutputDocument = $oOutputDocument->retrieveByPK ($sOutputDocumentUID);
+            $oOutputDocument = $outputDocument->retrieveByPK ($sOutputDocumentUID);
+            
             if ( !is_null ($oOutputDocument) )
             {
                 if ( isset ($outputDocumentData['out_doc_pdf_security_open_password']) && $outputDocumentData['out_doc_pdf_security_open_password'] != "" )
@@ -223,11 +222,9 @@ class OutputDocuments
                     unset ($outputDocumentData['out_doc_pdf_security_open_password']);
                     unset ($outputDocumentData['out_doc_pdf_security_owner_password']);
                 }
-                $outputDocumentData = array_change_key_case ($outputDocumentData, CASE_UPPER);
-                $oOutputDocument->fromArray ($outputDocumentData, \BasePeer::TYPE_FIELDNAME);
+                $oOutputDocument->loadObject ($outputDocumentData);
                 if ( $oOutputDocument->validate () )
                 {
-                    $oConnection->begin ();
                     if ( isset ($outputDocumentData['OUT_DOC_TITLE']) )
                     {
                         $uid = $this->titleExists ($sProcessUID, $outputDocumentData["OUT_DOC_TITLE"]);
@@ -235,7 +232,7 @@ class OutputDocuments
                         {
                             if ( $uid != $sOutputDocumentUID && $sFlag == 0 )
                             {
-                                throw (new \Exception (\G::LoadTranslation ("ID_OUTPUT_NOT_SAVE")));
+                                throw (new \Exception ("ID_OUTPUT_NOT_SAVE"));
                             }
                         }
                         $oOutputDocument->setOutDocTitleContent ($outputDocumentData['OUT_DOC_TITLE']);
@@ -256,7 +253,6 @@ class OutputDocuments
                         $oOutputDocument->setOutDocTemplateContent ($outputDocumentData['OUT_DOC_TEMPLATE']);
                     }
                     $oOutputDocument->save ();
-                    $oConnection->commit ();
                 }
                 else
                 {
@@ -265,12 +261,12 @@ class OutputDocuments
                     foreach ($aValidationFailures as $oValidationFailure) {
                         $sMessage .= $oValidationFailure->getMessage ();
                     }
-                    throw (new \Exception (\G::LoadTranslation ("ID_REGISTRY_CANNOT_BE_UPDATED") . $sMessage));
+                    throw (new \Exception ("ID_REGISTRY_CANNOT_BE_UPDATED" . $sMessage));
                 }
             }
             else
             {
-                throw new \Exception (\G::LoadTranslation ("ID_ROW_DOES_NOT_EXIST"));
+                throw new \Exception ("ID_ROW_DOES_NOT_EXIST");
             }
         } catch (\Exception $e) {
             throw $e;
@@ -313,8 +309,8 @@ class OutputDocuments
 
             $arrParameters = array($processUid, $title);
 
-            $result = $this->objMysql->_query($sql, $arrParameters);
-            if ( isset($result[0]) && !empty($result[0]) )
+            $result = $this->objMysql->_query ($sql, $arrParameters);
+            if ( isset ($result[0]) && !empty ($result[0]) )
             {
                 return true;
             }
@@ -337,19 +333,23 @@ class OutputDocuments
     public function titleExists ($processUid, $title)
     {
         try {
-            $aResp = '';
-            $criteria = new \Criteria ("workflow");
-            $criteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_UID);
-            $criteria->add (\OutputDocumentPeer::PRO_UID, $processUid, \Criteria::EQUAL);
-            $criteria->add (\OutputDocumentPeer::OUT_DOC_TITLE, $title, \Criteria::EQUAL);
-            $rsCriteria = \OutputDocumentPeer::doSelectRS ($criteria);
-            $rsCriteria->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
-            $rsCriteria->next ();
-            while ($aRow = $rsCriteria->getRow ()) {
-                $aResp = $aRow['OUT_DOC_UID'];
-                $rsCriteria->next ();
+            $sql = "SELECT d.OUT_DOC_TITLE, d.id from workflow.output_document d
+                    LEFT JOIN workflow.step_document sd ON sd.id = d.id
+                    WHERE d.OUT_DOC_TITLE = ?";
+
+            $arrParameters = array($title);
+
+            $result = $this->objMysql->_query ($sql, $arrParameters);
+            
+            if ( isset ($result[0]) && !empty ($result[0]) )
+            {
+
+                $aResp = $result[0]['id'];
+                return $aResp;
             }
-            return $aResp;
+
+            return false;
+           
         } catch (\Exception $e) {
             throw $e;
         }
