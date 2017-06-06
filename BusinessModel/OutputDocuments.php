@@ -109,8 +109,11 @@ class OutputDocuments
      */
     public function addOutputDocument ($sProcessUID, $outputDocumentData)
     {
+        $outputDocumentData['out_doc_pdf_security_permissions'] = "print|modify|copy";
+
         $pemission = $outputDocumentData['out_doc_pdf_security_permissions'];
         $pemission = explode ("|", $pemission);
+
         foreach ($pemission as $row) {
             if ( $row == "print" || $row == "modify" || $row == "copy" || $row == "forms" || $row == "" )
             {
@@ -122,19 +125,24 @@ class OutputDocuments
             }
         }
         try {
-            require_once(PATH_TRUNK . "workflow" . PATH_SEP . "engine" . PATH_SEP . "classes" . PATH_SEP . "model" . PATH_SEP . "OutputDocument.php");
-            $outputDocumentData = array_change_key_case ($outputDocumentData, CASE_UPPER);
+
             $outputDocumentData['PRO_UID'] = $sProcessUID;
             //Verify data
-            Validator::proUid ($sProcessUID, '$pro_uid');
+            $objWorkflowStep = new WorkflowStep();
+            if ( !$objWorkflowStep->stepExists ($sProcessUID) )
+            {
+                throw new Exception ("Step des not exit");
+            }
+
             if ( $outputDocumentData["OUT_DOC_TITLE"] == "" )
             {
-                throw new \Exception (\G::LoadTranslation ("ID_CAN_NOT_BE_NULL", array('out_doc_title')));
+                throw new \Exception ("Title cant be empty");
             }
             if ( isset ($outputDocumentData["OUT_DOC_TITLE"]) && $this->existsTitle ($sProcessUID, $outputDocumentData["OUT_DOC_TITLE"]) )
             {
-                throw (new \Exception (\G::LoadTranslation ("ID_OUTPUT_NOT_SAVE")));
+                throw (new \Exception ("Title already exists"));
             }
+
             $oOutputDocument = new \OutputDocument();
             if ( isset ($outputDocumentData['OUT_DOC_TITLE']) && $outputDocumentData['OUT_DOC_TITLE'] != '' )
             {
@@ -161,12 +169,15 @@ class OutputDocuments
             {
                 $oOutputDocument->setOutDocFieldMapping (null);
             }
+            
             $outDocUid = $oOutputDocument->create ($outputDocumentData);
-            $outputDocumentData = array_change_key_case ($outputDocumentData, CASE_LOWER);
+            
+            die("Mike");
+          
             $this->updateOutputDocument ($sProcessUID, $outputDocumentData, 1, $outDocUid);
             //Return
             unset ($outputDocumentData["PRO_UID"]);
-            $outputDocumentData = array_change_key_case ($outputDocumentData, CASE_LOWER);
+            
             $outputDocumentData["out_doc_uid"] = $outDocUid;
             return $outputDocumentData;
         } catch (\Exception $e) {
@@ -198,7 +209,8 @@ class OutputDocuments
             }
         }
         try {
-            $oOutputDocument = \OutputDocumentPeer::retrieveByPK ($sOutputDocumentUID);
+            $outputDocument = new OutputDocument();
+            $oOutputDocument = $oOutputDocument->retrieveByPK ($sOutputDocumentUID);
             if ( !is_null ($oOutputDocument) )
             {
                 if ( isset ($outputDocumentData['out_doc_pdf_security_open_password']) && $outputDocumentData['out_doc_pdf_security_open_password'] != "" )
@@ -295,13 +307,14 @@ class OutputDocuments
     public function existsTitle ($processUid, $title)
     {
         try {
-            $criteria = new \Criteria ("workflow");
-            $criteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_UID);
-            $criteria->addSelectColumn (\OutputDocumentPeer::OUT_DOC_TITLE);
-            $criteria->add (\OutputDocumentPeer::PRO_UID, $processUid, \Criteria::EQUAL);
-            $criteria->add (\OutputDocumentPeer::OUT_DOC_TITLE, $title, \Criteria::EQUAL);
-            $rsCriteria = \OutputDocumentPeer::doSelectRS ($criteria);
-            if ( $rsCriteria->next () )
+            $sql = "SELECT ot.OUT_DOC_TITLE FROM workflow.`step_document` sd
+                    INNER JOIN workflow.output_document ot ON ot.id = sd.`document_id`
+                    WHERE sd.`step_id` = ? AND ot.OUT_DOC_TITLE = ?";
+
+            $arrParameters = array($processUid, $title);
+
+            $result = $this->objMysql->_query($sql, $arrParameters);
+            if ( isset($result[0]) && !empty($result[0]) )
             {
                 return true;
             }
@@ -309,7 +322,7 @@ class OutputDocuments
             {
                 return false;
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             throw $e;
         }
     }

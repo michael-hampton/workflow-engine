@@ -13,65 +13,78 @@
  */
 class OutputDocument extends BaseOutputDocument
 {
-    
-    public function getByUid($sOutDocUid)
+
+    public function getByUid ($sOutDocUid)
     {
         try {
-            $oOutputDocument = $this->retrieveByPK($sOutDocUid);
-            if (is_null($oOutputDocument)) {
+            $oOutputDocument = $this->retrieveByPK ($sOutDocUid);
+            if ( is_null ($oOutputDocument) )
+            {
                 return false;
             }
-            $aFields = $oOutputDocument->toArray(BasePeer::TYPE_FIELDNAME);
-            $this->fromArray($aFields, BasePeer::TYPE_FIELDNAME);
+            $aFields = $oOutputDocument->toArray (BasePeer::TYPE_FIELDNAME);
+            $this->fromArray ($aFields, BasePeer::TYPE_FIELDNAME);
             return $aFields;
         } catch (Exception $oError) {
             throw ($oError);
         }
     }
-    
+
     /**
      * Create the application document registry
      * @param array $aData
      * @return string
      * */
-    public function create($aData)
+    public function create ($aData)
     {
         try {
-            if (isset($aData['OUT_DOC_UID']) && $aData['OUT_DOC_UID'] == '') {
-                unset($aData['OUT_DOC_UID']);
+            if ( isset ($aData['OUT_DOC_UID']) && $aData['OUT_DOC_UID'] == '' )
+            {
+                unset ($aData['OUT_DOC_UID']);
             }
-            
-            if (!isset($aData['OUT_DOC_GENERATE'])) {
+
+            if ( !isset ($aData['OUT_DOC_GENERATE']) )
+            {
                 $aData['OUT_DOC_GENERATE'] = 'BOTH';
-            } else {
-                if ($aData['OUT_DOC_GENERATE'] == '') {
+            }
+            else
+            {
+                if ( $aData['OUT_DOC_GENERATE'] == '' )
+                {
                     $aData['OUT_DOC_GENERATE'] = 'BOTH';
                 }
             }
             $oOutputDocument = new OutputDocument();
-            $oOutputDocument->fromArray($aData, BasePeer::TYPE_FIELDNAME);
-            if ($oOutputDocument->validate()) {
-                if (isset($aData['OUT_DOC_TITLE'])) {
-                    $oOutputDocument->setOutDocTitleContent($aData['OUT_DOC_TITLE']);
+            $oOutputDocument->loadObject ($aData);
+
+            if ( $oOutputDocument->validate () )
+            {
+                if ( isset ($aData['OUT_DOC_TITLE']) )
+                {
+                    $oOutputDocument->setOutDocTitleContent ($aData['OUT_DOC_TITLE']);
                 }
-                if (isset($aData['OUT_DOC_DESCRIPTION'])) {
-                    $oOutputDocument->setOutDocDescriptionContent($aData['OUT_DOC_DESCRIPTION']);
+                if ( isset ($aData['OUT_DOC_DESCRIPTION']) )
+                {
+                    $oOutputDocument->setOutDocDescriptionContent ($aData['OUT_DOC_DESCRIPTION']);
                 }
-                $oOutputDocument->setOutDocFilenameContent($aData['OUT_DOC_FILENAME']);
-                if (isset($aData['OUT_DOC_TEMPLATE'])) {
-                    $oOutputDocument->setOutDocTemplateContent($aData['OUT_DOC_TEMPLATE']);
+                $oOutputDocument->setOutDocFilenameContent ($aData['OUT_DOC_FILENAME']);
+                if ( isset ($aData['OUT_DOC_TEMPLATE']) )
+                {
+                    $oOutputDocument->setOutDocTemplateContent ($aData['OUT_DOC_TEMPLATE']);
                 }
-                
-                $id = $oOutputDocument->save();
-                
+
+                $id = $oOutputDocument->save ();
+
                 return $id;
-            } else {
+            }
+            else
+            {
                 $sMessage = '';
-                $aValidationFailures = $oOutputDocument->getValidationFailures();
-                foreach ($aValidationFailures as $oValidationFailure) {
-                    $sMessage .= $oValidationFailure->getMessage() . '<br />';
+                $aValidationFailures = $oOutputDocument->getValidationFailures ();
+                foreach ($aValidationFailures as $message) {
+                    $sMessage .= $message . '<br />';
                 }
-                throw (new Exception('The registry cannot be created!<br />' . $sMessage));
+                throw (new Exception ('The registry cannot be created!<br />' . $sMessage));
             }
         } catch (Exception $oError) {
             throw ($oError);
@@ -525,6 +538,75 @@ class OutputDocument extends BaseOutputDocument
     public function retrieveByPk ($pk)
     {
         
+    }
+
+    /**
+     * Set the [out_doc_title] column value.
+     *
+     * @param string $sValue new value
+     * @return void
+     */
+    public function setOutDocTitleContent ($sValue)
+    {
+        if ( $sValue !== null && !is_string ($sValue) )
+        {
+            $sValue = (string) $sValue;
+        }
+        if ( $sValue === '' )
+        {
+            try {
+                $this->out_doc_title = $sValue;
+            } catch (Exception $oError) {
+                $this->out_doc_title = '';
+                throw ($oError);
+            }
+        }
+    }
+
+    /**
+     * Set the [out_doc_comment] column value.
+     *
+     * @param string $sValue new value
+     * @return void
+     */
+    public function setOutDocDescriptionContent ($sValue)
+    {
+        if ( $sValue !== null && !is_string ($sValue) )
+        {
+            $sValue = (string) $sValue;
+        }
+        if ( $sValue === '' )
+        {
+            try {
+                $this->out_doc_description = $sValue;
+            } catch (Exception $oError) {
+                $this->out_doc_description = '';
+                throw ($oError);
+            }
+        }
+    }
+
+    /**
+     * Set the [out_doc_filename] column value.
+     *
+     * @param string $sValue new value
+     * @return void
+     */
+    public function setOutDocFilenameContent ($sValue)
+    {
+        if ( $sValue !== null && !is_string ($sValue) )
+        {
+            $sValue = (string) $sValue;
+        }
+        if ( $sValue === '' )
+        {
+            try {
+                $this->out_doc_filename = $sValue;
+            } catch (Exception $oError) {
+                $this->out_doc_filename = '';
+                throw ($oError);
+            }
+        }
     }
 
 }

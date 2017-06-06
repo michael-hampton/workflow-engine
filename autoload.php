@@ -19,6 +19,11 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/Attach
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/InputDocument.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/StepDocument.php';
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/OutputDocuments.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/BaseOutputDocument.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/OutputDocument.php';
+
+
 /************************* Fields **************************************************/
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Fields/Field.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Fields/RequiredField.php';
