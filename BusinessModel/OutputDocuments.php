@@ -28,7 +28,7 @@ class OutputDocuments
      *
      * @access public
      */
-    public function getOutputDocuments ($sProcessUID = '')
+    public function getOutputDocuments ($blReturnArray = false, $sProcessUID = '')
     {
         try {
             $arrWhere = [];
@@ -51,28 +51,38 @@ class OutputDocuments
                 }
                 else
                 {
-                    $outputDocArray[] = array('out_doc_uid' => $aRow['OUT_DOC_UID'],
-                        'out_doc_title' => $aRow['OUT_DOC_TITLE'],
-                        'out_doc_description' => $aRow['OUT_DOC_DESCRIPTION'],
-                        'out_doc_filename' => $aRow['OUT_DOC_FILENAME'],
-                        'out_doc_template' => $aRow['OUT_DOC_TEMPLATE'],
-                        'out_doc_report_generator' => $aRow['OUT_DOC_REPORT_GENERATOR'],
-                        'out_doc_landscape' => $aRow['OUT_DOC_LANDSCAPE'],
-                        'out_doc_media' => $aRow['OUT_DOC_MEDIA'],
-                        'out_doc_left_margin' => $aRow['OUT_DOC_LEFT_MARGIN'],
-                        'out_doc_right_margin' => $aRow['OUT_DOC_RIGHT_MARGIN'],
-                        'out_doc_top_margin' => $aRow['OUT_DOC_TOP_MARGIN'],
-                        'out_doc_bottom_margin' => $aRow['OUT_DOC_BOTTOM_MARGIN'],
-                        'out_doc_generate' => $aRow['OUT_DOC_GENERATE'],
-                        'out_doc_type' => $aRow['OUT_DOC_TYPE'],
-                        'out_doc_current_revision' => $aRow['OUT_DOC_CURRENT_REVISION'],
-                        'out_doc_field_mapping' => $aRow['OUT_DOC_FIELD_MAPPING'],
-                        'out_doc_versioning' => $aRow['OUT_DOC_VERSIONING'],
-                        'out_doc_destination_path' => $aRow['OUT_DOC_DESTINATION_PATH'],
-                        'out_doc_tags' => $aRow['OUT_DOC_TAGS'],
-                        'out_doc_pdf_security_enabled' => $aRow['OUT_DOC_PDF_SECURITY_ENABLED'],
-                        'out_doc_pdf_security_permissions' => $aRow['OUT_DOC_PDF_SECURITY_PERMISSIONS'],
-                        "out_doc_open_type" => $aRow["OUT_DOC_OPEN_TYPE"]);
+                    if ( $blReturnArray === true )
+                    {
+                        $outputDocArray[$aRow['id']] = array('out_doc_uid' => $aRow['OUT_DOC_UID'],
+                            'out_doc_title' => $aRow['OUT_DOC_TITLE'],
+                            'out_doc_description' => $aRow['OUT_DOC_DESCRIPTION'],
+                            'out_doc_filename' => $aRow['OUT_DOC_FILENAME'],
+                            'out_doc_template' => $aRow['OUT_DOC_TEMPLATE'],
+                            'out_doc_report_generator' => $aRow['OUT_DOC_REPORT_GENERATOR'],
+                            'out_doc_landscape' => $aRow['OUT_DOC_LANDSCAPE'],
+                            'out_doc_media' => $aRow['OUT_DOC_MEDIA'],
+                            'out_doc_left_margin' => $aRow['OUT_DOC_LEFT_MARGIN'],
+                            'out_doc_right_margin' => $aRow['OUT_DOC_RIGHT_MARGIN'],
+                            'out_doc_top_margin' => $aRow['OUT_DOC_TOP_MARGIN'],
+                            'out_doc_bottom_margin' => $aRow['OUT_DOC_BOTTOM_MARGIN'],
+                            'out_doc_generate' => $aRow['OUT_DOC_GENERATE'],
+                            'out_doc_type' => $aRow['OUT_DOC_TYPE'],
+                            'out_doc_current_revision' => $aRow['OUT_DOC_CURRENT_REVISION'],
+                            'out_doc_field_mapping' => $aRow['OUT_DOC_FIELD_MAPPING'],
+                            'out_doc_versioning' => $aRow['OUT_DOC_VERSIONING'],
+                            'out_doc_destination_path' => $aRow['OUT_DOC_DESTINATION_PATH'],
+                            'out_doc_tags' => $aRow['OUT_DOC_TAGS'],
+                            'out_doc_pdf_security_enabled' => $aRow['OUT_DOC_PDF_SECURITY_ENABLED'],
+                            'out_doc_pdf_security_permissions' => $aRow['OUT_DOC_PDF_SECURITY_PERMISSIONS'],
+                            "out_doc_open_type" => $aRow["OUT_DOC_OPEN_TYPE"]);
+
+                        return $outputDocArray;
+                    }
+
+                    $objOutputDocument = new OutputDocument();
+                    $objOutputDocument->setOutDocUid ($aRow['id']);
+                    $objOutputDocument->loadObject ($aRow);
+                    $outputDocArray[] = $objOutputDocument;
                 }
             }
             return $outputDocArray;
@@ -171,7 +181,7 @@ class OutputDocuments
             }
 
             $outDocUid = $oOutputDocument->create ($outputDocumentData);
- 
+
             $this->updateOutputDocument ($sProcessUID, $outputDocumentData, 1, $outDocUid);
             //Return
             unset ($outputDocumentData["PRO_UID"]);
@@ -194,6 +204,7 @@ class OutputDocuments
      */
     public function updateOutputDocument ($sProcessUID, $outputDocumentData, $sFlag, $sOutputDocumentUID = '')
     {
+        $outputDocumentData['out_doc_pdf_security_permissions'] = "print|modify|copy";
         $pemission = $outputDocumentData['out_doc_pdf_security_permissions'];
         $pemission = explode ("|", $pemission);
         foreach ($pemission as $row) {
@@ -209,7 +220,7 @@ class OutputDocuments
         try {
             $outputDocument = new OutputDocument();
             $oOutputDocument = $outputDocument->retrieveByPK ($sOutputDocumentUID);
-            
+
             if ( !is_null ($oOutputDocument) )
             {
                 if ( isset ($outputDocumentData['out_doc_pdf_security_open_password']) && $outputDocumentData['out_doc_pdf_security_open_password'] != "" )
@@ -259,7 +270,7 @@ class OutputDocuments
                     $sMessage = '';
                     $aValidationFailures = $oOutputDocument->getValidationFailures ();
                     foreach ($aValidationFailures as $oValidationFailure) {
-                        $sMessage .= $oValidationFailure->getMessage ();
+                        $sMessage .= $oValidationFailure;
                     }
                     throw (new \Exception ("ID_REGISTRY_CANNOT_BE_UPDATED" . $sMessage));
                 }
@@ -340,7 +351,7 @@ class OutputDocuments
             $arrParameters = array($title);
 
             $result = $this->objMysql->_query ($sql, $arrParameters);
-            
+
             if ( isset ($result[0]) && !empty ($result[0]) )
             {
 
@@ -349,7 +360,6 @@ class OutputDocuments
             }
 
             return false;
-           
         } catch (\Exception $e) {
             throw $e;
         }
@@ -368,40 +378,20 @@ class OutputDocuments
             $flagAssigned = false;
             $arrayData = array();
             //Step
-            $criteria = new \Criteria ("workflow");
-            $criteria->addSelectColumn (\StepPeer::STEP_UID);
-            $criteria->add (\StepPeer::STEP_TYPE_OBJ, "OUTPUT_DOCUMENT", \Criteria::EQUAL);
-            $criteria->add (\StepPeer::STEP_UID_OBJ, $outputDocumentUid, \Criteria::EQUAL);
-            $rsCriteria = \StepPeer::doSelectRS ($criteria);
-            if ( $rsCriteria->next () )
-            {
-                $flagAssigned = true;
-                $arrayData[] = \G::LoadTranslation ("ID_STEPS");
-            }
-            //StepSupervisor
-            $criteria = new \Criteria ("workflow");
-            $criteria->addSelectColumn (\StepSupervisorPeer::STEP_UID);
-            $criteria->add (\StepSupervisorPeer::STEP_TYPE_OBJ, "OUTPUT_DOCUMENT", \Criteria::EQUAL);
-            $criteria->add (\StepSupervisorPeer::STEP_UID_OBJ, $outputDocumentUid, \Criteria::EQUAL);
-            $rsCriteria = \StepSupervisorPeer::doSelectRS ($criteria);
-            if ( $rsCriteria->next () )
+            $result = $this->objMysql->_query ("SELECT d.* FROM `output_document` d 
+                                            INNER JOIN step_document sd ON sd.document_id = d.id
+                                            WHERE sd.document_type = 1
+                                            AND sd.document_id = ?", [$outputDocumentUid]);
+
+
+            if ( isset ($result[0]) && !empty ($result[0]) )
             {
                 $flagAssigned = true;
                 $arrayData[] = \G::LoadTranslation ("ID_CASES_MENU_ADMIN");
             }
-            //ObjectPermission
-            $criteria = new \Criteria ("workflow");
-            $criteria->addSelectColumn (\ObjectPermissionPeer::OP_UID);
-            $criteria->add (\ObjectPermissionPeer::OP_OBJ_TYPE, "OUTPUT", \Criteria::EQUAL);
-            $criteria->add (\ObjectPermissionPeer::OP_OBJ_UID, $outputDocumentUid, \Criteria::EQUAL);
-            $rsCriteria = \ObjectPermissionPeer::doSelectRS ($criteria);
-            if ( $rsCriteria->next () )
-            {
-                $flagAssigned = true;
-                $arrayData[] = \G::LoadTranslation ("ID_PROCESS_PERMISSIONS");
-            }
+           
             //Return
-            return array($flagAssigned, $arrayData);
+            return array($flagAssigned, $result);
         } catch (\Exception $e) {
             throw $e;
         }
@@ -421,11 +411,10 @@ class OutputDocuments
             list($flagAssigned, $arrayData) = $this->itsAssignedInOtherObjects ($outputDocumentUid);
             if ( $flagAssigned )
             {
-                throw new \Exception (\G::LoadTranslation ("ID_OUTPUT_DOCUMENT_ITS_ASSIGNED", array($fieldNameForException, $outputDocumentUid, implode (", ", $arrayData))));
+                throw new \Exception ("OUTPUT DOCUMENT IT ASSIGNED TO A STEP");
             }
         } catch (\Exception $e) {
             throw $e;
         }
     }
-
 }

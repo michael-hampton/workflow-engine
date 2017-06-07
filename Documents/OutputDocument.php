@@ -160,6 +160,7 @@ class OutputDocument extends BaseOutputDocument
     {
         try {
             $oOutputDocument = $this->retrieveByPK ($sOutDocUid);
+
             if ( !is_null ($oOutputDocument) )
             {
                 $iResult = $oOutputDocument->delete ();

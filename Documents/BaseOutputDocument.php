@@ -1021,9 +1021,9 @@ abstract class BaseOutputDocument
      * @see        BaseObject::setDeleted()
      * @see        BaseObject::isDeleted()
      */
-    public function delete ($con = null)
+    public function delete ()
     {
-        
+        $this->objMysql->_delete ("workflow.output_document", ["id" => $this->out_doc_uid]);
     }
 
     /**
@@ -1063,7 +1063,7 @@ abstract class BaseOutputDocument
         }
         else
         {
-             $id = $this->objMysql->_insert ("workflow.output_document", array("OUT_DOC_TITLE" => $this->out_doc_title,
+            $id = $this->objMysql->_insert ("workflow.output_document", array("OUT_DOC_TITLE" => $this->out_doc_title,
                 "OUT_DOC_DESCRIPTION" => $this->out_doc_description,
                 "OUT_DOC_FILENAME" => $this->out_doc_filename,
                 "OUT_DOC_REPORT_GENERATOR" => $this->out_doc_report_generator,
@@ -1086,7 +1086,7 @@ abstract class BaseOutputDocument
                 "OUT_DOC_PDF_SECURITY_OPEN_PASSWORD" => $this->out_doc_pdf_security_open_password,
                 "OUT_DOC_PDF_SECURITY_OWNER_PASSWORD" => $this->out_doc_pdf_security_owner_password)
             );
-             
+
             return $id;
         }
     }
