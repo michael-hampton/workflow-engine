@@ -1,4 +1,6 @@
 <?php
+define("PATH_THIRDPARTY", $_SERVER['DOCUMENT_ROOT']. '/core/app/library/thirdparty/');
+define("PATH_SEP", "/");
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/config.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Mysql.php';

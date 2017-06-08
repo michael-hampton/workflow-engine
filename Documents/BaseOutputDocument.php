@@ -35,6 +35,7 @@ abstract class BaseOutputDocument
         "OUT_DOC_PDF_SECURITY_OPEN_PASSWORD" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getOutDocPdfSecurityOpenPassword", "mutator" => "setOutDocPdfSecurityOpenPassword"),
         "OUT_DOC_PDF_SECURITY_OWNER_PASSWORD" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getOutDocPdfSecurityOwnerPassword", "mutator" => "setOutDocPdfSecurityOwnerPassword"),
         "OUT_DOC_PDF_SECURITY_PERMISSIONS" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getOutDocPdfSecurityPermissions", "mutator" => "setOutDocPdfSecurityPermissions"),
+        "OUT_DOC_TEMPLATE" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getOutDocTemplate", "mutator" => "setOutDocTemplate"),
     );
     private $objMysql;
 
@@ -1058,7 +1059,9 @@ abstract class BaseOutputDocument
                 "OUT_DOC_PDF_SECURITY_PERMISSIONS" => $this->out_doc_pdf_security_permissions,
                 "OUT_DOC_OPEN_TYPE" => $this->out_doc_open_type,
                 "OUT_DOC_PDF_SECURITY_OPEN_PASSWORD" => $this->out_doc_pdf_security_open_password,
-                "OUT_DOC_PDF_SECURITY_OWNER_PASSWORD" => $this->out_doc_pdf_security_owner_password), array("id" => $this->out_doc_uid)
+                "OUT_DOC_PDF_SECURITY_OWNER_PASSWORD" => $this->out_doc_pdf_security_owner_password,
+                "OUT_DOC_TEMPLATE" => $this->out_doc_template,    
+                    ), array("id" => $this->out_doc_uid)
             );
         }
         else
@@ -1084,7 +1087,9 @@ abstract class BaseOutputDocument
                 "OUT_DOC_PDF_SECURITY_PERMISSIONS" => $this->out_doc_pdf_security_permissions,
                 "OUT_DOC_OPEN_TYPE" => $this->out_doc_open_type,
                 "OUT_DOC_PDF_SECURITY_OPEN_PASSWORD" => $this->out_doc_pdf_security_open_password,
-                "OUT_DOC_PDF_SECURITY_OWNER_PASSWORD" => $this->out_doc_pdf_security_owner_password)
+                "OUT_DOC_PDF_SECURITY_OWNER_PASSWORD" => $this->out_doc_pdf_security_owner_password,
+                "OUT_DOC_TEMPLATE" => $this->out_doc_template
+                )
             );
 
             return $id;

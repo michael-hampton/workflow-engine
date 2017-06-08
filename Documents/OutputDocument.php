@@ -13,8 +13,9 @@
  */
 class OutputDocument extends BaseOutputDocument
 {
+
     private $objMysql;
-    
+
     public function __construct ()
     {
         $this->objMysql = new Mysql2();
@@ -188,7 +189,7 @@ class OutputDocument extends BaseOutputDocument
     {
         if ( ($sUID != '') && is_array ($aFields) && ($sPath != '') )
         {
-            $sContent = G::replaceDataGridField ($sContent, $aFields);
+            //$sContent = G::replaceDataGridField ($sContent, $aFields);
             if ( strpos ($sContent, '<!---{') !== false )
             {
                 $template = new Smarty();
@@ -207,7 +208,7 @@ class OutputDocument extends BaseOutputDocument
                 $sContent = $template->fetch ($template->templateFile);
                 unlink ($template->templateFile);
             }
-            G::verifyPath ($sPath, true);
+            $this->verifyPath ($sPath, true);
             //Start - Create .doc
             $oFile = fopen ($sPath . $sFilename . '.doc', 'wb');
             $size = array();
@@ -450,11 +451,12 @@ class OutputDocument extends BaseOutputDocument
         $pdf->SetTopMargin ($margins['top']);
         $pdf->SetRightMargin ($margins['right']);
         $pdf->SetAutoPageBreak (true, $margins['bottom']);
-        $oServerConf = &serverConf::getSingleton ();
+        //$oServerConf = &serverConf::getSingleton ();
         // set some language dependent data:
         $lg = array();
         $lg['a_meta_charset'] = 'UTF-8';
-        $lg['a_meta_dir'] = ($oServerConf->isRtl ($sLang)) ? 'rtl' : 'ltr';
+        //$lg['a_meta_dir'] = ($oServerConf->isRtl ($sLang)) ? 'rtl' : 'ltr';
+        $lg['a_meta_dir'] = 'rtl';
         $lg['a_meta_language'] = $sLang;
         $lg['w_page'] = 'page';
         //set some language-dependent strings
@@ -545,16 +547,17 @@ class OutputDocument extends BaseOutputDocument
 
     public function retrieveByPk ($pk)
     {
-        $result = $this->objMysql->_select("workflow.output_document", [], ["id" => $pk]);
-        
-        if(!empty($result)) {
+        $result = $this->objMysql->_select ("workflow.output_document", [], ["id" => $pk]);
+
+        if ( isset ($result[0]) && !empty ($result[0]) )
+        {
             $oDocument = new OutputDocument();
-            $oDocument->setOutDocUid($pk);
-            $oDocument->loadObject($result);
-            
+            $oDocument->setOutDocUid ($pk);
+            $oDocument->loadObject ($result[0]);
+
             return $oDocument;
         }
-        
+
         return [];
     }
 
@@ -625,6 +628,83 @@ class OutputDocument extends BaseOutputDocument
                 throw ($oError);
             }
         }
+    }
+
+    /**
+     * Set the [out_doc_template] column value.
+     *
+     * @param string $sValue new value
+     * @return void
+     */
+    public function setOutDocTemplateContent ($sValue)
+    {
+        if ( $sValue !== null && !is_string ($sValue) )
+        {
+            $sValue = (string) $sValue;
+        }
+
+        try {
+            $this->out_doc_template = $sValue;
+        } catch (Exception $oError) {
+            $this->out_doc_template = '';
+            throw ($oError);
+        }
+    }
+
+    /**
+     * verify path
+     *
+     * @author Fernando Ontiveros Lira <fernando@colosa.com>
+     * @access public
+     * @param string $strPath path
+     * @param boolean $createPath if true this public function will create the path
+     * @return boolean
+     */
+    public function verifyPath ($strPath, $createPath = false)
+    {
+        $folder_path = strstr ($strPath, '.') ? dirname ($strPath) : $strPath;
+
+        if ( file_exists ($strPath) || @is_dir ($strPath) )
+        {
+            return true;
+        }
+        else
+        {
+            if ( $createPath )
+            {
+                //TODO:: Define Environment constants: Devel (0777), Production (0770), ...
+                $this->mk_dir ($strPath, 0777);
+            }
+            else
+            {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * ************* path functions ****************
+     */
+    public static function mk_dir ($strPath, $rights = 0770)
+    {
+        $folder_path = array($strPath);
+        $oldumask = umask (0);
+        while (!@is_dir (dirname (end ($folder_path))) && dirname (end ($folder_path)) != '/' && dirname (end ($folder_path)) != '.' && dirname (end ($folder_path)) != '') {
+            array_push ($folder_path, dirname (end ($folder_path))); //var_dump($folder_path); die;
+        }
+
+        while ($parent_folder_path = array_pop ($folder_path)) {
+            if ( !@is_dir ($parent_folder_path) )
+            {
+                if ( !@mkdir ($parent_folder_path, $rights) )
+                {
+                    error_log ("Can't create folder \"$parent_folder_path\"");
+                    //umask( $oldumask );
+                }
+            }
+        }
+        umask ($oldumask);
     }
 
 }
