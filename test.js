@@ -1,59 +1,48 @@
-$arrFields = array(
-    0 => "mike",
-    1 => "uan",
-    2 => "lexi",
-    3 => "paul",
-    4 => "bish",
-    5 => "Jamie",
-    6 => "mike",
-    7 => "uan",
-    8 => "lexi",
-    9 => "paul",
-    10 => "bish",
-    11 => "bish"
-);
+ $nrt = array("\n", "\r", "\t");
+        $nrthtml = array("(n /)", "(r /)", "(t /)");
 
-$rows = count($arrFields);    // total no of fields
-if($rows > 0) {
-    $cols = 1;    // Define number of columns
+        $sContent = "[mike] test [lexi]";
 
-    $colCount = ceil(12 / $cols);
+        $strContentAux = str_replace($nrt, $nrthtml, $sContent);
 
-    $counter = 1;     // Counter used to identify if we need to start or end a row
-    $nbsp = $cols - ($rows % $cols);    // Calculate the number of blank columns
+        $iOcurrences = preg_match_all('/\[([^\]]+)\]/', $sContent, $arrayMatch1, PREG_PATTERN_ORDER | PREG_OFFSET_CAPTURE);
+        $nl2brRecursive = true;
 
-    $container_class = 'container-fluid';  // Parent container class name
-    $row_class = 'row';    // Row class name
-    $col_class = 'col-sm-'.$colCount; // Column class name
+        if ($iOcurrences) {
+            $arrayGrid = array();
 
-    echo '<div class="'.$container_class.'">';    // Container open
-    foreach($arrFields as $strField) {
-        if(($counter % $cols) == 1 || $cols === 1) {    // Check if it's new row
-            echo '<div class="'.$row_class.'">';	// Start a new row
+            for ($i = 0; $i <= $iOcurrences - 1; $i++) {
+                $arrayGrid[] = $arrayMatch1[1][$i][0];
+            }
+
+            $arrayGrid = array_unique($arrayGrid);
+
+            $aFields = array(
+                "mike" => "Mike",
+                "lexi" => "Lexi"
+            );
+
+            foreach ($arrayGrid as $index => $value) {
+                if ($value !== "") {
+                    $grdName = $value;
+
+                    $strContentAux1 = $strContentAux;
+                    $strContentAux = null;
+
+                    if (isset($aFields[$grdName]) && trim($aFields[$grdName]) !== "") {
+                        $newValue = str_replace($nrt, $nrthtml, nl2br($aFields[$grdName]));
+                        $newValue = urlencode($aFields[$grdName]);
+                        $newValue = stripcslashes($aFields[$grdName]);
+
+                        $strContentAux .= str_replace("[".$grdName."]", $newValue, $strContentAux1);
+
+                    }
+
+                }
+            }
         }
 
-        echo '<div class="'.$col_class.'">
-            <div class="form-group">
-                <label class="col-lg-2 control-label">'.$strField.'</label>
+        $strContentAux = str_replace($nrthtml, $nrt, $strContentAux);
+        $sContent = $strContentAux;
 
-                <div class="col-lg-8">
-                    <input type="text" placeholder="Email" class="form-control">
-                </div>
-            </div>
-
-        </div>';     // Column with content
-        if(($counter % $cols) == 0) { // If it's last column in each row then counter remainder will be zero
-            echo '</div>';	 //  Close the row
-        }
-        $counter++;    // Increase the counter
-    }
-    //$result->free();
-    if($nbsp > 0) { // Adjustment to add unused column in last row if they exist
-        for ($i = 0; $i < $nbsp; $i++)	{
-            echo '<div class="'.$col_class.'">&nbsp;</div>';
-        }
-        echo '</div>';  // Close the row
-    }
-    echo '</div>';  // Close the container
-}
-?>
+       return $sContent;
