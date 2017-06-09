@@ -11,6 +11,8 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BaseComments.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Comments.php';
 
 /* * *********************** Documents ******************************************** */
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/StepDocument.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/StepDocuments.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/BaseProcessFiles.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/ProcessFiles.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/FileUpload.php';
@@ -18,8 +20,8 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/BaseDocume
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/BaseInputDocument.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/DocumentVersion.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/Attachments.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/InputDocument.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/StepDocument.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/InputDocuments.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/InputDocument.php';
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/OutputDocuments.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/BaseOutputDocument.php';

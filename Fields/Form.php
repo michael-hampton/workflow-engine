@@ -67,7 +67,7 @@ class Form extends FieldFactory
     public function getInputDocuments ()
     {
         // Input Documents
-        $objStepDocument = new StepDocument ($this->stepId);
+        $objStepDocument = new InputDocument ($this->stepId);
         $arrInputDocuments = $objStepDocument->getInputDocumentForStep ();
 
         if ( !empty ($arrInputDocuments) )
@@ -302,7 +302,7 @@ class Form extends FieldFactory
             $objFormBuilder->buildForm ($arrFields);
         }
 
-        $objStepDocument = new StepDocument ($taskId);
+        $objStepDocument = new InputDocument ($taskId);
         $arrDocuments = $objStepDocument->getInputDocumentForStep ();
 
         if ( !empty ($arrDocuments) )

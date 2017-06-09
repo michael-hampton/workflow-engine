@@ -389,7 +389,7 @@ class OutputDocuments
                 $flagAssigned = true;
                 $arrayData[] = \G::LoadTranslation ("ID_CASES_MENU_ADMIN");
             }
-           
+
             //Return
             return array($flagAssigned, $result);
         } catch (\Exception $e) {
@@ -417,4 +417,25 @@ class OutputDocuments
             throw $e;
         }
     }
+
+    public function getOutputDocumentsForStep ($stepId)
+    {
+
+        try {
+            $results = $this->objMysql->_query ("SELECT * FROM workflow.output_document d INNER JOIN workflow.step_document sd ON sd.document_id = d.id WHERE sd.step_id = ? AND sd.document_type = 1", [$stepId]);
+
+
+            $arrDocuments = [];
+
+            foreach ($results as $key => $result) {
+                $oDocument = new OutputDocument ();
+                $arrDocuments[] = $oDocument->retrieveByPk ($result['document_id']);
+            }
+
+            return $arrDocuments;
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
 }

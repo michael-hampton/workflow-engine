@@ -3,7 +3,7 @@
 /**
  * Class InputDocument
  */
-class InputDocument extends BaseInputDocument
+class InputDocuments extends BaseInputDocument
 {
 
     private $stepId;

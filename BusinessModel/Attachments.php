@@ -225,7 +225,7 @@ class Attachments
      */
     private function uploadDocument ($arrFiles, $arrData)
     {
-        $stepDocument = new StepDocument ($this->stepId);
+        $stepDocument = new InputDocument ($this->stepId);
 
         if ( !is_numeric ($this->documentId) )
         {

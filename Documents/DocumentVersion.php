@@ -80,7 +80,10 @@ class DocumentVersion extends BaseDocumentVersion
             $objVersioning->setDocUid ($aData['document_id']);
             $objVersioning->setAppDocCreateDate (date ("Y-m-d H:i:s"));
             $objVersioning->setAppDocFilename ($aData['filename']);
-            $objVersioning->setAppDocType ("INPUT");
+            
+            $docType = isset($aData['document_type']) ? $aData['document_type'] : 'INPUT';
+            
+            $objVersioning->setAppDocType ($docType);
 
             if ( $objVersioning->validate () )
             {

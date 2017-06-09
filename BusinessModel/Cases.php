@@ -137,10 +137,11 @@ class Cases
         try {
             $workflowObject = $this->objMysql->_select ("workflow.workflow_data", array(), array("object_id" => $projectId));
 
-            if(!isset($workflowObject[0]) || empty($workflowObject[0])) {
+            if ( !isset ($workflowObject[0]) || empty ($workflowObject[0]) )
+            {
                 return false;
             }
-            
+
             $workflowData = json_decode ($workflowObject[0]['workflow_data'], true);
             $auditData = json_decode ($workflowObject[0]['audit_data'], true);
 
@@ -736,13 +737,13 @@ class Cases
     {
         $objSave = new Save();
         $objWorkflow = new Workflow ($workflowId);
-        
+
         $objStep = $objWorkflow->getNextStep ();
         $validation = $objStep->save ($objSave, $arrData['form']);
 
         if ( $validation === false )
         {
-            print_r($objStep->getFieldValidation());
+            print_r ($objStep->getFieldValidation ());
         }
 
         $projectId = $objSave->getId ();
@@ -796,8 +797,9 @@ class Cases
             "dateCompleted" => date ("Y-m-d H:i;s"),
             "status" => $status
         );
-        
-        if($rejectionReason !== "") {
+
+        if ( $rejectionReason !== "" )
+        {
             $arrStepData['rejectionReason'] = $rejectionReason;
         }
 
@@ -823,6 +825,190 @@ class Cases
 
         $objStep = new WorkflowStep (null, $objElements);
         $objStep->assignUserToStep ($objElements, $arrStepData);
+    }
+
+    /**
+     * Get Case Variables
+     *
+     * @access public
+     * @param string $app_uid, Uid for case
+     * @param string $usr_uid, Uid for user
+     * @param string $dynaFormUid, Uid for step
+     * @return array
+     */
+    public function getCaseVariables ($app_uid, $usr_uid, $pro_uid, $dynaFormUid = null, $act_uid = null, $app_index = null)
+    {
+        $this->isInteger ($app_uid, '$app_uid');
+        //Validator::appUid($app_uid, '$app_uid');
+        $this->isInteger ($usr_uid, '$usr_uid');
+        $this->validateUserId ($usr_uid);
+
+        $objCase = $this->getCaseInfo ($pro_uid, $app_uid);
+
+        $arrayCaseVariable = [];
+
+        if ( !is_null ($dynaFormUid) )
+        {
+            $objForm = new Form ($dynaFormUid);
+            $arrAllFields = $objForm->getFields (true);
+            $arrFields = [];
+
+
+            foreach ($arrAllFields as $key => $arrField) {
+                $arrFields[] = $key;
+            }
+
+            $arrayCaseVariable = $this->__getFieldsAndValuesByDynaFormAndAppData (
+                    $arrFields, $objCase, $arrayCaseVariable
+            );
+        }
+        else
+        {
+            $arrayCaseVariable = $objCase;
+        }
+
+        return $arrayCaseVariable;
+    }
+
+    /**
+     * Get fields and values by DynaForm
+     *
+     * @param array $form
+     * @param array $appData
+     * @param array $caseVariable
+     *
+     * return array Return array
+     */
+    private function __getFieldsAndValuesByDynaFormAndAppData (array $form, Elements $objElements, array $caseVariable)
+    {
+        try {
+            $caseVariableAux = [];
+
+            $arrSystemVariables = array(
+                "WORKFLOW_NAME" => "getWorkflowName",
+                "STEP_NAME" => "getCurrentStep",
+                "ASSIGNED" => "getCurrent_user",
+                "DATE_COMPLETED" => "",
+                "COMPLETED" => "",
+                "id" => "getId",
+                "USER" => "getCurrent_user",
+                "PROJECT_ID" => "getParentId",
+                "STEP_ID" => "getCurrentStepId",
+                "WORKFLOW_ID" => "getWorkflow_id",
+                "STATUS" => "getStatus"
+            );
+
+            foreach ($form as $value) {
+                $field = $value;
+
+                if ( isset ($objElements->objJobFields[$field]) )
+                {
+                    if ( isset ($objElements->objJobFields[$field]['accessor']) )
+                    {
+                        if ( method_exists ($objElements, $objElements->objJobFields[$field]['accessor']) )
+                        {
+                            $caseVariable[$field] = call_user_func (array($objElements, $objElements->objJobFields[$field]['accessor']));
+                        }
+                    }
+                }
+                else
+                {
+                    
+                }
+            }
+
+            foreach ($arrSystemVariables as $variableName => $functionName) {
+                if ( trim ($functionName) !== "" )
+                {
+                    $caseVariable[$variableName] = call_user_func (array($objElements, $functionName));
+                }
+            }
+
+            return $caseVariable;
+        } catch (Exception $ex) {
+            throw $ex;
+        }
+    }
+
+    /**
+     * Get data of Cases OutputDocument
+     *
+     * @param int $projectId
+     * @param int $caseId
+     * @param string $outputDocumentUid
+     * @param string $userUid
+     *
+     * return object Return an object with data of an OutputDocument
+     */
+    public function addCasesOutputDocument ($projectId, $caseId, $outputDocumentUid, $userUid)
+    {
+        try {
+            $sApplication = $applicationUid;
+            $sUserLogged = $userUid;
+            $outputID = $outputDocumentUid;
+
+            $oOutputDocument = new \OutputDocument();
+            $aOD = $oOutputDocument->retrieveByPk ($outputID);
+            $Fields = $this->getCaseInfo ($projectId, $sApplication);
+            //$sFilename = preg_replace( '[^A-Za-z0-9_]', '_', \G::replaceDataField( $aOD['OUT_DOC_FILENAME'], $Fields['APP_DATA'] ) );
+            //$fileTags = $oFolder->parseTags ($aOD->getOutDocTags (), $sApplication);
+            //$lastDocVersion = $oAppDocument->getLastDocVersion( $outputID, $sApplication );
+
+            $objDocumentVersion = new DocumentVersion (array());
+            $lastDocVersion = $objDocumentVersion->getLastDocVersionByFilename ($filename);
+
+
+            if ( ($aOD->getOutDocVersioning ()) && ($lastDocVersion != 0) )
+            {
+                $lastDocVersion ++;
+
+                //filename
+                //document_id
+                // document_type
+            }
+            else
+            {
+                
+            }
+
+            $sFilename = $aFields['APP_DOC_UID'] . "_" . $lastDocVersion;
+            $pathOutput  = '';
+
+            $aProperties = array();
+            if ( trim ($aOD->getOutDocMedia ()) === "" )
+            {
+                $aOD->setOutDocMedia ('Letter');
+            }
+            if ( trim ($aOD->getOutDocLeftMargin ()) === "" )
+            {
+                $aOD->setOutDocLeftMargin (15);
+            }
+            if ( trim ($aOD->getOutDocRightMargin ()) === "" )
+            {
+                $aOD->setOutDocRightMargin (15);
+            }
+            if ( trim ($aOD->getOutDocTopMargin ()) === "" )
+            {
+                $aOD->setOutDocTopMargin (15);
+            }
+            if ( trim ($aOD->getOutDocBottomMargin ()) === "" )
+            {
+                $aOD->setOutDocBottomMargin (15);
+            }
+            $aProperties['media'] = $aOD->getOutDocMedia ();
+
+            $aProperties['margins'] = array('left' => $aOD->getOutDocLeftMargin (), 'right' => $aOD->getOutDocRightMargin (), 'top' => $aOD->getOutDocTopMargin (), 'bottom' => $aOD->getOutDocBottomMargin ()
+            );
+
+            if ( trim ($aOD->getOutDocReportGenerator ()) !== "" )
+            {
+                $aProperties['report_generator'] = $aOD->getOutDocReportGenerator ();
+            }
+
+            $this->generate ($outputID, $Fields['APP_DATA'], $pathOutput, $sFilename, $aOD->getOutDocTemplate (), (boolean) $aOD->getOutDocLandscape (), $aOD->getOutDocGenerate (), $aProperties, $applicationUid);
+        } catch (Exception $ex) {
+            
+        }
     }
 
 }
