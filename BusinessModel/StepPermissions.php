@@ -52,13 +52,13 @@ class StepPermissions
                                                         WHERE access_level = 'RO'
                                                         AND step_id = ?
                                                         GROUP BY permission_type", [$this->stepId]);
-        
+
         $InputPermissions = $this->objMysql->_query ("SELECT permission_type, GROUP_CONCAT(permission SEPARATOR ', ') AS permissions
                                                         FROM workflow.step_permission 
                                                         WHERE access_level IN('INPUT')
                                                         AND step_id = ?
                                                         GROUP BY permission_type", [$this->stepId]);
-        
+
         $OuputPermissions = $this->objMysql->_query ("SELECT permission_type, GROUP_CONCAT(permission SEPARATOR ', ') AS permissions
                                                         FROM workflow.step_permission 
                                                         WHERE access_level IN('OUTPUT')
@@ -95,7 +95,7 @@ class StepPermissions
                 }
             }
         }
-        
+
         if ( !empty ($InputPermissions) )
         {
             foreach ($InputPermissions as $InputPermission) {
@@ -110,18 +110,18 @@ class StepPermissions
                 }
             }
         }
-        
-         if ( !empty ($OuputPermissions) )
+
+        if ( !empty ($OuputPermissions) )
         {
             foreach ($OuputPermissions as $OuputPermission) {
 
                 if ( $OuputPermission['permission_type'] == "team" )
                 {
-                    $arrPermissions['Output']['team'] = $InputPermission['permissions'];
+                    $arrPermissions['Output']['team'] = $OuputPermission['permissions'];
                 }
                 else
                 {
-                    $arrPermissions['Output']['user'] = $InputPermission['permissions'];
+                    $arrPermissions['Output']['user'] = $OuputPermission['permissions'];
                 }
             }
         }
@@ -152,19 +152,45 @@ class StepPermissions
 
             $objPermissions = new ObjectPermissions ($this->stepId);
 
-            foreach ($data['selectedPermissions'] as $permission) {
+            if ( isset ($data['selectedPermissions']) && !empty ($data['selectedPermissions']) )
+            {
+                foreach ($data['selectedPermissions'] as $permission) {
 
 
-                if ( $permission['objectType'] == "team" )
-                {
-                    $this->validateTeamId ($permission['id']);
+                    if ( $permission['objectType'] == "team" )
+                    {
+                        $this->validateTeamId ($permission['id']);
+                    }
+                    else
+                    {
+                        $this->validateUserId ($permission['id']);
+                    }
+
+                    $objPermissions->create ($permission);
                 }
-                else
-                {
-                    $this->validateUserId ($permission['id']);
-                }
+            }
 
-                $objPermissions->create ($permission);
+            if ( isset ($data['inputList']) && !empty ($data['inputList']) )
+            {
+                foreach ($data['inputList'] as $input) {
+                    if ( $input['objectType'] == "team" )
+                    {
+                        $this->validateTeamId ($input['id']);
+                    }
+                    else
+                    {
+                        $this->validateUserId ($input['id']);
+                    }
+
+                    if ( $input['action'] == "add" )
+                    {
+                        $objPermissions->create ($input);
+                    }
+                    else
+                    {
+                        $objPermissions->removeObject ($input['permissionType'], $input['objectType'], $input['id'], $this->stepId);
+                    }
+                }
             }
         } catch (Exception $ex) {
             throw $ex;
