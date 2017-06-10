@@ -96,6 +96,7 @@ class WorkflowStep
 
         if ( empty ($arrResult) )
         {
+            die("Here");
             return false;
         }
 
@@ -259,33 +260,7 @@ class WorkflowStep
     private function sendNotification ($objMike, array $arrCompleteData = [], $arrEmailAddresses = [])
     {
         $objNotifications = new SendNotification();
-        $objNotifications->setVariables (5, $this->_systemName);
-        $objNotifications->setProjectId ($this->parentId);
-
-        $arrNotificationFields = $objNotifications->getMessageParameters ();
-
-        $arrNotificationData = array();
-
-        foreach ($arrNotificationFields[0] as $strField) {
-            if ( isset ($objMike->objJobFields[$strField]) )
-            {
-                $accessor = $objMike->objJobFields[$strField]['accessor'];
-
-                if ( !empty ($accessor) )
-                {
-                    $arrNotificationData[$strField] = $objMike->$accessor ();
-                }
-            }
-            elseif ( $strField == "workflow_name" )
-            {
-                $arrNotificationData[$strField] = $this->workflowName;
-            }
-            elseif ( $strField == "step_name" )
-            {
-                $arrNotificationData['step_name'] = $this->_stepName;
-            }
-        }
-
+        $objNotifications->setVariables ($this->_stepId, $this->_systemName);
         $objNotifications->setProjectId ($this->parentId);
         $objNotifications->setElementId ($this->elementId);
 
@@ -294,7 +269,7 @@ class WorkflowStep
             $objNotifications->setArrEmailAddresses ($arrEmailAddresses);
         }
 
-        $objNotifications->buildEmail (5, $arrNotificationData);
+        $objNotifications->buildEmail ($this->_stepId, array());
     }
 
     private function completeAuditObject (array $arrCompleteData = [])

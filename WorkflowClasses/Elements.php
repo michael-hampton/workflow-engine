@@ -19,6 +19,8 @@ class Elements
     private $current_user;
     private $currentStepId;
     public $arrElement = array();
+    private $addedBy;
+    private $projectName;
     public $objJobFields = array(
         "location" => array("required" => "true", "type" => "string", "accessor" => "getLocation", "mutator" => "setLocation"),
         "batch" => array("required" => "true", "type" => "string", "accessor" => "getBatch", "mutator" => "setBatch"),
@@ -37,7 +39,6 @@ class Elements
         "current_step" => array("fieldName" => "current_step", "required" => "true", "type" => "int"),
     );
     private $objMysql;
-
     private $arrToIgnore = array("claimed", "status", "dateCompleted", "priority", "deptId", "workflow", "added_by", "date_created", "project_status", "dueDate");
     private $status;
 
@@ -148,6 +149,7 @@ class Elements
 
     public function getStatus ()
     {
+        $this->status = trim($this->status) == "" ? "IN PROGRESS" : $this->status;
         return $this->status;
     }
 
@@ -341,6 +343,27 @@ class Elements
         $this->current_user = $current_user;
     }
 
+    public function getAddedBy ()
+    {
+        return $this->addedBy;
+    }
+
+    public function setAddedBy ($addedBy)
+    {
+        $this->addedBy = $addedBy;
+    }
+    
+    public function getProjectName ()
+    {
+        return $this->projectName;
+    }
+
+    public function setProjectName ($projectName)
+    {
+        $this->projectName = $projectName;
+    }
+
+    
     public function getProjectById ()
     {
         $objMysql = new Mysql2();
@@ -349,6 +372,16 @@ class Elements
         if ( !empty ($result[0]['step_data']) )
         {
             $JSON = json_decode ($result[0]['step_data'], true);
+
+            if ( isset ($JSON['job']['added_by']) )
+            {
+                $this->setAddedBy ($JSON['job']['added_by']);
+            }
+            
+            if ( isset ($JSON['job']['name']) )
+            {
+                $this->setProjectName ($JSON['job']['name']);
+            }
 
             if ( $this->id != "" )
             {
@@ -426,7 +459,7 @@ class Elements
     {
         return $this->id;
     }
-    
+
     /**
      * This function return an array without difference
      *
@@ -437,38 +470,53 @@ class Elements
      * @access public
      * @return $aReturn
      */
-    public function arrayRecursiveDiff($aArray1, $aArray2)
+    public function arrayRecursiveDiff ($aArray1, $aArray2)
     {
         $aReturn = array();
         foreach ($aArray1 as $mKey => $mValue) {
-            if (is_array($aArray2) && array_key_exists($mKey, $aArray2)) {
-                if (is_array($mValue)) {
-                    $aRecursiveDiff = $this->arrayRecursiveDiff($mValue, $aArray2[$mKey]);
-                    if (count($aRecursiveDiff)) {
+            if ( is_array ($aArray2) && array_key_exists ($mKey, $aArray2) )
+            {
+                if ( is_array ($mValue) )
+                {
+                    $aRecursiveDiff = $this->arrayRecursiveDiff ($mValue, $aArray2[$mKey]);
+                    if ( count ($aRecursiveDiff) )
+                    {
                         $aReturn[$mKey] = $aRecursiveDiff;
                     }
-                } else {
-                    if ($mValue != $aArray2[$mKey]) {
+                }
+                else
+                {
+                    if ( $mValue != $aArray2[$mKey] )
+                    {
                         $aReturn[$mKey] = $aArray2[$mKey];
                     }
                 }
-            } else {
-                $aReturn[$mKey] = isset($aArray2[$mKey]) ? $aArray2[$mKey] : null;
+            }
+            else
+            {
+                $aReturn[$mKey] = isset ($aArray2[$mKey]) ? $aArray2[$mKey] : null;
             }
         }
         return $aReturn;
     }
 
-    public function array_key_intersect(&$a, &$b) {
+    public function array_key_intersect (&$a, &$b)
+    {
         $array = array();
-        while (list($key, $value) = each($a)) {
-            if (isset($b[$key])) {
-                if (is_object($b[$key]) && is_object($value)) {
-                    if (serialize($b[$key]) === serialize($value)) {
+        while (list($key, $value) = each ($a)) {
+            if ( isset ($b[$key]) )
+            {
+                if ( is_object ($b[$key]) && is_object ($value) )
+                {
+                    if ( serialize ($b[$key]) === serialize ($value) )
+                    {
                         $array[$key] = $value;
                     }
-                } else {
-                    if ($b[$key] !== $value) {
+                }
+                else
+                {
+                    if ( $b[$key] !== $value )
+                    {
                         $array[$key] = $value;
                     }
                 }
@@ -477,20 +525,21 @@ class Elements
         return $array;
     }
 
-    private function doAudit()
+    private function doAudit ()
     {
-        $result = $this->objMysql->_select("task_manager.projects", array(), array("id" => $this->source_id));
-        $data = json_decode($result[0]['step_data'], true);
+        $result = $this->objMysql->_select ("task_manager.projects", array(), array("id" => $this->source_id));
+        $data = json_decode ($result[0]['step_data'], true);
 
-        $FieldsBefore =  $data['elements'][$this->id];
+        $FieldsBefore = $data['elements'][$this->id];
 
         $aApplicationFields = $this->arrElement;
-        $FieldsDifference = $this->arrayRecursiveDiff($FieldsBefore, $aApplicationFields);
-        $fieldsOnBoth = $this->array_key_intersect($FieldsBefore, $aApplicationFields);
- 
-        if ((is_array($FieldsDifference)) && (count($FieldsDifference) > 0)) {
+        $FieldsDifference = $this->arrayRecursiveDiff ($FieldsBefore, $aApplicationFields);
+        $fieldsOnBoth = $this->array_key_intersect ($FieldsBefore, $aApplicationFields);
+
+        if ( (is_array ($FieldsDifference)) && (count ($FieldsDifference) > 0) )
+        {
             $appHistory = new Audit();
-            
+
             $FieldsDifference['before'] = $fieldsOnBoth;
 
             $aFieldsHistory = array(
@@ -498,22 +547,21 @@ class Elements
                 "system_id" => 14,
                 "PRO_UID" => 120,
                 "TAS_UID" => $this->id,
-                "APP_UPDATE_DATE" => date("Y-m-d H:i:s"),
+                "APP_UPDATE_DATE" => date ("Y-m-d H:i:s"),
                 "USER_UID" => $_SESSION['user']['username'],
                 "before" => $fieldsOnBoth,
                 "message" => "Field Updated"
             );
             $aFieldsHistory['APP_DATA']['BEFORE'] = $fieldsOnBoth;
-            $aFieldsHistory['APP_DATA'] = serialize($FieldsDifference);
-            $appHistory->insertHistory($aFieldsHistory);
-    
+            $aFieldsHistory['APP_DATA'] = serialize ($FieldsDifference);
+            $appHistory->insertHistory ($aFieldsHistory);
         }
     }
 
     public function save ()
     {
         $objMysql = new Mysql2();
-        
+
         if ( $this->id == "" )
         {
             $id = $this->buildObjectId ($this->source_id, $this->workflow_id);
@@ -531,7 +579,7 @@ class Elements
         }
         else
         {
-            $this->doAudit();
+            $this->doAudit ();
             $this->JSON['elements'][$this->id] = $this->arrElement;
 
             $objMysql->_update ("task_manager.projects", array("step_data" => json_encode ($this->JSON)), array("id" => $this->source_id));

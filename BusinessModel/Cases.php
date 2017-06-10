@@ -840,8 +840,8 @@ class Cases
     {
         $this->isInteger ($app_uid, '$app_uid');
         //Validator::appUid($app_uid, '$app_uid');
-        $this->isInteger ($usr_uid, '$usr_uid');
-        $this->validateUserId ($usr_uid);
+        //$this->isInteger ($usr_uid, '$usr_uid');
+        //$this->validateUserId ($usr_uid);
 
         $arrSystemVariables = array(
             "WORKFLOW_NAME" => "getWorkflowName",
@@ -849,12 +849,17 @@ class Cases
             "ASSIGNED" => "getCurrent_user",
             "DATE_COMPLETED" => "",
             "COMPLETED" => "",
+            "ELEMENT_ID" => "getId",
+            "ELEMENT_NAME" => "getName",
             "id" => "getId",
             "USER" => "getCurrent_user",
             "PROJECT_ID" => "getParentId",
             "STEP_ID" => "getCurrentStepId",
             "WORKFLOW_ID" => "getWorkflow_id",
-            "STATUS" => "getStatus"
+            "STATUS" => "getStatus",
+            "ELEMENT_STATUS" => "getStatus",
+            "added_by" => "getAddedBy",
+            "PROJECT_NAME" => "getProjectName"
         );
 
         $objCase = $this->getCaseInfo ($pro_uid, $app_uid);
@@ -867,9 +872,11 @@ class Cases
             $arrAllFields = $objForm->getFields (true);
             $arrFields = [];
 
-
-            foreach ($arrAllFields as $key => $arrField) {
-                $arrFields[] = $key;
+            if ( !empty ($arrAllFields) )
+            {
+                foreach ($arrAllFields as $key => $arrField) {
+                    $arrFields[] = $key;
+                }
             }
 
 
@@ -1032,25 +1039,31 @@ class Cases
             }
 
             $arrayGrid = array_unique ($arrayGrid);
+            
+            $strContentAux1 = null;
+            $strContentAux1 = $strContentAux;
 
             foreach ($arrayGrid as $index => $value) {
                 if ( $value !== "" )
                 {
                     $grdName = $value;
 
-                    $strContentAux1 = $strContentAux;
-                    $strContentAux = null;
+                    
+                   
 
                     if ( isset ($aFields[$grdName]) && trim ($aFields[$grdName]) !== "" )
                     {
+                        
                         $newValue = str_replace ($nrt, $nrthtml, nl2br ($aFields[$grdName]));
                         $newValue = urlencode ($aFields[$grdName]);
                         $newValue = stripcslashes ($aFields[$grdName]);
-
-                        $strContentAux .= str_replace ("[" . $grdName . "]", $newValue, $strContentAux1);
+    
+                        $strContentAux1 = str_replace ("[" . $grdName . "]", $newValue, $strContentAux1);
                     }
                 }
             }
+            
+            $strContentAux = $strContentAux1;
         }
 
         $strContentAux = str_replace ($nrthtml, $nrt, $strContentAux);
@@ -1076,7 +1089,7 @@ class Cases
         {
             $this->getConnection ();
         }
-
+        
         $listing = false;
 
         $aObjectPermissions = $this->getAllObjects ($sProcessUID, $sApplicationUID, $sTasKUID, $sUserUID);
@@ -1118,16 +1131,10 @@ class Cases
             }
         }
 
-        $results = $this->objMysql->_select ("workflow.step_document", [], ["step_id" => 23]);
+        $results = $this->objMysql->_select ("workflow.step_document", [], ["step_id" => $sTasKUID]);
 
         $aOutputDocuments = array();
-        $aOutputDocuments[] = array(
-            'APP_DOC_UID' => 'char',
-            'DOC_UID' => 'char',
-            'APP_DOC_COMMENT' => 'char',
-            'APP_DOC_FILENAME' => 'char',
-            'APP_DOC_INDEX' => 'integer'
-        );
+
 
         foreach ($results as $aRow) {
 

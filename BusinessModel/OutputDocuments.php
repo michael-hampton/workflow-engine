@@ -39,6 +39,7 @@ class OutputDocuments
             }
 
             $results = $this->objMysql->_select ("workflow.output_document", [], $arrWhere);
+            
             $outputDocArray = array();
             foreach ($results as $aRow) {
                 if ( ($aRow['OUT_DOC_TITLE'] == null) || ($aRow['OUT_DOC_TITLE'] == "") )

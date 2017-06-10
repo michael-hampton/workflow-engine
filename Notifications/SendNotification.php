@@ -25,7 +25,7 @@ class SendNotification extends Notifications
      */
     public function setProjectId ($projectId)
     {
-        $this->projectId = $projectId;
+        $this->projectId = (int) $projectId;
     }
 
     public function getArrEmailAddresses ()
@@ -44,36 +44,7 @@ class SendNotification extends Notifications
      */
     public function setElementId ($elementId)
     {
-        $this->elementId = $elementId;
-    }
-
-    // Gets the parameters for the message
-    // The triggering status parameters should be defined as []
-    public function getMessageParameters ()
-    {
-
-        $pattern = "/\[([^\]]+)\]/";
-        $found = preg_match_all ($pattern, $this->message['message_subject'], $arrTest);
-        $found = preg_match_all ($pattern, $this->message['message_body'], $arrTest);
-
-        //$arrTest = array_merge ($arrTest1, $arrTest2);
-        $arrParameters = array();
-
-        $arrDone = array();
-
-        foreach ($arrTest as $strField) {
-            $strField = str_replace ("[", "", $strField);
-            $strField = str_replace ("]", "", $strField);
-
-            if ( !in_array ($strField, $arrDone) )
-            {
-                $arrParameters[] = $strField;
-            }
-
-            $arrDone[] = $strField;
-        }
-
-        return $arrParameters;
+        $this->elementId = (int) $elementId;
     }
 
     /**
@@ -83,13 +54,10 @@ class SendNotification extends Notifications
      * @param type $system
      * @return boolean
      */
-    public function buildEmail ($status, $arrData, $system = "task_manager", $blSendToAllParticipants = true)
+    public function buildEmail ($status, $objStep, $system = "task_manager", $blSendToAllParticipants = true)
     {
-        error_reporting (0);
-
         try {
             $this->setVariables ($status, $system);
-            $arrParameters = $this->getMessageParameters ();
 
             if ( empty ($this->message) )
             {
@@ -119,11 +87,12 @@ class SendNotification extends Notifications
                             {
                                 $objUsers = new UsersFactory();
                                 $arrUser = $objUsers->getUsers (array("filter" => "mike", "filterOption" => trim ($userParticipated)));
-                                
-                                if(isset($arrUser['data'][0]) && !empty($arrUser['data'][0])) {
+
+                                if ( isset ($arrUser['data'][0]) && !empty ($arrUser['data'][0]) )
+                                {
                                     $objUser = $arrUser['data'][0];
                                 }
-  
+
                                 if ( is_object ($objUser) && get_class ($objUser) === "Users" )
                                 {
                                     $emailAddress = $objUser->getUser_email ();
@@ -146,30 +115,12 @@ class SendNotification extends Notifications
                 }
             }
 
-            $pattern = "/\[([^\]]+)\]/";
-            $found = preg_match_all ($pattern, $this->message['message_subject'], $subjectKeys);
-            $found = preg_match_all ($pattern, $this->message['message_body'], $bodyKeys);
+            $objCases = new Cases();
 
+            $Fields = $objCases->getCaseVariables ($this->elementId, $_SESSION['user']['usrid'], $this->projectId, $status);
 
-            foreach ($subjectKeys[0] as $subjectKey) {
-                $subjectKey2 = str_replace ("[", "", $subjectKey);
-                $subjectKey2 = str_replace ("]", "", $subjectKey2);
-
-                if ( isset ($arrData[$subjectKey2]) )
-                {
-                    $this->subject = str_replace ($subjectKey, $arrData[$subjectKey2], $this->subject);
-                }
-            }
-
-            foreach ($bodyKeys[0] as $bodyKey) {
-                $subjectKey2 = str_replace ("[", "", $bodyKey);
-                $subjectKey2 = str_replace ("]", "", $subjectKey2);
-
-                if ( isset ($arrData[$subjectKey2]) )
-                {
-                    $this->body = str_replace ($bodyKey, $arrData[$subjectKey2], $this->body);
-                }
-            }
+            $this->subject = $objCases->replaceDataField ($this->subject, $Fields);
+            $this->body = $objCases->replaceDataField ($this->body, $Fields);
 
             $this->save ();
 
