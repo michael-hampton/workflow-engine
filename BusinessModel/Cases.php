@@ -843,6 +843,20 @@ class Cases
         $this->isInteger ($usr_uid, '$usr_uid');
         $this->validateUserId ($usr_uid);
 
+        $arrSystemVariables = array(
+            "WORKFLOW_NAME" => "getWorkflowName",
+            "STEP_NAME" => "getCurrentStep",
+            "ASSIGNED" => "getCurrent_user",
+            "DATE_COMPLETED" => "",
+            "COMPLETED" => "",
+            "id" => "getId",
+            "USER" => "getCurrent_user",
+            "PROJECT_ID" => "getParentId",
+            "STEP_ID" => "getCurrentStepId",
+            "WORKFLOW_ID" => "getWorkflow_id",
+            "STATUS" => "getStatus"
+        );
+
         $objCase = $this->getCaseInfo ($pro_uid, $app_uid);
 
         $arrayCaseVariable = [];
@@ -858,8 +872,9 @@ class Cases
                 $arrFields[] = $key;
             }
 
+
             $arrayCaseVariable = $this->__getFieldsAndValuesByDynaFormAndAppData (
-                    $arrFields, $objCase, $arrayCaseVariable
+                    $arrFields, $objCase, $arrSystemVariables
             );
         }
         else
@@ -879,24 +894,10 @@ class Cases
      *
      * return array Return array
      */
-    private function __getFieldsAndValuesByDynaFormAndAppData (array $form, Elements $objElements, array $caseVariable)
+    private function __getFieldsAndValuesByDynaFormAndAppData (array $form, Elements $objElements, array $caseVariables)
     {
         try {
             $caseVariableAux = [];
-
-            $arrSystemVariables = array(
-                "WORKFLOW_NAME" => "getWorkflowName",
-                "STEP_NAME" => "getCurrentStep",
-                "ASSIGNED" => "getCurrent_user",
-                "DATE_COMPLETED" => "",
-                "COMPLETED" => "",
-                "id" => "getId",
-                "USER" => "getCurrent_user",
-                "PROJECT_ID" => "getParentId",
-                "STEP_ID" => "getCurrentStepId",
-                "WORKFLOW_ID" => "getWorkflow_id",
-                "STATUS" => "getStatus"
-            );
 
             foreach ($form as $value) {
                 $field = $value;
@@ -911,18 +912,18 @@ class Cases
                         }
                     }
                 }
-                else
-                {
-                    
+            }
+
+            if ( !empty ($caseVariables) )
+            {
+                foreach ($caseVariables as $variableName => $functionName) {
+                    if ( trim ($functionName) !== "" )
+                    {
+                        $caseVariable[$variableName] = call_user_func (array($objElements, $functionName));
+                    }
                 }
             }
 
-            foreach ($arrSystemVariables as $variableName => $functionName) {
-                if ( trim ($functionName) !== "" )
-                {
-                    $caseVariable[$variableName] = call_user_func (array($objElements, $functionName));
-                }
-            }
 
             return $caseVariable;
         } catch (Exception $ex) {
@@ -940,39 +941,38 @@ class Cases
      *
      * return object Return an object with data of an OutputDocument
      */
-    public function addCasesOutputDocument ($projectId, $caseId, $outputDocumentUid, $userUid)
+    public function addCasesOutputDocument ($projectId, $caseId, $stepId, $outputDocumentUid, $userUid)
     {
         try {
-            $sApplication = $applicationUid;
+            $sApplication = $caseId;
             $sUserLogged = $userUid;
             $outputID = $outputDocumentUid;
 
             $oOutputDocument = new \OutputDocument();
             $aOD = $oOutputDocument->retrieveByPk ($outputID);
-            $Fields = $this->getCaseInfo ($projectId, $sApplication);
-            //$sFilename = preg_replace( '[^A-Za-z0-9_]', '_', \G::replaceDataField( $aOD['OUT_DOC_FILENAME'], $Fields['APP_DATA'] ) );
-            //$fileTags = $oFolder->parseTags ($aOD->getOutDocTags (), $sApplication);
-            //$lastDocVersion = $oAppDocument->getLastDocVersion( $outputID, $sApplication );
+            $Fields = $this->getCaseVariables ($caseId, $userUid, $projectId, $stepId);
+
+            $sFilename = preg_replace ('[^A-Za-z0-9_]', '_', $this->replaceDataField ($aOD->getOutDocFilename (), $Fields));
+
+            $fileTags = $aOD->getOutDocTags ();
 
             $objDocumentVersion = new DocumentVersion (array());
-            $lastDocVersion = $objDocumentVersion->getLastDocVersionByFilename ($filename);
+            $lastDocVersion = $objDocumentVersion->getLastDocVersionByFilename ($sFilename);
 
-
-            if ( ($aOD->getOutDocVersioning ()) && ($lastDocVersion != 0) )
+            if ( ($aOD->getOutDocVersioning () ) )
             {
                 $lastDocVersion ++;
-
-                //filename
-                //document_id
-                // document_type
+                $objDocumentVersion->create (array("filename" => $sFilename, "document_id" => $aOD->getOutDocUid (), "document_type" => "OUTPUT"));
             }
             else
             {
                 
             }
 
-            $sFilename = $aFields['APP_DOC_UID'] . "_" . $lastDocVersion;
-            $pathOutput  = '';
+            $sFilename = $aOD->getOutDocUid () . "_" . $lastDocVersion;
+            $pathOutput = $_SERVER['DOCUMENT_ROOT'] . "/FormBuilder/public/uploads/OutputDocuments/" . $projectId . "/";
+            $objFile = new FileUpload();
+            $objFile->mk_dir ($pathOutput);
 
             $aProperties = array();
             if ( trim ($aOD->getOutDocMedia ()) === "" )
@@ -1005,10 +1005,1098 @@ class Cases
                 $aProperties['report_generator'] = $aOD->getOutDocReportGenerator ();
             }
 
-            $this->generate ($outputID, $Fields['APP_DATA'], $pathOutput, $sFilename, $aOD->getOutDocTemplate (), (boolean) $aOD->getOutDocLandscape (), $aOD->getOutDocGenerate (), $aProperties, $applicationUid);
+            $aOD->generate ($outputID, $Fields, $pathOutput, $sFilename, $aOD->getOutDocTemplate (), (boolean) $aOD->getOutDocLandscape (), $aOD->getOutDocGenerate (), $aProperties);
         } catch (Exception $ex) {
-            
+            throw $ex;
         }
+    }
+
+    /* Returns content with [parameters] replaced with its values defined */
+
+    public function replaceDataField ($sContent, $aFields, $DBEngine = 'mysql')
+    {
+        $nrt = array("\n", "\r", "\t");
+        $nrthtml = array("(n /)", "(r /)", "(t /)");
+
+        $strContentAux = str_replace ($nrt, $nrthtml, $sContent);
+
+        $iOcurrences = preg_match_all ('/\[([^\]]+)\]/', $sContent, $arrayMatch1, PREG_PATTERN_ORDER | PREG_OFFSET_CAPTURE);
+        $nl2brRecursive = true;
+
+        if ( $iOcurrences )
+        {
+            $arrayGrid = array();
+
+            for ($i = 0; $i <= $iOcurrences - 1; $i++) {
+                $arrayGrid[] = $arrayMatch1[1][$i][0];
+            }
+
+            $arrayGrid = array_unique ($arrayGrid);
+
+            foreach ($arrayGrid as $index => $value) {
+                if ( $value !== "" )
+                {
+                    $grdName = $value;
+
+                    $strContentAux1 = $strContentAux;
+                    $strContentAux = null;
+
+                    if ( isset ($aFields[$grdName]) && trim ($aFields[$grdName]) !== "" )
+                    {
+                        $newValue = str_replace ($nrt, $nrthtml, nl2br ($aFields[$grdName]));
+                        $newValue = urlencode ($aFields[$grdName]);
+                        $newValue = stripcslashes ($aFields[$grdName]);
+
+                        $strContentAux .= str_replace ("[" . $grdName . "]", $newValue, $strContentAux1);
+                    }
+                }
+            }
+        }
+
+        $strContentAux = str_replace ($nrthtml, $nrt, $strContentAux);
+        $sContent = $strContentAux;
+
+        return $sContent;
+    }
+
+    /*
+     * get all generate document
+     *
+     * @name getAllGeneratedDocumentsCriteria
+     * @param string $sProcessUID
+     * @param string $sApplicationUID
+     * @param string $sTasKUID
+     * @param string $sUserUID
+     * @return object
+     */
+
+    public function getAllGeneratedDocumentsCriteria ($sProcessUID, $sApplicationUID, $sTasKUID, $sUserUID)
+    {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        $listing = false;
+
+        $aObjectPermissions = $this->getAllObjects ($sProcessUID, $sApplicationUID, $sTasKUID, $sUserUID);
+        if ( !is_array ($aObjectPermissions) )
+        {
+            $aObjectPermissions = array('DYNAFORMS' => array(-1), 'INPUT_DOCUMENTS' => array(-1), 'OUTPUT_DOCUMENTS' => array(-1));
+        }
+        if ( !isset ($aObjectPermissions['DYNAFORMS']) )
+        {
+            $aObjectPermissions['DYNAFORMS'] = array(-1);
+        }
+        else
+        {
+            if ( !is_array ($aObjectPermissions['DYNAFORMS']) )
+            {
+                $aObjectPermissions['DYNAFORMS'] = array(-1);
+            }
+        }
+        if ( !isset ($aObjectPermissions['INPUT_DOCUMENTS']) )
+        {
+            $aObjectPermissions['INPUT_DOCUMENTS'] = array(-1);
+        }
+        else
+        {
+            if ( !is_array ($aObjectPermissions['INPUT_DOCUMENTS']) )
+            {
+                $aObjectPermissions['INPUT_DOCUMENTS'] = array(-1);
+            }
+        }
+        if ( !isset ($aObjectPermissions['OUTPUT_DOCUMENTS']) )
+        {
+            $aObjectPermissions['OUTPUT_DOCUMENTS'] = array(-1);
+        }
+        else
+        {
+            if ( !is_array ($aObjectPermissions['OUTPUT_DOCUMENTS']) )
+            {
+                $aObjectPermissions['OUTPUT_DOCUMENTS'] = array(-1);
+            }
+        }
+
+        $results = $this->objMysql->_select ("workflow.step_document", [], ["step_id" => 23]);
+
+        $aOutputDocuments = array();
+        $aOutputDocuments[] = array(
+            'APP_DOC_UID' => 'char',
+            'DOC_UID' => 'char',
+            'APP_DOC_COMMENT' => 'char',
+            'APP_DOC_FILENAME' => 'char',
+            'APP_DOC_INDEX' => 'integer'
+        );
+
+        foreach ($results as $aRow) {
+
+            $oAppDocument = new DocumentVersion();
+
+            $lastVersion = $oAppDocument->getLastDocVersion ($aRow['document_id']);
+
+            if ( $aRow['document_type'] == 1 )
+            {
+                $aAux = $oAppDocument->load ($aRow['document_id'], $lastVersion);
+
+                $oOutputDocument = new OutputDocument();
+                $aGields = $oOutputDocument->retrieveByPk ($aRow['document_id']);
+                //OUTPUTDOCUMENT
+                $outDocTitle = $aGields->getOutDocTitle ();
+                switch ($aGields->getOutDocGenerate ()) {
+                    case "PDF":
+                        $fileDoc = 'javascript:alert("NO DOC")';
+                        $fileDocLabel = " ";
+                        $filePdf = 'cases/cases_ShowOutputDocument?a=' .
+                                $aRow['id'] . '&v=' . $lastVersion . '&ext=pdf&random=' . rand ();
+                        $filePdfLabel = ".pdf";
+                        if ( is_array ($listing) )
+                        {
+                            foreach ($listing as $folderitem) {
+                                if ( ($folderitem->filename == $aRow['APP_DOC_UID']) && ($folderitem->type == "PDF") )
+                                {
+                                    $filePdfLabel = \G::LoadTranslation ('ID_GET_EXTERNAL_FILE') . " .pdf";
+                                    $filePdf = $folderitem->downloadScript;
+                                    continue;
+                                }
+                            }
+                        }
+                        break;
+
+                    case "DOC":
+                        $fileDoc = 'cases/cases_ShowOutputDocument?a=' .
+                                $aRow['id'] . '&v=' . $lastVersion . '&ext=doc&random=' . rand ();
+                        $fileDocLabel = ".doc";
+                        $filePdf = 'javascript:alert("NO PDF")';
+                        $filePdfLabel = " ";
+                        if ( is_array ($listing) )
+                        {
+                            foreach ($listing as $folderitem) {
+                                if ( ($folderitem->filename == $aRow['id']) && ($folderitem->type == "DOC") )
+                                {
+                                    $fileDocLabel = \G::LoadTranslation ('ID_GET_EXTERNAL_FILE') . " .doc";
+                                    $fileDoc = $folderitem->downloadScript;
+                                    continue;
+                                }
+                            }
+                        }
+                        break;
+
+                    case "BOTH":
+                        $fileDoc = 'cases/cases_ShowOutputDocument?a=' .
+                                $aRow['id'] . '&v=' . $lastVersion . '&ext=doc&random=' . rand ();
+                        $fileDocLabel = ".doc";
+                        if ( is_array ($listing) )
+                        {
+                            foreach ($listing as $folderitem) {
+                                if ( ($folderitem->filename == $aRow['APP_DOC_UID']) && ($folderitem->type == "DOC") )
+                                {
+                                    $fileDocLabel = G::LoadTranslation ('ID_GET_EXTERNAL_FILE') . " .doc";
+                                    $fileDoc = $folderitem->downloadScript;
+                                    continue;
+                                }
+                            }
+                        }
+                        $filePdf = 'cases/cases_ShowOutputDocument?a=' .
+                                $aRow['id'] . '&v=' . $lastVersion . '&ext=pdf&random=' . rand ();
+                        $filePdfLabel = ".pdf";
+
+                        if ( is_array ($listing) )
+                        {
+                            foreach ($listing as $folderitem) {
+                                if ( ($folderitem->filename == $aRow['APP_DOC_UID']) && ($folderitem->type == "PDF") )
+                                {
+                                    $filePdfLabel = \G::LoadTranslation ('ID_GET_EXTERNAL_FILE') . " .pdf";
+                                    $filePdf = $folderitem->downloadScript;
+                                    continue;
+                                }
+                            }
+                        }
+                        break;
+                }
+
+                try {
+                    $oUser = new UsersFactory();
+                    $aAux1 = $oUser->getUser ($aAux['user_id']);
+
+                    $sUser = $this->usersNameFormatBySetParameters ("@lastName, @firstName (@userName)", $aAux1->getUsername (), $aAux1->getFirstName (), $aAux1->getLastName ());
+                } catch (\Exception $oException) {
+                    $sUser = '(USER DELETED)';
+                }
+
+                //if both documents were generated, we choose the pdf one, only if doc was
+                //generate then choose the doc file.
+                $firstDocLink = $filePdf;
+                $firstDocLabel = $filePdfLabel;
+                if ( $aGields->getOutDocGenerate () == 'DOC' )
+                {
+                    $firstDocLink = $fileDoc;
+                    $firstDocLabel = $fileDocLabel;
+                }
+                $aFields = array(
+                    'APP_DOC_UID' => $aAux['id'],
+                    'DOC_UID' => $aAux['document_id'],
+                    // 'APP_DOC_COMMENT' => $aAux['APP_DOC_COMMENT'],
+                    'APP_DOC_FILENAME' => $aAux['filename'],
+                    // 'APP_DOC_INDEX' => $aAux['APP_DOC_INDEX'],
+                    // 'ORIGIN' => $aTask['TAS_TITLE'],
+                    'CREATE_DATE' => $aAux['date_created'],
+                    'CREATED_BY' => $sUser,
+                    'FILEDOC' => $fileDoc,
+                    'FILEPDF' => $filePdf,
+                    'OUTDOCTITLE' => $outDocTitle,
+                    'DOC_VERSION' => $aAux['document_version'],
+                    'TYPE' => $aAux['document_type'] . ' ' . $aGields->getOutDocGenerate (),
+                    'DOWNLOAD_LINK' => $firstDocLink,
+                    'DOWNLOAD_FILE' => $aAux['filename'] . $firstDocLabel
+                );
+                if ( trim ($fileDocLabel) != '' )
+                {
+                    $aFields['FILEDOCLABEL'] = $fileDocLabel;
+                }
+                if ( trim ($filePdfLabel) != '' )
+                {
+                    $aFields['FILEPDFLABEL'] = $filePdfLabel;
+                }
+                if ( $aFields['APP_DOC_FILENAME'] != '' )
+                {
+                    $aFields['TITLE'] = $aFields['APP_DOC_FILENAME'];
+                }
+                else
+                {
+                    $aFields['TITLE'] = $aFields['APP_DOC_COMMENT'];
+                }
+
+                //$aFields['POSITION'] = $_SESSION['STEP_POSITION'];
+                $aFields['CONFIRM'] = 'ID_CONFIRM_DELETE_ELEMENT';
+                if ( in_array ($aRow['id'], $aObjectPermissions['OUTPUT_DOCUMENTS']) )
+                {
+                    if ( in_array ($aRow['id'], $aDelete['OUTPUT_DOCUMENTS']) )
+                    {
+                        $aFields['ID_DELETE'] = 'ID_DELETE';
+                    }
+                }
+                $aOutputDocuments[] = $aFields;
+            }
+        }
+
+        return $aOutputDocuments;
+    }
+
+    public function usersNameFormatBySetParameters ($formatUserName, $userName, $firstName, $lastName)
+    {
+        $usersNameFormat = str_replace (array("@userName", "@firstName", "@lastName"), array($userName, $firstName, $lastName), $formatUserName);
+        $usersNameFormat = trim ($usersNameFormat);
+
+        return $usersNameFormat;
+    }
+
+    /**
+
+     * Obtain all user permits for Dynaforms, Input and output documents
+
+     * function getAllObjects ($PRO_UID, $APP_UID, $TAS_UID, $USR_UID)
+
+     * @access public
+
+     * @param  Process ID, Application ID, Task ID and User ID
+
+     * @return Array within all user permissions all objects' types
+
+     */
+    public function getAllObjects ($PRO_UID, $APP_UID, $TAS_UID = '', $USR_UID = '', $delIndex = 0)
+    {
+
+        $ACTIONS = Array('VIEW', 'BLOCK', 'DELETE'); //TO COMPLETE
+
+        $MAIN_OBJECTS = Array();
+
+        $RESULT_OBJECTS = Array();
+
+        foreach ($ACTIONS as $action) {
+
+            $MAIN_OBJECTS[$action] = $this->getAllObjectsFrom ($PRO_UID, $APP_UID, $TAS_UID, $USR_UID, $action, $delIndex);
+        }
+
+        /* ADDITIONAL OPERATIONS */
+
+        /*         * * BETWEN VIEW AND BLOCK** */
+
+        $RESULT_OBJECTS['DYNAFORMS'] = $this->arrayDiff (
+                $MAIN_OBJECTS['VIEW']['DYNAFORMS'], $MAIN_OBJECTS['BLOCK']['DYNAFORMS']
+        );
+
+        $RESULT_OBJECTS['INPUT_DOCUMENTS'] = $this->arrayDiff (
+                $MAIN_OBJECTS['VIEW']['INPUT_DOCUMENTS'], $MAIN_OBJECTS['BLOCK']['INPUT_DOCUMENTS']
+        );
+
+        $RESULT_OBJECTS['OUTPUT_DOCUMENTS'] = array_merge_recursive (
+                $this->arrayDiff ($MAIN_OBJECTS['VIEW']['OUTPUT_DOCUMENTS'], $MAIN_OBJECTS['BLOCK']['OUTPUT_DOCUMENTS']), $this->arrayDiff ($MAIN_OBJECTS['DELETE']['OUTPUT_DOCUMENTS'], $MAIN_OBJECTS['BLOCK']['OUTPUT_DOCUMENTS'])
+        );
+
+        $RESULT_OBJECTS['CASES_NOTES'] = $this->arrayDiff (
+                $MAIN_OBJECTS['VIEW']['CASES_NOTES'], $MAIN_OBJECTS['BLOCK']['CASES_NOTES']
+        );
+
+        array_push ($RESULT_OBJECTS["DYNAFORMS"], -1, -2);
+
+        array_push ($RESULT_OBJECTS['INPUT_DOCUMENTS'], -1);
+
+        array_push ($RESULT_OBJECTS['OUTPUT_DOCUMENTS'], -1);
+
+        array_push ($RESULT_OBJECTS['CASES_NOTES'], -1);
+
+        return [];
+
+
+        return $RESULT_OBJECTS;
+    }
+
+    public function arrayDiff ($array1, $array2)
+    {
+        if ( !is_array ($array1) )
+        {
+            $array1 = (array) $array1;
+        }
+
+        if ( !is_array ($array2) )
+        {
+            $array2 = (array) $array2;
+        }
+
+        // This wrapper for array_diff rekeys the array returned
+        $valid_array = array_diff ($array1, $array2);
+
+        // reinstantiate $array1 variable
+        $array1 = array();
+
+        // loop through the validated array and move elements to $array1
+        // this is necessary because the array_diff function returns arrays that retain their original keys
+        foreach ($valid_array as $valid) {
+            $array1[] = $valid;
+        }
+        return $array1;
+    }
+
+    /**
+
+     * Obtain all user permits for Dynaforms, Input and output documents from some action [VIEW, BLOCK, etc...]
+
+     * function getAllObjectsFrom ($PRO_UID, $APP_UID, $TAS_UID, $USR_UID, $ACTION)
+
+     * @author Erik Amaru Ortiz <erik@colosa.com>
+
+     * @access public
+
+     * @param  Process ID, Application ID, Task ID, User ID, Action, Delegation index
+
+     * @return Array within all user permitions all objects' types
+
+     */
+    public function getAllObjectsFrom ($PRO_UID, $APP_UID, $TAS_UID = "", $USR_UID = "", $ACTION = "", $delIndex = 0)
+    {
+
+//        $aCase = $this->loadCase ($APP_UID);
+//
+//
+//
+//        if ( $delIndex != 0 )
+//        {
+//
+//            $appDelay = new AppDelay();
+//
+//
+//
+//            if ( $appDelay->isPaused ($APP_UID, $delIndex) )
+//            {
+//
+//                $aCase["APP_STATUS"] = "PAUSED";
+//            }
+//        }
+//
+//
+//
+//        $USER_PERMISSIONS = Array();
+//
+//        $GROUP_PERMISSIONS = Array();
+//
+//        $RESULT = Array(
+//            "DYNAFORM" => Array(),
+//            "INPUT" => Array(),
+//            "OUTPUT" => Array(),
+//            "CASES_NOTES" => 0,
+//            "MSGS_HISTORY" => Array()
+//
+//                /* ----------------------------------********--------------------------------- */
+//        );
+//
+//
+//
+//        //permissions per user
+//
+//        $oCriteria = new Criteria ('workflow');
+//
+//        $oCriteria->add (
+//                $oCriteria->getNewCriterion (ObjectPermissionPeer::USR_UID, $USR_UID)->addOr (
+//                        $oCriteria->getNewCriterion (ObjectPermissionPeer::USR_UID, '')->addOr (
+//                                $oCriteria->getNewCriterion (ObjectPermissionPeer::USR_UID, '0')
+//                        )
+//                )
+//        );
+//
+//        $oCriteria->add (ObjectPermissionPeer::PRO_UID, $PRO_UID);
+//
+//        $oCriteria->add (ObjectPermissionPeer::OP_ACTION, $ACTION);
+//
+//        $oCriteria->add (
+//                $oCriteria->getNewCriterion (ObjectPermissionPeer::TAS_UID, $TAS_UID)->addOr (
+//                        $oCriteria->getNewCriterion (ObjectPermissionPeer::TAS_UID, '')->addOr (
+//                                $oCriteria->getNewCriterion (ObjectPermissionPeer::TAS_UID, '0')
+//                        )
+//                )
+//        );
+//
+//
+//
+//        $rs = ObjectPermissionPeer::doSelectRS ($oCriteria);
+//
+//        $rs->setFetchmode (ResultSet::FETCHMODE_ASSOC);
+//
+//
+//
+//        while ($rs->next ()) {
+//
+//            $row = $rs->getRow ();
+//
+//
+//
+//            if ( $row["OP_CASE_STATUS"] == "ALL" || $row["OP_CASE_STATUS"] == "" || $row["OP_CASE_STATUS"] == "0" ||
+//                    $row["OP_CASE_STATUS"] == $aCase["APP_STATUS"]
+//            )
+//            {
+//
+//                array_push ($USER_PERMISSIONS, $row);
+//            }
+//        }
+//
+//
+//
+//        //permissions per group
+//
+//        G::loadClass ('groups');
+//
+//
+//
+//        $gr = new Groups();
+//
+//        $records = $gr->getActiveGroupsForAnUser ($USR_UID);
+//
+//
+//
+//        foreach ($records as $group) {
+//
+//            $oCriteria = new Criteria ('workflow');
+//
+//            $oCriteria->add (ObjectPermissionPeer::USR_UID, $group);
+//
+//            $oCriteria->add (ObjectPermissionPeer::PRO_UID, $PRO_UID);
+//
+//            $oCriteria->add (ObjectPermissionPeer::OP_ACTION, $ACTION);
+//
+//            $oCriteria->add (
+//                    $oCriteria->getNewCriterion (ObjectPermissionPeer::TAS_UID, $TAS_UID)->addOr (
+//                            $oCriteria->getNewCriterion (ObjectPermissionPeer::TAS_UID, '')->addOr (
+//                                    $oCriteria->getNewCriterion (ObjectPermissionPeer::TAS_UID, '0')
+//                            )
+//                    )
+//            );
+//
+//
+//
+//            $rs = ObjectPermissionPeer::doSelectRS ($oCriteria);
+//
+//            $rs->setFetchmode (ResultSet::FETCHMODE_ASSOC);
+//
+//            while ($rs->next ()) {
+//
+//                $row = $rs->getRow ();
+//
+//
+//
+//                if ( $row["OP_CASE_STATUS"] == "ALL" || $row["OP_CASE_STATUS"] == "" || $row["OP_CASE_STATUS"] == "0" ||
+//                        $row["OP_CASE_STATUS"] == $aCase["APP_STATUS"]
+//                )
+//                {
+//
+//                    array_push ($GROUP_PERMISSIONS, $row);
+//                }
+//            }
+//        }
+//
+//
+//
+//        $PERMISSIONS = array_merge ($USER_PERMISSIONS, $GROUP_PERMISSIONS);
+//
+//
+//
+//        foreach ($PERMISSIONS as $row) {
+//
+//            $USER = $row['USR_UID'];
+//
+//            $USER_RELATION = $row['OP_USER_RELATION'];
+//
+//            $TASK_SOURCE = $row['OP_TASK_SOURCE'];
+//
+//            $PARTICIPATE = $row['OP_PARTICIPATE'];
+//
+//            $O_TYPE = $row['OP_OBJ_TYPE'];
+//
+//            $O_UID = $row['OP_OBJ_UID'];
+//
+//            $ACTION = $row['OP_ACTION'];
+//
+//            $CASE_STATUS = $row['OP_CASE_STATUS'];
+//
+//
+//
+//            // here!,. we should verify $PARTICIPATE
+//
+//            $sw_participate = false; // must be false for default
+//
+//            if ( ($row['OP_CASE_STATUS'] != 'COMPLETED') && ($row['OP_CASE_STATUS'] != '') && ($row['OP_CASE_STATUS'] != '0') )
+//            {
+//
+//                if ( $PARTICIPATE == 1 )
+//                {
+//
+//                    $oCriteriax = new Criteria ('workflow');
+//
+//                    $oCriteriax->add (AppDelegationPeer::USR_UID, $USR_UID);
+//
+//                    $oCriteriax->add (AppDelegationPeer::APP_UID, $APP_UID);
+//
+//
+//
+//                    if ( AppDelegationPeer::doCount ($oCriteriax) == 0 )
+//                    {
+//
+//                        $sw_participate = true;
+//                    }
+//                }
+//            }
+//
+//            if ( !$sw_participate )
+//            {
+//
+//                switch ($O_TYPE) {
+//
+//                    case 'ANY':
+//
+//                        //for dynaforms
+//
+//                        $oCriteria = new Criteria ('workflow');
+//
+//                        $oCriteria->add (ApplicationPeer::APP_UID, $APP_UID);
+//
+//                        $oCriteria->addJoin (ApplicationPeer::PRO_UID, StepPeer::PRO_UID);
+//
+//                        $oCriteria->addJoin (StepPeer::STEP_UID_OBJ, DynaformPeer::DYN_UID);
+//
+//                        if ( $aCase['APP_STATUS'] != 'COMPLETED' )
+//                        {
+//
+//                            if ( $TASK_SOURCE != '' && $TASK_SOURCE != "0" && $TASK_SOURCE != 0 )
+//                            {
+//
+//                                $oCriteria->add (StepPeer::TAS_UID, $TASK_SOURCE);
+//                            }
+//                        }
+//
+//                        $oCriteria->add (StepPeer::STEP_TYPE_OBJ, 'DYNAFORM');
+//
+//                        $oCriteria->addAscendingOrderByColumn (StepPeer::STEP_POSITION);
+//
+//                        $oCriteria->setDistinct ();
+//
+//
+//
+//                        $oDataset = DynaformPeer::doSelectRS ($oCriteria);
+//
+//                        $oDataset->setFetchmode (ResultSet::FETCHMODE_ASSOC);
+//
+//                        $oDataset->next ();
+//
+//
+//
+//                        while ($aRow = $oDataset->getRow ()) {
+//
+//                            if ( !in_array ($aRow['DYN_UID'], $RESULT['DYNAFORM']) )
+//                            {
+//
+//                                array_push ($RESULT['DYNAFORM'], $aRow['DYN_UID']);
+//                            }
+//
+//                            $oDataset->next ();
+//                        }
+//
+//
+//
+//                        //InputDocuments and OutputDocuments
+//
+//                        $oCriteria = new Criteria ('workflow');
+//
+//                        $oCriteria->addSelectColumn (AppDocumentPeer::APP_DOC_UID);
+//
+//                        $oCriteria->addSelectColumn (AppDocumentPeer::APP_DOC_TYPE);
+//
+//
+//
+//                        $arrayCondition = array();
+//
+//                        $arrayCondition[] = array(AppDelegationPeer::APP_UID, AppDocumentPeer::APP_UID, Criteria::EQUAL);
+//
+//                        $arrayCondition[] = array(AppDelegationPeer::DEL_INDEX, AppDocumentPeer::DEL_INDEX, Criteria::EQUAL);
+//
+//                        $oCriteria->addJoinMC ($arrayCondition, Criteria::LEFT_JOIN);
+//
+//
+//
+//                        $oCriteria->add (AppDelegationPeer::APP_UID, $APP_UID);
+//
+//                        $oCriteria->add (AppDelegationPeer::PRO_UID, $PRO_UID);
+//
+//                        if ( $aCase['APP_STATUS'] != 'COMPLETED' )
+//                        {
+//
+//                            if ( $TASK_SOURCE != '' && $TASK_SOURCE != "0" && $TASK_SOURCE != 0 )
+//                            {
+//
+//                                $oCriteria->add (AppDelegationPeer::TAS_UID, $TASK_SOURCE);
+//                            }
+//                        }
+//
+//                        $oCriteria->add (
+//                                $oCriteria->getNewCriterion (AppDocumentPeer::APP_DOC_TYPE, 'INPUT')->
+//                                        addOr ($oCriteria->getNewCriterion (AppDocumentPeer::APP_DOC_TYPE, 'OUTPUT'))->
+//                                        addOr ($oCriteria->
+//                                                getNewCriterion (AppDocumentPeer::APP_DOC_TYPE, 'ATTACHED'))
+//                        );
+//
+//
+//
+//                        $oDataset = AppDelegationPeer::doSelectRS ($oCriteria);
+//
+//                        $oDataset->setFetchmode (ResultSet::FETCHMODE_ASSOC);
+//
+//
+//
+//                        while ($oDataset->next ()) {
+//
+//                            $aRow = $oDataset->getRow ();
+//
+//
+//
+//                            if ( $aRow['APP_DOC_TYPE'] == "ATTACHED" )
+//                            {
+//
+//                                $aRow['APP_DOC_TYPE'] = "INPUT";
+//                            }
+//
+//                            if ( !in_array ($aRow['APP_DOC_UID'], $RESULT[$aRow['APP_DOC_TYPE']]) )
+//                            {
+//
+//                                array_push ($RESULT[$aRow['APP_DOC_TYPE']], $aRow['APP_DOC_UID']);
+//                            }
+//                        }
+//
+//
+//
+//                        $RESULT['CASES_NOTES'] = 1;
+//
+//                        /* ----------------------------------********--------------------------------- */
+//
+//
+//
+//                        // Message History
+//
+//                        $RESULT['MSGS_HISTORY'] = array('PERMISSION' => $ACTION);
+//
+//
+//
+//                        $arrayDelIndex = array();
+//
+//
+//
+//                        $oCriteria = new Criteria ('workflow');
+//
+//                        if ( $USER_RELATION == 1 )
+//                        {
+//
+//                            //Users
+//
+//                            $oCriteria->add (AppDelegationPeer::APP_UID, $APP_UID);
+//
+//                            $oCriteria->add (AppDelegationPeer::PRO_UID, $PRO_UID);
+//
+//                            if ( $aCase['APP_STATUS'] != 'COMPLETED' )
+//                            {
+//
+//                                if ( $TASK_SOURCE != '' && $TASK_SOURCE != "0" && $TASK_SOURCE != 0 )
+//                                {
+//
+//                                    $oCriteria->add (AppDelegationPeer::TAS_UID, $TASK_SOURCE);
+//                                }
+//                            }
+//
+//                            $oCriteria->add (AppDelegationPeer::USR_UID, $USER);
+//
+//
+//
+//                            $oDataset = AppDelegationPeer::doSelectRS ($oCriteria);
+//
+//                            $oDataset->setFetchmode (ResultSet::FETCHMODE_ASSOC);
+//
+//                            $oDataset->next ();
+//
+//                            while ($aRow = $oDataset->getRow ()) {
+//
+//                                $arrayDelIndex[] = $aRow["DEL_INDEX"];
+//
+//                                $oDataset->next ();
+//                            }
+//                        }
+//                        else
+//                        {
+//
+//                            //Groups
+//
+//                            $oCriteria->addJoin (GroupUserPeer::USR_UID, AppDelegationPeer::USR_UID, Criteria::LEFT_JOIN);
+//
+//                            $oCriteria->add (GroupUserPeer::GRP_UID, $USER);
+//
+//                            $oCriteria->add (AppDelegationPeer::APP_UID, $APP_UID);
+//
+//                            $oCriteria->add (AppDelegationPeer::PRO_UID, $PRO_UID);
+//
+//                            if ( $aCase['APP_STATUS'] != 'COMPLETED' )
+//                            {
+//
+//                                if ( $TASK_SOURCE != '' && $TASK_SOURCE != "0" && $TASK_SOURCE != 0 )
+//                                {
+//
+//                                    $oCriteria->add (AppDelegationPeer::TAS_UID, $TASK_SOURCE);
+//                                }
+//                            }
+//
+//
+//
+//                            $oDataset = AppDelegationPeer::doSelectRS ($oCriteria);
+//
+//                            $oDataset->setFetchmode (ResultSet::FETCHMODE_ASSOC);
+//
+//                            $oDataset->next ();
+//
+//                            while ($aRow = $oDataset->getRow ()) {
+//
+//                                $arrayDelIndex[] = $aRow["DEL_INDEX"];
+//
+//                                $oDataset->next ();
+//                            }
+//                        }
+//
+//                        $RESULT["MSGS_HISTORY"] = array_merge (array("DEL_INDEX" => $arrayDelIndex), $RESULT["MSGS_HISTORY"]);
+//
+//                        break;
+//
+//                    case 'DYNAFORM':
+//
+//                        $oCriteria = new Criteria ('workflow');
+//
+//                        $oCriteria->add (ApplicationPeer::APP_UID, $APP_UID);
+//
+//                        if ( $TASK_SOURCE != '' && $TASK_SOURCE != "0" )
+//                        {
+//
+//                            $oCriteria->add (StepPeer::TAS_UID, $TASK_SOURCE);
+//                        }
+//
+//                        if ( $O_UID != '' && $O_UID != '0' )
+//                        {
+//
+//                            $oCriteria->add (DynaformPeer::DYN_UID, $O_UID);
+//                        }
+//
+//                        $oCriteria->addJoin (ApplicationPeer::PRO_UID, StepPeer::PRO_UID);
+//
+//                        $oCriteria->addJoin (StepPeer::STEP_UID_OBJ, DynaformPeer::DYN_UID);
+//
+//                        $oCriteria->add (StepPeer::STEP_TYPE_OBJ, 'DYNAFORM');
+//
+//                        $oCriteria->addAscendingOrderByColumn (StepPeer::STEP_POSITION);
+//
+//                        $oCriteria->setDistinct ();
+//
+//
+//
+//                        $oDataset = DynaformPeer::doSelectRS ($oCriteria);
+//
+//                        $oDataset->setFetchmode (ResultSet::FETCHMODE_ASSOC);
+//
+//                        $oDataset->next ();
+//
+//
+//
+//                        while ($aRow = $oDataset->getRow ()) {
+//
+//                            if ( !in_array ($aRow['DYN_UID'], $RESULT['DYNAFORM']) )
+//                            {
+//
+//                                array_push ($RESULT['DYNAFORM'], $aRow['DYN_UID']);
+//                            }
+//
+//                            $oDataset->next ();
+//                        }
+//
+//                        break;
+//
+//                    case 'INPUT':
+//
+//                    case 'OUTPUT':
+//
+//                        if ( $row['OP_OBJ_TYPE'] == 'INPUT' )
+//                        {
+//
+//                            $obj_type = 'INPUT';
+//                        }
+//                        else
+//                        {
+//
+//                            $obj_type = 'OUTPUT';
+//                        }
+//
+//                        $oCriteria = new Criteria ('workflow');
+//
+//                        $oCriteria->addSelectColumn (AppDocumentPeer::APP_DOC_UID);
+//
+//                        $oCriteria->addSelectColumn (AppDocumentPeer::APP_DOC_TYPE);
+//
+//                        $oCriteria->add (AppDelegationPeer::APP_UID, $APP_UID);
+//
+//                        $oCriteria->add (AppDelegationPeer::PRO_UID, $PRO_UID);
+//
+//                        if ( $aCase['APP_STATUS'] != 'COMPLETED' )
+//                        {
+//
+//                            if ( $TASK_SOURCE != '' && $TASK_SOURCE != "0" && $TASK_SOURCE != 0 )
+//                            {
+//
+//                                $oCriteria->add (AppDelegationPeer::TAS_UID, $TASK_SOURCE);
+//                            }
+//                        }
+//
+//                        if ( $O_UID != '' && $O_UID != '0' )
+//                        {
+//
+//                            $oCriteria->add (AppDocumentPeer::DOC_UID, $O_UID);
+//                        }
+//
+//                        if ( $obj_type == 'INPUT' )
+//                        {
+//
+//                            $oCriteria->add (
+//                                    $oCriteria->getNewCriterion (AppDocumentPeer::APP_DOC_TYPE, $obj_type)->
+//                                            addOr ($oCriteria->getNewCriterion (AppDocumentPeer::APP_DOC_TYPE, 'ATTACHED'))
+//                            );
+//                        }
+//                        else
+//                        {
+//
+//                            $oCriteria->add (AppDocumentPeer::APP_DOC_TYPE, $obj_type);
+//                        }
+//
+//
+//
+//                        $aConditions = Array();
+//
+//                        $aConditions[] = array(AppDelegationPeer::APP_UID, AppDocumentPeer::APP_UID);
+//
+//                        $aConditions[] = array(AppDelegationPeer::DEL_INDEX, AppDocumentPeer::DEL_INDEX);
+//
+//                        $oCriteria->addJoinMC ($aConditions, Criteria::LEFT_JOIN);
+//
+//
+//
+//                        $oDataset = AppDocumentPeer::doSelectRS ($oCriteria);
+//
+//                        $oDataset->setFetchmode (ResultSet::FETCHMODE_ASSOC);
+//
+//                        $oDataset->next ();
+//
+//                        while ($aRow = $oDataset->getRow ()) {
+//
+//                            if ( !in_array ($aRow['APP_DOC_UID'], $RESULT[$obj_type]) )
+//                            {
+//
+//                                array_push ($RESULT[$obj_type], $aRow['APP_DOC_UID']);
+//                            }
+//
+//                            $oDataset->next ();
+//                        }
+//
+//                        if ( $obj_type == 'INPUT' )
+//                        {
+//
+//                            // For supervisor documents
+//
+//                            $oCriteria = new Criteria ('workflow');
+//
+//                            $oCriteria->addSelectColumn (AppDocumentPeer::APP_DOC_UID);
+//
+//                            $oCriteria->addSelectColumn (AppDocumentPeer::APP_DOC_TYPE);
+//
+//                            $oCriteria->add (ApplicationPeer::APP_UID, $APP_UID);
+//
+//                            $oCriteria->add (ApplicationPeer::PRO_UID, $PRO_UID);
+//
+//                            if ( $O_UID != '' && $O_UID != '0' )
+//                            {
+//
+//                                $oCriteria->add (AppDocumentPeer::DOC_UID, $O_UID);
+//                            }
+//
+//                            $oCriteria->add (AppDocumentPeer::APP_DOC_TYPE, 'INPUT');
+//
+//                            $oCriteria->add (AppDocumentPeer::DEL_INDEX, 100000);
+//
+//
+//
+//                            $oCriteria->addJoin (ApplicationPeer::APP_UID, AppDocumentPeer::APP_UID, Criteria::LEFT_JOIN);
+//
+//
+//
+//                            $oDataset = AppDocumentPeer::doSelectRS ($oCriteria);
+//
+//                            $oDataset->setFetchmode (ResultSet::FETCHMODE_ASSOC);
+//
+//                            $oDataset->next ();
+//
+//                            while ($aRow = $oDataset->getRow ()) {
+//
+//                                if ( !in_array ($aRow['APP_DOC_UID'], $RESULT['INPUT']) )
+//                                {
+//
+//                                    array_push ($RESULT['INPUT'], $aRow['APP_DOC_UID']);
+//                                }
+//
+//                                $oDataset->next ();
+//                            }
+//                        }
+//
+//                        break;
+//
+//                    case 'CASES_NOTES':
+//
+//                        $RESULT['CASES_NOTES'] = 1;
+//
+//                        break;
+//
+//                    /* ----------------------------------********--------------------------------- */
+//
+//                    case 'MSGS_HISTORY':
+//
+//                        // Permission
+//
+//                        $RESULT['MSGS_HISTORY'] = array('PERMISSION' => $ACTION);
+//
+//                        $arrayDelIndex = array();
+//
+//                        $oCriteria = new Criteria ('workflow');
+//
+//                        if ( $USER_RELATION == 1 )
+//                        {
+//
+//                            $oCriteria->add (AppDelegationPeer::APP_UID, $APP_UID);
+//
+//                            $oCriteria->add (AppDelegationPeer::PRO_UID, $PRO_UID);
+//
+//                            if ( $aCase['APP_STATUS'] != 'COMPLETED' )
+//                            {
+//
+//                                if ( $TASK_SOURCE != '' && $TASK_SOURCE != "0" && $TASK_SOURCE != 0 )
+//                                {
+//
+//                                    $oCriteria->add (AppDelegationPeer::TAS_UID, $TASK_SOURCE);
+//                                }
+//                            }
+//
+//                            $oCriteria->add (AppDelegationPeer::USR_UID, $USER);
+//
+//                            $oDataset = AppDelegationPeer::doSelectRS ($oCriteria);
+//
+//                            $oDataset->setFetchmode (ResultSet::FETCHMODE_ASSOC);
+//
+//                            $oDataset->next ();
+//
+//                            while ($aRow = $oDataset->getRow ()) {
+//
+//                                $arrayDelIndex[] = $aRow["DEL_INDEX"];
+//
+//                                $oDataset->next ();
+//                            }
+//                        }
+//                        else
+//                        {
+//
+//                            //Groups
+//
+//                            $oCriteria->addJoin (GroupUserPeer::USR_UID, AppDelegationPeer::USR_UID, Criteria::LEFT_JOIN);
+//
+//                            $oCriteria->add (GroupUserPeer::GRP_UID, $USER);
+//
+//                            $oCriteria->add (AppDelegationPeer::APP_UID, $APP_UID);
+//
+//                            $oCriteria->add (AppDelegationPeer::PRO_UID, $PRO_UID);
+//
+//                            if ( $aCase['APP_STATUS'] != 'COMPLETED' )
+//                            {
+//
+//                                if ( $TASK_SOURCE != '' && $TASK_SOURCE != "0" && $TASK_SOURCE != 0 )
+//                                {
+//
+//                                    $oCriteria->add (AppDelegationPeer::TAS_UID, $TASK_SOURCE);
+//                                }
+//                            }
+//
+//                            $oDataset = AppDelegationPeer::doSelectRS ($oCriteria);
+//
+//                            $oDataset->setFetchmode (ResultSet::FETCHMODE_ASSOC);
+//
+//                            $oDataset->next ();
+//
+//                            while ($aRow = $oDataset->getRow ()) {
+//
+//                                $arrayDelIndex[] = $aRow["DEL_INDEX"];
+//
+//                                $oDataset->next ();
+//                            }
+//                        }
+//
+//                        $RESULT["MSGS_HISTORY"] = array_merge (array("DEL_INDEX" => $arrayDelIndex), $RESULT["MSGS_HISTORY"]);
+//
+//                        break;
+//                }
+//            }
+//        }
+//
+//        return Array(
+//            "DYNAFORMS" => $RESULT['DYNAFORM'],
+//            "INPUT_DOCUMENTS" => $RESULT['INPUT'],
+//            "OUTPUT_DOCUMENTS" => $RESULT['OUTPUT'],
+//            "CASES_NOTES" => $RESULT['CASES_NOTES'],
+//            "MSGS_HISTORY" => $RESULT['MSGS_HISTORY']
+//
+//                /* ----------------------------------********--------------------------------- */
+//        );
     }
 
 }

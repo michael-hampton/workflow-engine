@@ -2,8 +2,9 @@
 
 class DocumentVersion extends BaseDocumentVersion
 {
+
     private $objMysql;
-    
+
     public function __construct ()
     {
         $this->objMysql = new Mysql2();
@@ -38,15 +39,15 @@ class DocumentVersion extends BaseDocumentVersion
     /**
      * Get last Document Version based on App UID
      *
-     * @param s $sAppDocUid
+     * @params $docId
      * @return integer
      *
      */
-    public function getLastDocVersion ($appUID)
+    public function getLastDocVersion ($docId)
     {
         try {
 
-            $result = $this->objMysql->_query ("SELECT MAX(document_version) AS VERSION FROM task_manager.document_version WHERE app_id = ?", [$appUID]);
+            $result = $this->objMysql->_query ("SELECT MAX(document_version) AS VERSION FROM task_manager.document_version WHERE document_id = ?", [$docId]);
 
             if ( isset ($result[0]['VERSION']) && trim ($result[0]['VERSION']) != "" )
             {
@@ -59,6 +60,18 @@ class DocumentVersion extends BaseDocumentVersion
         } catch (Exception $oError) {
             throw ($oError);
         }
+    }
+
+    public function load ($documentId, $documentVersion)
+    {
+        $result = $this->objMysql->_select ("task_manager.document_version", [], ["document_id" => $documentId, "document_version" => $documentVersion]);
+        
+        if(isset($result[0]) && !empty($result[0])) {
+            return $result[0];
+        }
+        
+        return false;
+        
     }
 
     /**
@@ -80,14 +93,14 @@ class DocumentVersion extends BaseDocumentVersion
             $objVersioning->setDocUid ($aData['document_id']);
             $objVersioning->setAppDocCreateDate (date ("Y-m-d H:i:s"));
             $objVersioning->setAppDocFilename ($aData['filename']);
-            
-            $docType = isset($aData['document_type']) ? $aData['document_type'] : 'INPUT';
-            
+
+            $docType = isset ($aData['document_type']) ? $aData['document_type'] : 'INPUT';
+
             $objVersioning->setAppDocType ($docType);
 
             if ( $objVersioning->validate () )
             {
-                $objVersioning->save();
+                $objVersioning->save ();
             }
             else
             {

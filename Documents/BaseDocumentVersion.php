@@ -283,10 +283,12 @@ class BaseDocumentVersion
                 throw new PropelException ("Unable to parse date/time value for [app_doc_create_date] from input: " .
                 var_export ($v, true));
             }
+            
+             $ts = date("Y-m-d H:i:s", $ts);
         }
         else
         {
-            $ts = $v;
+            $ts = date("Y-m-d H:i:s", $ts);
         }
         if ( $this->app_doc_create_date !== $ts )
         {

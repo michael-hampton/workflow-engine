@@ -188,27 +188,13 @@ class OutputDocument extends BaseOutputDocument
     public function generate ($sUID, $aFields, $sPath, $sFilename, $sContent, $sLandscape = false, $sTypeDocToGener = 'BOTH', $aProperties = array())
     {
         if ( ($sUID != '') && is_array ($aFields) && ($sPath != '') )
-        {
-            //$sContent = G::replaceDataGridField ($sContent, $aFields);
-            if ( strpos ($sContent, '<!---{') !== false )
-            {
-                $template = new Smarty();
-                $template->compile_dir = PATH_SMARTY_C;
-                $template->cache_dir = PATH_SMARTY_CACHE;
-                $template->config_dir = PATH_THIRDPARTY . 'smarty/configs';
-                $template->caching = false;
-                $template->left_delimiter = '<!---{';
-                $template->right_delimiter = '}--->';
-                $oFile = fopen ($sPath . $sFilename . '_smarty.html', 'wb');
-                fwrite ($oFile, $sContent);
-                fclose ($oFile);
-                $template->templateFile = $sPath . $sFilename . '_smarty.html';
-                //assign the variables and use the template $template
-                $template->assign ($aFields);
-                $sContent = $template->fetch ($template->templateFile);
-                unlink ($template->templateFile);
-            }
-            $this->verifyPath ($sPath, true);
+        {   
+            $objCases = new Cases();
+            $sContent = $objCases->replaceDataField ($sContent, $aFields);
+                  
+            $objFile = new FileUpload();
+            
+            $objFile->verifyPath ($sPath, true);
             //Start - Create .doc
             $oFile = fopen ($sPath . $sFilename . '.doc', 'wb');
             $size = array();
@@ -650,61 +636,4 @@ class OutputDocument extends BaseOutputDocument
             throw ($oError);
         }
     }
-
-    /**
-     * verify path
-     *
-     * @author Fernando Ontiveros Lira <fernando@colosa.com>
-     * @access public
-     * @param string $strPath path
-     * @param boolean $createPath if true this public function will create the path
-     * @return boolean
-     */
-    public function verifyPath ($strPath, $createPath = false)
-    {
-        $folder_path = strstr ($strPath, '.') ? dirname ($strPath) : $strPath;
-
-        if ( file_exists ($strPath) || @is_dir ($strPath) )
-        {
-            return true;
-        }
-        else
-        {
-            if ( $createPath )
-            {
-                //TODO:: Define Environment constants: Devel (0777), Production (0770), ...
-                $this->mk_dir ($strPath, 0777);
-            }
-            else
-            {
-                return false;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * ************* path functions ****************
-     */
-    public static function mk_dir ($strPath, $rights = 0770)
-    {
-        $folder_path = array($strPath);
-        $oldumask = umask (0);
-        while (!@is_dir (dirname (end ($folder_path))) && dirname (end ($folder_path)) != '/' && dirname (end ($folder_path)) != '.' && dirname (end ($folder_path)) != '') {
-            array_push ($folder_path, dirname (end ($folder_path))); //var_dump($folder_path); die;
-        }
-
-        while ($parent_folder_path = array_pop ($folder_path)) {
-            if ( !@is_dir ($parent_folder_path) )
-            {
-                if ( !@mkdir ($parent_folder_path, $rights) )
-                {
-                    error_log ("Can't create folder \"$parent_folder_path\"");
-                    //umask( $oldumask );
-                }
-            }
-        }
-        umask ($oldumask);
-    }
-
 }

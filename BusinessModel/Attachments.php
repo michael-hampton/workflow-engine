@@ -314,11 +314,9 @@ class Attachments
                 {
                     return false;
                 }
-
-                if ( !is_dir ($dir) )
-                {
-                    mkdir ($dir);
-                }
+                
+                $objFile = new FileUpload();
+                $objFile->verifyPath($dir, TRUE);
             }
 
             if ( !move_uploaded_file ($file_tmp, $destination) )
