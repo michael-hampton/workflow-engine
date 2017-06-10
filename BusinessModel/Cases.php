@@ -1147,8 +1147,8 @@ class Cases
                     case "PDF":
                         $fileDoc = 'javascript:alert("NO DOC")';
                         $fileDocLabel = " ";
-                        $filePdf = 'cases/cases_ShowOutputDocument?a=' .
-                                $aRow['id'] . '&v=' . $lastVersion . '&ext=pdf&random=' . rand ();
+                        $filePdf = 'tasks/cases_ShowOutputDocument?a=' .
+                                $aAux['id'] . '&v=' . $lastVersion . '&ext=pdf&random=' . rand ();
                         $filePdfLabel = ".pdf";
                         if ( is_array ($listing) )
                         {
@@ -1164,8 +1164,8 @@ class Cases
                         break;
 
                     case "DOC":
-                        $fileDoc = 'cases/cases_ShowOutputDocument?a=' .
-                                $aRow['id'] . '&v=' . $lastVersion . '&ext=doc&random=' . rand ();
+                        $fileDoc = 'tasks/cases_ShowOutputDocument?a=' .
+                                $aAux['id'] . '&v=' . $lastVersion . '&ext=doc&random=' . rand ();
                         $fileDocLabel = ".doc";
                         $filePdf = 'javascript:alert("NO PDF")';
                         $filePdfLabel = " ";
@@ -1183,8 +1183,8 @@ class Cases
                         break;
 
                     case "BOTH":
-                        $fileDoc = 'cases/cases_ShowOutputDocument?a=' .
-                                $aRow['id'] . '&v=' . $lastVersion . '&ext=doc&random=' . rand ();
+                        $fileDoc = 'tasks/cases_ShowOutputDocument?a=' .
+                                $aAux['id'] . '&v=' . $lastVersion . '&ext=doc&random=' . rand ();
                         $fileDocLabel = ".doc";
                         if ( is_array ($listing) )
                         {
@@ -1197,8 +1197,8 @@ class Cases
                                 }
                             }
                         }
-                        $filePdf = 'cases/cases_ShowOutputDocument?a=' .
-                                $aRow['id'] . '&v=' . $lastVersion . '&ext=pdf&random=' . rand ();
+                        $filePdf = 'tasks/cases_ShowOutputDocument?a=' .
+                                $aAux['id'] . '&v=' . $lastVersion . '&ext=pdf&random=' . rand ();
                         $filePdfLabel = ".pdf";
 
                         if ( is_array ($listing) )

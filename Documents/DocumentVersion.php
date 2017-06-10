@@ -62,16 +62,38 @@ class DocumentVersion extends BaseDocumentVersion
         }
     }
 
-    public function load ($documentId, $documentVersion)
+    public function load ($documentId, $documentVersion, $id = null, $returnArray = true)
     {
-        $result = $this->objMysql->_select ("task_manager.document_version", [], ["document_id" => $documentId, "document_version" => $documentVersion]);
-        
-        if(isset($result[0]) && !empty($result[0])) {
-            return $result[0];
+        $arrWhere = [];
+
+        if ( $id !== null )
+        {
+            $arrWhere['id'] = $id;
         }
-        
+        else
+        {
+            $arrWhere['document_id'] = $documentId;
+            $arrWhere['document_version'] = $documentVersion;
+        }
+
+        $result = $this->objMysql->_select ("task_manager.document_version", [], $arrWhere);
+
+        if ( isset ($result[0]) && !empty ($result[0]) )
+        {
+            if($returnArray === true) {
+                return $result[0];
+            }
+            
+            $this->setAppDocCreateDate($result[0]['date_created']);
+            $this->setDocUid($result[0]['document_id']);
+            $this->setAppDocUid($result[0]['id']);
+            $this->setAppDocFilename($result[0]['filename']);
+            
+            return $this;
+            
+        }
+
         return false;
-        
     }
 
     /**

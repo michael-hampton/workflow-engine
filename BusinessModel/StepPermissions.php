@@ -40,7 +40,7 @@ class StepPermissions
     public function getProcessPermissions ()
     {
         $arrPermissions = [];
-        $this->validateStepUid();
+        $this->validateStepUid ();
 
         $masterPermissions = $this->objMysql->_query ("SELECT permission_type, GROUP_CONCAT(permission SEPARATOR ', ') AS permissions
                                                         FROM workflow.step_permission 
@@ -105,8 +105,8 @@ class StepPermissions
     public function saveProcessPermission ($data)
     {
         try {
-            
-            $this->validateStepUid();
+
+            $this->validateStepUid ();
 
             $objPermissions = new ObjectPermissions ($this->stepId);
 
@@ -148,10 +148,30 @@ class StepPermissions
             return true;
         }
 
-        $userList = explode (",", $permissions['RO']['user']);
-        $teamList = explode (",", $permissions['RO']['team']);
-        $userMaster = explode (",", $permissions['master']['user']);
-        $teamMaster = explode (",", $permissions['master']['team']);
+        $userList = [];
+        $teamList = [];
+        $userMaster = [];
+        $teamMaster = [];
+
+        if ( isset ($permissions['RO']['user']) && !empty ($permissions['RO']['user']) )
+        {
+            $userList = explode (",", $permissions['RO']['user']);
+        }
+
+        if ( isset ($permissions['RO']['team']) && !empty ($permissions['RO']['team']) )
+        {
+            $teamList = explode (",", $permissions['RO']['team']);
+        }
+
+        if ( isset ($permissions['master']['user']) && !empty ($permissions['master']['user']) )
+        {
+            $userMaster = explode (",", $permissions['master']['user']);
+        }
+
+        if ( isset ($permissions['master']['team']) && !empty ($permissions['master']['team']) )
+        {
+            $teamMaster = explode (",", $permissions['master']['team']);
+        }
 
         $ROFlag = 0;
         $masterFlag = 0;
@@ -204,9 +224,9 @@ class StepPermissions
         {
             throw (new Exception ("STEP ID HAS NOT BEEN SET"));
         }
-       
+
         $objWorkflowStep = new WorkflowStep();
-        
+
         if ( !($objWorkflowStep->stepExists ($this->stepId)) )
         {
             throw (new Exception ("STEP ID DOES NOT EXIST"));

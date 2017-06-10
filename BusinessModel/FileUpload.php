@@ -180,4 +180,184 @@ class FileUpload
         }
     }
 
+    /**
+     * streaming a file
+     *
+     * @access public
+     * @param string $file
+     * @param boolean $download
+     * @param string $downloadFileName
+     * @return string
+     */
+    public function streamFile ($file, $download = false, $downloadFileName = '')
+    {
+       
+        $folderarray = explode ('/', $file);
+        $typearray = explode ('.', basename ($file));
+        $typefile = $typearray[count ($typearray) - 1];
+        $filename = $file;
+
+        //trick to generate the translation.language.js file , merging two files
+        if ( strtolower ($typefile) == 'js' && $typearray[0] == 'translation' )
+        {
+            $this->sendHeaders ($filename, 'text/javascript', $download, $downloadFileName);
+            $output = G::streamJSTranslationFile ($filename, $typearray[1]);
+            $output = $filter->xssFilterHard ($output);
+            print $output;
+            return;
+        }
+
+        //trick to generate the big css file for ext style .
+        if ( strtolower ($typefile) == 'css' && $folderarray[count ($folderarray) - 2] == 'css' )
+        {
+            $this->sendHeaders($filename, 'text/css', $download, $downloadFileName);
+            $output = G::streamCSSBigFile ($typearray[0]);
+            $output = $filter->xssFilterHard ($output);
+            print $output;
+            return;
+        }
+
+        if ( file_exists ($filename) )
+        {
+            switch (strtolower ($typefile)) {
+                case 'swf':
+                    $this->sendHeaders ($filename, 'application/x-shockwave-flash', $download, $downloadFileName);
+                    break;
+                case 'js':
+                    $this->sendHeaders ($filename, 'text/javascript', $download, $downloadFileName);
+                    break;
+                case 'htm':
+                case 'html':
+                    $this->sendHeaders ($filename, 'text/html', $download, $downloadFileName);
+                    break;
+                case 'htc':
+                    $this->sendHeaders ($filename, 'text/plain', $download, $downloadFileName);
+                    break;
+                case 'json':
+                    $this->sendHeaders ($filename, 'text/plain', $download, $downloadFileName);
+                    break;
+                case 'gif':
+                    $this->sendHeaders ($filename, 'image/gif', $download, $downloadFileName);
+                    break;
+                case 'png':
+                    $this->sendHeaders ($filename, 'image/png', $download, $downloadFileName);
+                    break;
+                case 'jpg':
+                   $this->sendHeaders ($filename, 'image/jpg', $download, $downloadFileName);
+                    break;
+                case 'css':
+                    $this->sendHeaders ($filename, 'text/css', $download, $downloadFileName);
+                    break;
+                case 'xml':
+                    $this->sendHeaders ($filename, 'text/xml', $download, $downloadFileName);
+                    break;
+                case 'txt':
+                    $this->sendHeaders ($filename, 'text/html', $download, $downloadFileName);
+                    break;
+                case 'doc':
+                case 'pdf':
+                case 'pm':
+                case 'po':
+                    $this->sendHeaders ($filename, 'application/octet-stream', $download, $downloadFileName);
+                    break;
+                case 'php':
+                    if ( $download )
+                    {
+                        $this->sendHeaders ($filename, 'text/plain', $download, $downloadFileName);
+                    }
+                    else
+                    {
+                        require_once ($filename);
+                        return;
+                    }
+                    break;
+                case 'tar':
+                    $this->sendHeaders ($filename, 'application/x-tar', $download, $downloadFileName);
+                    break;
+                default:
+                    //throw new Exception ( "Unknown type of file '$file'. " );
+                    $this->sendHeaders ($filename, 'application/octet-stream', $download, $downloadFileName);
+                    break;
+            }
+        }
+        else
+        {
+           
+            
+        }
+
+  
+        @readfile ($filename);
+    }
+    
+     /**
+     * sendHeaders
+     *
+     * @param string $filename
+     * @param string $contentType default value ''
+     * @param boolean $download default value false
+     * @param string $downloadFileName default value ''
+     *
+     * @return void
+     */
+    public function sendHeaders ($filename, $contentType = '', $download = false, $downloadFileName = '')
+    {
+        if ($download) {
+            if ($downloadFileName == '') {
+                $aAux = explode( '/', $filename );
+                $downloadFileName = $aAux[count( $aAux ) - 1];
+            }
+            header( 'Content-Disposition: attachment; filename="' . $downloadFileName . '"' );
+        }
+        header( 'Content-Type: ' . $contentType );
+
+        //if userAgent (BROWSER) is MSIE we need special headers to avoid MSIE behaivor.
+        $userAgent = strtolower( $_SERVER['HTTP_USER_AGENT'] );
+        if (preg_match( "/msie/i", $userAgent )) {
+            //if ( ereg("msie", $userAgent)) {
+            header( 'Pragma: cache' );
+
+            if (file_exists( $filename )) {
+                $mtime = filemtime( $filename );
+            } else {
+                $mtime = date( 'U' );
+            }
+            $gmt_mtime = gmdate( "D, d M Y H:i:s", $mtime ) . " GMT";
+            header( 'ETag: "' . G::encryptOld( $mtime . $filename ) . '"' );
+            header( "Last-Modified: " . $gmt_mtime );
+            header( 'Cache-Control: public' );
+            header( "Expires: " . gmdate( "D, d M Y H:i:s", time() + 60 * 10 ) . " GMT" ); //ten minutes
+            return;
+        }
+
+        if (! $download) {
+
+            header( 'Pragma: cache' );
+
+            if (file_exists( $filename )) {
+                $mtime = filemtime( $filename );
+            } else {
+                $mtime = date( 'U' );
+            }
+            $gmt_mtime = gmdate( "D, d M Y H:i:s", $mtime ) . " GMT";
+            header( 'ETag: "' . G::encryptOld( $mtime . $filename ) . '"' );
+            header( "Last-Modified: " . $gmt_mtime );
+            header( 'Cache-Control: public' );
+            header( "Expires: " . gmdate( "D, d M Y H:i:s", time() + 90 * 60 * 60 * 24 ) . " GMT" );
+            if (isset( $_SERVER['HTTP_IF_MODIFIED_SINCE'] )) {
+                if ($_SERVER['HTTP_IF_MODIFIED_SINCE'] == $gmt_mtime) {
+                    header( 'HTTP/1.1 304 Not Modified' );
+                    exit();
+                }
+            }
+
+            if (isset( $_SERVER['HTTP_IF_NONE_MATCH'] )) {
+                if (str_replace( '"', '', stripslashes( $_SERVER['HTTP_IF_NONE_MATCH'] ) ) == G::encryptOld( $mtime . $filename )) {
+                    header( "HTTP/1.1 304 Not Modified" );
+                    exit();
+                }
+            }
+        }
+    }
+
 }

@@ -12,6 +12,7 @@ class FormBuilder
     protected $key;
     private $attachmentHtml;
     private $documentHTML;
+    private $outputDocs;
     private $arrUploadedFiles = array();
     private $noOfColumns;
 
@@ -60,6 +61,77 @@ class FormBuilder
         }
     }
 
+    public function buildOutputDocumentList ($arrDocs)
+    {
+        $this->outputDocs = '<h2>Output Documents</h2>';
+
+        foreach ($arrDocs as $arrDoc):
+            if(isset($arrDoc['OUTDOCTITLE'])):
+                
+                 $this->outputDocs .= '<div class="social-feed-box">';
+                
+                echo '<pre>';
+                print_r($arrDoc);
+
+            $this->outputDocs .= '<div class="social-avatar">
+                               
+                                <div class="media-body">
+                                    <a href="#">
+                                        ' . $arrDoc['CREATED_BY'] . '
+                                    </a>
+                                    <small class="text-muted">' . $arrDoc['CREATE_DATE'] . '</small>
+                                </div>
+                            </div>';
+
+            $type = trim (str_replace ('OUTPUT', '', $arrDoc['TYPE']));
+
+            $pdf = '<div class="social-comment">
+                                    <a style="font-size:26px; color:#000;" href="/FormBuilder/' . $arrDoc['FILEPDF'] . '" class="pull-left">
+                                        <i  class="fa fa-file-pdf-o"></i>
+                                    </a>
+                                    <div style="font-size:20px; color:#000; line-height: 36px; margin-left:36px;" class="media-body">
+                                        <a href="#">
+                                            ' . $arrDoc['OUTDOCTITLE'] . ' (pdf)
+                                        </a>
+                                    </div>
+                                </div>';
+
+           $doc = '<div class="social-comment">
+                                    <a style="font-size:26px; color:#000;" href="/FormBuilder/' . $arrDoc['FILEDOC'] . '" class="pull-left">
+                                       <i class="fa fa-file-word-o"></i>
+                                    </a>
+                                    <div style="font-size:20px; color:#000; line-height: 36px;  margin-left:36px;" class="media-body">
+                                        <a href="#">
+                                            ' . $arrDoc['OUTDOCTITLE'] . ' (doc)
+                                        </a>
+                                    </div>
+                                </div>';
+
+            $this->outputDocs .= '<div class="social-footer">';
+
+            switch ($type) {
+                case "PDF":
+                    $this->outputDocs .= $pdf;
+                    break;
+
+                case "DOC":
+                    $this->outputDocs .= $doc;
+                    break;
+
+                case "BOTH":
+                    $this->outputDocs .= $pdf;
+                    $this->outputDocs .= $doc;
+                    break;
+            }
+
+
+
+            $this->outputDocs .= '</div></div>';
+
+            endif;
+        endforeach;
+    }
+
     public function buildDocHTML ($arrDocs)
     {
         $this->documentHTML = '<div class="col-lg-12 pull-left m-t-sm m-b-sm" style="border: 1px dotted #CCC"></div>';
@@ -74,7 +146,7 @@ class FormBuilder
 
         foreach ($arrDocs as $objDocument) {
 
-            if ( !$objDocument instanceof InputDocument )
+            if ( !$objDocument instanceof InputDocuments )
             {
                 throw new Exception ("Invalid document format given.");
             }
@@ -354,6 +426,11 @@ class FormBuilder
         if ( trim ($this->documentHTML) !== "" )
         {
             $this->html .= $this->documentHTML;
+        }
+
+        if ( trim ($this->outputDocs) !== "" )
+        {
+            $this->html .= $this->outputDocs;
         }
 
         return $this->html;

@@ -99,7 +99,7 @@ class Form extends FieldFactory
                 throw new Exception ("Field type is unrecognized");
             }
 
-           $arrField['type'] = $fieldType[0]['field_type_id'];
+            $arrField['type'] = $fieldType[0]['field_type_id'];
 
             /*             * ******* Save Field ********************* */
             $fieldId = $objFieldFactory->create ($arrField);
@@ -308,6 +308,13 @@ class Form extends FieldFactory
         if ( !empty ($arrDocuments) )
         {
             $objFormBuilder->buildDocHTML ($arrDocuments);
+        }
+
+        $outPutDocuments = $objCases->getAllGeneratedDocumentsCriteria ($projectId, $elementId, $stepId, $_SESSION['user']['usrid']);
+
+        if ( !empty ($outPutDocuments) )
+        {
+            $objFormBuilder->buildOutputDocumentList ($outPutDocuments);
         }
 
         $html = $objFormBuilder->render ();
