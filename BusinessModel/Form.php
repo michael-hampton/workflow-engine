@@ -99,7 +99,7 @@ class Form extends FieldFactory
                 throw new Exception ("Field type is unrecognized");
             }
 
-           $arrField['type'] = $fieldType[0]['field_type_id'];
+            $arrField['type'] = $fieldType[0]['field_type_id'];
 
             /*             * ******* Save Field ********************* */
             $fieldId = $objFieldFactory->create ($arrField);
@@ -227,7 +227,6 @@ class Form extends FieldFactory
         $objCases = new Cases();
         $objCase = $objCases->getCaseInfo ($projectId, $elementId);
 
-
         $currentStepId = $objCase->getCurrentStepId ();
 
         $stepId = $objWorkflowStep->getStepId ();
@@ -235,6 +234,11 @@ class Form extends FieldFactory
         $objFormBuilder = new FormBuilder();
         $buildSummary = false;
         $html = '';
+
+        $objUserFactory = new UsersFactory();
+        $objUser = $objUserFactory->getUser ($_SESSION['user']['usrid']);
+
+        $userPermissions = $objCases->getAllObjectsFrom ($projectId, $elementId, $stepId, $objUser);
 
         $objAttachments = new Attachments();
         $arrAttachments = $objAttachments->getAllAttachments ($projectId);
@@ -255,7 +259,6 @@ class Form extends FieldFactory
             }
         }
 
-
         // Permissions
 
         $objVariables = new StepVariable();
@@ -266,6 +269,16 @@ class Form extends FieldFactory
             $fieldId = $objField->getFieldId ();
 
             if ( $currentStepId !== $objWorkflowStep->getWorkflowStepId () )
+            {
+                $objField->setIsDisabled (1);
+            }
+
+            if ( !in_array ($stepId, $userPermissions['DYNAFORMS']) )
+            {
+                $objField->setIsDisabled (1);
+            }
+
+            if ( $userPermissions['MASTER_DYNAFORM'] === 0 )
             {
                 $objField->setIsDisabled (1);
             }
@@ -307,7 +320,28 @@ class Form extends FieldFactory
 
         if ( !empty ($arrDocuments) )
         {
+            foreach ($arrDocuments as $key => $arrDocument) {
+                if ( !in_array ($arrDocument->getId (), $userPermissions['INPUT_DOCUMENTS']) )
+                {
+                    unset ($arrDocuments[$key]);
+                }
+            }
             $objFormBuilder->buildDocHTML ($arrDocuments);
+        }
+
+        $outPutDocuments = $objCases->getAllGeneratedDocumentsCriteria ($projectId, $elementId, $stepId, $_SESSION['user']['usrid']);
+
+        if ( !empty ($outPutDocuments) )
+        {
+            foreach ($outPutDocuments as $key => $outPutDocument) {
+
+                if ( !in_array ($outPutDocument['DOC_UID'], $userPermissions['OUTPUT_DOCUMENTS']) )
+                {
+                    unset ($outPutDocument[$key]);
+                }
+            }
+
+            $objFormBuilder->buildOutputDocumentList ($outPutDocuments);
         }
 
         $html = $objFormBuilder->render ();

@@ -40,7 +40,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Fields/BaseFieldCond
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Fields/DatabaseOptions.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Fields/FieldConditions.php';
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Fields/Form.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/Form.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/FormBuilder.php';
 
 

@@ -49,7 +49,19 @@ class StepPermissions
                                                         GROUP BY permission_type", [$this->stepId]);
         $ROPermissions = $this->objMysql->_query ("SELECT permission_type, GROUP_CONCAT(permission SEPARATOR ', ') AS permissions
                                                         FROM workflow.step_permission 
-                                                        WHERE access_level != 'master'
+                                                        WHERE access_level = 'RO'
+                                                        AND step_id = ?
+                                                        GROUP BY permission_type", [$this->stepId]);
+        
+        $InputPermissions = $this->objMysql->_query ("SELECT permission_type, GROUP_CONCAT(permission SEPARATOR ', ') AS permissions
+                                                        FROM workflow.step_permission 
+                                                        WHERE access_level IN('INPUT')
+                                                        AND step_id = ?
+                                                        GROUP BY permission_type", [$this->stepId]);
+        
+        $OuputPermissions = $this->objMysql->_query ("SELECT permission_type, GROUP_CONCAT(permission SEPARATOR ', ') AS permissions
+                                                        FROM workflow.step_permission 
+                                                        WHERE access_level IN('OUTPUT')
                                                         AND step_id = ?
                                                         GROUP BY permission_type", [$this->stepId]);
 
@@ -80,6 +92,36 @@ class StepPermissions
                 else
                 {
                     $arrPermissions['RO']['user'] = $ROPermission['permissions'];
+                }
+            }
+        }
+        
+        if ( !empty ($InputPermissions) )
+        {
+            foreach ($InputPermissions as $InputPermission) {
+
+                if ( $InputPermission['permission_type'] == "team" )
+                {
+                    $arrPermissions['Input']['team'] = $InputPermission['permissions'];
+                }
+                else
+                {
+                    $arrPermissions['Input']['user'] = $InputPermission['permissions'];
+                }
+            }
+        }
+        
+         if ( !empty ($OuputPermissions) )
+        {
+            foreach ($OuputPermissions as $OuputPermission) {
+
+                if ( $OuputPermission['permission_type'] == "team" )
+                {
+                    $arrPermissions['Output']['team'] = $InputPermission['permissions'];
+                }
+                else
+                {
+                    $arrPermissions['Output']['user'] = $InputPermission['permissions'];
                 }
             }
         }
