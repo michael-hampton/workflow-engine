@@ -60,6 +60,11 @@ class WorkflowStep
     {
         return $this->nextStep;
     }
+    
+    public function getWorkflowId()
+    {
+        return $this->workflowId;
+    }
 
     public function getStepId ()
     {
@@ -96,7 +101,7 @@ class WorkflowStep
 
         if ( empty ($arrResult) )
         {
-            die("Here");
+            die ("Here");
             return false;
         }
 
@@ -209,8 +214,23 @@ class WorkflowStep
         }
     }
 
-    public function save ($objMike, $arrFormData, $arrEmailAddresses = array())
+    public function save ($objMike, $arrFormData, Users $objUser, $arrEmailAddresses = array())
     {
+        $parentId = null;
+
+        if ( method_exists ($objMike, "getParentId") )
+        {
+            $parentId = $objMike->getParentId ();
+        }
+
+        $elementId = $objMike->getId ();
+
+        $objCases = new Cases();
+
+        if ( !$objCases->hasPermission ($objUser, $parentId, $elementId) )
+        {
+            throw new Exception ("You do not have permission to do this");
+        }
 
         if ( !$this->validateWorkflowStep ($arrFormData) )
         {
@@ -314,7 +334,7 @@ class WorkflowStep
         if ( $complete === true && $this->nextStep !== 0 && $this->nextStep != "" )
         {
             $blHasTrigger = $objTrigger->checkTriggers ($objMike);
-   
+
 
             if ( $blHasTrigger === true )
             {
@@ -356,8 +376,8 @@ class WorkflowStep
         {
             $this->objWorkflow = $arrWorkflow;
         }
-        
-        
+
+
         if ( is_numeric ($this->parentId) && is_numeric ($this->elementId) && $blHasTrigger !== true )
         {
             $this->objWorkflow['elements'][$this->elementId] = $arrWorkflow;
@@ -368,8 +388,8 @@ class WorkflowStep
             $arrCompleteData['status'] = "COMPLETE";
             $this->objWorkflow['elements'][$this->elementId]['status'] = "WORKFLOW COMPLETE";
         }
-        
-        
+
+
 
         if ( isset ($arrCompleteData['dateCompleted']) && isset ($arrCompleteData['claimed']) )
         {
@@ -405,8 +425,23 @@ class WorkflowStep
         }
     }
 
-    public function complete ($objMike, $arrCompleteData, $arrEmailAddresses = array())
+    public function complete ($objMike, $arrCompleteData, Users $objUser, $arrEmailAddresses = array())
     {
+        $parentId = null;
+
+        if ( method_exists ($objMike, "getParentId") )
+        {
+            $parentId = $objMike->getParentId ();
+        }
+
+        $elementId = $objMike->getId ();
+
+        $objCases = new Cases();
+        if ( !$objCases->hasPermission ($objUser, $parentId, $elementId) )
+        {
+            throw new Exception ("You do not have permission to do this");
+        }
+
         $this->completeWorkflowObject ($objMike, $arrCompleteData, true, $arrEmailAddresses);
 
         if ( isset ($this->nextStep) && $this->nextStep != 0 )

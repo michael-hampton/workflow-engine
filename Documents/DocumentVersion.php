@@ -37,7 +37,7 @@ class DocumentVersion extends BaseDocumentVersion
     }
 
     /**
-     * Get last Document Version based on App UID
+     * Get last Document Version based on Doc UID
      *
      * @params $docId
      * @return integer
@@ -80,17 +80,17 @@ class DocumentVersion extends BaseDocumentVersion
 
         if ( isset ($result[0]) && !empty ($result[0]) )
         {
-            if($returnArray === true) {
+            if ( $returnArray === true )
+            {
                 return $result[0];
             }
-            
-            $this->setAppDocCreateDate($result[0]['date_created']);
-            $this->setDocUid($result[0]['document_id']);
-            $this->setAppDocUid($result[0]['id']);
-            $this->setAppDocFilename($result[0]['filename']);
-            
+
+            $this->setAppDocCreateDate ($result[0]['date_created']);
+            $this->setDocUid ($result[0]['document_id']);
+            $this->setAppDocUid ($result[0]['id']);
+            $this->setAppDocFilename ($result[0]['filename']);
+
             return $this;
-            
         }
 
         return false;
@@ -117,6 +117,27 @@ class DocumentVersion extends BaseDocumentVersion
             $objVersioning->setAppDocFilename ($aData['filename']);
 
             $docType = isset ($aData['document_type']) ? $aData['document_type'] : 'INPUT';
+
+            if ( $docType === "OUTPUT" )
+            {
+                $o = new OutputDocument();
+                $oOutputDocument = $o->retrieveByPk ($aData['document_id']);
+
+                if ( !$oOutputDocument->getOutDocVersioning () )
+                {
+                    throw (new Exception ('The Output document has not versioning enabled!'));
+                }
+            }
+
+            if ( $docType === "INPUT" )
+            {
+                $o = new InputDocument();
+                $oInputDocument = $o->getInputDocument ($aData['document_id']);
+                if ( !$oInputDocument->getVersioning () )
+                {
+                    throw (new Exception ('This Input document does not have the versioning enabled, for this reason this operation cannot be completed'));
+                }
+            }
 
             $objVersioning->setAppDocType ($docType);
 

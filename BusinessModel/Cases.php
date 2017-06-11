@@ -661,7 +661,9 @@ class Cases
                 $variables['form']['claimed'] = $_SESSION["user"]["username"];
                 $variables['form']['dateCompleted'] = date ("Y-m-d H:i:s");
 
-                $validation = $objStep->save ($objElements, $variables['form']);
+                $objUser = (new UsersFactory)->getUser ($_SESSION['user']['usrid']);
+
+                $validation = $objStep->save ($objElements, $variables['form'], $objUser);
 
                 if ( $validation === false )
                 {
@@ -739,7 +741,8 @@ class Cases
         $objWorkflow = new Workflow ($workflowId);
 
         $objStep = $objWorkflow->getNextStep ();
-        $validation = $objStep->save ($objSave, $arrData['form']);
+        $objUser = (new UsersFactory)->getUser ($_SESSION['user']['usrid']);
+        $validation = $objStep->save ($objSave, $arrData['form'], $objUser);
 
         if ( $validation === false )
         {
@@ -804,14 +807,15 @@ class Cases
         }
 
         $objSteps = new WorkflowStep (null, $objElement);
+        $objUser = (new UsersFactory)->getUser ($_SESSION['user']['usrid']);
 
         if ( $status === "COMPLETE" )
         {
-            $objSteps->complete ($objElement, $arrStepData);
+            $objSteps->complete ($objElement, $arrStepData, $objUser);
         }
         else
         {
-            $objStep->save ($objElement, $arrStepData);
+            $objStep->save ($objElement, $arrStepData, $objUser);
         }
     }
 
@@ -1088,9 +1092,9 @@ class Cases
         }
 
         $listing = false;
-        
+
         $objUserFactory = new UsersFactory();
-        $objUser = $objUserFactory->getUser($sUserUID);
+        $objUser = $objUserFactory->getUser ($sUserUID);
 
         $aObjectPermissions = $this->getAllObjectsFrom ($sProcessUID, $sApplicationUID, $sTasKUID, $objUser);
         if ( !is_array ($aObjectPermissions) )
@@ -1338,99 +1342,107 @@ class Cases
         $objPermissions = new StepPermissions ($TAS_UID);
         $arrPermissions = $objPermissions->getProcessPermissions ();
 
-        foreach ($arrPermissions as $objectType => $arrPermission) {
-            foreach ($arrPermission as $permissionType => $permissions) {
-                $permission = explode (",", $permissions);
+        if ( !empty ($arrPermissions) )
+        {
+            foreach ($arrPermissions as $objectType => $arrPermission) {
+                foreach ($arrPermission as $permissionType => $permissions) {
+                    $permission = explode (",", $permissions);
 
-                foreach ($permission as $perm) {
-                    
-                    if ( trim($perm) === trim($USR_UID) )
-                    {
-                        $arrData = array("OP_ACTION" => $objectType, "OP_OBJ_TYPE" => $permissionType, "USR_UID" => $perm);
+                    foreach ($permission as $perm) {
 
-                        if ( in_array ($objectType, array("INPUT", "OUTPUT")) )
+                        if ( trim ($perm) === trim ($USR_UID) )
                         {
-                            if ( $objectType === "INPUT" )
+                            $arrData = array("OP_ACTION" => $objectType, "OP_OBJ_TYPE" => $permissionType, "USR_UID" => $perm);
+
+                            if ( in_array ($objectType, array("INPUT", "OUTPUT")) )
                             {
-                                array_push ($INPUT, $arrData);
+                                if ( $objectType === "INPUT" )
+                                {
+                                    array_push ($INPUT, $arrData);
+                                }
+                                else
+                                {
+                                    array_push ($OUTPUT, $arrData);
+                                }
                             }
                             else
                             {
-                                array_push ($OUTPUT, $arrData);
-                            }
-                        }
-                        else
-                        {
-                            if ( $permissionType == "user" )
-                            {
-                                array_push ($USER_PERMISSIONS, $arrData);
-                            }
-                            else
-                            {
-                                array_push ($GROUP_PERMISSIONS, $arrData);
+                                if ( $permissionType == "user" )
+                                {
+                                    array_push ($USER_PERMISSIONS, $arrData);
+                                }
+                                else
+                                {
+                                    array_push ($GROUP_PERMISSIONS, $arrData);
+                                }
                             }
                         }
                     }
                 }
             }
+
+            $PERMISSIONS = array_merge ($USER_PERMISSIONS, $GROUP_PERMISSIONS, $INPUT, $OUTPUT);
         }
 
-        $PERMISSIONS = array_merge ($USER_PERMISSIONS, $GROUP_PERMISSIONS, $INPUT, $OUTPUT);
+        if ( !empty ($PERMISSIONS) )
+        {
+            foreach ($PERMISSIONS as $row) {
 
-        foreach ($PERMISSIONS as $row) {
+                $USER = $row['USR_UID'];
+                $O_TYPE = $row['OP_OBJ_TYPE'];
+                $ACTION = $row['OP_ACTION'];
 
-            $USER = $row['USR_UID'];
-            $O_TYPE = $row['OP_OBJ_TYPE'];
-            $ACTION = $row['OP_ACTION'];
+                $sw_participate = false; // must be false for default
+                $participants = $this->getUsersParticipatedInCase ($PRO_UID);
 
-            $sw_participate = false; // must be false for default
-            $participants = $this->getUsersParticipatedInCase ($PRO_UID);
-
-            if ( !in_array ($objUser->getUsername (), $participants) && $ACTION == "master" )
-            {
-                $sw_participate = true;
-            }
-
-            if ( !$sw_participate )
-            {
-
-                switch ($ACTION) {
-                    case "RO":
-                        if ( !in_array ($TAS_UID, $RESULT['DYNAFORM']) )
-                        {
-
-                            array_push ($RESULT['DYNAFORM'], $TAS_UID);
-                        }
-                        break;
-
-                    case 'Input':
-                    case 'Output':
-                        if ( $ACTION == 'Input' )
-                        {
-
-                            $obj_type = 2;
-                        }
-                        else
-                        {
-
-                            $obj_type = 1;
-                        }
-
-                        $oDataset = $this->objMysql->_select ("workflow.step_document", [], ["step_id" => $TAS_UID, "document_type" => $obj_type]);
-
-                        foreach ($oDataset as $aRow) {
-                            if ( !in_array ($aRow['document_id'], $RESULT[$ACTION]) )
-                            {
-                                array_push ($RESULT[$ACTION], $aRow['document_id']);
-                            }
-                        }
-
-                        break;
+                if ( !in_array ($objUser->getUsername (), $participants) && $ACTION == "master" )
+                {
+                    $sw_participate = true;
                 }
 
-                $RESULT['CASES_NOTES'] = 1;
+                if ( !$sw_participate )
+                {
+
+                    switch ($ACTION) {
+                        case "RO":
+                            if ( !in_array ($TAS_UID, $RESULT['DYNAFORM']) )
+                            {
+
+                                array_push ($RESULT['DYNAFORM'], $TAS_UID);
+                            }
+                            break;
+
+                        case 'Input':
+                        case 'Output':
+                            if ( $ACTION == 'Input' )
+                            {
+
+                                $obj_type = 2;
+                            }
+                            else
+                            {
+
+                                $obj_type = 1;
+                            }
+
+                            $oDataset = $this->objMysql->_select ("workflow.step_document", [], ["step_id" => $TAS_UID, "document_type" => $obj_type]);
+
+                            foreach ($oDataset as $aRow) {
+                                if ( !in_array ($aRow['document_id'], $RESULT[$ACTION]) )
+                                {
+                                    array_push ($RESULT[$ACTION], $aRow['document_id']);
+                                }
+                            }
+
+                            break;
+                    }
+
+                    $RESULT['CASES_NOTES'] = 1;
+                }
             }
         }
+
+        $sw_participate = !isset ($sw_participate) ? false : true;
 
         return Array(
             "DYNAFORMS" => $RESULT['DYNAFORM'],
@@ -1442,6 +1454,64 @@ class Cases
 
                 /* ----------------------------------********--------------------------------- */
         );
+    }
+
+    /**
+     * Get Permissions, Participate, Access
+     *
+     * @param object $objUser
+     * @param string $proUid
+     * @param string $appUid
+     * @return array Returns array with all access
+     */
+    public function userAuthorization (Users $objUser, $proUid, $appUid)
+    {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        $objCase = $this->getCaseInfo ($proUid, $appUid);
+        $workflowId = $objCase->getWorkflow_id ();
+        $arrayAccess = array();
+        //User has participated
+        $aParticipated = $this->getUsersParticipatedInCase ($proUid);
+        $arrayAccess['participated'] = in_array ($objUser->getUsername (), $aParticipated) ? true : false;
+        //User is supervisor
+        $supervisor = new ProcessSupervisor();
+        $isSupervisor = $supervisor->isUserProcessSupervisor ($workflowId, $objUser);
+        $arrayAccess['supervisor'] = ($isSupervisor) ? true : false;
+
+        $query = $this->objMysql->_select ("workflow.status_mapping", [], ["id" => $objCase->getCurrentStepId ()]);
+        $stepId = $query[0]['step_from'];
+
+        $objectPermissions = $this->getAllObjectsFrom ($proUid, $appUid, $stepId, $objUser);
+
+
+        //Object Permissions
+        if ( count ($objectPermissions) > 0 )
+        {
+            foreach ($objectPermissions as $key => $value) {
+                $arrayAccess['objectPermissions'][$key] = $value;
+            }
+        }
+
+        return $arrayAccess;
+    }
+
+    public function hasPermission (Users $objUser, $proUid, $appUid)
+    {
+        $userPermission = $this->userAuthorization ($objUser, $proUid, $appUid);
+
+        if ( isset ($userPermission['objectPermissions']['DYNAFORMS']) && !empty ($userPermission['objectPermissions']['DYNAFORMS']) )
+        {
+            return true;
+        }
+
+        if ( (int) $userPermission['participated'] === 1 || (int) $userPermission['supervisor'] === 1 )
+        {
+            return true;
+        }
     }
 
 }

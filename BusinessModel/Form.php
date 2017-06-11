@@ -222,23 +222,22 @@ class Form extends FieldFactory
         }
     }
 
-    public function buildFormForStep (WorkflowStep $objWorkflowStep, $projectId, $elementId = null)
+    public function buildFormForStep (WorkflowStep $objWorkflowStep, Users $objUser, $projectId, $elementId = null)
     {
         $objCases = new Cases();
         $objCase = $objCases->getCaseInfo ($projectId, $elementId);
 
         $currentStepId = $objCase->getCurrentStepId ();
-
+        $workflowId = $objWorkflowStep->getWorkflowId ();
         $stepId = $objWorkflowStep->getStepId ();
         $taskId = $objWorkflowStep->getWorkflowStepId ();
         $objFormBuilder = new FormBuilder();
         $buildSummary = false;
         $html = '';
 
-        $objUserFactory = new UsersFactory();
-        $objUser = $objUserFactory->getUser ($_SESSION['user']['usrid']);
-
         $userPermissions = $objCases->getAllObjectsFrom ($projectId, $elementId, $stepId, $objUser);
+        $objProcessSupervisor = new ProcessSupervisor();
+        $blProcessSupervisor = $objProcessSupervisor->isUserProcessSupervisor ($workflowId, $objUser);
 
         $objAttachments = new Attachments();
         $arrAttachments = $objAttachments->getAllAttachments ($projectId);
@@ -273,14 +272,17 @@ class Form extends FieldFactory
                 $objField->setIsDisabled (1);
             }
 
-            if ( !in_array ($stepId, $userPermissions['DYNAFORMS']) )
+            if ( $blProcessSupervisor !== true )
             {
-                $objField->setIsDisabled (1);
-            }
+                if ( !in_array ($stepId, $userPermissions['DYNAFORMS']) )
+                {
+                    $objField->setIsDisabled (1);
+                }
 
-            if ( $userPermissions['MASTER_DYNAFORM'] === 0 )
-            {
-                $objField->setIsDisabled (1);
+                if ( $userPermissions['MASTER_DYNAFORM'] === 0 )
+                {
+                    $objField->setIsDisabled (1);
+                }
             }
 
             if ( isset ($objCase->objJobFields[$fieldId]) )
@@ -321,7 +323,7 @@ class Form extends FieldFactory
         if ( !empty ($arrDocuments) )
         {
             foreach ($arrDocuments as $key => $arrDocument) {
-                if ( !in_array ($arrDocument->getId (), $userPermissions['INPUT_DOCUMENTS']) )
+                if ( !in_array ($arrDocument->getId (), $userPermissions['INPUT_DOCUMENTS']) && $blProcessSupervisor !== true )
                 {
                     unset ($arrDocuments[$key]);
                 }
@@ -335,7 +337,7 @@ class Form extends FieldFactory
         {
             foreach ($outPutDocuments as $key => $outPutDocument) {
 
-                if ( !in_array ($outPutDocument['DOC_UID'], $userPermissions['OUTPUT_DOCUMENTS']) )
+                if ( !in_array ($outPutDocument['DOC_UID'], $userPermissions['OUTPUT_DOCUMENTS']) && $blProcessSupervisor !== true )
                 {
                     unset ($outPutDocument[$key]);
                 }
