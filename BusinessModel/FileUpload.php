@@ -191,31 +191,11 @@ class FileUpload
      */
     public function streamFile ($file, $download = false, $downloadFileName = '')
     {
-       
+
         $folderarray = explode ('/', $file);
         $typearray = explode ('.', basename ($file));
         $typefile = $typearray[count ($typearray) - 1];
         $filename = $file;
-
-        //trick to generate the translation.language.js file , merging two files
-        if ( strtolower ($typefile) == 'js' && $typearray[0] == 'translation' )
-        {
-            $this->sendHeaders ($filename, 'text/javascript', $download, $downloadFileName);
-            $output = G::streamJSTranslationFile ($filename, $typearray[1]);
-            $output = $filter->xssFilterHard ($output);
-            print $output;
-            return;
-        }
-
-        //trick to generate the big css file for ext style .
-        if ( strtolower ($typefile) == 'css' && $folderarray[count ($folderarray) - 2] == 'css' )
-        {
-            $this->sendHeaders($filename, 'text/css', $download, $downloadFileName);
-            $output = G::streamCSSBigFile ($typearray[0]);
-            $output = $filter->xssFilterHard ($output);
-            print $output;
-            return;
-        }
 
         if ( file_exists ($filename) )
         {
@@ -243,7 +223,7 @@ class FileUpload
                     $this->sendHeaders ($filename, 'image/png', $download, $downloadFileName);
                     break;
                 case 'jpg':
-                   $this->sendHeaders ($filename, 'image/jpg', $download, $downloadFileName);
+                    $this->sendHeaders ($filename, 'image/jpg', $download, $downloadFileName);
                     break;
                 case 'css':
                     $this->sendHeaders ($filename, 'text/css', $download, $downloadFileName);
@@ -282,15 +262,14 @@ class FileUpload
         }
         else
         {
-           
-            
+            throw new Exception ("File doesnt exist");
         }
 
-  
+
         @readfile ($filename);
     }
-    
-     /**
+
+    /**
      * sendHeaders
      *
      * @param string $filename
@@ -302,59 +281,73 @@ class FileUpload
      */
     public function sendHeaders ($filename, $contentType = '', $download = false, $downloadFileName = '')
     {
-        if ($download) {
-            if ($downloadFileName == '') {
-                $aAux = explode( '/', $filename );
-                $downloadFileName = $aAux[count( $aAux ) - 1];
+        if ( $download )
+        {
+            if ( $downloadFileName == '' )
+            {
+                $aAux = explode ('/', $filename);
+                $downloadFileName = $aAux[count ($aAux) - 1];
             }
-            header( 'Content-Disposition: attachment; filename="' . $downloadFileName . '"' );
+            header ('Content-Disposition: attachment; filename="' . $downloadFileName . '"');
         }
-        header( 'Content-Type: ' . $contentType );
+        header ('Content-Type: ' . $contentType);
 
         //if userAgent (BROWSER) is MSIE we need special headers to avoid MSIE behaivor.
-        $userAgent = strtolower( $_SERVER['HTTP_USER_AGENT'] );
-        if (preg_match( "/msie/i", $userAgent )) {
+        $userAgent = strtolower ($_SERVER['HTTP_USER_AGENT']);
+        if ( preg_match ("/msie/i", $userAgent) )
+        {
             //if ( ereg("msie", $userAgent)) {
-            header( 'Pragma: cache' );
+            header ('Pragma: cache');
 
-            if (file_exists( $filename )) {
-                $mtime = filemtime( $filename );
-            } else {
-                $mtime = date( 'U' );
+            if ( file_exists ($filename) )
+            {
+                $mtime = filemtime ($filename);
             }
-            $gmt_mtime = gmdate( "D, d M Y H:i:s", $mtime ) . " GMT";
-            header( 'ETag: "' . G::encryptOld( $mtime . $filename ) . '"' );
-            header( "Last-Modified: " . $gmt_mtime );
-            header( 'Cache-Control: public' );
-            header( "Expires: " . gmdate( "D, d M Y H:i:s", time() + 60 * 10 ) . " GMT" ); //ten minutes
+            else
+            {
+                $mtime = date ('U');
+            }
+            $gmt_mtime = gmdate ("D, d M Y H:i:s", $mtime) . " GMT";
+            header ('ETag: "' . G::encryptOld ($mtime . $filename) . '"');
+            header ("Last-Modified: " . $gmt_mtime);
+            header ('Cache-Control: public');
+            header ("Expires: " . gmdate ("D, d M Y H:i:s", time () + 60 * 10) . " GMT"); //ten minutes
             return;
         }
 
-        if (! $download) {
+        if ( !$download )
+        {
 
-            header( 'Pragma: cache' );
+            header ('Pragma: cache');
 
-            if (file_exists( $filename )) {
-                $mtime = filemtime( $filename );
-            } else {
-                $mtime = date( 'U' );
+            if ( file_exists ($filename) )
+            {
+                $mtime = filemtime ($filename);
             }
-            $gmt_mtime = gmdate( "D, d M Y H:i:s", $mtime ) . " GMT";
-            header( 'ETag: "' . G::encryptOld( $mtime . $filename ) . '"' );
-            header( "Last-Modified: " . $gmt_mtime );
-            header( 'Cache-Control: public' );
-            header( "Expires: " . gmdate( "D, d M Y H:i:s", time() + 90 * 60 * 60 * 24 ) . " GMT" );
-            if (isset( $_SERVER['HTTP_IF_MODIFIED_SINCE'] )) {
-                if ($_SERVER['HTTP_IF_MODIFIED_SINCE'] == $gmt_mtime) {
-                    header( 'HTTP/1.1 304 Not Modified' );
-                    exit();
+            else
+            {
+                $mtime = date ('U');
+            }
+            $gmt_mtime = gmdate ("D, d M Y H:i:s", $mtime) . " GMT";
+            header ('ETag: "' . G::encryptOld ($mtime . $filename) . '"');
+            header ("Last-Modified: " . $gmt_mtime);
+            header ('Cache-Control: public');
+            header ("Expires: " . gmdate ("D, d M Y H:i:s", time () + 90 * 60 * 60 * 24) . " GMT");
+            if ( isset ($_SERVER['HTTP_IF_MODIFIED_SINCE']) )
+            {
+                if ( $_SERVER['HTTP_IF_MODIFIED_SINCE'] == $gmt_mtime )
+                {
+                    header ('HTTP/1.1 304 Not Modified');
+                    exit ();
                 }
             }
 
-            if (isset( $_SERVER['HTTP_IF_NONE_MATCH'] )) {
-                if (str_replace( '"', '', stripslashes( $_SERVER['HTTP_IF_NONE_MATCH'] ) ) == G::encryptOld( $mtime . $filename )) {
-                    header( "HTTP/1.1 304 Not Modified" );
-                    exit();
+            if ( isset ($_SERVER['HTTP_IF_NONE_MATCH']) )
+            {
+                if ( str_replace ('"', '', stripslashes ($_SERVER['HTTP_IF_NONE_MATCH'])) == G::encryptOld ($mtime . $filename) )
+                {
+                    header ("HTTP/1.1 304 Not Modified");
+                    exit ();
                 }
             }
         }

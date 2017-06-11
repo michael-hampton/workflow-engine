@@ -65,6 +65,15 @@ class StepPermissions
                                                         AND step_id = ?
                                                         GROUP BY permission_type", [$this->stepId]);
 
+        $arrPermissions['master']['team'] = array();
+        $arrPermissions['master']['user'] = array();
+        $arrPermissions['RO']['team'] = array();
+        $arrPermissions['master']['team'] = array();
+        $arrPermissions['Input']['team'] = array();
+        $arrPermissions['Input']['user'] = array();
+        $arrPermissions['Output']['team'] = array();
+        $arrPermissions['Output']['user'] = array();
+
         if ( !empty ($masterPermissions) )
         {
 

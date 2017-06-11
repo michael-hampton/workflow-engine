@@ -852,24 +852,7 @@ class Cases
         //$this->isInteger ($usr_uid, '$usr_uid');
         //$this->validateUserId ($usr_uid);
 
-        $arrSystemVariables = array(
-            "WORKFLOW_NAME" => "getWorkflowName",
-            "STEP_NAME" => "getCurrentStep",
-            "ASSIGNED" => "getCurrent_user",
-            "DATE_COMPLETED" => "",
-            "COMPLETED" => "",
-            "ELEMENT_ID" => "getId",
-            "ELEMENT_NAME" => "getName",
-            "id" => "getId",
-            "USER" => "getCurrent_user",
-            "PROJECT_ID" => "getParentId",
-            "STEP_ID" => "getCurrentStepId",
-            "WORKFLOW_ID" => "getWorkflow_id",
-            "STATUS" => "getStatus",
-            "ELEMENT_STATUS" => "getStatus",
-            "added_by" => "getAddedBy",
-            "PROJECT_NAME" => "getProjectName"
-        );
+        require_once $_SERVER['DOCUMENT_ROOT'] . "/core/app/config/config.php";
 
         $objCase = $this->getCaseInfo ($pro_uid, $app_uid);
 
@@ -984,10 +967,6 @@ class Cases
             {
                 $lastDocVersion ++;
                 $objDocumentVersion->create (array("filename" => $sFilename, "document_id" => $aOD->getOutDocUid (), "document_type" => "OUTPUT"));
-            }
-            else
-            {
-                
             }
 
             $sFilename = $aOD->getOutDocUid () . "_" . $lastDocVersion;
@@ -1171,17 +1150,6 @@ class Cases
                         $filePdf = 'tasks/cases_ShowOutputDocument?a=' .
                                 $aAux['id'] . '&v=' . $lastVersion . '&ext=pdf&random=' . rand ();
                         $filePdfLabel = ".pdf";
-                        if ( is_array ($listing) )
-                        {
-                            foreach ($listing as $folderitem) {
-                                if ( ($folderitem->filename == $aRow['APP_DOC_UID']) && ($folderitem->type == "PDF") )
-                                {
-                                    $filePdfLabel = \G::LoadTranslation ('ID_GET_EXTERNAL_FILE') . " .pdf";
-                                    $filePdf = $folderitem->downloadScript;
-                                    continue;
-                                }
-                            }
-                        }
                         break;
 
                     case "DOC":
@@ -1190,17 +1158,6 @@ class Cases
                         $fileDocLabel = ".doc";
                         $filePdf = 'javascript:alert("NO PDF")';
                         $filePdfLabel = " ";
-                        if ( is_array ($listing) )
-                        {
-                            foreach ($listing as $folderitem) {
-                                if ( ($folderitem->filename == $aRow['id']) && ($folderitem->type == "DOC") )
-                                {
-                                    $fileDocLabel = \G::LoadTranslation ('ID_GET_EXTERNAL_FILE') . " .doc";
-                                    $fileDoc = $folderitem->downloadScript;
-                                    continue;
-                                }
-                            }
-                        }
                         break;
 
                     case "BOTH":
@@ -1222,17 +1179,6 @@ class Cases
                                 $aAux['id'] . '&v=' . $lastVersion . '&ext=pdf&random=' . rand ();
                         $filePdfLabel = ".pdf";
 
-                        if ( is_array ($listing) )
-                        {
-                            foreach ($listing as $folderitem) {
-                                if ( ($folderitem->filename == $aRow['APP_DOC_UID']) && ($folderitem->type == "PDF") )
-                                {
-                                    $filePdfLabel = \G::LoadTranslation ('ID_GET_EXTERNAL_FILE') . " .pdf";
-                                    $filePdf = $folderitem->downloadScript;
-                                    continue;
-                                }
-                            }
-                        }
                         break;
                 }
 
@@ -1356,34 +1302,38 @@ class Cases
         {
             foreach ($arrPermissions as $objectType => $arrPermission) {
                 foreach ($arrPermission as $permissionType => $permissions) {
-                    $permission = explode (",", $permissions);
 
-                    foreach ($permission as $perm) {
+                    if ( is_array ($permissions) && !empty($permissions))
+                    {
+                        $permission = explode (",", $permissions);
 
-                        if ( trim ($perm) === trim ($USR_UID) )
-                        {
-                            $arrData = array("OP_ACTION" => $objectType, "OP_OBJ_TYPE" => $permissionType, "USR_UID" => $perm);
+                        foreach ($permission as $perm) {
 
-                            if ( in_array ($objectType, array("INPUT", "OUTPUT")) )
+                            if ( trim ($perm) === trim ($USR_UID) )
                             {
-                                if ( $objectType === "INPUT" )
+                                $arrData = array("OP_ACTION" => $objectType, "OP_OBJ_TYPE" => $permissionType, "USR_UID" => $perm);
+
+                                if ( in_array ($objectType, array("INPUT", "OUTPUT")) )
                                 {
-                                    array_push ($INPUT, $arrData);
+                                    if ( $objectType === "INPUT" )
+                                    {
+                                        array_push ($INPUT, $arrData);
+                                    }
+                                    else
+                                    {
+                                        array_push ($OUTPUT, $arrData);
+                                    }
                                 }
                                 else
                                 {
-                                    array_push ($OUTPUT, $arrData);
-                                }
-                            }
-                            else
-                            {
-                                if ( $permissionType == "user" )
-                                {
-                                    array_push ($USER_PERMISSIONS, $arrData);
-                                }
-                                else
-                                {
-                                    array_push ($GROUP_PERMISSIONS, $arrData);
+                                    if ( $permissionType == "user" )
+                                    {
+                                        array_push ($USER_PERMISSIONS, $arrData);
+                                    }
+                                    else
+                                    {
+                                        array_push ($GROUP_PERMISSIONS, $arrData);
+                                    }
                                 }
                             }
                         }
@@ -1405,7 +1355,7 @@ class Cases
                 $sw_participate = false; // must be false for default
                 $participants = $this->getUsersParticipatedInCase ($PRO_UID);
 
-                if ( !in_array ($objUser->getUsername (), $participants) && $ACTION == "master" )
+                if ( in_array ($objUser->getUsername (), $participants) && $ACTION == "master" )
                 {
                     $sw_participate = true;
                 }
@@ -1593,7 +1543,7 @@ class Cases
             //Set variables
             $processSupervisor = new ProcessSupervisor();
             $arrayResult = $processSupervisor->getProcessSupervisors ($workflowId, 'ASSIGNED', null, null, null, 'teams');
-            
+
             $arrayGroupUid = array_merge (
                     array_map (function ($value) {
                         return $value['permission'];
@@ -1676,7 +1626,7 @@ class Cases
                 $sql .= " OFFSET " . ((int) ($start));
             }
 
-            $results = $this->objMysql->_query($sql);
+            $results = $this->objMysql->_query ($sql);
             foreach ($results as $row) {
                 $arrayUser[] = $row;
             }
@@ -1692,4 +1642,5 @@ class Cases
             throw $e;
         }
     }
+
 }
