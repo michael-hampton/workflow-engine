@@ -110,8 +110,7 @@ class Elements
 
                 if ( empty ($objVariable) )
                 {
-                    echo $formField;
-                    return false;
+   
                 }
 
                 $variableName = $objVariable->getVariableName ();

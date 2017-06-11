@@ -474,5 +474,34 @@ class WorkflowStep
 
         return false;
     }
+    
+     /**
+     * Get the assigned groups of a task
+     *
+     * @param integer $sTaskUID
+     * @param integer $iType
+     * @return array
+     */
+    public function getGroupsOfTask($sTaskUID, $iType)
+    {
+        try {
+            
+            $sql = "SELECT sp.* FROM workflow.step_permission sp "
+                    . "INNER JOIN user_management.teams t ON t.team_id = sp.permission "
+                    . "LEFT JOIN user_management.poms_users u ON u.team_id = t.team_id "
+                    . "WHERE sp.permission_type = ? "
+                    . "AND sp.step_id = ? "
+                    . "AND t.status = 1";
+            
+            $results = $this->objMysql->_query($sql, [$iType, $sTaskUID]);
+     
+            foreach ($results as $aRow) {
+                $aGroups[] = $aRow;
+            }
+            return $aGroups;
+        } catch (Exception $oError) {
+            throw ($oError);
+        }
+    }
 
 }

@@ -373,6 +373,11 @@ class Cases
         try {
             $workflowObject = $this->objMysql->_select ("workflow.workflow_data", array(), array("object_id" => $projectId));
 
+            if ( empty ($workflowObject) )
+            {
+                return false;
+            }
+
             $workflowData = json_decode ($workflowObject[0]['workflow_data'], true);
             $auditData = json_decode ($workflowObject[0]['audit_data'], true);
 
@@ -867,6 +872,11 @@ class Cases
         );
 
         $objCase = $this->getCaseInfo ($pro_uid, $app_uid);
+
+        if ( empty ($objCase) || !is_object ($objCase) )
+        {
+            return false;
+        }
 
         $arrayCaseVariable = [];
 
@@ -1472,27 +1482,36 @@ class Cases
         }
 
         $objCase = $this->getCaseInfo ($proUid, $appUid);
-        $workflowId = $objCase->getWorkflow_id ();
         $arrayAccess = array();
+
         //User has participated
         $aParticipated = $this->getUsersParticipatedInCase ($proUid);
-        $arrayAccess['participated'] = in_array ($objUser->getUsername (), $aParticipated) ? true : false;
-        //User is supervisor
-        $supervisor = new ProcessSupervisor();
-        $isSupervisor = $supervisor->isUserProcessSupervisor ($workflowId, $objUser);
-        $arrayAccess['supervisor'] = ($isSupervisor) ? true : false;
 
-        $query = $this->objMysql->_select ("workflow.status_mapping", [], ["id" => $objCase->getCurrentStepId ()]);
-        $stepId = $query[0]['step_from'];
-
-        $objectPermissions = $this->getAllObjectsFrom ($proUid, $appUid, $stepId, $objUser);
-
-
-        //Object Permissions
-        if ( count ($objectPermissions) > 0 )
+        if ( !empty ($aParticipated) )
         {
-            foreach ($objectPermissions as $key => $value) {
-                $arrayAccess['objectPermissions'][$key] = $value;
+            $arrayAccess['participated'] = in_array ($objUser->getUsername (), $aParticipated) ? true : false;
+        }
+
+
+        //User is supervisor
+        if ( !empty ($objCase) && is_object ($objCase) )
+        {
+            $workflowId = $objCase->getWorkflow_id ();
+            $supervisor = new ProcessSupervisor();
+            $isSupervisor = $supervisor->isUserProcessSupervisor ($workflowId, $objUser);
+            $arrayAccess['supervisor'] = ($isSupervisor) ? true : false;
+
+            $query = $this->objMysql->_select ("workflow.status_mapping", [], ["id" => $objCase->getCurrentStepId ()]);
+            $stepId = $query[0]['step_from'];
+
+            $objectPermissions = $this->getAllObjectsFrom ($proUid, $appUid, $stepId, $objUser);
+
+            //Object Permissions
+            if ( count ($objectPermissions) > 0 )
+            {
+                foreach ($objectPermissions as $key => $value) {
+                    $arrayAccess['objectPermissions'][$key] = $value;
+                }
             }
         }
 
@@ -1508,10 +1527,169 @@ class Cases
             return true;
         }
 
-        if ( (int) $userPermission['participated'] === 1 || (int) $userPermission['supervisor'] === 1 )
+        if ( isset ($userPermission['participated']) && (int) $userPermission['participated'] === 1 )
         {
             return true;
         }
+
+        if ( isset ($userPermission['supervisor']) && (int) $userPermission['supervisor'] === 1 )
+        {
+            return true;
+        }
+
+        return true;
     }
 
+    /**
+     * Get Users to reassign
+     *
+     * @param string $userUid         Unique id of User (User logged)
+     * @param string $taskUid         Unique id of Task
+     * @param array  $arrayFilterData Data of the filters
+     * @param string $sortField       Field name to sort
+     * @param string $sortDir         Direction of sorting (ASC, DESC)
+     * @param int    $start           Start
+     * @param int    $limit           Limit
+     *
+     * @return array Return Users to reassign
+     */
+    public function getUsersToReassign ($projectId, $caseId, Users $objUser, WorkflowStep $objStep, $arrayFilterData = null, $sortField = null, $sortDir = null, $start = null, $limit = null)
+    {
+        try {
+
+            if ( $this->objMysql === null )
+            {
+                $this->getConnection ();
+            }
+
+            $arrayUser = [];
+            $numRecTotal = 0;
+            //Set variables
+            $stepId = $objStep->getStepId ();
+            $taskId = $objStep->getWorkflowStepId ();
+            $workflowId = $objStep->getWorkflowId ();
+            $user = new UsersFactory();
+            $group = new Team();
+            //Set variables
+            $filterName = 'filter';
+
+            if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData['filter']) )
+            {
+                $filterName = isset ($arrayFilterData['filterOption']) ? $arrayFilterData['filterOption'] : '';
+            }
+
+            //Get data
+            if ( !is_null ($limit) && $limit . '' == '0' )
+            {
+                //Return
+                return [
+                    'total' => $numRecTotal,
+                    'start' => (int) ((!is_null ($start)) ? $start : 0),
+                    'limit' => (int) ((!is_null ($limit)) ? $limit : 0),
+                    $filterName => (!is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData['filter'])) ? $arrayFilterData['filter'] : '',
+                    'data' => $arrayUser
+                ];
+            }
+            //Set variables
+            $processSupervisor = new ProcessSupervisor();
+            $arrayResult = $processSupervisor->getProcessSupervisors ($workflowId, 'ASSIGNED', null, null, null, 'teams');
+            
+            $arrayGroupUid = array_merge (
+                    array_map (function ($value) {
+                        return $value['permission'];
+                    }, $objStep->getGroupsOfTask ($stepId, 'team')), //Groups
+                    array_map (function ($value) {
+                        return $value['grp_uid'];
+                    }, $arrayResult['data'])                 //ProcessSupervisor Groups
+            );
+
+            $arrayGroupUid = array_values (array_filter (array_unique ($arrayGroupUid)));
+
+            $sqlTaskUser = "
+            SELECT permission
+            FROM   workflow.step_permission
+            WHERE step_id = '%s' AND
+             permission_type = 'user'";
+            $sqlGroupUser = '
+            SELECT usrid
+            FROM   user_management.poms_users 
+            WHERE  team_id IN (%s)
+            ';
+            $sqlProcessSupervisor = '
+            SELECT user_id
+            FROM   workflow.process_supervisors
+            WHERE  workflow_id = \'%s\' AND
+                   pu_type = \'%s\'
+            ';
+            $sqlUserToReassign = sprintf ($sqlTaskUser, $stepId);
+
+            if ( !empty ($arrayGroupUid) )
+            {
+                $sqlUserToReassign .= ' UNION ' . sprintf ($sqlGroupUser, '\'' . implode ('\', \'', $arrayGroupUid) . '\'');
+            }
+            $sqlUserToReassign .= ' UNION ' . sprintf ($sqlProcessSupervisor, $workflowId, 'SUPERVISOR');
+
+            $sql = "SELECT usrid, username, firstName, lastName 
+                    FROM user_management.poms_users
+                    WHERE usrid IN (" . $sqlUserToReassign . ")";
+
+            if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData['filter']) && trim ($arrayFilterData['filter']) != '' )
+            {
+                $search = $arraySearch[(isset ($arrayFilterData['filterOption'])) ? $arrayFilterData['filterOption'] : ''];
+
+                $sql .= "AND (username LIKE '%" . $search . "%' OR firstName LIKE '%" . $search . "%' OR lastName LIKE '%" . $search . "%' )";
+            }
+
+            $sql .= " AND status = 1";
+
+            $result1 = $this->objMysql->_query ($sql);
+
+            //Number records total
+            $numRecTotal = count ($result1);
+            //Query
+
+            if ( !is_null ($sortField) && trim ($sortField) != '' )
+            {
+                $sortField = trim ($sortField);
+            }
+            else
+            {
+                $sortField = "username";
+            }
+
+            if ( !is_null ($sortDir) && trim ($sortDir) != '' && strtoupper ($sortDir) == 'DESC' )
+            {
+                $sql .= " ORDER BY " . $sortField . " DESC";
+            }
+            else
+            {
+                $sql .= " ORDER BY " . $sortField . " ASC";
+            }
+
+            if ( !is_null ($limit) )
+            {
+                $sql .= " LIMIT " . ((int) ($limit));
+            }
+
+            if ( !is_null ($start) )
+            {
+                $sql .= " OFFSET " . ((int) ($start));
+            }
+
+            $results = $this->objMysql->_query($sql);
+            foreach ($results as $row) {
+                $arrayUser[] = $row;
+            }
+            //Return
+            return [
+                'total' => $numRecTotal,
+                'start' => (int) ((!is_null ($start)) ? $start : 0),
+                'limit' => (int) ((!is_null ($limit)) ? $limit : 0),
+                $filterName => (!is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData['filter'])) ? $arrayFilterData['filter'] : '',
+                'data' => $arrayUser
+            ];
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
 }
