@@ -20,7 +20,9 @@ class Elements
     private $currentStepId;
     public $arrElement = array();
     private $addedBy;
+    private $requestId;
     private $projectName;
+    private $dateCompleted;
     public $objJobFields = array(
         "location" => array("required" => "true", "type" => "string", "accessor" => "getLocation", "mutator" => "setLocation"),
         "batch" => array("required" => "true", "type" => "string", "accessor" => "getBatch", "mutator" => "setBatch"),
@@ -313,7 +315,18 @@ class Elements
     {
         return $this->current_user;
     }
+    
+    public function getRequestId ()
+    {
+        return $this->requestId;
+    }
 
+    public function setRequestId ($requestId)
+    {
+        $this->requestId = $requestId;
+    }
+
+    
     /**
      * 
      * @param type $workflowName
@@ -352,6 +365,17 @@ class Elements
         $this->addedBy = $addedBy;
     }
     
+    public function getDateCompleted ()
+    {
+        return $this->dateCompleted;
+    }
+
+    public function setDateCompleted ($dateCompleted)
+    {
+        $this->dateCompleted = $dateCompleted;
+    }
+
+        
     public function getProjectName ()
     {
         return $this->projectName;

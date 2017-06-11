@@ -409,6 +409,16 @@ class Cases
 
                         $objElements = new Elements ($projectId, $elementId);
 
+                        if ( isset ($audit['dateCompleted']) )
+                        {
+                            $objElements->setDateCompleted ($audit['dateCompleted']);
+                        }
+
+                        if ( isset ($element['request_id']) && is_numeric ($element['request_id']) )
+                        {
+                            $objElements->setRequestId ($element['request_id']);
+                        }
+
                         $workflowName = $this->getWorkflowName ($element['workflow_id']);
 
                         if ( $workflowName !== false )
@@ -417,7 +427,11 @@ class Cases
                         }
 
                         $objElements->setWorkflow_id ($element['workflow_id']);
-                        $objElements->setCurrent_user ($audit['claimed']);
+
+                        if ( isset ($audit['claimed']) )
+                        {
+                            $objElements->setCurrent_user ($audit['claimed']);
+                        }
 
                         $stepName = $this->getStepName ($element['current_step']);
 
@@ -1303,7 +1317,7 @@ class Cases
             foreach ($arrPermissions as $objectType => $arrPermission) {
                 foreach ($arrPermission as $permissionType => $permissions) {
 
-                    if ( is_array ($permissions) && !empty($permissions))
+                    if ( is_array ($permissions) && !empty ($permissions) )
                     {
                         $permission = explode (",", $permissions);
 
