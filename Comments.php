@@ -21,7 +21,7 @@ class Comments extends BaseComments
     {
         $this->setAppUid ($projectId);
         $this->setUserUid ($usrUid);
-        $this->setNoteDate (date("Y-m-d H:i:s"));
+        $this->setNoteDate (date ("Y-m-d H:i:s"));
         $this->setNoteContent ($noteContent);
         $this->setNoteType ($noteType);
         $this->setRecipients ($noteRecipients);
@@ -92,17 +92,18 @@ class Comments extends BaseComments
 
             $sFrom = "bluetiger_uan@yahoo.com";
             $sBody = nl2br ($configNoteNotification['body']);
-            
+
             $oUser = new UsersFactory();
             $recipientsArray = explode (",", $noteRecipients);
-            
+
             foreach ($recipientsArray as $recipientUid) {
-                
-                $objUser = $oUser->getUsers($recipientUid);
+
+                $arrUser = $oUser->getUsers (array("filter" => "mike", "filterOption" => $recipientUid));
+                $objUser = $arrUser['data'];
 
                 $sTo = ((($objUser[0]->getFirstName () != '') || ($objUser[0]->getLastName () != '')) ? $objUser[0]->getFirstName () . ' ' . $objUser[0]->getLastName () . ' ' : '') . '<' . $objUser[0]->getUser_email () . '>';
-                
-                mail($sTo, $configNoteNotification['subject'], $sBody);
+
+                mail ($sTo, $configNoteNotification['subject'], $sBody);
             }
             //Send derivation notification - End
         } catch (Exception $oException) {
@@ -110,7 +111,7 @@ class Comments extends BaseComments
         }
     }
 
-    public function doCount ($appUid, $usrUid = '', $start = '', $limit = 25, $sort = 'APP_NOTES.NOTE_DATE', $dir = 'DESC', $dateFrom = '', $dateTo = '', $search = '')
+    public function doCount ($appUid, $usrUid = '', $start = '', $limit = 25, $sort = 'datetime', $dir = 'DESC', $dateFrom = '', $dateTo = '', $search = '')
     {
         if ( $this->objMysql === null )
         {
@@ -119,7 +120,8 @@ class Comments extends BaseComments
 
         $arrParameters = array();
 
-        $sql = "SELECT * FROM task_manager.comments c WHERE 1=1";
+        $sql = "SELECT * FROM task_manager.comments c WHERE source_id = ?";
+        $arrParameters[] = $appUid;
 
         if ( $usrUid != '' )
         {
@@ -157,7 +159,7 @@ class Comments extends BaseComments
     }
 
     public function getNotesList (
-    $appUid, $usrUid = '', $start = '', $limit = 25, $sort = 'APP_NOTES.NOTE_DATE', $dir = 'DESC', $dateFrom = '', $dateTo = '', $search = '')
+    $appUid, $usrUid = '', $start = '', $limit = 25, $sort = 'datetime', $dir = 'DESC', $dateFrom = '', $dateTo = '', $search = '')
     {
         if ( $this->objMysql === null )
         {
@@ -166,7 +168,8 @@ class Comments extends BaseComments
 
         $arrParameters = array();
 
-        $sql = "SELECT * FROM task_manager.comments c WHERE 1=1";
+        $sql = "SELECT * FROM task_manager.comments c WHERE source_id = ?";
+        $arrParameters[] = $appUid;
 
         if ( $usrUid != '' )
         {
@@ -201,40 +204,44 @@ class Comments extends BaseComments
 
         $response = array();
         $totalCount = $this->doCount ($appUid, $usrUid, $start, $limit, $sort, $dir, $dateFrom, $dateTo, $search);
-        
+
         $response['totalCount'] = $totalCount;
 
         $response['notes'] = array();
-        
-        if ( trim($start) != '' )
+
+        if ( trim ($start) !== '' && trim ($limit) !== '' )
         {
             $sql .= " LIMIT " . $limit;
             $sql .= " OFFSET " . $start;
         }
-
+        
         $results = $this->objMysql->_query ($sql, $arrParameters);
 
-        foreach ($results as $key => $result) {
-            $result['comment'] = htmlentities (stripslashes ($result['comment']), ENT_QUOTES, 'UTF-8');
-            $response['notes'][] = $result;
+        if ( !empty ($results) )
+        {
+            foreach ($results as $key => $result) {
+                $result['comment'] = htmlentities (stripslashes ($result['comment']), ENT_QUOTES, 'UTF-8');
+                $response['notes'][] = $result;
+            }
+
+            $result['array'] = $response;
+
+            return $result;
         }
 
-        $result['array'] = $response;
-        
-        return $result;
-
+        return [];
 
         //`datetime` BETWEEN '2017-02-16' AND '2017-02-21'
     }
 
     public function addCaseNote ($projectId, $userUid, $note, $sendMail)
     {
-        $response = $this->postNewNote($projectId, $projectId, $userUid, $note, false);
-        
+        $response = $this->postNewNote ($projectId, $projectId, $userUid, $note, false);
+
         if ( $sendMail == 1 )
         {
             $case = new Cases();
-            $p = $case->getUsersParticipatedInCase($projectId);
+            $p = $case->getUsersParticipatedInCase ($projectId);
 
             $noteRecipientsList = array();
 
@@ -247,7 +254,7 @@ class Comments extends BaseComments
             $noteRecipients = implode (",", $noteRecipientsList);
 
             $note = stripslashes ($note);
-            $this->sendNoteNotification($projectId, $userUid, $note, $noteRecipients);
+            $this->sendNoteNotification ($projectId, $userUid, $note, $noteRecipients);
         }
         return $response;
     }

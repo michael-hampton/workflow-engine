@@ -12,10 +12,13 @@ class FormBuilder
     protected $key;
     private $attachmentHtml;
     private $documentHTML;
+    private $outputDocs;
     private $arrUploadedFiles = array();
+    private $noOfColumns;
 
-    public function __construct ($id = "BaseData")
+    public function __construct ($id = "BaseData", $noOfColumns = null)
     {
+        $this->noOfColumns = $noOfColumns === null ? 1 : $noOfColumns;
 
         $this->configure (array(
             "action" => basename ($_SERVER["SCRIPT_NAME"]),
@@ -36,7 +39,7 @@ class FormBuilder
                 {
                     throw new Exception ("Invalid field format");
                 }
-                
+
                 $this->addElement (
                         array(
                             "type" => $objFormField->getFieldType (),
@@ -58,6 +61,80 @@ class FormBuilder
         }
     }
 
+    public function buildOutputDocumentList ($arrDocs)
+    {
+        if ( !empty ($arrDocs) )
+        {
+            $this->outputDocs = '<h2>Output Documents</h2>';
+
+            foreach ($arrDocs as $arrDoc):
+                if ( isset ($arrDoc['OUTDOCTITLE']) ):
+
+                    $this->outputDocs .= '<div class="social-feed-box">';
+
+                    echo '<pre>';
+                    print_r ($arrDoc);
+
+                    $this->outputDocs .= '<div class="social-avatar">
+                               
+                                <div class="media-body">
+                                    <a href="#">
+                                        ' . $arrDoc['CREATED_BY'] . '
+                                    </a>
+                                    <small class="text-muted">' . $arrDoc['CREATE_DATE'] . '</small>
+                                </div>
+                            </div>';
+
+                    $type = trim (str_replace ('OUTPUT', '', $arrDoc['TYPE']));
+
+                    $pdf = '<div class="social-comment">
+                                    <a style="font-size:26px; color:#000;" href="/FormBuilder/' . $arrDoc['FILEPDF'] . '" class="pull-left">
+                                        <i  class="fa fa-file-pdf-o"></i>
+                                    </a>
+                                    <div style="font-size:20px; color:#000; line-height: 36px; margin-left:36px;" class="media-body">
+                                        <a href="#">
+                                            ' . $arrDoc['OUTDOCTITLE'] . ' (pdf)
+                                        </a>
+                                    </div>
+                                </div>';
+
+                    $doc = '<div class="social-comment">
+                                    <a style="font-size:26px; color:#000;" href="/FormBuilder/' . $arrDoc['FILEDOC'] . '" class="pull-left">
+                                       <i class="fa fa-file-word-o"></i>
+                                    </a>
+                                    <div style="font-size:20px; color:#000; line-height: 36px;  margin-left:36px;" class="media-body">
+                                        <a href="#">
+                                            ' . $arrDoc['OUTDOCTITLE'] . ' (doc)
+                                        </a>
+                                    </div>
+                                </div>';
+
+                    $this->outputDocs .= '<div class="social-footer">';
+
+                    switch ($type) {
+                        case "PDF":
+                            $this->outputDocs .= $pdf;
+                            break;
+
+                        case "DOC":
+                            $this->outputDocs .= $doc;
+                            break;
+
+                        case "BOTH":
+                            $this->outputDocs .= $pdf;
+                            $this->outputDocs .= $doc;
+                            break;
+                    }
+
+
+
+                    $this->outputDocs .= '</div></div>';
+
+                endif;
+            endforeach;
+        }
+    }
+
     public function buildDocHTML ($arrDocs)
     {
         $this->documentHTML = '<div class="col-lg-12 pull-left m-t-sm m-b-sm" style="border: 1px dotted #CCC"></div>';
@@ -72,7 +149,7 @@ class FormBuilder
 
         foreach ($arrDocs as $objDocument) {
 
-            if ( !$objDocument instanceof InputDocument )
+            if ( !$objDocument instanceof InputDocuments )
             {
                 throw new Exception ("Invalid document format given.");
             }
@@ -262,52 +339,86 @@ class FormBuilder
     public function render ()
     {
         $this->setForm ();
+        $rows = count ($this->_elements);
 
-        foreach ($this->_elements as $key => $arrElement) {
+        if ( $rows > 0 )
+        {
+            $colCount = ceil (12 / $this->noOfColumns);
+            $counter = 1;     // Counter used to identify if we need to start or end a row
+            $nbsp = $this->noOfColumns - ($rows % $this->noOfColumns);    // Calculate the number of blank columns
 
-            $this->html .= '<div class="form-group">';
-            $this->label = $arrElement['label'];
-            $this->key = $key;
-            $this->buildLabel ();
+            $container_class = 'container-fluid';  // Parent container class name
+            $row_class = 'row';    // Row class name
+            $col_class = 'col-sm-' . $colCount; // Column class name
 
-            switch ($arrElement['type']) {
-                case "text":
-                    $this->buildTextField ();
-                    break;
+            $this->html .= '<div class="' . $container_class . '">';    // Container open
 
-                case "select":
-                    $this->buildSelect ();
-                    break;
+            foreach ($this->_elements as $key => $arrElement) {
 
-                case "textarea":
-                    $this->buildTextarea ();
-                    break;
+                if ( ($counter % $this->noOfColumns) == 1 || $this->noOfColumns === 1 )
+                {    // Check if it's new row
+                    $this->html .= '<div class="' . $row_class . '">'; // Start a new row
+                }
 
-                case "file":
-                    $this->buildFileInput ();
-                    break;
-                case "button":
-                    $this->buildButton ();
-                    break;
+                $this->html .= '<div class="' . $col_class . '">';
 
-                case "checkbox":
-                    $this->buildCheckbox ();
-                    break;
+                $this->html .= '<div class="form-group">';
+                $this->label = $arrElement['label'];
+                $this->key = $key;
+                $this->buildLabel ();
 
-                case "date":
-                    $this->buildDateField ();
-                    break;
+                switch ($arrElement['type']) {
+                    case "text":
+                        $this->buildTextField ();
+                        break;
 
-                case "paragraph":
-                    $this->buildParagraph ();
-                    break;
+                    case "select":
+                        $this->buildSelect ();
+                        break;
+
+                    case "textarea":
+                        $this->buildTextarea ();
+                        break;
+
+                    case "file":
+                        $this->buildFileInput ();
+                        break;
+                    case "button":
+                        $this->buildButton ();
+                        break;
+
+                    case "checkbox":
+                        $this->buildCheckbox ();
+                        break;
+
+                    case "date":
+                        $this->buildDateField ();
+                        break;
+
+                    case "paragraph":
+                        $this->buildParagraph ();
+                        break;
+                }
+                $this->html .= '</div>';
+
+                $this->html .= '</div>';
+
+                if ( ($counter % $this->noOfColumns) == 0 )
+                { // If it's last column in each row then counter remainder will be zero
+                    $this->html .= '</div>';  //  Close the row
+                }
+                $counter++;    // Increase the counter
+                //$this->buildJavascript ();
             }
-
             $this->html .= '</div>';
 
-
-
-            //$this->buildJavascript ();
+            if ( $nbsp > 0 )
+            { // Adjustment to add unused column in last row if they exist
+                for ($i = 0; $i < $nbsp; $i++) {
+                    $this->html .= '<div class="' . $col_class . '">&nbsp;</div>';
+                }
+                //$this->html .= '</div>';  // Close the row
+            }
         }
 
         if ( trim ($this->attachmentHtml) !== "" )
@@ -318,6 +429,11 @@ class FormBuilder
         if ( trim ($this->documentHTML) !== "" )
         {
             $this->html .= $this->documentHTML;
+        }
+
+        if ( trim ($this->outputDocs) !== "" )
+        {
+            $this->html .= $this->outputDocs;
         }
 
         return $this->html;
@@ -404,7 +520,7 @@ class FormBuilder
 
     public function buildFileInput ()
     {
-        
+
         $this->html .= '<button id="uploadButton" type="button" class="btn btn-primary">' . $this->label . '</button>';
 
         $this->html .= '<div id="hideUglyUpload" style="display:none;">

@@ -60,6 +60,11 @@ class WorkflowStep
     {
         return $this->nextStep;
     }
+    
+    public function getWorkflowId()
+    {
+        return $this->workflowId;
+    }
 
     public function getStepId ()
     {
@@ -96,6 +101,7 @@ class WorkflowStep
 
         if ( empty ($arrResult) )
         {
+            die ("Here");
             return false;
         }
 
@@ -208,8 +214,23 @@ class WorkflowStep
         }
     }
 
-    public function save ($objMike, $arrFormData, $arrEmailAddresses = array())
+    public function save ($objMike, $arrFormData, Users $objUser, $arrEmailAddresses = array())
     {
+        $parentId = null;
+
+        if ( method_exists ($objMike, "getParentId") )
+        {
+            $parentId = $objMike->getParentId ();
+        }
+
+        $elementId = $objMike->getId ();
+
+        $objCases = new Cases();
+
+        if ( !$objCases->hasPermission ($objUser, $parentId, $elementId) )
+        {
+            throw new Exception ("You do not have permission to do this");
+        }
 
         if ( !$this->validateWorkflowStep ($arrFormData) )
         {
@@ -259,33 +280,7 @@ class WorkflowStep
     private function sendNotification ($objMike, array $arrCompleteData = [], $arrEmailAddresses = [])
     {
         $objNotifications = new SendNotification();
-        $objNotifications->setVariables (5, $this->_systemName);
-        $objNotifications->setProjectId ($this->parentId);
-
-        $arrNotificationFields = $objNotifications->getMessageParameters ();
-
-        $arrNotificationData = array();
-
-        foreach ($arrNotificationFields[0] as $strField) {
-            if ( isset ($objMike->objJobFields[$strField]) )
-            {
-                $accessor = $objMike->objJobFields[$strField]['accessor'];
-
-                if ( !empty ($accessor) )
-                {
-                    $arrNotificationData[$strField] = $objMike->$accessor ();
-                }
-            }
-            elseif ( $strField == "workflow_name" )
-            {
-                $arrNotificationData[$strField] = $this->workflowName;
-            }
-            elseif ( $strField == "step_name" )
-            {
-                $arrNotificationData['step_name'] = $this->_stepName;
-            }
-        }
-
+        $objNotifications->setVariables ($this->_stepId, $this->_systemName);
         $objNotifications->setProjectId ($this->parentId);
         $objNotifications->setElementId ($this->elementId);
 
@@ -294,7 +289,7 @@ class WorkflowStep
             $objNotifications->setArrEmailAddresses ($arrEmailAddresses);
         }
 
-        $objNotifications->buildEmail (5, $arrNotificationData);
+        $objNotifications->buildEmail ($this->_stepId, array());
     }
 
     private function completeAuditObject (array $arrCompleteData = [])
@@ -339,7 +334,7 @@ class WorkflowStep
         if ( $complete === true && $this->nextStep !== 0 && $this->nextStep != "" )
         {
             $blHasTrigger = $objTrigger->checkTriggers ($objMike);
-   
+
 
             if ( $blHasTrigger === true )
             {
@@ -381,8 +376,8 @@ class WorkflowStep
         {
             $this->objWorkflow = $arrWorkflow;
         }
-        
-        
+
+
         if ( is_numeric ($this->parentId) && is_numeric ($this->elementId) && $blHasTrigger !== true )
         {
             $this->objWorkflow['elements'][$this->elementId] = $arrWorkflow;
@@ -393,8 +388,8 @@ class WorkflowStep
             $arrCompleteData['status'] = "COMPLETE";
             $this->objWorkflow['elements'][$this->elementId]['status'] = "WORKFLOW COMPLETE";
         }
-        
-        
+
+
 
         if ( isset ($arrCompleteData['dateCompleted']) && isset ($arrCompleteData['claimed']) )
         {
@@ -430,8 +425,23 @@ class WorkflowStep
         }
     }
 
-    public function complete ($objMike, $arrCompleteData, $arrEmailAddresses = array())
+    public function complete ($objMike, $arrCompleteData, Users $objUser, $arrEmailAddresses = array())
     {
+        $parentId = null;
+
+        if ( method_exists ($objMike, "getParentId") )
+        {
+            $parentId = $objMike->getParentId ();
+        }
+
+        $elementId = $objMike->getId ();
+
+        $objCases = new Cases();
+        if ( !$objCases->hasPermission ($objUser, $parentId, $elementId) )
+        {
+            throw new Exception ("You do not have permission to do this");
+        }
+
         $this->completeWorkflowObject ($objMike, $arrCompleteData, true, $arrEmailAddresses);
 
         if ( isset ($this->nextStep) && $this->nextStep != 0 )
@@ -463,6 +473,35 @@ class WorkflowStep
         }
 
         return false;
+    }
+    
+     /**
+     * Get the assigned groups of a task
+     *
+     * @param integer $sTaskUID
+     * @param integer $iType
+     * @return array
+     */
+    public function getGroupsOfTask($sTaskUID, $iType)
+    {
+        try {
+            
+            $sql = "SELECT sp.* FROM workflow.step_permission sp "
+                    . "INNER JOIN user_management.teams t ON t.team_id = sp.permission "
+                    . "LEFT JOIN user_management.poms_users u ON u.team_id = t.team_id "
+                    . "WHERE sp.permission_type = ? "
+                    . "AND sp.step_id = ? "
+                    . "AND t.status = 1";
+            
+            $results = $this->objMysql->_query($sql, [$iType, $sTaskUID]);
+     
+            foreach ($results as $aRow) {
+                $aGroups[] = $aRow;
+            }
+            return $aGroups;
+        } catch (Exception $oError) {
+            throw ($oError);
+        }
     }
 
 }

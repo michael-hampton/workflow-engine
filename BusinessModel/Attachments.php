@@ -225,7 +225,7 @@ class Attachments
      */
     private function uploadDocument ($arrFiles, $arrData)
     {
-        $stepDocument = new StepDocument ($this->stepId);
+        $stepDocument = new InputDocument ($this->stepId);
 
         if ( !is_numeric ($this->documentId) )
         {
@@ -314,11 +314,9 @@ class Attachments
                 {
                     return false;
                 }
-
-                if ( !is_dir ($dir) )
-                {
-                    mkdir ($dir);
-                }
+                
+                $objFile = new FileUpload();
+                $objFile->verifyPath($dir, TRUE);
             }
 
             if ( !move_uploaded_file ($file_tmp, $destination) )

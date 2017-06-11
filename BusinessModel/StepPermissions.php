@@ -40,7 +40,7 @@ class StepPermissions
     public function getProcessPermissions ()
     {
         $arrPermissions = [];
-        $this->validateStepUid();
+        $this->validateStepUid ();
 
         $masterPermissions = $this->objMysql->_query ("SELECT permission_type, GROUP_CONCAT(permission SEPARATOR ', ') AS permissions
                                                         FROM workflow.step_permission 
@@ -49,9 +49,30 @@ class StepPermissions
                                                         GROUP BY permission_type", [$this->stepId]);
         $ROPermissions = $this->objMysql->_query ("SELECT permission_type, GROUP_CONCAT(permission SEPARATOR ', ') AS permissions
                                                         FROM workflow.step_permission 
-                                                        WHERE access_level != 'master'
+                                                        WHERE access_level = 'RO'
                                                         AND step_id = ?
                                                         GROUP BY permission_type", [$this->stepId]);
+
+        $InputPermissions = $this->objMysql->_query ("SELECT permission_type, GROUP_CONCAT(permission SEPARATOR ', ') AS permissions
+                                                        FROM workflow.step_permission 
+                                                        WHERE access_level IN('INPUT')
+                                                        AND step_id = ?
+                                                        GROUP BY permission_type", [$this->stepId]);
+
+        $OuputPermissions = $this->objMysql->_query ("SELECT permission_type, GROUP_CONCAT(permission SEPARATOR ', ') AS permissions
+                                                        FROM workflow.step_permission 
+                                                        WHERE access_level IN('OUTPUT')
+                                                        AND step_id = ?
+                                                        GROUP BY permission_type", [$this->stepId]);
+
+        $arrPermissions['master']['team'] = array();
+        $arrPermissions['master']['user'] = array();
+        $arrPermissions['RO']['team'] = array();
+        $arrPermissions['master']['team'] = array();
+        $arrPermissions['Input']['team'] = array();
+        $arrPermissions['Input']['user'] = array();
+        $arrPermissions['Output']['team'] = array();
+        $arrPermissions['Output']['user'] = array();
 
         if ( !empty ($masterPermissions) )
         {
@@ -84,6 +105,36 @@ class StepPermissions
             }
         }
 
+        if ( !empty ($InputPermissions) )
+        {
+            foreach ($InputPermissions as $InputPermission) {
+
+                if ( $InputPermission['permission_type'] == "team" )
+                {
+                    $arrPermissions['Input']['team'] = $InputPermission['permissions'];
+                }
+                else
+                {
+                    $arrPermissions['Input']['user'] = $InputPermission['permissions'];
+                }
+            }
+        }
+
+        if ( !empty ($OuputPermissions) )
+        {
+            foreach ($OuputPermissions as $OuputPermission) {
+
+                if ( $OuputPermission['permission_type'] == "team" )
+                {
+                    $arrPermissions['Output']['team'] = $OuputPermission['permissions'];
+                }
+                else
+                {
+                    $arrPermissions['Output']['user'] = $OuputPermission['permissions'];
+                }
+            }
+        }
+
 
         if ( !empty ($arrPermissions) )
         {
@@ -105,24 +156,50 @@ class StepPermissions
     public function saveProcessPermission ($data)
     {
         try {
-            
-            $this->validateStepUid();
+
+            $this->validateStepUid ();
 
             $objPermissions = new ObjectPermissions ($this->stepId);
 
-            foreach ($data['selectedPermissions'] as $permission) {
+            if ( isset ($data['selectedPermissions']) && !empty ($data['selectedPermissions']) )
+            {
+                foreach ($data['selectedPermissions'] as $permission) {
 
 
-                if ( $permission['objectType'] == "team" )
-                {
-                    $this->validateTeamId ($permission['id']);
+                    if ( $permission['objectType'] == "team" )
+                    {
+                        $this->validateTeamId ($permission['id']);
+                    }
+                    else
+                    {
+                        $this->validateUserId ($permission['id']);
+                    }
+
+                    $objPermissions->create ($permission);
                 }
-                else
-                {
-                    $this->validateUserId ($permission['id']);
-                }
+            }
 
-                $objPermissions->create ($permission);
+            if ( isset ($data['inputList']) && !empty ($data['inputList']) )
+            {
+                foreach ($data['inputList'] as $input) {
+                    if ( $input['objectType'] == "team" )
+                    {
+                        $this->validateTeamId ($input['id']);
+                    }
+                    else
+                    {
+                        $this->validateUserId ($input['id']);
+                    }
+
+                    if ( $input['action'] == "add" )
+                    {
+                        $objPermissions->create ($input);
+                    }
+                    else
+                    {
+                        $objPermissions->removeObject ($input['permissionType'], $input['objectType'], $input['id'], $this->stepId);
+                    }
+                }
             }
         } catch (Exception $ex) {
             throw $ex;
@@ -148,10 +225,30 @@ class StepPermissions
             return true;
         }
 
-        $userList = explode (",", $permissions['RO']['user']);
-        $teamList = explode (",", $permissions['RO']['team']);
-        $userMaster = explode (",", $permissions['master']['user']);
-        $teamMaster = explode (",", $permissions['master']['team']);
+        $userList = [];
+        $teamList = [];
+        $userMaster = [];
+        $teamMaster = [];
+
+        if ( isset ($permissions['RO']['user']) && !empty ($permissions['RO']['user']) )
+        {
+            $userList = explode (",", $permissions['RO']['user']);
+        }
+
+        if ( isset ($permissions['RO']['team']) && !empty ($permissions['RO']['team']) )
+        {
+            $teamList = explode (",", $permissions['RO']['team']);
+        }
+
+        if ( isset ($permissions['master']['user']) && !empty ($permissions['master']['user']) )
+        {
+            $userMaster = explode (",", $permissions['master']['user']);
+        }
+
+        if ( isset ($permissions['master']['team']) && !empty ($permissions['master']['team']) )
+        {
+            $teamMaster = explode (",", $permissions['master']['team']);
+        }
 
         $ROFlag = 0;
         $masterFlag = 0;
@@ -204,9 +301,9 @@ class StepPermissions
         {
             throw (new Exception ("STEP ID HAS NOT BEEN SET"));
         }
-       
+
         $objWorkflowStep = new WorkflowStep();
-        
+
         if ( !($objWorkflowStep->stepExists ($this->stepId)) )
         {
             throw (new Exception ("STEP ID DOES NOT EXIST"));

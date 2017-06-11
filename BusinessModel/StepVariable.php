@@ -3,6 +3,8 @@
 class StepVariable
 {
 
+    use Validator;
+
     private $objMysql;
     private $fieldId;
 
@@ -32,8 +34,37 @@ class StepVariable
     {
         try {
             //Verify data
-            //$this->existsName ($fieldId, $arrayData["VAR_NAME"], "");
+            $this->existsName ($fieldId, $arrayData["VAR_NAME"], "");
 
+            $this->throwExceptionFieldDefinition ($arrayData);
+
+            $this->throwExceptionIfSomeRequiredVariableSqlIsMissingInVariables ($arrayData["VAR_NAME"], $arrayData["VAR_SQL"], array());
+
+            $arrSql = $this->buildSql ($arrayData["VAR_SQL"]);
+
+            if ( !empty ($arrSql) )
+            {
+                $objDatabase = new DatabaseOptions ($fieldId);
+                $objDatabase->setDatabaseName ($arrayData['VAR_DBCONNECTION']);
+                $objDatabase->setTableName ($arrSql['from']);
+                $objDatabase->setIdColumn ($arrSql['select']);
+                $objDatabase->setWhereColumn ($arrSql['where']);
+
+                if ( isset ($arrSql['order']) )
+                {
+                    $objDatabase->setOrderBy ($arrSql['order']);
+                }
+
+                if ( $objDatabase->validate () )
+                {
+                    $objDatabase->save ();
+                }
+                else
+                {
+                    print_r ($objDatabase->getValidationFailures ());
+                    die;
+                }
+            }
             $variable = new Variable ($fieldId);
 
             if ( isset ($arrayData["VAR_NAME"]) && trim ($arrayData['VAR_NAME']) !== "" )
@@ -96,6 +127,75 @@ class StepVariable
         }
     }
 
+    public function buildSql ($sqlString)
+    {
+        $re = '/^(select|SELECT) (?P<select>(.+?)) (from|FROM) (?P<from>(.+)) ((where|WHERE) (?P<where>(.+?)))( (order by|ORDER BY) (?P<order>(.+?)))?( (limit|LIMIT) (?P<limit>(.+)))?$/';
+
+        preg_match ($re, $sqlString, $matches, PREG_OFFSET_CAPTURE, 0);
+
+        $arraySql = array(
+            "select" => $matches['select'][0],
+            "from" => $matches['from'][0],
+            "where" => $matches['where'][0],
+        );
+
+        if ( isset ($matches['order'][0]) )
+        {
+            $arraySql['order'] = $matches['order'][0];
+        }
+
+        if ( isset ($matches['limit'][0]) )
+        {
+            $arraySql['limit'] = $matches['limit'][0];
+        }
+
+        return $arraySql;
+    }
+
+    /**
+     * Get required variables in the SQL
+     *
+     * @param string $sql SQL
+     *
+     * return array Return an array with required variables in the SQL
+     */
+    public function sqlGetRequiredVariables ($sql)
+    {
+        try {
+            $arrayVariableRequired = array();
+            preg_match_all ("/@[@%#\?\x24\=]([A-Za-z_]\w*)/", $sql, $arrayMatch, PREG_SET_ORDER);
+            foreach ($arrayMatch as $value) {
+                $arrayVariableRequired[] = $value[1];
+            }
+            return $arrayVariableRequired;
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * Verify if some required variable in the SQL is missing in the variables
+     *
+     * @param string $variableName  Variable name
+     * @param string $variableSql   SQL
+     * @param array  $arrayVariable The variables
+     *
+     * return void Throw exception if some required variable in the SQL is missing in the variables
+     */
+    public function throwExceptionIfSomeRequiredVariableSqlIsMissingInVariables ($variableName, $variableSql, array $arrayVariable)
+    {
+        try {
+            $arrayResult = array_diff (array_unique ($this->sqlGetRequiredVariables ($variableSql)), array_keys ($arrayVariable));
+
+            if ( count ($arrayResult) > 0 )
+            {
+                throw new \Exception ("ID_PROCESS_VARIABLE_REQUIRED_VARIABLES_FOR_QUERY");
+            }
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
     /**
      * Verify if exists the name of a variable
      *
@@ -106,8 +206,7 @@ class StepVariable
     public function existsName ($fieldId, $variableName, $variableUidToExclude = "")
     {
         try {
-
-            $result = $this->objMysql->_select ("workflow.workflow_variables", array("variable_name"), array("variable_name" => $variableName));
+            $result = $this->objMysql->_query ("SELECT * FROM workflow.workflow_variables WHERE variable_name = ? AND field_id != ?", [$variableName, $fieldId]);
 
             if ( isset ($result[0]) && !empty ($result[0]) )
             {
@@ -231,6 +330,8 @@ class StepVariable
                 $arrVariables[$result['field_id']]->setValidationType ($result['validation_type']);
                 $arrVariables[$result['field_id']]->setVariableName ($result['variable_name']);
                 $arrVariables[$result['field_id']]->setId ($result['id']);
+                $arrVariables[$result['field_id']]->setVarSql ($result['variation_sql']);
+                $arrVariables[$result['field_id']]->setVarDbconnection ($result['db_connection']);
             }
 
 
@@ -305,6 +406,55 @@ class StepVariable
             }
             //Return
             return $arrayVariableData;
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * Verify field definition
+     *
+     * @param array $aData Unique id of Variable to exclude
+     *
+     */
+    public function throwExceptionFieldDefinition ($aData)
+    {
+        try {
+            if ( isset ($aData["VAR_NAME"]) )
+            {
+                $this->isString ($aData['VAR_NAME'], '$var_name');
+                $this->isNotEmpty ($aData['VAR_NAME'], '$var_name');
+            }
+            if ( isset ($aData["VAR_FIELD_TYPE"]) )
+            {
+                $this->isString ($aData['VAR_FIELD_TYPE'], '$var_field_type');
+                $this->isNotEmpty ($aData['VAR_FIELD_TYPE'], '$var_field_type');
+            }
+            if ( isset ($aData["VAR_FIELD_SIZE"]) )
+            {
+                $this->isInteger ($aData["VAR_FIELD_SIZE"], '$var_field_size');
+            }
+            if ( isset ($aData["VAR_LABEL"]) )
+            {
+                $this->isString ($aData['VAR_LABEL'], '$var_label');
+                $this->isNotEmpty ($aData['VAR_LABEL'], '$var_label');
+            }
+            if ( isset ($aData["VAR_DBCONNECTION"]) )
+            {
+                $this->isString ($aData['VAR_DBCONNECTION'], '$var_dbconnection');
+            }
+            if ( isset ($aData["VAR_SQL"]) )
+            {
+                $this->isString ($aData['VAR_SQL'], '$var_sql');
+            }
+            if ( isset ($aData["VAR_NULL"]) )
+            {
+                $this->isInteger ($aData['VAR_NULL'], '$var_null');
+                if ( $aData["VAR_NULL"] != 0 && $aData["VAR_NULL"] != 1 )
+                {
+                    throw new \Exception ("ID_INVALID_VALUE_ONLY_ACCEPTS_VALUES");
+                }
+            }
         } catch (\Exception $e) {
             throw $e;
         }

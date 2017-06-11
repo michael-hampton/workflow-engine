@@ -411,7 +411,8 @@ class ProcessSupervisor
     public function addProcessSupervisor ($sProcessUID, $sUsrUID, $sTypeUID)
     {
         $objUsers = new UsersFactory ($sUsrUID, null, null, $sUsrUID);
-        $oTypeAssigneeT = $objUsers->getTeams ();
+        $objTeams = new Team();
+        $oTypeAssigneeT = $objTeams->getGroups ();
         $oTypeAssigneeU = $objUsers->getUsers ();
 
         if ( empty ($oTypeAssigneeT) && empty ($oTypeAssigneeU) )
@@ -473,7 +474,7 @@ class ProcessSupervisor
         }
         else
         {
-            throw new Exception ("ID_RELATION_EXIST");
+            //throw new Exception ("ID_RELATION_EXIST");
         }
     }
 
@@ -488,7 +489,7 @@ class ProcessSupervisor
     {
         try {
             $processUser = new ProcessUser();
-            $oProcessUser = $processUser->retrieveByPK($sPuUID);
+            $oProcessUser = $processUser->retrieveByPK ($sPuUID);
             if ( !empty ($oProcessUser) )
             {
                 $iResult = $oProcessUser->delete ();
@@ -496,9 +497,36 @@ class ProcessSupervisor
             }
             else
             {
-                throw new Exception  ("ID_ROW_DOES_NOT_EXIST");
+                throw new Exception ("ID_ROW_DOES_NOT_EXIST");
             }
         } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * Validate if the user is supervisor of the process
+     *
+     * @param string $projectUid Unique id of process
+     * @param string $userUid    Unique id of User
+     *
+     * @return bool Return
+     */
+    public function isUserProcessSupervisor ($workflowId, Users $objUser)
+    {
+        try {
+            $result = $this->objMysql->_query ("SELECT * FROM workflow.`process_supervisors` 
+                                             WHERE `user_id` = ? 
+                                             AND `workflow_id` = ? 
+                                             AND `pu_type` = 'SUPERVISOR'", [$objUser->getUserId (), $workflowId]);
+
+            if ( isset ($result[0]) && !empty ($result[0]) )
+            {
+                return true;
+            }
+            //Return
+            return false;
+        } catch (\Exception $e) {
             throw $e;
         }
     }

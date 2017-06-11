@@ -67,7 +67,7 @@ class Form extends FieldFactory
     public function getInputDocuments ()
     {
         // Input Documents
-        $objStepDocument = new StepDocument ($this->stepId);
+        $objStepDocument = new InputDocument ($this->stepId);
         $arrInputDocuments = $objStepDocument->getInputDocumentForStep ();
 
         if ( !empty ($arrInputDocuments) )
@@ -99,7 +99,7 @@ class Form extends FieldFactory
                 throw new Exception ("Field type is unrecognized");
             }
 
-           $arrField['type'] = $fieldType[0]['field_type_id'];
+            $arrField['type'] = $fieldType[0]['field_type_id'];
 
             /*             * ******* Save Field ********************* */
             $fieldId = $objFieldFactory->create ($arrField);
@@ -222,19 +222,22 @@ class Form extends FieldFactory
         }
     }
 
-    public function buildFormForStep (WorkflowStep $objWorkflowStep, $projectId, $elementId = null)
+    public function buildFormForStep (WorkflowStep $objWorkflowStep, Users $objUser, $projectId, $elementId = null)
     {
         $objCases = new Cases();
         $objCase = $objCases->getCaseInfo ($projectId, $elementId);
 
-
         $currentStepId = $objCase->getCurrentStepId ();
-
+        $workflowId = $objWorkflowStep->getWorkflowId ();
         $stepId = $objWorkflowStep->getStepId ();
         $taskId = $objWorkflowStep->getWorkflowStepId ();
         $objFormBuilder = new FormBuilder();
         $buildSummary = false;
         $html = '';
+
+        $userPermissions = $objCases->getAllObjectsFrom ($projectId, $elementId, $stepId, $objUser);
+        $objProcessSupervisor = new ProcessSupervisor();
+        $blProcessSupervisor = $objProcessSupervisor->isUserProcessSupervisor ($workflowId, $objUser);
 
         $objAttachments = new Attachments();
         $arrAttachments = $objAttachments->getAllAttachments ($projectId);
@@ -255,7 +258,6 @@ class Form extends FieldFactory
             }
         }
 
-
         // Permissions
 
         $objVariables = new StepVariable();
@@ -268,6 +270,19 @@ class Form extends FieldFactory
             if ( $currentStepId !== $objWorkflowStep->getWorkflowStepId () )
             {
                 $objField->setIsDisabled (1);
+            }
+
+            if ( $blProcessSupervisor !== true )
+            {
+                if ( !in_array ($stepId, $userPermissions['DYNAFORMS']) )
+                {
+                    $objField->setIsDisabled (1);
+                }
+
+                if ( $userPermissions['MASTER_DYNAFORM'] === 0 )
+                {
+                    $objField->setIsDisabled (1);
+                }
             }
 
             if ( isset ($objCase->objJobFields[$fieldId]) )
@@ -302,12 +317,33 @@ class Form extends FieldFactory
             $objFormBuilder->buildForm ($arrFields);
         }
 
-        $objStepDocument = new StepDocument ($taskId);
+        $objStepDocument = new InputDocument ($taskId);
         $arrDocuments = $objStepDocument->getInputDocumentForStep ();
 
         if ( !empty ($arrDocuments) )
         {
+            foreach ($arrDocuments as $key => $arrDocument) {
+                if ( !in_array ($arrDocument->getId (), $userPermissions['INPUT_DOCUMENTS']) && $blProcessSupervisor !== true )
+                {
+                    unset ($arrDocuments[$key]);
+                }
+            }
             $objFormBuilder->buildDocHTML ($arrDocuments);
+        }
+
+        $outPutDocuments = $objCases->getAllGeneratedDocumentsCriteria ($projectId, $elementId, $stepId, $_SESSION['user']['usrid']);
+
+        if ( !empty ($outPutDocuments) )
+        {
+            foreach ($outPutDocuments as $key => $outPutDocument) {
+
+                if ( !in_array ($outPutDocument['DOC_UID'], $userPermissions['OUTPUT_DOCUMENTS']) && $blProcessSupervisor !== true )
+                {
+                    unset ($outPutDocument[$key]);
+                }
+            }
+
+            $objFormBuilder->buildOutputDocumentList ($outPutDocuments);
         }
 
         $html = $objFormBuilder->render ();

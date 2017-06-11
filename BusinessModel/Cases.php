@@ -137,10 +137,11 @@ class Cases
         try {
             $workflowObject = $this->objMysql->_select ("workflow.workflow_data", array(), array("object_id" => $projectId));
 
-            if(!isset($workflowObject[0]) || empty($workflowObject[0])) {
+            if ( !isset ($workflowObject[0]) || empty ($workflowObject[0]) )
+            {
                 return false;
             }
-            
+
             $workflowData = json_decode ($workflowObject[0]['workflow_data'], true);
             $auditData = json_decode ($workflowObject[0]['audit_data'], true);
 
@@ -372,6 +373,11 @@ class Cases
         try {
             $workflowObject = $this->objMysql->_select ("workflow.workflow_data", array(), array("object_id" => $projectId));
 
+            if ( empty ($workflowObject) )
+            {
+                return false;
+            }
+
             $workflowData = json_decode ($workflowObject[0]['workflow_data'], true);
             $auditData = json_decode ($workflowObject[0]['audit_data'], true);
 
@@ -403,6 +409,16 @@ class Cases
 
                         $objElements = new Elements ($projectId, $elementId);
 
+                        if ( isset ($audit['dateCompleted']) )
+                        {
+                            $objElements->setDateCompleted ($audit['dateCompleted']);
+                        }
+
+                        if ( isset ($element['request_id']) && is_numeric ($element['request_id']) )
+                        {
+                            $objElements->setRequestId ($element['request_id']);
+                        }
+
                         $workflowName = $this->getWorkflowName ($element['workflow_id']);
 
                         if ( $workflowName !== false )
@@ -411,7 +427,11 @@ class Cases
                         }
 
                         $objElements->setWorkflow_id ($element['workflow_id']);
-                        $objElements->setCurrent_user ($audit['claimed']);
+
+                        if ( isset ($audit['claimed']) )
+                        {
+                            $objElements->setCurrent_user ($audit['claimed']);
+                        }
 
                         $stepName = $this->getStepName ($element['current_step']);
 
@@ -444,81 +464,89 @@ class Cases
      */
     public function getCaseNotes ($app_uid, $usr_uid, $data_get = array())
     {
-        $this->isArray ($data_get);
+        try {
+            $this->isArray ($data_get);
 
-        if ( is_numeric ($usr_uid) )
-        {
-            $this->validateUserId ($usr_uid);
-        }
-
-        $start = isset ($data_get["start"]) ? $data_get["start"] : "0";
-        $limit = isset ($data_get["limit"]) ? $data_get["limit"] : "";
-        $sort = isset ($data_get["sort"]) ? $data_get["sort"] : "APP_NOTES.NOTE_DATE";
-        $dir = isset ($data_get["dir"]) ? $data_get["dir"] : "DESC";
-        $user = isset ($data_get["user"]) ? $data_get["user"] : "";
-        $dateFrom = (!empty ($data_get["dateFrom"])) ? substr ($data_get["dateFrom"], 0, 10) : "";
-        $dateTo = (!empty ($data_get["dateTo"])) ? substr ($data_get["dateTo"], 0, 10) : "";
-        $search = isset ($data_get["search"]) ? $data_get["search"] : "";
-        $paged = isset ($data_get["paged"]) ? $data_get["paged"] : true;
-
-        if ( (int) $start == 1 || (int) $start == 0 )
-        {
-            $start = 0;
-        }
-        $dir = strtoupper ($dir);
-
-        if ( !($dir == 'DESC' || $dir == 'ASC') )
-        {
-            $dir = 'DESC';
-        }
-
-        if ( $dateFrom != '' )
-        {
-            $this->isDate ($dateFrom, 'Y-m-d', '$date_from');
-        }
-        if ( $dateTo != '' )
-        {
-            $this->isDate ($dateTo, 'Y-m-d', '$date_to');
-        }
-
-        $objComments = new Comments();
-        $note_data = $objComments->getNotesList ($app_uid, $user, $start, $limit, $sort, $dir, $dateFrom, $dateTo, $search);
-        $response = array();
-        if ( $paged === true )
-        {
-            $response['total'] = $note_data['array']['totalCount'];
-            $response['start'] = $start;
-            $response['limit'] = $limit;
-            $response['sort'] = $sort;
-            $response['dir'] = $dir;
-            $response['usr_uid'] = $user;
-            $response['date_to'] = $dateTo;
-            $response['date_from'] = $dateFrom;
-            $response['search'] = $search;
-            $response['data'] = array();
-            $con = 0;
-            foreach ($note_data['array']['notes'] as $value) {
-
-                $response['data'][$con]['app_uid'] = $value['source_id'];
-                $response['data'][$con]['usr_uid'] = $value['username'];
-                $response['data'][$con]['note_date'] = $value['datetime'];
-                $response['data'][$con]['note_content'] = $value['comment'];
-                $con++;
+            if ( is_numeric ($usr_uid) )
+            {
+                $this->validateUserId ($usr_uid);
             }
-        }
-        else
-        {
-            $con = 0;
-            foreach ($note_data['array']['notes'] as $value) {
-                $response[$con]['app_uid'] = $value['source_id'];
-                $response[$con]['usr_uid'] = $value['username'];
-                $response[$con]['note_date'] = $value['datetime'];
-                $response[$con]['note_content'] = $value['comment'];
-                $con++;
-            }
-        }
 
-        return $response;
+            $start = isset ($data_get["start"]) ? $data_get["start"] : "0";
+            $limit = isset ($data_get["limit"]) ? $data_get["limit"] : "";
+            $sort = isset ($data_get["sort"]) ? $data_get["sort"] : "datetime";
+            $dir = isset ($data_get["dir"]) ? $data_get["dir"] : "DESC";
+            $user = isset ($data_get["user"]) ? $data_get["user"] : "";
+            $dateFrom = (!empty ($data_get["dateFrom"])) ? substr ($data_get["dateFrom"], 0, 10) : "";
+            $dateTo = (!empty ($data_get["dateTo"])) ? substr ($data_get["dateTo"], 0, 10) : "";
+            $search = isset ($data_get["search"]) ? $data_get["search"] : "";
+            $paged = isset ($data_get["paged"]) ? $data_get["paged"] : true;
+
+            if ( (int) $start == 1 || (int) $start == 0 )
+            {
+                $start = 0;
+            }
+            $dir = strtoupper ($dir);
+
+            if ( !($dir == 'DESC' || $dir == 'ASC') )
+            {
+                $dir = 'DESC';
+            }
+
+            if ( $dateFrom != '' )
+            {
+                $this->isDate ($dateFrom, 'Y-m-d', '$date_from');
+            }
+            if ( $dateTo != '' )
+            {
+                $this->isDate ($dateTo, 'Y-m-d', '$date_to');
+            }
+
+            $objComments = new Comments();
+            $note_data = $objComments->getNotesList ($app_uid, $user, $start, $limit, $sort, $dir, $dateFrom, $dateTo, $search);
+            $response = array();
+
+            if ( !empty ($note_data) )
+            {
+                if ( $paged === true )
+                {
+                    $response['total'] = $note_data['array']['totalCount'];
+                    $response['start'] = $start;
+                    $response['limit'] = $limit;
+                    $response['sort'] = $sort;
+                    $response['dir'] = $dir;
+                    $response['usr_uid'] = $user;
+                    $response['date_to'] = $dateTo;
+                    $response['date_from'] = $dateFrom;
+                    $response['search'] = $search;
+                    $response['data'] = array();
+                    $con = 0;
+                    foreach ($note_data['array']['notes'] as $value) {
+
+                        $response['data'][$con]['app_uid'] = $value['source_id'];
+                        $response['data'][$con]['usr_uid'] = $value['username'];
+                        $response['data'][$con]['note_date'] = $value['datetime'];
+                        $response['data'][$con]['note_content'] = $value['comment'];
+                        $con++;
+                    }
+                }
+                else
+                {
+                    $con = 0;
+                    foreach ($note_data['array']['notes'] as $value) {
+                        $response[$con]['app_uid'] = $value['source_id'];
+                        $response[$con]['usr_uid'] = $value['username'];
+                        $response[$con]['note_date'] = $value['datetime'];
+                        $response[$con]['note_content'] = $value['comment'];
+                        $con++;
+                    }
+                }
+            }
+
+            return $response;
+        } catch (Exception $ex) {
+            throw $ex;
+        }
     }
 
     /**
@@ -660,7 +688,9 @@ class Cases
                 $variables['form']['claimed'] = $_SESSION["user"]["username"];
                 $variables['form']['dateCompleted'] = date ("Y-m-d H:i:s");
 
-                $validation = $objStep->save ($objElements, $variables['form']);
+                $objUser = (new UsersFactory)->getUser ($_SESSION['user']['usrid']);
+
+                $validation = $objStep->save ($objElements, $variables['form'], $objUser);
 
                 if ( $validation === false )
                 {
@@ -736,13 +766,14 @@ class Cases
     {
         $objSave = new Save();
         $objWorkflow = new Workflow ($workflowId);
-        
+
         $objStep = $objWorkflow->getNextStep ();
-        $validation = $objStep->save ($objSave, $arrData['form']);
+        $objUser = (new UsersFactory)->getUser ($_SESSION['user']['usrid']);
+        $validation = $objStep->save ($objSave, $arrData['form'], $objUser);
 
         if ( $validation === false )
         {
-            print_r($objStep->getFieldValidation());
+            print_r ($objStep->getFieldValidation ());
         }
 
         $projectId = $objSave->getId ();
@@ -796,20 +827,22 @@ class Cases
             "dateCompleted" => date ("Y-m-d H:i;s"),
             "status" => $status
         );
-        
-        if($rejectionReason !== "") {
+
+        if ( $rejectionReason !== "" )
+        {
             $arrStepData['rejectionReason'] = $rejectionReason;
         }
 
         $objSteps = new WorkflowStep (null, $objElement);
+        $objUser = (new UsersFactory)->getUser ($_SESSION['user']['usrid']);
 
         if ( $status === "COMPLETE" )
         {
-            $objSteps->complete ($objElement, $arrStepData);
+            $objSteps->complete ($objElement, $arrStepData, $objUser);
         }
         else
         {
-            $objStep->save ($objElement, $arrStepData);
+            $objStep->save ($objElement, $arrStepData, $objUser);
         }
     }
 
@@ -823,6 +856,813 @@ class Cases
 
         $objStep = new WorkflowStep (null, $objElements);
         $objStep->assignUserToStep ($objElements, $arrStepData);
+    }
+
+    /**
+     * Get Case Variables
+     *
+     * @access public
+     * @param string $app_uid, Uid for case
+     * @param string $usr_uid, Uid for user
+     * @param string $dynaFormUid, Uid for step
+     * @return array
+     */
+    public function getCaseVariables ($app_uid, $usr_uid, $pro_uid, $dynaFormUid = null, $act_uid = null, $app_index = null)
+    {
+        $this->isInteger ($app_uid, '$app_uid');
+        //Validator::appUid($app_uid, '$app_uid');
+        //$this->isInteger ($usr_uid, '$usr_uid');
+        //$this->validateUserId ($usr_uid);
+
+        require_once $_SERVER['DOCUMENT_ROOT'] . "/core/app/config/config.php";
+
+        $objCase = $this->getCaseInfo ($pro_uid, $app_uid);
+
+        if ( empty ($objCase) || !is_object ($objCase) )
+        {
+            return false;
+        }
+
+        $arrayCaseVariable = [];
+
+        if ( !is_null ($dynaFormUid) )
+        {
+            $objForm = new Form ($dynaFormUid);
+            $arrAllFields = $objForm->getFields (true);
+            $arrFields = [];
+
+            if ( !empty ($arrAllFields) )
+            {
+                foreach ($arrAllFields as $key => $arrField) {
+                    $arrFields[] = $key;
+                }
+            }
+
+
+            $arrayCaseVariable = $this->__getFieldsAndValuesByDynaFormAndAppData (
+                    $arrFields, $objCase, $arrSystemVariables
+            );
+        }
+        else
+        {
+            $arrayCaseVariable = $objCase;
+        }
+
+        return $arrayCaseVariable;
+    }
+
+    /**
+     * Get fields and values by DynaForm
+     *
+     * @param array $form
+     * @param array $appData
+     * @param array $caseVariable
+     *
+     * return array Return array
+     */
+    private function __getFieldsAndValuesByDynaFormAndAppData (array $form, Elements $objElements, array $caseVariables)
+    {
+        try {
+            $caseVariableAux = [];
+
+            foreach ($form as $value) {
+                $field = $value;
+
+                if ( isset ($objElements->objJobFields[$field]) )
+                {
+                    if ( isset ($objElements->objJobFields[$field]['accessor']) )
+                    {
+                        if ( method_exists ($objElements, $objElements->objJobFields[$field]['accessor']) )
+                        {
+                            $caseVariable[$field] = call_user_func (array($objElements, $objElements->objJobFields[$field]['accessor']));
+                        }
+                    }
+                }
+            }
+
+            if ( !empty ($caseVariables) )
+            {
+                foreach ($caseVariables as $variableName => $functionName) {
+                    if ( trim ($functionName) !== "" )
+                    {
+                        $caseVariable[$variableName] = call_user_func (array($objElements, $functionName));
+                    }
+                }
+            }
+
+
+            return $caseVariable;
+        } catch (Exception $ex) {
+            throw $ex;
+        }
+    }
+
+    /**
+     * Get data of Cases OutputDocument
+     *
+     * @param int $projectId
+     * @param int $caseId
+     * @param string $outputDocumentUid
+     * @param string $userUid
+     *
+     * return object Return an object with data of an OutputDocument
+     */
+    public function addCasesOutputDocument ($projectId, $caseId, $stepId, $outputDocumentUid, $userUid)
+    {
+        try {
+            $sApplication = $caseId;
+            $sUserLogged = $userUid;
+            $outputID = $outputDocumentUid;
+
+            $oOutputDocument = new \OutputDocument();
+            $aOD = $oOutputDocument->retrieveByPk ($outputID);
+            $Fields = $this->getCaseVariables ($caseId, $userUid, $projectId, $stepId);
+
+            $sFilename = preg_replace ('[^A-Za-z0-9_]', '_', $this->replaceDataField ($aOD->getOutDocFilename (), $Fields));
+
+            $fileTags = $aOD->getOutDocTags ();
+
+            $objDocumentVersion = new DocumentVersion (array());
+            $lastDocVersion = $objDocumentVersion->getLastDocVersionByFilename ($sFilename);
+
+            if ( ($aOD->getOutDocVersioning () ) )
+            {
+                $lastDocVersion ++;
+                $objDocumentVersion->create (array("filename" => $sFilename, "document_id" => $aOD->getOutDocUid (), "document_type" => "OUTPUT"));
+            }
+
+            $sFilename = $aOD->getOutDocUid () . "_" . $lastDocVersion;
+            $pathOutput = $_SERVER['DOCUMENT_ROOT'] . "/FormBuilder/public/uploads/OutputDocuments/" . $projectId . "/";
+            $objFile = new FileUpload();
+            $objFile->mk_dir ($pathOutput);
+
+            $aProperties = array();
+            if ( trim ($aOD->getOutDocMedia ()) === "" )
+            {
+                $aOD->setOutDocMedia ('Letter');
+            }
+            if ( trim ($aOD->getOutDocLeftMargin ()) === "" )
+            {
+                $aOD->setOutDocLeftMargin (15);
+            }
+            if ( trim ($aOD->getOutDocRightMargin ()) === "" )
+            {
+                $aOD->setOutDocRightMargin (15);
+            }
+            if ( trim ($aOD->getOutDocTopMargin ()) === "" )
+            {
+                $aOD->setOutDocTopMargin (15);
+            }
+            if ( trim ($aOD->getOutDocBottomMargin ()) === "" )
+            {
+                $aOD->setOutDocBottomMargin (15);
+            }
+            $aProperties['media'] = $aOD->getOutDocMedia ();
+
+            $aProperties['margins'] = array('left' => $aOD->getOutDocLeftMargin (), 'right' => $aOD->getOutDocRightMargin (), 'top' => $aOD->getOutDocTopMargin (), 'bottom' => $aOD->getOutDocBottomMargin ()
+            );
+
+            if ( trim ($aOD->getOutDocReportGenerator ()) !== "" )
+            {
+                $aProperties['report_generator'] = $aOD->getOutDocReportGenerator ();
+            }
+
+            $aOD->generate ($outputID, $Fields, $pathOutput, $sFilename, $aOD->getOutDocTemplate (), (boolean) $aOD->getOutDocLandscape (), $aOD->getOutDocGenerate (), $aProperties);
+        } catch (Exception $ex) {
+            throw $ex;
+        }
+    }
+
+    /* Returns content with [parameters] replaced with its values defined */
+
+    public function replaceDataField ($sContent, $aFields, $DBEngine = 'mysql')
+    {
+        $nrt = array("\n", "\r", "\t");
+        $nrthtml = array("(n /)", "(r /)", "(t /)");
+
+        $strContentAux = str_replace ($nrt, $nrthtml, $sContent);
+
+        $iOcurrences = preg_match_all ('/\[([^\]]+)\]/', $sContent, $arrayMatch1, PREG_PATTERN_ORDER | PREG_OFFSET_CAPTURE);
+        $nl2brRecursive = true;
+
+        if ( $iOcurrences )
+        {
+            $arrayGrid = array();
+
+            for ($i = 0; $i <= $iOcurrences - 1; $i++) {
+                $arrayGrid[] = $arrayMatch1[1][$i][0];
+            }
+
+            $arrayGrid = array_unique ($arrayGrid);
+
+            $strContentAux1 = null;
+            $strContentAux1 = $strContentAux;
+
+            foreach ($arrayGrid as $index => $value) {
+                if ( $value !== "" )
+                {
+                    $grdName = $value;
+
+                    if ( isset ($aFields[$grdName]) && trim ($aFields[$grdName]) !== "" )
+                    {
+
+                        $newValue = str_replace ($nrt, $nrthtml, nl2br ($aFields[$grdName]));
+                        $newValue = urlencode ($aFields[$grdName]);
+                        $newValue = stripcslashes ($aFields[$grdName]);
+
+                        $strContentAux1 = str_replace ("[" . $grdName . "]", $newValue, $strContentAux1);
+                    }
+                }
+            }
+
+            $strContentAux = $strContentAux1;
+        }
+
+        $strContentAux = str_replace ($nrthtml, $nrt, $strContentAux);
+        $sContent = $strContentAux;
+
+        return $sContent;
+    }
+
+    /*
+     * get all generate document
+     *
+     * @name getAllGeneratedDocumentsCriteria
+     * @param string $sProcessUID
+     * @param string $sApplicationUID
+     * @param string $sTasKUID
+     * @param string $sUserUID
+     * @return object
+     */
+
+    public function getAllGeneratedDocumentsCriteria ($sProcessUID, $sApplicationUID, $sTasKUID, $sUserUID)
+    {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        $listing = false;
+
+        $objUserFactory = new UsersFactory();
+        $objUser = $objUserFactory->getUser ($sUserUID);
+
+        $aObjectPermissions = $this->getAllObjectsFrom ($sProcessUID, $sApplicationUID, $sTasKUID, $objUser);
+        if ( !is_array ($aObjectPermissions) )
+        {
+            $aObjectPermissions = array('DYNAFORMS' => array(-1), 'INPUT_DOCUMENTS' => array(-1), 'OUTPUT_DOCUMENTS' => array(-1));
+        }
+        if ( !isset ($aObjectPermissions['DYNAFORMS']) )
+        {
+            $aObjectPermissions['DYNAFORMS'] = array(-1);
+        }
+        else
+        {
+            if ( !is_array ($aObjectPermissions['DYNAFORMS']) )
+            {
+                $aObjectPermissions['DYNAFORMS'] = array(-1);
+            }
+        }
+        if ( !isset ($aObjectPermissions['INPUT_DOCUMENTS']) )
+        {
+            $aObjectPermissions['INPUT_DOCUMENTS'] = array(-1);
+        }
+        else
+        {
+            if ( !is_array ($aObjectPermissions['INPUT_DOCUMENTS']) )
+            {
+                $aObjectPermissions['INPUT_DOCUMENTS'] = array(-1);
+            }
+        }
+        if ( !isset ($aObjectPermissions['OUTPUT_DOCUMENTS']) )
+        {
+            $aObjectPermissions['OUTPUT_DOCUMENTS'] = array(-1);
+        }
+        else
+        {
+            if ( !is_array ($aObjectPermissions['OUTPUT_DOCUMENTS']) )
+            {
+                $aObjectPermissions['OUTPUT_DOCUMENTS'] = array(-1);
+            }
+        }
+
+        $results = $this->objMysql->_select ("workflow.step_document", [], ["step_id" => $sTasKUID]);
+
+        $aOutputDocuments = array();
+
+
+        foreach ($results as $aRow) {
+
+            $oAppDocument = new DocumentVersion();
+
+            $lastVersion = $oAppDocument->getLastDocVersion ($aRow['document_id']);
+
+            if ( $aRow['document_type'] == 1 )
+            {
+                $aAux = $oAppDocument->load ($aRow['document_id'], $lastVersion);
+
+                $oOutputDocument = new OutputDocument();
+                $aGields = $oOutputDocument->retrieveByPk ($aRow['document_id']);
+                //OUTPUTDOCUMENT
+                $outDocTitle = $aGields->getOutDocTitle ();
+                switch ($aGields->getOutDocGenerate ()) {
+                    case "PDF":
+                        $fileDoc = 'javascript:alert("NO DOC")';
+                        $fileDocLabel = " ";
+                        $filePdf = 'tasks/cases_ShowOutputDocument?a=' .
+                                $aAux['id'] . '&v=' . $lastVersion . '&ext=pdf&random=' . rand ();
+                        $filePdfLabel = ".pdf";
+                        break;
+
+                    case "DOC":
+                        $fileDoc = 'tasks/cases_ShowOutputDocument?a=' .
+                                $aAux['id'] . '&v=' . $lastVersion . '&ext=doc&random=' . rand ();
+                        $fileDocLabel = ".doc";
+                        $filePdf = 'javascript:alert("NO PDF")';
+                        $filePdfLabel = " ";
+                        break;
+
+                    case "BOTH":
+                        $fileDoc = 'tasks/cases_ShowOutputDocument?a=' .
+                                $aAux['id'] . '&v=' . $lastVersion . '&ext=doc&random=' . rand ();
+                        $fileDocLabel = ".doc";
+                        if ( is_array ($listing) )
+                        {
+                            foreach ($listing as $folderitem) {
+                                if ( ($folderitem->filename == $aRow['APP_DOC_UID']) && ($folderitem->type == "DOC") )
+                                {
+                                    $fileDocLabel = G::LoadTranslation ('ID_GET_EXTERNAL_FILE') . " .doc";
+                                    $fileDoc = $folderitem->downloadScript;
+                                    continue;
+                                }
+                            }
+                        }
+                        $filePdf = 'tasks/cases_ShowOutputDocument?a=' .
+                                $aAux['id'] . '&v=' . $lastVersion . '&ext=pdf&random=' . rand ();
+                        $filePdfLabel = ".pdf";
+
+                        break;
+                }
+
+                try {
+                    $oUser = new UsersFactory();
+                    $aAux1 = $oUser->getUser ($aAux['user_id']);
+
+                    $sUser = $this->usersNameFormatBySetParameters ("@lastName, @firstName (@userName)", $aAux1->getUsername (), $aAux1->getFirstName (), $aAux1->getLastName ());
+                } catch (\Exception $oException) {
+                    $sUser = '(USER DELETED)';
+                }
+
+                //if both documents were generated, we choose the pdf one, only if doc was
+                //generate then choose the doc file.
+                $firstDocLink = $filePdf;
+                $firstDocLabel = $filePdfLabel;
+                if ( $aGields->getOutDocGenerate () == 'DOC' )
+                {
+                    $firstDocLink = $fileDoc;
+                    $firstDocLabel = $fileDocLabel;
+                }
+                $aFields = array(
+                    'APP_DOC_UID' => $aAux['id'],
+                    'DOC_UID' => $aAux['document_id'],
+                    // 'APP_DOC_COMMENT' => $aAux['APP_DOC_COMMENT'],
+                    'APP_DOC_FILENAME' => $aAux['filename'],
+                    // 'APP_DOC_INDEX' => $aAux['APP_DOC_INDEX'],
+                    // 'ORIGIN' => $aTask['TAS_TITLE'],
+                    'CREATE_DATE' => $aAux['date_created'],
+                    'CREATED_BY' => $sUser,
+                    'FILEDOC' => $fileDoc,
+                    'FILEPDF' => $filePdf,
+                    'OUTDOCTITLE' => $outDocTitle,
+                    'DOC_VERSION' => $aAux['document_version'],
+                    'TYPE' => $aAux['document_type'] . ' ' . $aGields->getOutDocGenerate (),
+                    'DOWNLOAD_LINK' => $firstDocLink,
+                    'DOWNLOAD_FILE' => $aAux['filename'] . $firstDocLabel
+                );
+                if ( trim ($fileDocLabel) != '' )
+                {
+                    $aFields['FILEDOCLABEL'] = $fileDocLabel;
+                }
+                if ( trim ($filePdfLabel) != '' )
+                {
+                    $aFields['FILEPDFLABEL'] = $filePdfLabel;
+                }
+                if ( $aFields['APP_DOC_FILENAME'] != '' )
+                {
+                    $aFields['TITLE'] = $aFields['APP_DOC_FILENAME'];
+                }
+                else
+                {
+                    $aFields['TITLE'] = $aFields['APP_DOC_COMMENT'];
+                }
+
+                //$aFields['POSITION'] = $_SESSION['STEP_POSITION'];
+                $aFields['CONFIRM'] = 'ID_CONFIRM_DELETE_ELEMENT';
+                if ( in_array ($aRow['id'], $aObjectPermissions['OUTPUT_DOCUMENTS']) )
+                {
+                    if ( in_array ($aRow['id'], $aDelete['OUTPUT_DOCUMENTS']) )
+                    {
+                        $aFields['ID_DELETE'] = 'ID_DELETE';
+                    }
+                }
+                $aOutputDocuments[] = $aFields;
+            }
+        }
+
+        return $aOutputDocuments;
+    }
+
+    public function usersNameFormatBySetParameters ($formatUserName, $userName, $firstName, $lastName)
+    {
+        $usersNameFormat = str_replace (array("@userName", "@firstName", "@lastName"), array($userName, $firstName, $lastName), $formatUserName);
+        $usersNameFormat = trim ($usersNameFormat);
+
+        return $usersNameFormat;
+    }
+
+    /**
+
+     * Obtain all user permits for Dynaforms, Input and output documents from some action [VIEW, BLOCK, etc...]
+
+     * function getAllObjectsFrom ($PRO_UID, $APP_UID, $TAS_UID, $USR_UID, $ACTION)
+
+     * @access public
+
+     * @param  Project ID, Case ID, Step ID, User ID, Action
+
+     * @return Array with user permissions for all objects types
+
+     */
+    public function getAllObjectsFrom ($PRO_UID, $APP_UID, $TAS_UID = "", Users $objUser, $ACTION = "")
+    {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        $USR_UID = $objUser->getUserId ();
+
+        $USER_PERMISSIONS = Array();
+        $INPUT = Array();
+        $OUTPUT = Array();
+        $GROUP_PERMISSIONS = Array();
+
+        $RESULT = Array(
+            "DYNAFORM" => Array(),
+            "Input" => Array(),
+            "Output" => Array(),
+            "CASES_NOTES" => 0,
+            "MSGS_HISTORY" => Array()
+
+                /* ----------------------------------********--------------------------------- */
+        );
+
+        $objPermissions = new StepPermissions ($TAS_UID);
+        $arrPermissions = $objPermissions->getProcessPermissions ();
+
+        if ( !empty ($arrPermissions) )
+        {
+            foreach ($arrPermissions as $objectType => $arrPermission) {
+                foreach ($arrPermission as $permissionType => $permissions) {
+
+                    if ( is_array ($permissions) && !empty ($permissions) )
+                    {
+                        $permission = explode (",", $permissions);
+
+                        foreach ($permission as $perm) {
+
+                            if ( trim ($perm) === trim ($USR_UID) )
+                            {
+                                $arrData = array("OP_ACTION" => $objectType, "OP_OBJ_TYPE" => $permissionType, "USR_UID" => $perm);
+
+                                if ( in_array ($objectType, array("INPUT", "OUTPUT")) )
+                                {
+                                    if ( $objectType === "INPUT" )
+                                    {
+                                        array_push ($INPUT, $arrData);
+                                    }
+                                    else
+                                    {
+                                        array_push ($OUTPUT, $arrData);
+                                    }
+                                }
+                                else
+                                {
+                                    if ( $permissionType == "user" )
+                                    {
+                                        array_push ($USER_PERMISSIONS, $arrData);
+                                    }
+                                    else
+                                    {
+                                        array_push ($GROUP_PERMISSIONS, $arrData);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            $PERMISSIONS = array_merge ($USER_PERMISSIONS, $GROUP_PERMISSIONS, $INPUT, $OUTPUT);
+        }
+
+        if ( !empty ($PERMISSIONS) )
+        {
+            foreach ($PERMISSIONS as $row) {
+
+                $USER = $row['USR_UID'];
+                $O_TYPE = $row['OP_OBJ_TYPE'];
+                $ACTION = $row['OP_ACTION'];
+
+                $sw_participate = false; // must be false for default
+                $participants = $this->getUsersParticipatedInCase ($PRO_UID);
+
+                if ( in_array ($objUser->getUsername (), $participants) && $ACTION == "master" )
+                {
+                    $sw_participate = true;
+                }
+
+                if ( !$sw_participate )
+                {
+
+                    switch ($ACTION) {
+                        case "RO":
+                            if ( !in_array ($TAS_UID, $RESULT['DYNAFORM']) )
+                            {
+
+                                array_push ($RESULT['DYNAFORM'], $TAS_UID);
+                            }
+                            break;
+
+                        case 'Input':
+                        case 'Output':
+                            if ( $ACTION == 'Input' )
+                            {
+
+                                $obj_type = 2;
+                            }
+                            else
+                            {
+
+                                $obj_type = 1;
+                            }
+
+                            $oDataset = $this->objMysql->_select ("workflow.step_document", [], ["step_id" => $TAS_UID, "document_type" => $obj_type]);
+
+                            foreach ($oDataset as $aRow) {
+                                if ( !in_array ($aRow['document_id'], $RESULT[$ACTION]) )
+                                {
+                                    array_push ($RESULT[$ACTION], $aRow['document_id']);
+                                }
+                            }
+
+                            break;
+                    }
+
+                    $RESULT['CASES_NOTES'] = 1;
+                }
+            }
+        }
+
+        $sw_participate = !isset ($sw_participate) ? false : true;
+
+        return Array(
+            "DYNAFORMS" => $RESULT['DYNAFORM'],
+            "INPUT_DOCUMENTS" => $RESULT['Input'],
+            "OUTPUT_DOCUMENTS" => $RESULT['Output'],
+            "CASES_NOTES" => $RESULT['CASES_NOTES'],
+            "MSGS_HISTORY" => $RESULT['MSGS_HISTORY'],
+            "MASTER_DYNAFORM" => (int) $sw_participate
+
+                /* ----------------------------------********--------------------------------- */
+        );
+    }
+
+    /**
+     * Get Permissions, Participate, Access
+     *
+     * @param object $objUser
+     * @param string $proUid
+     * @param string $appUid
+     * @return array Returns array with all access
+     */
+    public function userAuthorization (Users $objUser, $proUid, $appUid)
+    {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        $objCase = $this->getCaseInfo ($proUid, $appUid);
+        $arrayAccess = array();
+
+        //User has participated
+        $aParticipated = $this->getUsersParticipatedInCase ($proUid);
+
+        if ( !empty ($aParticipated) )
+        {
+            $arrayAccess['participated'] = in_array ($objUser->getUsername (), $aParticipated) ? true : false;
+        }
+
+
+        //User is supervisor
+        if ( !empty ($objCase) && is_object ($objCase) )
+        {
+            $workflowId = $objCase->getWorkflow_id ();
+            $supervisor = new ProcessSupervisor();
+            $isSupervisor = $supervisor->isUserProcessSupervisor ($workflowId, $objUser);
+            $arrayAccess['supervisor'] = ($isSupervisor) ? true : false;
+
+            $query = $this->objMysql->_select ("workflow.status_mapping", [], ["id" => $objCase->getCurrentStepId ()]);
+            $stepId = $query[0]['step_from'];
+
+            $objectPermissions = $this->getAllObjectsFrom ($proUid, $appUid, $stepId, $objUser);
+
+            //Object Permissions
+            if ( count ($objectPermissions) > 0 )
+            {
+                foreach ($objectPermissions as $key => $value) {
+                    $arrayAccess['objectPermissions'][$key] = $value;
+                }
+            }
+        }
+
+        return $arrayAccess;
+    }
+
+    public function hasPermission (Users $objUser, $proUid, $appUid)
+    {
+        $userPermission = $this->userAuthorization ($objUser, $proUid, $appUid);
+
+        if ( isset ($userPermission['objectPermissions']['DYNAFORMS']) && !empty ($userPermission['objectPermissions']['DYNAFORMS']) )
+        {
+            return true;
+        }
+
+        if ( isset ($userPermission['participated']) && (int) $userPermission['participated'] === 1 )
+        {
+            return true;
+        }
+
+        if ( isset ($userPermission['supervisor']) && (int) $userPermission['supervisor'] === 1 )
+        {
+            return true;
+        }
+
+        return true;
+    }
+
+    /**
+     * Get Users to reassign
+     *
+     * @param string $userUid         Unique id of User (User logged)
+     * @param string $taskUid         Unique id of Task
+     * @param array  $arrayFilterData Data of the filters
+     * @param string $sortField       Field name to sort
+     * @param string $sortDir         Direction of sorting (ASC, DESC)
+     * @param int    $start           Start
+     * @param int    $limit           Limit
+     *
+     * @return array Return Users to reassign
+     */
+    public function getUsersToReassign ($projectId, $caseId, Users $objUser, WorkflowStep $objStep, $arrayFilterData = null, $sortField = null, $sortDir = null, $start = null, $limit = null)
+    {
+        try {
+
+            if ( $this->objMysql === null )
+            {
+                $this->getConnection ();
+            }
+
+            $arrayUser = [];
+            $numRecTotal = 0;
+            //Set variables
+            $stepId = $objStep->getStepId ();
+            $taskId = $objStep->getWorkflowStepId ();
+            $workflowId = $objStep->getWorkflowId ();
+            $user = new UsersFactory();
+            $group = new Team();
+            //Set variables
+            $filterName = 'filter';
+
+            if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData['filter']) )
+            {
+                $filterName = isset ($arrayFilterData['filterOption']) ? $arrayFilterData['filterOption'] : '';
+            }
+
+            //Get data
+            if ( !is_null ($limit) && $limit . '' == '0' )
+            {
+                //Return
+                return [
+                    'total' => $numRecTotal,
+                    'start' => (int) ((!is_null ($start)) ? $start : 0),
+                    'limit' => (int) ((!is_null ($limit)) ? $limit : 0),
+                    $filterName => (!is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData['filter'])) ? $arrayFilterData['filter'] : '',
+                    'data' => $arrayUser
+                ];
+            }
+            //Set variables
+            $processSupervisor = new ProcessSupervisor();
+            $arrayResult = $processSupervisor->getProcessSupervisors ($workflowId, 'ASSIGNED', null, null, null, 'teams');
+
+            $arrayGroupUid = array_merge (
+                    array_map (function ($value) {
+                        return $value['permission'];
+                    }, $objStep->getGroupsOfTask ($stepId, 'team')), //Groups
+                    array_map (function ($value) {
+                        return $value['grp_uid'];
+                    }, $arrayResult['data'])                 //ProcessSupervisor Groups
+            );
+
+            $arrayGroupUid = array_values (array_filter (array_unique ($arrayGroupUid)));
+
+            $sqlTaskUser = "
+            SELECT permission
+            FROM   workflow.step_permission
+            WHERE step_id = '%s' AND
+             permission_type = 'user'";
+            $sqlGroupUser = '
+            SELECT usrid
+            FROM   user_management.poms_users 
+            WHERE  team_id IN (%s)
+            ';
+            $sqlProcessSupervisor = '
+            SELECT user_id
+            FROM   workflow.process_supervisors
+            WHERE  workflow_id = \'%s\' AND
+                   pu_type = \'%s\'
+            ';
+            $sqlUserToReassign = sprintf ($sqlTaskUser, $stepId);
+
+            if ( !empty ($arrayGroupUid) )
+            {
+                $sqlUserToReassign .= ' UNION ' . sprintf ($sqlGroupUser, '\'' . implode ('\', \'', $arrayGroupUid) . '\'');
+            }
+            $sqlUserToReassign .= ' UNION ' . sprintf ($sqlProcessSupervisor, $workflowId, 'SUPERVISOR');
+
+            $sql = "SELECT usrid, username, firstName, lastName 
+                    FROM user_management.poms_users
+                    WHERE usrid IN (" . $sqlUserToReassign . ")";
+
+            if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData['filter']) && trim ($arrayFilterData['filter']) != '' )
+            {
+                $search = $arraySearch[(isset ($arrayFilterData['filterOption'])) ? $arrayFilterData['filterOption'] : ''];
+
+                $sql .= "AND (username LIKE '%" . $search . "%' OR firstName LIKE '%" . $search . "%' OR lastName LIKE '%" . $search . "%' )";
+            }
+
+            $sql .= " AND status = 1";
+
+            $result1 = $this->objMysql->_query ($sql);
+
+            //Number records total
+            $numRecTotal = count ($result1);
+            //Query
+
+            if ( !is_null ($sortField) && trim ($sortField) != '' )
+            {
+                $sortField = trim ($sortField);
+            }
+            else
+            {
+                $sortField = "username";
+            }
+
+            if ( !is_null ($sortDir) && trim ($sortDir) != '' && strtoupper ($sortDir) == 'DESC' )
+            {
+                $sql .= " ORDER BY " . $sortField . " DESC";
+            }
+            else
+            {
+                $sql .= " ORDER BY " . $sortField . " ASC";
+            }
+
+            if ( !is_null ($limit) )
+            {
+                $sql .= " LIMIT " . ((int) ($limit));
+            }
+
+            if ( !is_null ($start) )
+            {
+                $sql .= " OFFSET " . ((int) ($start));
+            }
+
+            $results = $this->objMysql->_query ($sql);
+            foreach ($results as $row) {
+                $arrayUser[] = $row;
+            }
+            //Return
+            return [
+                'total' => $numRecTotal,
+                'start' => (int) ((!is_null ($start)) ? $start : 0),
+                'limit' => (int) ((!is_null ($limit)) ? $limit : 0),
+                $filterName => (!is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData['filter'])) ? $arrayFilterData['filter'] : '',
+                'data' => $arrayUser
+            ];
+        } catch (\Exception $e) {
+            throw $e;
+        }
     }
 
 }

@@ -36,7 +36,7 @@ class ObjectPermissions extends Permissions
     {
         try {
             $oPro = $this->retrieveByPk ($permission, $permissionType);
-            if ( $oPro !== null && is_array ($oPro) && !empty($oPro) )
+            if ( $oPro !== null && is_array ($oPro) && !empty ($oPro) )
             {
                 return true;
             }
@@ -86,14 +86,29 @@ class ObjectPermissions extends Permissions
             {
                 throw new Exception ("Permission doesnt exist");
             }
-            
+
             $arrWhere = array("permission_type" => $permissionType, "permission" => $permission);
-            
-            if($stepId !== NULL) {
+
+            if ( $stepId !== NULL )
+            {
                 $arrWhere['step_id'] = $stepId;
             }
 
             $this->objMysql->_delete ("workflow.step_permission", $arrWhere);
+        } catch (Exception $ex) {
+            throw $ex;
+        }
+    }
+
+    public function removeObject ($objectType, $permissionType, $permission, $stepId)
+    {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        try {
+            $this->objMysql->_delete ("workflow.step_permission", array("permission" => $permission, "permission_type" => $permissionType, "access_level" => $objectType, "step_id" => $stepId));
         } catch (Exception $ex) {
             throw $ex;
         }
