@@ -464,81 +464,89 @@ class Cases
      */
     public function getCaseNotes ($app_uid, $usr_uid, $data_get = array())
     {
-        $this->isArray ($data_get);
+        try {
+            $this->isArray ($data_get);
 
-        if ( is_numeric ($usr_uid) )
-        {
-            $this->validateUserId ($usr_uid);
-        }
-
-        $start = isset ($data_get["start"]) ? $data_get["start"] : "0";
-        $limit = isset ($data_get["limit"]) ? $data_get["limit"] : "";
-        $sort = isset ($data_get["sort"]) ? $data_get["sort"] : "APP_NOTES.NOTE_DATE";
-        $dir = isset ($data_get["dir"]) ? $data_get["dir"] : "DESC";
-        $user = isset ($data_get["user"]) ? $data_get["user"] : "";
-        $dateFrom = (!empty ($data_get["dateFrom"])) ? substr ($data_get["dateFrom"], 0, 10) : "";
-        $dateTo = (!empty ($data_get["dateTo"])) ? substr ($data_get["dateTo"], 0, 10) : "";
-        $search = isset ($data_get["search"]) ? $data_get["search"] : "";
-        $paged = isset ($data_get["paged"]) ? $data_get["paged"] : true;
-
-        if ( (int) $start == 1 || (int) $start == 0 )
-        {
-            $start = 0;
-        }
-        $dir = strtoupper ($dir);
-
-        if ( !($dir == 'DESC' || $dir == 'ASC') )
-        {
-            $dir = 'DESC';
-        }
-
-        if ( $dateFrom != '' )
-        {
-            $this->isDate ($dateFrom, 'Y-m-d', '$date_from');
-        }
-        if ( $dateTo != '' )
-        {
-            $this->isDate ($dateTo, 'Y-m-d', '$date_to');
-        }
-
-        $objComments = new Comments();
-        $note_data = $objComments->getNotesList ($app_uid, $user, $start, $limit, $sort, $dir, $dateFrom, $dateTo, $search);
-        $response = array();
-        if ( $paged === true )
-        {
-            $response['total'] = $note_data['array']['totalCount'];
-            $response['start'] = $start;
-            $response['limit'] = $limit;
-            $response['sort'] = $sort;
-            $response['dir'] = $dir;
-            $response['usr_uid'] = $user;
-            $response['date_to'] = $dateTo;
-            $response['date_from'] = $dateFrom;
-            $response['search'] = $search;
-            $response['data'] = array();
-            $con = 0;
-            foreach ($note_data['array']['notes'] as $value) {
-
-                $response['data'][$con]['app_uid'] = $value['source_id'];
-                $response['data'][$con]['usr_uid'] = $value['username'];
-                $response['data'][$con]['note_date'] = $value['datetime'];
-                $response['data'][$con]['note_content'] = $value['comment'];
-                $con++;
+            if ( is_numeric ($usr_uid) )
+            {
+                $this->validateUserId ($usr_uid);
             }
-        }
-        else
-        {
-            $con = 0;
-            foreach ($note_data['array']['notes'] as $value) {
-                $response[$con]['app_uid'] = $value['source_id'];
-                $response[$con]['usr_uid'] = $value['username'];
-                $response[$con]['note_date'] = $value['datetime'];
-                $response[$con]['note_content'] = $value['comment'];
-                $con++;
-            }
-        }
 
-        return $response;
+            $start = isset ($data_get["start"]) ? $data_get["start"] : "0";
+            $limit = isset ($data_get["limit"]) ? $data_get["limit"] : "";
+            $sort = isset ($data_get["sort"]) ? $data_get["sort"] : "datetime";
+            $dir = isset ($data_get["dir"]) ? $data_get["dir"] : "DESC";
+            $user = isset ($data_get["user"]) ? $data_get["user"] : "";
+            $dateFrom = (!empty ($data_get["dateFrom"])) ? substr ($data_get["dateFrom"], 0, 10) : "";
+            $dateTo = (!empty ($data_get["dateTo"])) ? substr ($data_get["dateTo"], 0, 10) : "";
+            $search = isset ($data_get["search"]) ? $data_get["search"] : "";
+            $paged = isset ($data_get["paged"]) ? $data_get["paged"] : true;
+
+            if ( (int) $start == 1 || (int) $start == 0 )
+            {
+                $start = 0;
+            }
+            $dir = strtoupper ($dir);
+
+            if ( !($dir == 'DESC' || $dir == 'ASC') )
+            {
+                $dir = 'DESC';
+            }
+
+            if ( $dateFrom != '' )
+            {
+                $this->isDate ($dateFrom, 'Y-m-d', '$date_from');
+            }
+            if ( $dateTo != '' )
+            {
+                $this->isDate ($dateTo, 'Y-m-d', '$date_to');
+            }
+
+            $objComments = new Comments();
+            $note_data = $objComments->getNotesList ($app_uid, $user, $start, $limit, $sort, $dir, $dateFrom, $dateTo, $search);
+            $response = array();
+
+            if ( !empty ($note_data) )
+            {
+                if ( $paged === true )
+                {
+                    $response['total'] = $note_data['array']['totalCount'];
+                    $response['start'] = $start;
+                    $response['limit'] = $limit;
+                    $response['sort'] = $sort;
+                    $response['dir'] = $dir;
+                    $response['usr_uid'] = $user;
+                    $response['date_to'] = $dateTo;
+                    $response['date_from'] = $dateFrom;
+                    $response['search'] = $search;
+                    $response['data'] = array();
+                    $con = 0;
+                    foreach ($note_data['array']['notes'] as $value) {
+
+                        $response['data'][$con]['app_uid'] = $value['source_id'];
+                        $response['data'][$con]['usr_uid'] = $value['username'];
+                        $response['data'][$con]['note_date'] = $value['datetime'];
+                        $response['data'][$con]['note_content'] = $value['comment'];
+                        $con++;
+                    }
+                }
+                else
+                {
+                    $con = 0;
+                    foreach ($note_data['array']['notes'] as $value) {
+                        $response[$con]['app_uid'] = $value['source_id'];
+                        $response[$con]['usr_uid'] = $value['username'];
+                        $response[$con]['note_date'] = $value['datetime'];
+                        $response[$con]['note_content'] = $value['comment'];
+                        $con++;
+                    }
+                }
+            }
+
+            return $response;
+        } catch (Exception $ex) {
+            throw $ex;
+        }
     }
 
     /**
