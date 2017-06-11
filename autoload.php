@@ -2,6 +2,7 @@
 define("PATH_THIRDPARTY", $_SERVER['DOCUMENT_ROOT']. '/core/app/library/thirdparty/');
 define("PATH_SEP", "/");
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/Validator.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/config.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Mysql.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BaseVariable.php';
@@ -9,6 +10,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Variable.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/StepVariable.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BaseComments.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Comments.php';
+
 
 /* * *********************** Documents ******************************************** */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/StepDocument.php';
@@ -45,7 +47,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/FormBu
 
 
 /* * ************** Workflow Classes ********************************************* */
-require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/Validator.php';
+
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Process/BaseProcess.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/WorkflowClasses/Workflow.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/WorkflowClasses/WorkflowStep.php';

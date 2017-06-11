@@ -12,12 +12,13 @@ class DatabaseOptions
     private $stepId;
     private $objMysql;
     private $fieldId;
+    private $id;
     private $validationFailures = array();
     private $arrayFieldDefinition = array(
         "databaseName" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getDatabaseName", "mutator" => "setDatabaseName"),
         "tableName" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getTableName", "mutator" => "setTableName"),
         "idColumn" => array("type" => "string", "required" => true, "empty" => true, "accessor" => "getIdColumn", "mutator" => "setIdColumn"),
-        "valueColumn" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getValueColumn", "mutator" => "setValueColumn"),
+        "valueColumn" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getValueColumn", "mutator" => "setValueColumn"),
         "whereColumn" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getWhereColumn", "mutator" => "setWhereColumn"),
         "orderBy" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getOrderBy", "mutator" => "setOrderBy"),
     );
@@ -81,6 +82,7 @@ class DatabaseOptions
 
         if ( isset ($result[0]) && !empty ($result[0]) )
         {
+            $this->id = $result[0]['id'];
             return true;
         }
         else
@@ -110,7 +112,7 @@ class DatabaseOptions
                     ), array("field_id" => $this->fieldId)
             );
 
-            $this->objMysql->_update ("workflow.fields", array("data_type" => $id), array("field_id" => $this->fieldId));
+            $this->objMysql->_update ("workflow.fields", array("data_type" => $this->id), array("field_id" => $this->fieldId));
         }
         else
         {
@@ -120,6 +122,8 @@ class DatabaseOptions
                 "data_object_type" => 2
                     )
             );
+
+            $this->objMysql->_update ("workflow.fields", array("data_type" => $id), array("field_id" => $this->fieldId));
         }
     }
 

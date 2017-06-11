@@ -11,6 +11,7 @@ abstract class BaseVariable
     private $VarSql;
     private $id;
     private $validationErrors = array();
+    private $rowExists;
 
     /**
      * 
@@ -124,19 +125,14 @@ abstract class BaseVariable
         $this->id = $id;
     }
 
-    /**
-     * 
-     */
-    public function update ()
+    public function getRowExists ()
     {
-        $this->objMysql->_update (
-                "workflow.workflow_variables", array(
-            "variable_name" => $this->variableName,
-            "validation_type" => $this->validationType
-                ), array(
-            "field_id" => $this->fieldId
-                )
-        );
+        return $this->rowExists;
+    }
+
+    public function setRowExists ($rowExists)
+    {
+        $this->rowExists = $rowExists;
     }
 
     /**
@@ -144,12 +140,30 @@ abstract class BaseVariable
      */
     public function save ()
     {
-        $this->objMysql->_insert ("workflow.workflow_variables", array(
-            "variable_name" => $this->variableName,
-            "validation_type" => $this->validationType,
-            "field_id" => $this->fieldId
-                )
-        );
+        if ( !$this->rowExists )
+        {
+            $this->objMysql->_insert ("workflow.workflow_variables", array(
+                "variable_name" => $this->variableName,
+                "validation_type" => $this->validationType,
+                "variation_sql" => $this->VarSql,
+                "db_connection" => $this->VarDbconnection,
+                "field_id" => $this->fieldId
+                    )
+            );
+        }
+        else
+        {
+            $this->objMysql->_update (
+                    "workflow.workflow_variables", array(
+                "variable_name" => $this->variableName,
+                "validation_type" => $this->validationType,
+                "variation_sql" => $this->VarSql,
+                "db_connection" => $this->VarDbconnection,
+                    ), array(
+                "field_id" => $this->fieldId
+                    )
+            );
+        }
     }
 
     public function getValidationErrors ()
