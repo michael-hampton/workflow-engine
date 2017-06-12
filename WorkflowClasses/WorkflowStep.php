@@ -475,6 +475,18 @@ class WorkflowStep
         return false;
     }
     
+        public function taskExists ($taskId)
+    {
+        $result = $this->objMysql->_select ("workflow.status_mapping", [], ["id" => $taskId]);
+
+        if ( isset ($result[0]) && !empty ($result[0]) )
+        {
+            return true;
+        }
+
+        return false;
+    }
+    
      /**
      * Get the assigned groups of a task
      *

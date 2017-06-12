@@ -11,6 +11,13 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/StepVa
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BaseComments.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Comments.php';
 
+/* * *********************** Events ******************************************** */
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Event/BaseEvent.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Event/EventModel.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/Event.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Event/BaseMessageType.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Event/MessageTypes.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/MessageType.php';
 
 /* * *********************** Documents ******************************************** */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/StepDocument.php';
