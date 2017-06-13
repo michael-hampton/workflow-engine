@@ -149,7 +149,8 @@ abstract class BaseMessageType
         }
         else
         {
-            $this->objMysql->_insert ("workflow.message_type", array("title" => $this->title, "description" => $this->description, "variables" => $this->variables, "workflow_id" => $this->PrjUid));
+            $id = $this->objMysql->_insert ("workflow.message_type", array("title" => $this->title, "description" => $this->description, "variables" => $this->variables, "workflow_id" => $this->PrjUid));
+            return $id;
         }
     }
 

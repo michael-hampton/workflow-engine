@@ -38,33 +38,37 @@ class StepVariable
 
             $this->throwExceptionFieldDefinition ($arrayData);
 
-            $this->throwExceptionIfSomeRequiredVariableSqlIsMissingInVariables ($arrayData["VAR_NAME"], $arrayData["VAR_SQL"], array());
-
-            $arrSql = $this->buildSql ($arrayData["VAR_SQL"]);
-
-            if ( !empty ($arrSql) )
+            if ( isset ($arrayData['VAR_SQL']) )
             {
-                $objDatabase = new DatabaseOptions ($fieldId);
-                $objDatabase->setDatabaseName ($arrayData['VAR_DBCONNECTION']);
-                $objDatabase->setTableName ($arrSql['from']);
-                $objDatabase->setIdColumn ($arrSql['select']);
-                $objDatabase->setWhereColumn ($arrSql['where']);
+                 $this->throwExceptionIfSomeRequiredVariableSqlIsMissingInVariables ($arrayData["VAR_NAME"], $arrayData["VAR_SQL"], array());
+                
+                $arrSql = $this->buildSql ($arrayData["VAR_SQL"]);
 
-                if ( isset ($arrSql['order']) )
+                if ( !empty ($arrSql) )
                 {
-                    $objDatabase->setOrderBy ($arrSql['order']);
-                }
+                    $objDatabase = new DatabaseOptions ($fieldId);
+                    $objDatabase->setDatabaseName ($arrayData['VAR_DBCONNECTION']);
+                    $objDatabase->setTableName ($arrSql['from']);
+                    $objDatabase->setIdColumn ($arrSql['select']);
+                    $objDatabase->setWhereColumn ($arrSql['where']);
 
-                if ( $objDatabase->validate () )
-                {
-                    $objDatabase->save ();
-                }
-                else
-                {
-                    print_r ($objDatabase->getValidationFailures ());
-                    die;
+                    if ( isset ($arrSql['order']) )
+                    {
+                        $objDatabase->setOrderBy ($arrSql['order']);
+                    }
+
+                    if ( $objDatabase->validate () )
+                    {
+                        $objDatabase->save ();
+                    }
+                    else
+                    {
+                        print_r ($objDatabase->getValidationFailures ());
+                        die;
+                    }
                 }
             }
+
             $variable = new Variable ($fieldId);
 
             if ( isset ($arrayData["VAR_NAME"]) && trim ($arrayData['VAR_NAME']) !== "" )

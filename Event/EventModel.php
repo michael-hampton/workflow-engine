@@ -128,18 +128,21 @@ class EventModel extends BaseEvent
                         $oTrigger = TriggersPeer::retrieveByPk ($aData['TRI_UID']);
                     }
                     $this->setTriUid ($oTrigger->getTriUid ());
-                    $parameters = new StdClass();
-                    $parameters->hash = G::encryptOld ($oTrigger->getTriWebbot ());
-                    if ( isset ($aData['EVN_ACTION_PARAMETERS']->SUBJECT) )
-                    {
-                        $parameters->SUBJECT = $aData['EVN_ACTION_PARAMETERS']->SUBJECT;
-                        $parameters->TO = $aData['EVN_ACTION_PARAMETERS']->TO;
-                        $parameters->CC = $aData['EVN_ACTION_PARAMETERS']->CC;
-                        $parameters->BCC = $aData['EVN_ACTION_PARAMETERS']->BCC;
-                        $parameters->TEMPLATE = $aData['EVN_ACTION_PARAMETERS']->TEMPLATE;
-                    }
-                    $this->setEvnActionParameters (serialize ($parameters));
                 }
+
+                $parameters = new StdClass();
+         
+                if ( isset ($aData['EVN_ACTION_PARAMETERS']['subject']) )
+                {
+                    $parameters->SUBJECT = $aData['EVN_ACTION_PARAMETERS']['subject'];
+                    $parameters->TO = $aData['EVN_ACTION_PARAMETERS']['to'];
+                    $parameters->CC = $aData['EVN_ACTION_PARAMETERS']['cc'];
+                    $parameters->BCC = $aData['EVN_ACTION_PARAMETERS']['bcc'];
+                    //$parameters->TEMPLATE = $aData['EVN_ACTION_PARAMETERS']['template'];
+                }
+
+                $this->setEvnActionParameters (serialize ($parameters));
+
                 $this->setEvent ($event);
                 $this->setEvnStatus ($aData['status']);
 
