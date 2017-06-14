@@ -2,6 +2,8 @@
 class MessageEventDefinition
 {
    
+   use Validator;
+   
     /**
      * Constructor of the class
      *
@@ -44,11 +46,9 @@ class MessageEventDefinition
     public function existsEvent($projectUid, $eventUid, $messageEventDefinitionUidToExclude = "")
     {
         try {
-            $criteria = new \Criteria("workflow");
-            $criteria->addSelectColumn(\MessageEventDefinitionPeer::MSGED_UID);
-            $criteria->add(\MessageEventDefinitionPeer::PRJ_UID, $projectUid, \Criteria::EQUAL);
+          $sql = "SELECT * FROM workflow.message_definition md INNER JOIN workflow.event e ON e.id = md.event_id WHERE md.event_id = ?";
             if ($messageEventDefinitionUidToExclude != "") {
-                $criteria->add(\MessageEventDefinitionPeer::MSGED_UID, $messageEventDefinitionUidToExclude, \Criteria::NOT_EQUAL);
+                $sql .= " AND md.id != ?";
             }
             $criteria->add(\MessageEventDefinitionPeer::EVN_UID, $eventUid, \Criteria::EQUAL);
             $rsCriteria = \MessageEventDefinitionPeer::doSelectRS($criteria);
