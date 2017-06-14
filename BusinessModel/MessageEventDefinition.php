@@ -28,7 +28,7 @@ class MessageEventDefinition
     public function exists($messageEventDefinitionUid)
     {
         try {
-            $obj = \MessageEventDefinitionPeer::retrieveByPK($messageEventDefinitionUid);
+            $obj = $this->objMysql->_select("workflow.message_definition", [], ["id" => $messageEventDefinitionUid]);
             return (!is_null($obj))? true : false;
         } catch (\Exception $e) {
             throw $e;
@@ -50,9 +50,8 @@ class MessageEventDefinition
             if ($messageEventDefinitionUidToExclude != "") {
                 $sql .= " AND md.id != ?";
             }
-            $criteria->add(\MessageEventDefinitionPeer::EVN_UID, $eventUid, \Criteria::EQUAL);
-            $rsCriteria = \MessageEventDefinitionPeer::doSelectRS($criteria);
-            return ($rsCriteria->next())? true : false;
+            $result = $this->objMysql->_query($sql, $arrParameters);
+            return isset($result[0]) && !empty($result[0]) ? true : false;
         } catch (\Exception $e) {
             throw $e;
         }
