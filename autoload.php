@@ -18,6 +18,12 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/Event.
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Event/BaseMessageType.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Event/MessageTypes.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/MessageType.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/TimerEvent.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Event/TimerEvents.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Event/BaseTimerEvent.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Event/MessageDefinitions.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Event/BaseMessageDefinition.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/BusinessModel/MessageDefinition.php';
 
 /* * *********************** Documents ******************************************** */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Documents/StepDocument.php';
