@@ -227,8 +227,8 @@ class TimerEvent
     public function exists($timerEventUid)
     {
         try {
-            $obj = \TimerEventPeer::retrieveByPK($timerEventUid);
-            return (!is_null($obj))? true : false;
+            $result = $this-objMysql->_select("workflow.event_timer, [], ["id" => $timerEventUid]);
+            return (isset($result[0]) && !empty($result[0]) ? true : false;
         } catch (\Exception $e) {
             throw $e;
         }
