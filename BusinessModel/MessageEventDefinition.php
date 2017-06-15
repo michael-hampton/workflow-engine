@@ -285,7 +285,7 @@ class MessageEventDefinition
             //Verify data
             $this->throwExceptionIfNotExistsMessageEventDefinition($messageEventDefinitionUid, $this->arrayFieldNameForException["messageEventDefinitionUid"]);
             //Get data
-            $result = $this->objMysql->_select("workflow.message_definition", [], ["id" => $messageEventDefinitionUid])
+            $result = $this->objMysql->_select("workflow.message_definition", [], ["id" => $messageEventDefinitionUid]);
             $row = $this->setMessageEventDefinitionVariablesForRecordByMessageType($result);
             //Return
             return (!$flagGetRecord)? $this->getMessageEventDefinitionDataFromRecord($row) : $row;

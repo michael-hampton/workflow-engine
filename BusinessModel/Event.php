@@ -2,6 +2,13 @@
 
 class Event
 {
+    private $objMysql;
+
+
+    public function __construct ()
+    {
+        $this->objMysql = new Mysql2();
+    }
 
     /**
      * Save Event Post Put
@@ -62,6 +69,13 @@ class Event
             throw (new \Exception ("TASK ID DOESNT EXIST"));
         }
         return $taskId;
+    }
+    
+    public function getEvent($taskId)
+    {
+        $result = $this->objMysql->_select("workflow.status_mapping", ['step_condition'], ['id' => $taskId]);
+        
+       return $result;
     }
 
 }
