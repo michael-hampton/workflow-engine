@@ -9,6 +9,7 @@
  */
 abstract class BaseMessageDefinition
 {
+    protected $eventId;
 
     protected $objMysql;
 
@@ -288,6 +289,8 @@ abstract class BaseMessageDefinition
             $this->msged_correlation = $v;
         }
     }
+    
+    
 
     public function getConnection ()
     {
@@ -301,7 +304,7 @@ abstract class BaseMessageDefinition
             $this->getConnection ();
         }
         
-        $id = $this->objMysql->_insert("workflow.message_definition", ["MSGT_UID" => $this->msgt_uid, "workflow_id" => $this->prj_uid, "MSGT_VARIABLES" => $this->msged_variables]);
+        $id = $this->objMysql->_insert("workflow.message_definition", ["MSGT_UID" => $this->msgt_uid, "workflow_id" => $this->prj_uid, "EVT_UID" => $this->evn_uid, "MSGT_VARIABLES" => $this->msged_variables]);
         
         return $id;
     }

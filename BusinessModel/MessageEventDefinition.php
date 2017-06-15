@@ -249,6 +249,7 @@ class MessageEventDefinition
                 $messageEventDefinition->setMsgedCorrelation($arrayData['MSGED_CORRELATION']);
                 $messageEventDefinition->setMsgtUid($arrayData['MSGT_UID']);
                 $messageEventDefinition->setMsgedVariables($arrayData["MSGT_VARIABLES"]);
+                $messageEventDefinition->setEvnUid($arrayData['EVN_UID']);
 
                 if ( $messageEventDefinition->validate () )
                 {
