@@ -46,9 +46,9 @@ class MessageType
 
                     if ( isset ($arrayData["MSGT_VARIABLES"]) && count ($arrayData["MSGT_VARIABLES"]) > 0 )
                     {
-                        $messageType->setVariables(json_encode($arrayData['MSGT_VARIABLES']));
+                        $messageType->setVariables (json_encode ($arrayData['MSGT_VARIABLES']));
                     }
-                    
+
                     $messageTypeUid = $messageType->save ();
 
                     //Return
@@ -85,7 +85,7 @@ class MessageType
     public function throwExceptionIfDataIsInvalid ($messageTypeUid, $projectUid, array $arrayData)
     {
         try {
-           
+
             //Verify data
             if ( isset ($arrayData["name"]) )
             {
@@ -95,12 +95,11 @@ class MessageType
             {
                 $this->throwExceptionCheckIfThereIsRepeatedVariableName ($arrayData["MSGT_VARIABLES"]);
             }
-
         } catch (\Exception $e) {
             throw $e;
         }
     }
-    
+
     /**
      * Verify if exists the Name of a Message-Type
      *
@@ -110,26 +109,27 @@ class MessageType
      *
      * return bool Return true if exists the Name of a Message-Type, false otherwise
      */
-    public function existsName($projectUid, $messageTypeName, $messageTypeUidToExclude = "")
+    public function existsName ($projectUid, $messageTypeName, $messageTypeUidToExclude = "")
     {
         try {
             $arrParameters = [];
-            
+
             $sql = "SELECT * FROM workflow.message_type WHERE title = ? AND workflow_id = ?";
             $arrParameters[] = $messageTypeName;
             $arrParameters[] = $projectUid;
-            
-           
-            if ($messageTypeUidToExclude != "") {
+
+
+            if ( $messageTypeUidToExclude != "" )
+            {
                 $sql .= " AND id != ?";
                 $arrParameters[] = $messageTypeUidToExclude;
             }
-            
-            $result = $this->objMysql->_query($sql, $arrParameters);
-         
-            return isset($result[0]) && !empty($result[0]) ? true : false;
-            
-            return ($rsCriteria->next())? true : false;
+
+            $result = $this->objMysql->_query ($sql, $arrParameters);
+
+            return isset ($result[0]) && !empty ($result[0]) ? true : false;
+
+            return ($rsCriteria->next ()) ? true : false;
         } catch (\Exception $e) {
             throw $e;
         }
@@ -138,26 +138,31 @@ class MessageType
     public function getMessageType ($id)
     {
         $result = $this->objMysql->_select ("workflow.message_type", [], ["id" => $id]);
+        
+        return $result;
     }
 
-    public function throwExceptionCheckIfThereIsRepeatedVariableName(array $arrayDataVariables)
+    public function throwExceptionCheckIfThereIsRepeatedVariableName (array $arrayDataVariables)
     {
         try {
             $i = 0;
             $arrayDataVarAux = $arrayDataVariables;
-            
-            while ($i <= count($arrayDataVariables) - 1) {
 
-                if (array_key_exists("MSGTV_NAME", $arrayDataVariables[$i])) {
+            while ($i <= count ($arrayDataVariables) - 1) {
+
+                if ( array_key_exists ("MSGTV_NAME", $arrayDataVariables[$i]) )
+                {
                     $msgtvNameAux = $arrayDataVariables[$i]["MSGTV_NAME"];
                     $counter = 0;
                     foreach ($arrayDataVarAux as $key => $value) {
-                        if ($value["MSGTV_NAME"] == $msgtvNameAux) {
+                        if ( $value["MSGTV_NAME"] == $msgtvNameAux )
+                        {
                             $counter = $counter + 1;
                         }
                     }
-                    if ($counter > 1) {
-                        throw new \Exception(\G::LoadTranslation("ID_MESSAGE_TYPE_NAME_VARIABLE_EXISTS", array($value["MSGTV_NAME"])));
+                    if ( $counter > 1 )
+                    {
+                        throw new \Exception (\G::LoadTranslation ("ID_MESSAGE_TYPE_NAME_VARIABLE_EXISTS", array($value["MSGTV_NAME"])));
                     }
                 }
                 $i = $i + 1;
@@ -165,6 +170,13 @@ class MessageType
         } catch (\Exception $e) {
             throw $e;
         }
+    }
+    
+    public function exists($id)
+    {
+        $result = $this->getMessageType($id);
+        
+        return isset($result[0]) && !empty($result[0]) ? true : false;
     }
 
     /**
@@ -183,6 +195,28 @@ class MessageType
             if ( $this->existsName ($projectUid, $messageTypeName, $messageTypeUidToExclude) )
             {
                 throw new \Exception ("ID_MESSAGE_TYPE_NAME_ALREADY_EXISTS");
+            }
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * Verify if does not exist the Message-Type
+     *
+     * @param string $messageTypeUid        Unique id of Message-Type
+     * @param string $fieldNameForException Field name for the exception
+     *
+     * return void Throw exception if does not exist the Message-Type
+     */
+    public function throwExceptionIfNotExistsMessageType ($messageTypeUid)
+    {
+        try {
+            $messageType = $this->getMessageType($messageTypeUid);
+            
+            if ( !isset($messageType[0]) || empty($messageType[0]) )
+            {
+                throw new \Exception ("ID_MESSAGE_TYPE_DOES_NOT_EXIST");
             }
         } catch (\Exception $e) {
             throw $e;

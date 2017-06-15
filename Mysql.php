@@ -320,6 +320,7 @@ class Mysql2 extends D
         list( $fields, $placeholders, $values ) = $this->prep_query ($data);
 
         $query = "INSERT INTO {$table} ({$fields}) VALUES ({$placeholders})";
+
         $id = $this->queryDatabase ($query, $values, false);
         return $id;
     }
