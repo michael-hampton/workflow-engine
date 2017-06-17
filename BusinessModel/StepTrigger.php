@@ -39,7 +39,7 @@ class StepTrigger
 
         if ( !empty ($arrGateways) )
         {
-            $arrTriggers = $arrGateways;
+            $arrTriggers = array_merge($arrTriggers, $arrGateways);
         }
 
         return $arrTriggers;
@@ -115,13 +115,14 @@ class StepTrigger
 
             $workflow = isset ($arrTrigger['workflow_from']) ? $arrTrigger['workflow_from'] : $arrTrigger['workflow_id'];
             $triggerType = isset ($arrTrigger['trigger_type']) ? $arrTrigger['trigger_type'] : '';
-
+            
             if ( $arrTrigger !== false && !empty ($arrTrigger) )
             {
                 if ( $workflow == $this->arrWorkflowObject['workflow_id'] )
                 {
                     if ( $triggerType == "step" )
                     {
+                        
                         $this->arrWorkflowObject['current_step'] = $arrTrigger['step_to'];
                         $blHasTrigger = true;
                         $this->blMove = true;
@@ -131,7 +132,6 @@ class StepTrigger
                             if ( $this->arrWorkflowObject['elements'][$this->parentId]['workflow_id'] == $arrTrigger['workflow_from'] )
                             {
                                 $this->arrWorkflowObject['elements'][$this->parentId]['current_step'] = $arrTrigger['step_to'];
-                                $blHasTrigger = true;
                             }
                         }
                     }
@@ -143,10 +143,9 @@ class StepTrigger
                     {
                         $objGateway = new StepGateway ($this->arrWorkflowObject['elements'][$this->parentId]['current_step']);
                         $this->arrWorkflowObject = $objGateway->updateStep ($arrTrigger, $this->arrWorkflowObject, $objMike);
+                        $blHasTrigger = true;
+                        $this->blMove = false;
                     }
-
-                    $blHasTrigger = true;
-                    $this->blMove = false;
                 }
             }
             else
@@ -169,7 +168,6 @@ class StepTrigger
                     {
                         $objGateway = new StepGateway(null);
                         $this->arrWorkflowObject = $objGateway->updateStep ($arrTrigger, $this->arrWorkflowObject, $objMike);
-
 
                         $blHasTrigger = true;
                         $this->blMove = false;
@@ -281,10 +279,6 @@ class StepTrigger
     /**
      * Delete Trigger
      * @var string $sTriggerUID. Uid for Trigger
-     *
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
-     *
      * @return void
      */
     public function deleteTrigger ($sTriggerUID)

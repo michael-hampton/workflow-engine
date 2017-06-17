@@ -89,7 +89,6 @@ class Elements
      */
     public function loadObject ($arrElements)
     {
-        $objVariables = new StepVariable();
 
         foreach ($arrElements as $formField => $formValue) {
 
@@ -108,25 +107,23 @@ class Elements
             elseif ( !in_array ($formField, $this->arrToIgnore) )
             {
 
-                $objVariable = $objVariables->getVariableForField ($formField);
+                $objVariable = (new StepVariable())->getVariableForField ($formField);
 
-                if ( empty ($objVariable) )
+                if ( is_a ($objVariable, 'Variable') )
                 {
-   
+                    $variableName = $objVariable->getVariableName ();
+
+                    switch ($objVariable->getValidationType ()) {
+                        case "string":
+                            if ( !is_string ($formValue) )
+                            {
+                                //die("Mike");
+                            }
+                            break;
+                    }
+
+                    $this->arrElement[$variableName] = $formValue;
                 }
-
-                $variableName = $objVariable->getVariableName ();
-
-                switch ($objVariable->getValidationType ()) {
-                    case "string":
-                        if ( !is_string ($formValue) )
-                        {
-                            //die("Mike");
-                        }
-                        break;
-                }
-
-                $this->arrElement[$variableName] = $formValue;
             }
         }
 
@@ -150,7 +147,7 @@ class Elements
 
     public function getStatus ()
     {
-        $this->status = trim($this->status) == "" ? "IN PROGRESS" : $this->status;
+        $this->status = trim ($this->status) == "" ? "IN PROGRESS" : $this->status;
         return $this->status;
     }
 
@@ -315,7 +312,7 @@ class Elements
     {
         return $this->current_user;
     }
-    
+
     public function getRequestId ()
     {
         return $this->requestId;
@@ -326,7 +323,6 @@ class Elements
         $this->requestId = $requestId;
     }
 
-    
     /**
      * 
      * @param type $workflowName
@@ -364,7 +360,7 @@ class Elements
     {
         $this->addedBy = $addedBy;
     }
-    
+
     public function getDateCompleted ()
     {
         return $this->dateCompleted;
@@ -375,7 +371,6 @@ class Elements
         $this->dateCompleted = $dateCompleted;
     }
 
-        
     public function getProjectName ()
     {
         return $this->projectName;
@@ -386,7 +381,6 @@ class Elements
         $this->projectName = $projectName;
     }
 
-    
     public function getProjectById ()
     {
         $objMysql = new Mysql2();
@@ -400,7 +394,7 @@ class Elements
             {
                 $this->setAddedBy ($JSON['job']['added_by']);
             }
-            
+
             if ( isset ($JSON['job']['name']) )
             {
                 $this->setProjectName ($JSON['job']['name']);

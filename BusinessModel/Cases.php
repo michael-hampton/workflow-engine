@@ -875,6 +875,7 @@ class Cases
         //$this->validateUserId ($usr_uid);
 
         require_once $_SERVER['DOCUMENT_ROOT'] . "/core/app/config/config.php";
+        $arrSystemVariables = getSystemVariables ();
 
         $objCase = $this->getCaseInfo ($pro_uid, $app_uid);
 
@@ -1325,7 +1326,8 @@ class Cases
             foreach ($arrPermissions as $objectType => $arrPermission) {
                 foreach ($arrPermission as $permissionType => $permissions) {
 
-                    if ( is_array ($permissions) && !empty ($permissions) )
+
+                    if ( !empty ($permissions) )
                     {
                         $permission = explode (",", $permissions);
 
@@ -1382,9 +1384,8 @@ class Cases
                     $sw_participate = true;
                 }
 
-                if ( !$sw_participate )
+                if ( $sw_participate === false )
                 {
-
                     switch ($ACTION) {
                         case "RO":
                             if ( !in_array ($TAS_UID, $RESULT['DYNAFORM']) )
@@ -1574,6 +1575,11 @@ class Cases
                         return $value['grp_uid'];
                     }, $arrayResult['data'])                 //ProcessSupervisor Groups
             );
+
+            if ( empty ($arrayGroupUid) )
+            {
+                return false;
+            }
 
             $arrayGroupUid = array_values (array_filter (array_unique ($arrayGroupUid)));
 

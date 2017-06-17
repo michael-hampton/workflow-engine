@@ -236,6 +236,7 @@ class Form extends FieldFactory
         $html = '';
 
         $userPermissions = $objCases->getAllObjectsFrom ($projectId, $elementId, $stepId, $objUser);
+        
         $objProcessSupervisor = new ProcessSupervisor();
         $blProcessSupervisor = $objProcessSupervisor->isUserProcessSupervisor ($workflowId, $objUser);
 
@@ -274,7 +275,7 @@ class Form extends FieldFactory
 
             if ( $blProcessSupervisor !== true )
             {
-                if ( !in_array ($stepId, $userPermissions['DYNAFORMS']) )
+                if ( !in_array ($stepId, $userPermissions['DYNAFORMS']) && $userPermissions['MASTER_DYNAFORM'] !== 1 )
                 {
                     $objField->setIsDisabled (1);
                 }

@@ -515,7 +515,7 @@ abstract class BaseTimerEvent
         }
         if ( $this->tmrevn_start_date !== $ts )
         {
-            $this->tmrevn_start_date = date("Y-m-d", $ts);
+            $this->tmrevn_start_date = date ("Y-m-d", $ts);
         }
     }
 
@@ -548,7 +548,7 @@ abstract class BaseTimerEvent
         }
         if ( $this->tmrevn_end_date !== $ts )
         {
-            $this->tmrevn_end_date = date("Y-m-d", $ts);
+            $this->tmrevn_end_date = date ("Y-m-d", $ts);
         }
     }
 
@@ -665,7 +665,7 @@ abstract class BaseTimerEvent
         }
         if ( $this->tmrevn_next_run_date !== $ts )
         {
-            $this->tmrevn_next_run_date = date("Y-m-d H:i:s", $ts);
+            $this->tmrevn_next_run_date = date ("Y-m-d H:i:s", $ts);
         }
     }
 
@@ -763,7 +763,7 @@ abstract class BaseTimerEvent
 
     public function fromArray ($arr)
     {
-        $keys = array("timer_id","WORKFLOW_ID", "event_id", "TMREVN_OPTION", "TMREVN_START_DATE", "TMREVN_END_DATE", "TMREVN_DAY", "TMREVN_HOUR", "TMREVN_MINUTE", "TMREVN_CONFIGURATION_DATA",  "TMREVN_NEXT_RUN_DATE"  );
+        $keys = array("timer_id", "WORKFLOW_ID", "event_id", "TMREVN_OPTION", "TMREVN_START_DATE", "TMREVN_END_DATE", "TMREVN_DAY", "TMREVN_HOUR", "TMREVN_MINUTE", "TMREVN_CONFIGURATION_DATA", "TMREVN_NEXT_RUN_DATE");
 
         if ( array_key_exists ($keys[0], $arr) )
         {
@@ -809,10 +809,10 @@ abstract class BaseTimerEvent
         {
             $this->setTmrevnNextRunDate ($arr[$keys[10]]);
         }
-        if ( array_key_exists ($keys[11], $arr) )
-        {
-            $this->setTmrevnLastRunDate ($arr[$keys[11]]);
-        }
+//        if ( array_key_exists ($keys[11], $arr) )
+//        {
+//            $this->setTmrevnLastRunDate ($arr[$keys[11]]);
+//        }
     }
 
     public function save ()
@@ -821,20 +821,38 @@ abstract class BaseTimerEvent
         {
             $this->getConnection ();
         }
-        
-        $id = $this->objMysql->_insert ("workflow.timer_event", array("workflow_id" => $this->prj_uid,
-            "EVN_UID" => $this->evn_uid,
-            "TMREVN_OPTION" => $this->tmrevn_option,
-            "TMREVN_START_DATE" => $this->tmrevn_start_date,
-            "TMREVN_END_DATE" => $this->tmrevn_end_date,
-            "TMREVN_DAY" => $this->tmrevn_day,
-            "TMREVN_HOUR" => $this->tmrevn_hour,
-            "TMREVN_MINUTE" => $this->tmrevn_minute,
-            "TMREVN_CONFIGURATION_DATA" => $this->tmrevn_configuration_data,
-            "TMREVN_NEXT_RUN_DATE" => $this->tmrevn_next_run_date,
-            "TMREVN_STATUS" => $this->tmrevn_status));
-        
-        return $id;
+
+        if ( trim ($this->tmrevn_uid) !== "" && is_numeric ($this->tmrevn_uid) )
+        {   
+            $this->objMysql->_update ("workflow.timer_event", array("workflow_id" => $this->prj_uid,
+                "EVN_UID" => $this->evn_uid,
+                "TMREVN_OPTION" => $this->tmrevn_option,
+                "TMREVN_START_DATE" => $this->tmrevn_start_date,
+                "TMREVN_END_DATE" => $this->tmrevn_end_date,
+                "TMREVN_DAY" => $this->tmrevn_day,
+                "TMREVN_HOUR" => $this->tmrevn_hour,
+                "TMREVN_MINUTE" => $this->tmrevn_minute,
+                "TMREVN_CONFIGURATION_DATA" => $this->tmrevn_configuration_data,
+                "TMREVN_NEXT_RUN_DATE" => $this->tmrevn_next_run_date,
+                "TMREVN_STATUS" => $this->tmrevn_status), array("TMREVN_UID" => $this->tmrevn_uid)
+            );
+        }
+        else
+        {
+            $id = $this->objMysql->_insert ("workflow.timer_event", array("workflow_id" => $this->prj_uid,
+                "EVN_UID" => $this->evn_uid,
+                "TMREVN_OPTION" => $this->tmrevn_option,
+                "TMREVN_START_DATE" => $this->tmrevn_start_date,
+                "TMREVN_END_DATE" => $this->tmrevn_end_date,
+                "TMREVN_DAY" => $this->tmrevn_day,
+                "TMREVN_HOUR" => $this->tmrevn_hour,
+                "TMREVN_MINUTE" => $this->tmrevn_minute,
+                "TMREVN_CONFIGURATION_DATA" => $this->tmrevn_configuration_data,
+                "TMREVN_NEXT_RUN_DATE" => $this->tmrevn_next_run_date,
+                "TMREVN_STATUS" => $this->tmrevn_status));
+
+            return $id;
+        }
     }
 
     public function validate ()

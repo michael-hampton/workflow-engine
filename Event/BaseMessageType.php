@@ -143,9 +143,9 @@ abstract class BaseMessageType
 
     public function save ()
     {
-        if ( $this->blUpdate === true )
+        if ( trim($this->id) !== "" && is_numeric ($this->id) )
         {
-            $this->objMysql->_update ("workflow.message_type", array("title" => $this->title, "description" => $this->description, "variables" => $this->variables, "workflow_id" => $this->PrjUid), array($this->id));
+            $this->objMysql->_update ("workflow.message_type", array("title" => $this->title, "description" => $this->description, "variables" => $this->variables, "workflow_id" => $this->PrjUid), array("id" => $this->id));
         }
         else
         {

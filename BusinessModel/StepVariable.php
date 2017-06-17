@@ -264,6 +264,7 @@ class StepVariable
             $result = $this->objMysql->_query ("SELECT var.* FROM workflow.workflow_variables var
                                                 INNER JOIN workflow.fields f ON f.field_id = var.field_id
                                                 WHERE f.field_identifier = ?", [$fieldId]);
+            
 
             if ( !empty ($result) )
             {

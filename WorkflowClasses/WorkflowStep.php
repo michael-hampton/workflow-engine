@@ -24,30 +24,25 @@ class WorkflowStep
     public function __construct ($intWorkflowStepId = null, $objMike = null)
     {
         $this->objMysql = new Mysql2();
-
         if ( $intWorkflowStepId !== null )
         {
             $this->_workflowStepId = $intWorkflowStepId;
             if ( !$this->setStepInformation () )
             {
-
                 return false;
             }
         }
-
         if ( $objMike !== null )
         {
             if ( $this->setWorkflowStepFromObject ($objMike) === false )
             {
                 return false;
             }
-
             if ( !$this->setStepInformation () )
             {
                 return false;
             }
         }
-
         $this->objMike = $objMike;
     }
 
@@ -60,8 +55,8 @@ class WorkflowStep
     {
         return $this->nextStep;
     }
-    
-    public function getWorkflowId()
+
+    public function getWorkflowId ()
     {
         return $this->workflowId;
     }
@@ -96,15 +91,12 @@ class WorkflowStep
                     LEFT JOIN workflow.status_mapping m2 ON m2.step_from = m.step_to AND m2.workflow_id = m.workflow_id
                     LEFT JOIN workflow.steps s2 ON s2.step_id = m2.step_from
                    WHERE m.id = ?";
-
         $arrResult = $this->objMysql->_query ($sql, array($this->_workflowStepId));
-
         if ( empty ($arrResult) )
         {
             die ("Here");
             return false;
         }
-
         $this->_stepId = $arrResult[0]['current_step_id'];
         $this->nextStep = $arrResult[0]['next_step_id'];
         $this->workflowId = $arrResult[0]['workflow_id'];
@@ -113,14 +105,12 @@ class WorkflowStep
         $this->_stepName = $arrResult[0]['current_step_name'];
         $this->workflowName = $arrResult[0]['workflow_name'];
         $this->currentStep = $arrResult[0]['current_step'];
-
         return true;
     }
 
     private function setWorkflowStepFromObject ($objMike)
     {
         $id = $objMike->getId ();
-
         if ( method_exists ($objMike, "getSource_id") && $objMike->getSource_id () != "" )
         {
             $parentId = $objMike->getSource_id ();
@@ -129,21 +119,16 @@ class WorkflowStep
         {
             $parentId = $id;
         }
-
         $result = $this->objMysql->_select ("workflow.workflow_data", array("workflow_data"), array("object_id" => $parentId));
-
         if ( !isset ($result[0]) )
         {
             //return false;
         }
-
         $workflowData = json_decode ($result[0]['workflow_data'], true);
-
         if ( empty ($workflowData) )
         {
             return FALSE;
         }
-
         if ( isset ($workflowData['elements'][$id]) )
         {
             $this->_workflowStepId = $workflowData['elements'][$id]['current_step'];
@@ -152,26 +137,22 @@ class WorkflowStep
         {
             $this->_workflowStepId = $workflowData['current_step'];
         }
-
         return $workflowData;
     }
 
     public function getConditions ()
     {
         $arrResult = $this->objMysql->_select ("workflow.status_mapping", array("step_condition"), array("id" => $this->_workflowStepId));
-
         if ( empty ($arrResult) )
         {
             return false;
         }
-
         $conditions = json_decode ($arrResult[0]['step_condition'], true);
         return $conditions;
     }
 
     public function getFields ()
     {
-
         $objFieldFactory = new FieldFactory();
         $this->arrFields = $objFieldFactory->getFieldsForStep ($this->_stepId);
         return $this->arrFields;
@@ -179,18 +160,14 @@ class WorkflowStep
 
     private function getWorkflowData ()
     {
-
         if ( is_numeric ($this->parentId) )
         {
             $result = $this->objMysql->_select ("workflow.workflow_data", array("workflow_data", "audit_data", "id"), array("object_id" => $this->parentId));
-
             if ( empty ($result) )
             {
                 return false;
             }
-
             $this->objectId = $result[0]['id'];
-
             return $result;
         }
         else
@@ -207,7 +184,6 @@ class WorkflowStep
         {
             return false;
         }
-
         if ( $this->completeWorkflowObject ($objMike, $arrFormData, false) === false )
         {
             return false;
@@ -217,36 +193,28 @@ class WorkflowStep
     public function save ($objMike, $arrFormData, Users $objUser, $arrEmailAddresses = array())
     {
         $parentId = null;
-
         if ( method_exists ($objMike, "getParentId") )
         {
             $parentId = $objMike->getParentId ();
         }
-
         $elementId = $objMike->getId ();
-
         $objCases = new Cases();
-
         if ( !$objCases->hasPermission ($objUser, $parentId, $elementId) )
         {
             throw new Exception ("You do not have permission to do this");
         }
-
         if ( !$this->validateWorkflowStep ($arrFormData) )
         {
             return false;
         }
-
         if ( !$objMike->loadObject ($arrFormData) )
         {
             return false;
         }
-
         if ( $objMike->save () === false )
         {
             return false;
         }
-
         if ( isset ($arrFormData['status']) )
         {
             if ( $this->completeWorkflowObject ($objMike, $arrFormData, false, $arrEmailAddresses) === false )
@@ -267,13 +235,11 @@ class WorkflowStep
     {
         $objValidate = new FieldValidator ($this->_stepId);
         $arrErrorsCodes = $objValidate->validate ($arrFormData);
-
         if ( !empty ($arrErrorsCodes) )
         {
             $this->fieldValidation = $arrErrorsCodes;
             return false;
         }
-
         return true;
     }
 
@@ -283,13 +249,12 @@ class WorkflowStep
         $objNotifications->setVariables ($this->_stepId, $this->_systemName);
         $objNotifications->setProjectId ($this->parentId);
         $objNotifications->setElementId ($this->elementId);
-
         if ( !empty ($arrEmailAddresses) )
         {
             $objNotifications->setArrEmailAddresses ($arrEmailAddresses);
         }
 
-        $objNotifications->buildEmail ($this->_stepId, array());
+        $objNotifications->buildEmail ($this->_stepId, $this);
     }
 
     private function completeAuditObject (array $arrCompleteData = [])
@@ -311,9 +276,7 @@ class WorkflowStep
     private function completeWorkflowObject ($objMike, $arrCompleteData, $complete = false, $arrEmailAddresses)
     {
         $this->elementId = $objMike->getId ();
-
         $arrWorkflow = array();
-
         if ( method_exists ($objMike, "getParentId") )
         {
             $this->parentId = $objMike->getParentId ();
@@ -322,36 +285,32 @@ class WorkflowStep
         {
             $this->parentId = $objMike->getId ();
         }
-
         $arrWorkflowData = $this->getWorkflowData ();
         $arrWorkflowObject = json_decode ($arrWorkflowData[0]['workflow_data'], true);
         $blHasTrigger = false;
-
         $arrWorkflow['request_id'] = $this->collectionId;
-
         $objTrigger = new StepTrigger ($this->_workflowStepId, $this->nextStep);
+        $this->checkEvents ();
 
         if ( $complete === true && $this->nextStep !== 0 && $this->nextStep != "" )
         {
+
             $blHasTrigger = $objTrigger->checkTriggers ($objMike);
-
-
             if ( $blHasTrigger === true )
             {
                 $arrWorkflowObject = $objTrigger->arrWorkflowObject;
             }
+
             if ( $objTrigger->blMove === true || $blHasTrigger === false )
             {
                 $blHasTrigger = false;
                 $arrWorkflow['current_step'] = $this->nextStep;
             }
-
             $arrWorkflow['status'] = "STEP COMPLETED";
         }
         else
         {
             $arrWorkflow['current_step'] = $this->_workflowStepId;
-
             if ( $this->nextStep == 0 || $this->nextStep == "" )
             {
                 $arrWorkflow['status'] = "WORKFLOW COMPLETE";
@@ -363,10 +322,7 @@ class WorkflowStep
                 //$arrCompleteData['status'] = "SAVED";
             }
         }
-
-
         $arrWorkflow['workflow_id'] = $this->workflowId;
-
         if ( !empty ($arrWorkflowData) )
         {
             $this->objWorkflow = $arrWorkflowObject;
@@ -376,34 +332,24 @@ class WorkflowStep
         {
             $this->objWorkflow = $arrWorkflow;
         }
-
-
         if ( is_numeric ($this->parentId) && is_numeric ($this->elementId) && $blHasTrigger !== true )
         {
             $this->objWorkflow['elements'][$this->elementId] = $arrWorkflow;
         }
-
         if ( ($this->nextStep == 0 || $this->nextStep == "") && $complete === true && $arrCompleteData['status'] == "COMPLETE" )
         {
             $arrCompleteData['status'] = "COMPLETE";
             $this->objWorkflow['elements'][$this->elementId]['status'] = "WORKFLOW COMPLETE";
         }
-
-
-
         if ( isset ($arrCompleteData['dateCompleted']) && isset ($arrCompleteData['claimed']) )
         {
             $this->completeAuditObject ($arrCompleteData);
         }
-
         $this->sendNotification ($objMike, $arrCompleteData, $arrEmailAddresses);
-
         // Update workflow and audit object
         $strAudit = json_encode ($this->objAudit);
         $strWorkflow = json_encode ($this->objWorkflow);
-
         $objectId = isset ($this->parentId) && is_numeric ($this->parentId) ? $this->parentId : $this->elementId;
-
         if ( !empty ($arrWorkflowData) )
         {
             $this->objMysql->_update ("workflow.workflow_data", array(
@@ -428,22 +374,17 @@ class WorkflowStep
     public function complete ($objMike, $arrCompleteData, Users $objUser, $arrEmailAddresses = array())
     {
         $parentId = null;
-
         if ( method_exists ($objMike, "getParentId") )
         {
             $parentId = $objMike->getParentId ();
         }
-
         $elementId = $objMike->getId ();
-
         $objCases = new Cases();
         if ( !$objCases->hasPermission ($objUser, $parentId, $elementId) )
         {
             throw new Exception ("You do not have permission to do this");
         }
-
         $this->completeWorkflowObject ($objMike, $arrCompleteData, true, $arrEmailAddresses);
-
         if ( isset ($this->nextStep) && $this->nextStep != 0 )
         {
             return new WorkflowStep ($this->nextStep, $objMike);
@@ -454,65 +395,136 @@ class WorkflowStep
     public function getFirstStepForWorkflow ()
     {
         $result = $this->objMysql->_select ("workflow.status_mapping", array(), array("workflow_id" => $this->workflowId, "first_step" => 1));
-
         if ( isset ($result[0]) && !empty ($result[0]) )
         {
             return $result;
         }
-
         return [];
     }
 
     public function stepExists ($stepId)
     {
         $result = $this->objMysql->_select ("workflow.steps", [], ["step_id" => $stepId]);
-
         if ( isset ($result[0]) && !empty ($result[0]) )
         {
             return true;
         }
-
         return false;
     }
-    
-        public function taskExists ($taskId)
+
+    public function taskExists ($taskId)
     {
         $result = $this->objMysql->_select ("workflow.status_mapping", [], ["id" => $taskId]);
-
         if ( isset ($result[0]) && !empty ($result[0]) )
         {
             return true;
         }
-
         return false;
     }
-    
-     /**
+
+    /**
      * Get the assigned groups of a task
      *
      * @param integer $sTaskUID
      * @param integer $iType
      * @return array
      */
-    public function getGroupsOfTask($sTaskUID, $iType)
+    public function getGroupsOfTask ($sTaskUID, $iType)
     {
         try {
             
+            $aGroups = [];
+
             $sql = "SELECT sp.* FROM workflow.step_permission sp "
                     . "INNER JOIN user_management.teams t ON t.team_id = sp.permission "
                     . "LEFT JOIN user_management.poms_users u ON u.team_id = t.team_id "
                     . "WHERE sp.permission_type = ? "
                     . "AND sp.step_id = ? "
                     . "AND t.status = 1";
-            
-            $results = $this->objMysql->_query($sql, [$iType, $sTaskUID]);
-     
+
+            $results = $this->objMysql->_query ($sql, [$iType, $sTaskUID]);
+
             foreach ($results as $aRow) {
                 $aGroups[] = $aRow;
             }
+            
             return $aGroups;
         } catch (Exception $oError) {
             throw ($oError);
+        }
+    }
+
+    public function checkEvents ()
+    {
+        $objEvent = new Event();
+        $arrEvents = $objEvent->getEvent ($this->_workflowStepId);
+
+        /*         * *************** MESSAGES ****************************** */
+        if ( isset ($arrEvents[0]['step_condition']) && !empty ($arrEvents[0]['step_condition']) )
+        {
+            $arrConditions = json_decode ($arrEvents[0]['step_condition'], true);
+
+            if ( isset ($arrConditions['sendNotification']) && trim (strtolower ($arrConditions['sendNotification'])) == "yes" )
+            {
+                $messageDefinition = (new MessageEventDefinition())->getMessageEventDefinitionByEvent ($this->workflowId, $this->_workflowStepId);
+
+                if ( !empty ($messageDefinition) )
+                {
+                    $arrVariables = unserialize ($messageDefinition[0]['MSGT_VARIABLES']);
+
+                    $arrData = (new \Elements ($this->parentId, $this->elementId))->arrElement;
+
+                    if ( !empty ($arrVariables) )
+                    {
+                        foreach ($arrVariables['MSGT_VARIABLES'] as $key => $arrVariable) {
+
+                            if ( isset ($arrData[$arrVariable['FIELD']]) )
+                            {
+
+                                $arrVariables['MSGT_VARIABLES'][$key]['VALUE'] = $arrData[$arrVariable['FIELD']];
+                            }
+                        }
+
+
+                        // update message definition
+                        $this->objMysql->_update (
+                                "workflow.message_definition", array("MSGT_VARIABLES" => serialize ($arrVariables)), array("id" => $messageDefinition[0]['id']));
+                    }
+                }
+            }
+
+            if ( isset ($arrConditions['receiveNotification']) && trim (strtolower ($arrConditions['receiveNotification'])) == "yes" )
+            {
+                $messageDefinition = (new MessageEventDefinition())->getMessageEventDefinitionByEvent ($this->workflowId, $this->_workflowStepId);
+
+                if ( !empty ($messageDefinition) )
+                {
+                    $arrVariables = unserialize ($messageDefinition[0]['MSGT_VARIABLES']);
+
+                    $objElements = new Elements ($this->parentId, $this->elementId);
+
+                    $arrData = $objElements->arrElement;
+
+                    $correlationId = $messageDefinition[0]['MSGED_CORRELATION'];
+
+                    $arrSend = $this->objMysql->_select ("workflow.message_definition", [], ["MSGED_CORRELATION" => $correlationId, "MESSAGE_TYPE" => "send"]);
+                    $arrFields = unserialize ($arrSend[0]['MSGT_VARIABLES']);
+
+                    foreach ($arrFields['MSGT_VARIABLES'] as $arrField) {
+                        foreach ($arrVariables['MSGT_VARIABLES'] as $arrVariable) {
+
+                            if ( trim ($arrVariable['MSGTV_NAME']) == trim ($arrField['MSGTV_NAME']) )
+                            {
+                                $arrData[$arrVariable['FIELD']] = $arrField['VALUE'];
+                            }
+                        }
+                    }
+
+
+                    $objElements->loadObject ($arrData);
+                    $objElements->save ();
+                }
+            }
         }
     }
 

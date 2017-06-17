@@ -12,19 +12,15 @@ class FieldFactory
 
     public function getFieldByIdentifier ($fieldIdentifier)
     {
-
         if ( $this->objMysql == null )
         {
             $this->createConnection ();
         }
-
         $result = $this->objMysql->_select ("workflow.fields", array(), array("field_identifier" => $fieldIdentifier));
-
         if ( isset ($result[0]) && !empty ($result[0]) )
         {
             return $result[0]['field_id'];
         }
-
         return [];
     }
 
@@ -38,14 +34,12 @@ class FieldFactory
         {
             $this->createConnection ();
         }
-
         $arrResult = $this->objMysql->_query ("SELECT
                                                             f.*, 
                                                             ft.field_type
                                                         FROM workflow.fields f
                                                         INNER JOIN workflow.field_types ft ON ft.field_type_id = f.field_type
                                                        ");
-
         foreach ($arrResult as $intKey => $arrField) {
             $arrFields[$arrField['field_id']] = new Field ($arrField['field_id']);
             $arrFields[$arrField['field_id']]->setFieldType ($arrField['field_type']);
@@ -60,12 +54,10 @@ class FieldFactory
             $arrFields[$arrField['field_id']]->setMaxLength ($arrField['maxlength']);
             $arrFields[$arrField['field_id']]->setId ($arrField['field_id']);
         }
-
         if ( empty ($arrFields) )
         {
             return false;
         }
-
         return $arrFields;
     }
 
@@ -80,21 +72,20 @@ class FieldFactory
         {
             $this->createConnection ();
         }
-
         $query = "SELECT sf.*, f.*, ft.field_type, dt.options, dt.data_object_type,
-                IF(rf.field_id IS NOT NULL, 1, 0) as required_field, sf.field_conditions 
+                IF(rf.field_id IS NOT NULL, 1, 0) as required_field, sf.field_conditions,
+                IFNULL(v.variable_name, f.field_identifier) AS field_identifier
                 FROM workflow.step_fields sf 
                 INNER JOIN workflow.fields f ON f.field_id = sf.field_id 
                 INNER JOIN workflow.field_types ft ON ft.field_type_id = f.field_type 
                 LEFT JOIN workflow.data_types dt ON dt.id = f.data_type 
                 LEFT JOIN workflow.required_fields rf on rf.field_id = f.field_id
+                LEFT JOIN workflow.workflow_variables v ON v.field_id = f.field_id
                 WHERE sf.step_id = ? 
                 GROUP BY f.field_id
                 ORDER BY sf.order_id";
-
         $arrParameters = array($stepId);
         $arrResult = $this->objMysql->_query ($query, $arrParameters);
-
         foreach ($arrResult as $intKey => $arrField) {
             $arrFields[$arrField['field_id']] = new Field ($arrField['field_id']);
             $arrFields[$arrField['field_id']]->setFieldType ($arrField['field_type']);
@@ -104,28 +95,22 @@ class FieldFactory
             $arrFields[$arrField['field_id']]->setFieldId ($arrField['field_identifier']);
             $arrFields[$arrField['field_id']]->setDataType ($arrField['data_type']);
             $arrFields[$arrField['field_id']]->setId ($arrField['field_id']);
-
             if ( !empty ($arrField['data_type']) )
             {
                 if ( $arrField['data_object_type'] == 2 )
                 {
                     $arrDatabaseOptions = json_decode ($arrField['options'], true);
-
                     $sql = "SELECT * FROM " . $arrDatabaseOptions['databaseName'] . "." . $arrDatabaseOptions['tableName'];
-
                     if ( !empty ($arrDatabaseOptions['whereColumn']) )
                     {
                         $sql .= " WHERE " . $arrDatabaseOptions['whereColumn'];
                     }
-
                     if ( !empty ($arrDatabaseOptions['orderBy']) )
                     {
                         $sql .= " ORDER BY " . $arrDatabaseOptions['orderBy'] . " ASC ";
                     }
-
                     $arrQuery = $this->objMysql->_query ($sql);
                     $arrOptions = array();
-
                     if ( !empty ($arrQuery) )
                     {
                         foreach ($arrQuery as $resultKey => $result) {
@@ -136,7 +121,6 @@ class FieldFactory
                 else
                 {
                     $arrOptions = json_decode ($arrField['options'], true);
-
                     if ( !empty ($arrOptions) )
                     {
                         foreach ($arrOptions as $resultKey => $result) {
@@ -145,35 +129,28 @@ class FieldFactory
                     }
                 }
             }
-
             if ( isset ($arrOptions) && !empty ($arrOptions) )
             {
                 $arrFields[$arrField['field_id']]->setOptions (json_encode ($arrOptions));
             }
-
             if ( !empty ($arrField['field_conditions']) )
             {
                 $arrFields[$arrField['field_id']]->setFieldConditions ($arrField['field_conditions']);
             }
-
             if ( isset ($arrField['custom_javascript']) && !empty ($arrField['custom_javascript']) )
             {
                 $arrFields[$arrField['field_id']]->setCustomJavascript ($arrField['custom_javascript']);
             }
-
             $arrFields[$arrField['field_id']]->setRequired_field ($arrField['required_field']);
-
             $arrFields[$arrField['field_id']]->setFieldClass ($arrField['field_class']);
             $arrFields[$arrField['field_id']]->setDefaultValue ($arrField['default_value']);
             $arrFields[$arrField['field_id']]->setPlaceholder ($arrField['placeholder']);
             $arrFields[$arrField['field_id']]->setMaxLength ($arrField['maxlength']);
         }
-
         if ( empty ($arrFields) )
         {
             return false;
         }
-
         return $arrFields;
     }
 
@@ -188,13 +165,11 @@ class FieldFactory
         {
             $this->createConnection ();
         }
-
         $query = "SELECT r.*, f.* FROM workflow.required_fields r 
                     INNER JOIN workflow.fields f ON f.field_id = r.field_id
                     WHERE r.step_id = ?";
         $arrParameters = array($step);
         $arrResult = $this->objMysql->_query ($query, $arrParameters);
-
         return $arrResult;
     }
 
@@ -202,15 +177,12 @@ class FieldFactory
     {
         try {
             $oFields = new Field();
-            $field = $this->getFieldByIdentifier (trim($aData['id']));
-
+            $field = $this->getFieldByIdentifier (trim ($aData['id']));
             if ( !empty ($field) && is_numeric ($field) )
             {
                 $oFields->setId ($field);
             }
-
             $oFields->loadObject ($aData);
-
             if ( $oFields->validate () )
             {
                 $id = $oFields->save ();
@@ -241,14 +213,11 @@ class FieldFactory
         {
             $this->createConnection ();
         }
-
         $result = $this->objMysql->_select ("workflow.fields", array(), array("field_id" => $fieldId));
-
         if ( isset ($result[0]) && !empty ($result[0]) )
         {
             return $result[0];
         }
-
         return [];
     }
 
@@ -263,9 +232,7 @@ class FieldFactory
         {
             $this->createConnection ();
         }
-
         $this->objMysql->_delete ("workflow.fields", array("field_id" => $fieldId));
-
         return true;
     }
 
@@ -280,14 +247,11 @@ class FieldFactory
         {
             $this->createConnection ();
         }
-
         $result = $this->objMysql->_select ("workflow.step_fields", array(), array("field_id" => $fieldId));
-
         if ( isset ($result[0]) && !empty ($result[0]) )
         {
             return $result;
         }
-
         return [];
     }
 
@@ -302,23 +266,19 @@ class FieldFactory
     public function remove ($fieldId, $stepId, $deleteFull = false)
     {
         try {
-
             if ( empty ($fieldId) || !is_numeric ($fieldId) )
             {
                 throw new Exception ('Incorrect field id.');
             }
-
             if ( empty ($stepId) || !is_numeric ($stepId) )
             {
                 throw new Exception ('Incorrect step id.');
             }
-
             $oFields = $this->retrieveByPK ($fieldId);
             if ( !empty ($oFields) )
             {
                 $oFields = new Field ($fieldId, $stepId);
                 $iResult = $oFields->delete ();
-
                 if ( $deleteFull === true )
                 {
                     if ( !empty ($this->fieldIsAssigned ($fieldId)) )
@@ -327,7 +287,6 @@ class FieldFactory
                     }
                     $this->deleteField ($fieldId);
                 }
-
                 return $iResult;
             }
             else

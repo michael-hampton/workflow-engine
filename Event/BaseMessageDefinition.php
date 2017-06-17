@@ -9,9 +9,10 @@
  */
 abstract class BaseMessageDefinition
 {
-    protected $eventId;
 
+    protected $eventId;
     protected $objMysql;
+    protected $messageType;
 
     /**
      * The value for the msged_uid field.
@@ -254,11 +255,12 @@ abstract class BaseMessageDefinition
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        
-        if(  is_array ($v)) {
+
+        if ( is_array ($v) )
+        {
             $v = serialize ($v);
         }
-        
+
         if ( $v !== null && !is_string ($v) )
         {
             $v = (string) $v;
@@ -289,8 +291,16 @@ abstract class BaseMessageDefinition
             $this->msged_correlation = $v;
         }
     }
-    
-    
+
+    public function getMessageType ()
+    {
+        return $this->messageType;
+    }
+
+    public function setMessageType ($messageType)
+    {
+        $this->messageType = $messageType;
+    }
 
     public function getConnection ()
     {
@@ -303,10 +313,17 @@ abstract class BaseMessageDefinition
         {
             $this->getConnection ();
         }
-        
-        $id = $this->objMysql->_insert("workflow.message_definition", ["MSGT_UID" => $this->msgt_uid, "workflow_id" => $this->prj_uid, "EVT_UID" => $this->evn_uid, "MSGT_VARIABLES" => $this->msged_variables]);
-        
-        return $id;
+
+        if ( trim ($this->msged_uid) !== "" && is_numeric ($this->msged_uid) )
+        {
+            $this->objMysql->_update ("workflow.message_definition", ["MSGT_UID" => $this->msgt_uid, "workflow_id" => $this->prj_uid, "EVT_UID" => $this->evn_uid, "MSGT_VARIABLES" => $this->msged_variables, "MESSAGE_TYPE" => $this->messageType, "MSGED_CORRELATION" => $this->msged_correlation], ["id" => $this->msged_uid]);
+        }
+        else
+        {
+            $id = $this->objMysql->_insert ("workflow.message_definition", ["MSGT_UID" => $this->msgt_uid, "workflow_id" => $this->prj_uid, "EVT_UID" => $this->evn_uid, "MSGT_VARIABLES" => $this->msged_variables, "MESSAGE_TYPE" => $this->messageType, "MSGED_CORRELATION" => $this->msged_correlation]);
+
+            return $id;
+        }
     }
 
     public function validate ()

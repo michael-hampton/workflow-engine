@@ -25,6 +25,7 @@ class StepGateway
 
     public function getGateways ()
     {
+        
         $result = $this->objMysql->_select ("workflow.gateways", [], ["step_id" => $this->stepId]);
 
         foreach ($result as $key => $res) {

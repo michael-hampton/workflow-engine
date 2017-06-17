@@ -49,12 +49,14 @@ class MessageEventDefinition
 
             $arrParameters = [];
 
-            $sql = "SELECT * FROM workflow.message_definition md INNER JOIN workflow.event e ON e.id = md.event_id WHERE md.event_id = ?";
+            $sql = "SELECT * FROM workflow.message_definition md INNER JOIN workflow.status_mapping e ON e.id = md.EVT_UID WHERE md.EVT_UID = ?";
+            $arrParameters[] = $eventUid;
             if ( $messageEventDefinitionUidToExclude != "" )
             {
                 $sql .= " AND md.id != ?";
                 $arrParameters[] = $messageEventDefinitionUidToExclude;
             }
+
             $result = $this->objMysql->_query ($sql, $arrParameters);
             return isset ($result[0]) && !empty ($result[0]) ? true : false;
         } catch (\Exception $e) {
@@ -92,7 +94,7 @@ class MessageEventDefinition
      *
      * return void Throw exception if is registered the Event
      */
-    public function throwExceptionIfEventIsRegistered ($projectUid, $eventUid, $fieldNameForException, $messageEventDefinitionUidToExclude = "")
+    public function throwExceptionIfEventIsRegistered ($projectUid, $eventUid, $messageEventDefinitionUidToExclude = "")
     {
         try {
             if ( $this->existsEvent ($projectUid, $eventUid, $messageEventDefinitionUidToExclude) )
@@ -166,7 +168,8 @@ class MessageEventDefinition
 
             $flagCheckData = false;
             $flagCheckData = (isset ($arrayData["MSGT_UID"]) && $arrayData["MSGT_UID"] . "" != "") ? true : $flagCheckData;
-            $flagCheckData = (isset ($arrayData["MSGED_VARIABLES"])) ? true : $flagCheckData;
+            $flagCheckData = (isset ($arrayData["MSGT_VARIABLES"])) ? true : $flagCheckData;
+
             if ( isset ($arrayFinalData["MSGT_UID"]) && $arrayFinalData["MSGT_UID"] . "" != "" && $flagCheckData )
             {
                 $arrayMessageTypeVariable = array();
@@ -178,21 +181,100 @@ class MessageEventDefinition
                 }
 
                 $newVariables = [];
+                $count = 0;
 
-                foreach ($arrayFinalData['MSGT_VARIABLES']['MSGTV_DEFAULT_VALUE'] as $key => $value) {
-                    $newVariables[$arrayFinalData['MSGT_VARIABLES']['MSGTV_NAME'][$key]] = $value;
+                foreach ($arrayFinalData['MSGT_VARIABLES']['MSGTV_NAME'] as $key => $value) {
+                    $newVariables['MSGT_VARIABLES'][$key]['MSGTV_NAME'] = $value;
+                    $newVariables['MSGT_VARIABLES'][$key]['FIELD'] = $arrayFinalData['MSGT_VARIABLES']['FIELD'][$key];
+
+                    $count++;
                 }
 
+                $checkVariables = [];
+                $count2 = 0;
+                foreach ($arrayMessageTypeVariable as $key => $value) {
+                    $checkVariables['MSGT_VARIABLES'][$count2]['MSGTV_NAME'] = $key;
+                    $checkVariables['MSGT_VARIABLES'][$count2]['FIELD'] = $value;
+                    $count2++;
+                }
 
-                unset($arrayFinalData['MSGT_VARIABLES']);
+                unset ($arrayMessageTypeVariable);
+                unset ($arrayFinalData['MSGT_VARIABLES']);
                 $arrayFinalData['MSGT_VARIABLES'] = $newVariables;
 
-                if ( count ($arrayMessageTypeVariable) != count ($arrayFinalData["MSGT_VARIABLES"]) || count (array_diff_key ($arrayMessageTypeVariable, $arrayFinalData["MSGT_VARIABLES"])) > 0 )
+                if ( $count2 != $count || count (array_diff_key ($checkVariables, $arrayFinalData["MSGT_VARIABLES"])) > 0 )
                 {
                     throw new \Exception ("ID_MESSAGE_EVENT_DEFINITION_VARIABLES_DO_NOT_MEET_DEFINITION");
                 }
-                
+
                 return $arrayFinalData;
+            }
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * Update Message-Event-Definition
+     *
+     * @param string $messageEventDefinitionUid Unique id of Message-Event-Definition
+     * @param array  $arrayData                 Data
+     *
+     * return array Return data of the Message-Event-Definition updated
+     */
+    public function update ($messageEventDefinitionUid, array $arrayData)
+    {
+        try {
+            //Verify data
+            $this->throwExceptionIfDataIsNotArray ($arrayData, "\$arrayData");
+            $this->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
+            //Set data
+            $arrayDataBackup = $arrayData;
+            unset ($arrayData["MSGED_UID"]);
+            unset ($arrayData["workflow_id"]);
+            //Set variables
+            $arrayMessageEventDefinitionData = $this->getMessageEventDefinition ($messageEventDefinitionUid, true);
+
+            //Verify data
+            $this->throwExceptionIfNotExistsMessageEventDefinition ($messageEventDefinitionUid);
+            $arrayData = $this->throwExceptionIfDataIsInvalid ($messageEventDefinitionUid, $arrayMessageEventDefinitionData[0]["workflow_id"], $arrayData);
+
+            //Update
+            try {
+                $messageEventDefinition = new MessageDefinitions();
+                if ( isset ($arrayData["MSGT_UID"]) && $arrayData["MSGT_UID"] . "" == "" )
+                {
+                    $arrayData["MSGED_VARIABLES"] = array();
+                }
+
+                $messageEventDefinition->setMsgedUid ($messageEventDefinitionUid);
+                $messageEventDefinition->setPrjUid ($arrayMessageEventDefinitionData[0]["workflow_id"]);
+                $messageEventDefinition->setMsgedUsrUid ($_SESSION['user']['usrid']); //admin
+                $messageEventDefinition->setEvnUid ($arrayData['EVN_UID']);
+                $messageEventDefinition->setMsgedCorrelation ($arrayData['MSGED_CORRELATION']);
+                $messageEventDefinition->setMsgtUid ($arrayData['MSGT_UID']);
+                $messageEventDefinition->setMsgedVariables ($arrayData["MSGT_VARIABLES"]);
+                $messageEventDefinition->setMessageType ($arrayData['messageType']);
+                $messageEventDefinition->setMsgedCorrelation ($arrayData['MSGED_CORRELATION']);
+
+                if ( $messageEventDefinition->validate () )
+                {
+                    $result = $messageEventDefinition->save ();
+                    //Return
+                    $arrayData = $arrayDataBackup;
+
+                    return $arrayData;
+                }
+                else
+                {
+                    $msg = "";
+                    foreach ($messageEventDefinition->getValidationFailures () as $message) {
+                        $msg = $msg . (($msg != "") ? "\n" : "") . $message;
+                    }
+                    throw new \Exception ("ID_REGISTRY_CANNOT_BE_UPDATED") . (($msg != "") ? "\n" . $msg : "");
+                }
+            } catch (\Exception $e) {
+                throw $e;
             }
         } catch (\Exception $e) {
             throw $e;
@@ -211,8 +293,6 @@ class MessageEventDefinition
     {
         try {
             //Verify data
-            //$process = new \ProcessMaker\BusinessModel\Process();
-            //$validator = new \ProcessMaker\BusinessModel\Validator();
             $this->throwExceptionIfDataIsNotArray ($arrayData, "\$arrayData");
             $this->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
 
@@ -225,8 +305,6 @@ class MessageEventDefinition
                 $arrayData = $this->throwExceptionIfDataIsInvalid ("", $projectUid, $arrayData);
             }
             //Create
- 
-
             try {
                 $messageEventDefinition = new \MessageDefinitions();
                 if ( !isset ($arrayData["MSGT_UID"]) || $arrayData["MSGT_UID"] . "" == "" )
@@ -244,12 +322,14 @@ class MessageEventDefinition
                 }
                 //$messageEventDefinition->setMsgedUid ($messageEventDefinitionUid);
                 $messageEventDefinition->setPrjUid ($projectUid);
+                $messageEventDefinition->setMessageType ($arrayData['messageType']);
                 $messageEventDefinition->setMsgedUsrUid ($_SESSION['user']['usrid']); //admin
-                $messageEventDefinition->setEvnUid($arrayData['EVN_UID']);
-                $messageEventDefinition->setMsgedCorrelation($arrayData['MSGED_CORRELATION']);
-                $messageEventDefinition->setMsgtUid($arrayData['MSGT_UID']);
-                $messageEventDefinition->setMsgedVariables($arrayData["MSGT_VARIABLES"]);
-                $messageEventDefinition->setEvnUid($arrayData['EVN_UID']);
+                $messageEventDefinition->setEvnUid ($arrayData['EVN_UID']);
+                $messageEventDefinition->setMsgedCorrelation ($arrayData['MSGED_CORRELATION']);
+                $messageEventDefinition->setMsgtUid ($arrayData['MSGT_UID']);
+                $messageEventDefinition->setMsgedVariables ($arrayData["MSGT_VARIABLES"]);
+                $messageEventDefinition->setEvnUid ($arrayData['EVN_UID']);
+                $messageEventDefinition->setMsgedCorrelation ($arrayData['MSGED_CORRELATION']);
 
                 if ( $messageEventDefinition->validate () )
                 {
@@ -286,7 +366,7 @@ class MessageEventDefinition
     {
         try {
             $record["MSGT_VARIABLES"] = ($record[0]["MSGT_VARIABLES"] . "" != "") ? unserialize ($record[0]["MSGT_VARIABLES"]) : array();
-            
+
             return $record;
             //Return
             return $record;
@@ -339,7 +419,6 @@ class MessageEventDefinition
             //Get data
             $result = $this->objMysql->_select ("workflow.message_definition", [], ["id" => $messageEventDefinitionUid]);
 
-            
             $row = $this->setMessageEventDefinitionVariablesForRecordByMessageType ($result);
             //Return
             return $row;
@@ -361,22 +440,15 @@ class MessageEventDefinition
     {
         try {
             //Verify data
-            $process = new \ProcessMaker\BusinessModel\Process();
-            $process->throwExceptionIfNotExistsProcess ($projectUid, $this->arrayFieldNameForException["projectUid"]);
-            if ( !$this->existsEvent ($projectUid, $eventUid) )
-            {
-                throw new \Exception (\G::LoadTranslation ("ID_MESSAGE_EVENT_DEFINITION_DOES_NOT_IS_REGISTERED", array($this->arrayFieldNameForException["eventUid"], $eventUid)));
-            }
+            //if ( !$this->existsEvent ($projectUid, $eventUid) )
+            //{
+            //throw new Exception ("ID_MESSAGE_EVENT_DEFINITION_DOES_NOT_IS_REGISTERED");
+            //}
             //Get data
-            $criteria = $this->getMessageEventDefinitionCriteria ();
-            $criteria->add (\MessageEventDefinitionPeer::PRJ_UID, $projectUid, \Criteria::EQUAL);
-            $criteria->add (\MessageEventDefinitionPeer::EVN_UID, $eventUid, \Criteria::EQUAL);
-            $rsCriteria = \MessageEventDefinitionPeer::doSelectRS ($criteria);
-            $rsCriteria->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
-            $rsCriteria->next ();
-            $row = $this->setMessageEventDefinitionVariablesForRecordByMessageType ($rsCriteria->getRow ());
+            $results = $this->objMysql->_select ("workflow.message_definition", [], ["EVT_UID" => $eventUid]);
+
             //Return
-            return (!$flagGetRecord) ? $this->getMessageEventDefinitionDataFromRecord ($row) : $row;
+            return $results;
         } catch (\Exception $e) {
             throw $e;
         }

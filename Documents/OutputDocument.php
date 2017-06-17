@@ -442,7 +442,7 @@ class OutputDocument extends BaseOutputDocument
         $lg = array();
         $lg['a_meta_charset'] = 'UTF-8';
         //$lg['a_meta_dir'] = ($oServerConf->isRtl ($sLang)) ? 'rtl' : 'ltr';
-        $lg['a_meta_dir'] = 'rtl';
+        $lg['a_meta_dir'] = 'ltr';
         $lg['a_meta_language'] = $sLang;
         $lg['w_page'] = 'page';
         //set some language-dependent strings

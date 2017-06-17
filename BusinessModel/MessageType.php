@@ -13,6 +13,86 @@ class MessageType
     }
 
     /**
+     * Update Message-Type
+     *
+     * @param string $messageTypeUid Unique id of Message-Type
+     * @param array  $arrayData      Data
+     *
+     * return array Return data of the Message-Type updated
+     */
+    public function update ($messageTypeUid, $arrayData)
+    {
+        try {
+            //Verify data
+            $this->throwExceptionIfDataIsNotArray ($arrayData, "\$arrayData");
+            $this->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
+            //Set data
+            $arrayDataBackup = $arrayData;
+            unset ($arrayData["MSGT_UID"]);
+            unset ($arrayData["PRJ_UID"]);
+            //Set variables
+            $arrayMessageTypeData = $this->getMessageType ($messageTypeUid, true);
+            
+            //Verify data
+            $this->throwExceptionIfNotExistsMessageType ($messageTypeUid);
+            $this->throwExceptionIfDataIsInvalid ($messageTypeUid, $arrayMessageTypeData[0]["workflow_id"], $arrayData);
+            //Update
+            try {
+                $messageType = new \MessageTypes();
+                $messageType->setPrjUid ($arrayMessageTypeData[0]["workflow_id"]);
+                $messageType->setTitle ($arrayData['name']);
+                $messageType->setDescription ($arrayData['description']);
+                $messageType->setId($messageTypeUid);
+                
+                if ( $messageType->validate () )
+                {
+                    if ( isset ($arrayData["MSGT_VARIABLES"]) && count ($arrayData["MSGT_VARIABLES"]) > 0 )
+                    {
+                        $messageType->setVariables (json_encode ($arrayData['MSGT_VARIABLES']));
+                    }
+                    $messageType->save ();
+                    //Return
+                    $arrayData = $arrayDataBackup;
+                    return $arrayData;
+                }
+                else
+                {
+                    $msg = "";
+                    foreach ($messageType->getValidationFailures () as $message) {
+                        $msg = $msg . (($msg != "") ? "\n" : "") . $message;
+                    }
+                    throw new \Exception ("ID_REGISTRY_CANNOT_BE_UPDATED") . $msg != "" ? "\n" . $msg : "";
+                }
+            } catch (\Exception $e) {
+                throw $e;
+            }
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+    
+     /**
+     * Delete Message-Type
+     *
+     * @param string $messageTypeUid Unique id of Message-Type
+     *
+     * return void
+     */
+    public function delete($messageTypeUid)
+    {
+        try {
+            $this->throwExceptionIfNotExistsMessageType($messageTypeUid);
+            //Delete Message-Type-Variable
+            $messageTypes = new MessageTypes();
+            $messageTypes->setId($messageTypeUid);
+            $messageTypes->delete();
+           
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
      * Create Message-Type
      *
      * @param string $projectUid Unique id of Project
@@ -24,48 +104,35 @@ class MessageType
     {
         try {
             //Verify data
-
             $this->throwExceptionIfDataIsNotArray ($arrayData, "\$arrayData");
             $this->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
-
 //            $process->throwExceptionIfNotExistsProcess($projectUid, $this->arrayFieldNameForException["projectUid"]);
-
             $this->throwExceptionIfDataIsInvalid ("", $projectUid, $arrayData);
-
             //Create
-
             try {
                 $messageType = new \MessageTypes();
-
                 $messageType->setPrjUid ($projectUid);
                 $messageType->setTitle ($arrayData['name']);
                 $messageType->setDescription ($arrayData['description']);
-
                 if ( $messageType->validate () )
                 {
-
                     if ( isset ($arrayData["MSGT_VARIABLES"]) && count ($arrayData["MSGT_VARIABLES"]) > 0 )
                     {
                         $messageType->setVariables (json_encode ($arrayData['MSGT_VARIABLES']));
                     }
-
                     $messageTypeUid = $messageType->save ();
-
                     //Return
                     return $this->getMessageType ($messageTypeUid);
                 }
                 else
                 {
                     $msg = "";
-
                     foreach ($messageType->getValidationFailures () as $validationFailure) {
                         $msg = $msg . (($msg != "") ? "\n" : "") . $validationFailure->getMessage ();
                     }
-
                     throw new \Exception ("ID_RECORD_CANNOT_BE_CREATED" . (($msg != "") ? "\n" . $msg : ""));
                 }
             } catch (\Exception $e) {
-
                 throw $e;
             }
         } catch (\Exception $e) {
@@ -85,7 +152,6 @@ class MessageType
     public function throwExceptionIfDataIsInvalid ($messageTypeUid, $projectUid, array $arrayData)
     {
         try {
-
             //Verify data
             if ( isset ($arrayData["name"]) )
             {
@@ -113,22 +179,16 @@ class MessageType
     {
         try {
             $arrParameters = [];
-
             $sql = "SELECT * FROM workflow.message_type WHERE title = ? AND workflow_id = ?";
             $arrParameters[] = $messageTypeName;
             $arrParameters[] = $projectUid;
-
-
             if ( $messageTypeUidToExclude != "" )
             {
                 $sql .= " AND id != ?";
                 $arrParameters[] = $messageTypeUidToExclude;
             }
-
             $result = $this->objMysql->_query ($sql, $arrParameters);
-
             return isset ($result[0]) && !empty ($result[0]) ? true : false;
-
             return ($rsCriteria->next ()) ? true : false;
         } catch (\Exception $e) {
             throw $e;
@@ -138,7 +198,7 @@ class MessageType
     public function getMessageType ($id)
     {
         $result = $this->objMysql->_select ("workflow.message_type", [], ["id" => $id]);
-        
+
         return $result;
     }
 
@@ -147,9 +207,7 @@ class MessageType
         try {
             $i = 0;
             $arrayDataVarAux = $arrayDataVariables;
-
             while ($i <= count ($arrayDataVariables) - 1) {
-
                 if ( array_key_exists ("MSGTV_NAME", $arrayDataVariables[$i]) )
                 {
                     $msgtvNameAux = $arrayDataVariables[$i]["MSGTV_NAME"];
@@ -162,7 +220,7 @@ class MessageType
                     }
                     if ( $counter > 1 )
                     {
-                        throw new \Exception (\G::LoadTranslation ("ID_MESSAGE_TYPE_NAME_VARIABLE_EXISTS", array($value["MSGTV_NAME"])));
+                        throw new \Exception ("Variable names must be unique");
                     }
                 }
                 $i = $i + 1;
@@ -171,12 +229,12 @@ class MessageType
             throw $e;
         }
     }
-    
-    public function exists($id)
+
+    public function exists ($id)
     {
-        $result = $this->getMessageType($id);
-        
-        return isset($result[0]) && !empty($result[0]) ? true : false;
+        $result = $this->getMessageType ($id);
+
+        return isset ($result[0]) && !empty ($result[0]) ? true : false;
     }
 
     /**
@@ -212,15 +270,22 @@ class MessageType
     public function throwExceptionIfNotExistsMessageType ($messageTypeUid)
     {
         try {
-            $messageType = $this->getMessageType($messageTypeUid);
-            
-            if ( !isset($messageType[0]) || empty($messageType[0]) )
+            $messageType = $this->getMessageType ($messageTypeUid);
+
+            if ( !isset ($messageType[0]) || empty ($messageType[0]) )
             {
                 throw new \Exception ("ID_MESSAGE_TYPE_DOES_NOT_EXIST");
             }
         } catch (\Exception $e) {
             throw $e;
         }
+    }
+
+    public function getMessageTypesByProcess ($processUid)
+    {
+        $result = $this->objMysql->_select ("workflow.message_type", [], ["workflow_id" => $processUid]);
+
+        return $result;
     }
 
 }

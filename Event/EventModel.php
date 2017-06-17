@@ -26,7 +26,7 @@ class EventModel extends BaseEvent
 
             foreach ($arrData['conditions'] as $event => $aData) {
 
-                if ( !isset ($aData['status']) || trim ($aData['status']) === "" || trim ($aData['status']) !== "Yes" || trim ($event) === "" )
+                if ( !isset ($aData['status']) || trim ($aData['status']) === "" || !in_array (trim ($aData['status']), array("Yes", "No")) || trim ($event) === "" )
                 {
                     continue;
                 }
@@ -131,7 +131,7 @@ class EventModel extends BaseEvent
                 }
 
                 $parameters = new StdClass();
-         
+
                 if ( isset ($aData['EVN_ACTION_PARAMETERS']['subject']) )
                 {
                     $parameters->SUBJECT = $aData['EVN_ACTION_PARAMETERS']['subject'];

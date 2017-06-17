@@ -66,7 +66,7 @@ class SendNotification extends Notifications
 
             $this->subject = $this->message['message_subject'];
             $this->body = $this->message['message_body'];
-
+ 
             if ( !empty ($this->arrEmailAddresses) )
             {
                 $this->recipient = implode (",", $this->arrEmailAddresses);
