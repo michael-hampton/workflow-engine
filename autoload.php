@@ -3,7 +3,7 @@ define("HOME_DIR", "C:/xampp/htdocs/");
 define("PATH_THIRDPARTY", HOME_DIR . '/core/app/library/thirdparty/');
 define("PATH_SEP", "/");
 
-
+require_once HOME_DIR . '/core/app/library/Persistent.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/Validator.php';
 require_once HOME_DIR . '/core/app/library/config.php';
 require_once HOME_DIR . '/core/app/library/Mysql.php';

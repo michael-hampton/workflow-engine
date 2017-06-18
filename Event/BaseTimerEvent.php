@@ -1,6 +1,6 @@
 <?php
 
-abstract class BaseTimerEvent
+abstract class BaseTimerEvent implements Persistent
 {
 
     protected $objMysql;
@@ -776,9 +776,9 @@ abstract class BaseTimerEvent
         $this->objMysql = new Mysql2();
     }
 
-    public function fromArray ($arr)
+    public function loadObject (array $arrData)
     {
-        foreach ($arr as $formField => $formValue) {
+        foreach ($arrData as $formField => $formValue) {
 
             if ( isset ($this->arrayFieldDefinition[$formField]) )
             {
@@ -843,6 +843,11 @@ abstract class BaseTimerEvent
     public function validate ()
     {
         return true;
+    }
+    
+    public function delete()
+    {
+        
     }
 
 }

@@ -531,7 +531,7 @@ class TimerEvent
                 $arrayData["TMREVN_NEXT_RUN_DATE"] = (isset ($arrayData["TMREVN_NEXT_RUN_DATE"]) && $arrayData["TMREVN_NEXT_RUN_DATE"] . "" != "") ? $arrayData["TMREVN_NEXT_RUN_DATE"] : null;
                 $arrayData["TMREVN_CONFIGURATION_DATA"] = serialize ((isset ($arrayData["TMREVN_CONFIGURATION_DATA"])) ? $arrayData["TMREVN_CONFIGURATION_DATA"] : "");
                 $arrayData['EVN_UID'] = $projectUid;
-                $timerEvent->fromArray ($arrayData);
+                $timerEvent->loadObject ($arrayData);
         
                 //$timerEvent->setTmrevnUid ($projectUid);
                 $timerEvent->setPrjUid ($arrayData['WORKFLOW_ID']);
@@ -733,7 +733,7 @@ class TimerEvent
                 {
                     $arrayData["TMREVN_CONFIGURATION_DATA"] = serialize ($arrayData["TMREVN_CONFIGURATION_DATA"]);
                 }
-                $timerEvent->fromArray ($arrayData);
+                $timerEvent->loadObject ($arrayData);
                 $timerEvent->setTmrevnUid ($timerEventUid);
                 $timerEvent->setEvnUid ($arrayFinalData["EVN_UID"]);
                 $eventType = "START";
@@ -943,7 +943,7 @@ class TimerEvent
                 
                 $arrayData['TMREVN_CONFIGURATION_DATA'] = serialize($arrayData['TMREVN_CONFIGURATION_DATA']);
          
-                $timerEvent->fromArray ($arrayData);
+                $timerEvent->loadObject ($arrayData);
 
                 if ( $timerEvent->validate () )
                 {
