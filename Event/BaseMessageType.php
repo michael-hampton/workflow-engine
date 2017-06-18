@@ -130,8 +130,22 @@ abstract class BaseMessageType
 
         if ( $this->title === "" )
         {
+            $this->ValidationFailures[] = "Title is missing";
             $errorCount++;
         }
+
+        if ( trim ($this->PrjUid) === "" )
+        {
+            $this->ValidationFailures[] = "Workflow id is missing";
+            $errorCount++;
+        }
+
+        if ( trim ($this->variables) === "" )
+        {
+            $this->ValidationFailures[] = "There are no variables";
+            $errorCount++;
+        }
+
 
         if ( $errorCount > 0 )
         {
@@ -143,7 +157,7 @@ abstract class BaseMessageType
 
     public function save ()
     {
-        if ( trim($this->id) !== "" && is_numeric ($this->id) )
+        if ( trim ($this->id) !== "" && is_numeric ($this->id) )
         {
             $this->objMysql->_update ("workflow.message_type", array("title" => $this->title, "description" => $this->description, "variables" => $this->variables, "workflow_id" => $this->PrjUid), array("id" => $this->id));
         }

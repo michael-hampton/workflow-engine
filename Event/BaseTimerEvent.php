@@ -102,6 +102,21 @@ abstract class BaseTimerEvent
      * @var        boolean
      */
     protected $alreadyInValidation = false;
+    private $arrayFieldDefinition = array(
+        "TMREVN_NEXT_RUN_DATE" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getTmrevnNextRunDate", "mutator" => "setTmrevnNextRunDate"),
+        "TMREVN_LAST_RUN_DATE" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getTmrevnLastRunDate", "mutator" => "setTmrevnLastRunDate"),
+        "TMREVN_LAST_EXECUTION_DATE" => array("type" => "string", "required" => false, "empty" => true, "accessor" => "getTmrevnLastExecutionDate", "mutator" => "setTmrevnLastExecutionDate"),
+        "TMREVN_START_DATE" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getTmrevnStartDate", "mutator" => "setTmrevnStartDate"),
+        "TMREVN_END_DATE" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getTmrevnEndDate", "mutator" => "setTmrevnEndDate"),
+        "TMREVN_CONFIGURATION_DATA" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getTmrevnConfigurationData", "mutator" => "setTmrevnConfigurationData"),
+        "TMREVN_HOUR" => array("type" => "int", "required" => false, "empty" => false, "accessor" => "getTmrevnHour", "mutator" => "setTmrevnHour"),
+        "TMREVN_DAY" => array("type" => "int", "required" => false, "empty" => false, "accessor" => "getTmrevnDay", "mutator" => "setTmrevnDay"),
+        "TMREVN_MINUTE" => array("type" => "string", "required" => false, "empty" => true, "accessor" => "getTmrevnMinute", "mutator" => "setTmrevnMinute"),
+        "TMREVN_OPTION" => array("type" => "string", "required" => false, "empty" => true, "accessor" => "getTmrevnOption", "mutator" => "setTmrevnOption"),
+        "PRJ_UID" => array("type" => "string", "required" => false, "empty" => true, "accessor" => "", "mutator" => "setPrjUid"),
+        "workflow_id" => array("type" => "string", "required" => false, "empty" => true, "accessor" => "", "mutator" => "setPrjUid"),
+        "EVN_UID" => array("type" => "string", "required" => false, "empty" => true, "accessor" => "getEvnUid", "mutator" => "setEvnUid"),
+    );
 
     /**
      * Get the [tmrevn_uid] column value.
@@ -698,7 +713,7 @@ abstract class BaseTimerEvent
         }
         if ( $this->tmrevn_last_run_date !== $ts )
         {
-            $this->tmrevn_last_run_date = $ts;
+            $this->tmrevn_last_run_date = date("Y-m-d H:i:s", $ts);
         }
     }
 
@@ -731,7 +746,7 @@ abstract class BaseTimerEvent
         }
         if ( $this->tmrevn_last_execution_date !== $ts )
         {
-            $this->tmrevn_last_execution_date = $ts;
+            $this->tmrevn_last_execution_date = date("Y-m-d H:i:s", $ts);
         }
     }
 
@@ -763,56 +778,23 @@ abstract class BaseTimerEvent
 
     public function fromArray ($arr)
     {
-        $keys = array("timer_id", "WORKFLOW_ID", "event_id", "TMREVN_OPTION", "TMREVN_START_DATE", "TMREVN_END_DATE", "TMREVN_DAY", "TMREVN_HOUR", "TMREVN_MINUTE", "TMREVN_CONFIGURATION_DATA", "TMREVN_NEXT_RUN_DATE");
+        foreach ($arr as $formField => $formValue) {
 
-        if ( array_key_exists ($keys[0], $arr) )
-        {
-            $this->setTmrevnUid ($arr[$keys[0]]);
+            if ( isset ($this->arrayFieldDefinition[$formField]) )
+            {
+                $mutator = $this->arrayFieldDefinition[$formField]['mutator'];
+
+                if ( method_exists ($this, $mutator) && is_callable (array($this, $mutator)) )
+                {
+                    if ( isset ($this->arrayFieldDefinition[$formField]) && trim ($formValue) != "" )
+                    {
+                        call_user_func (array($this, $mutator), $formValue);
+                    }
+                }
+            }
         }
-        if ( array_key_exists ($keys[1], $arr) )
-        {
-            $this->setPrjUid ($arr[$keys[1]]);
-        }
-        if ( array_key_exists ($keys[2], $arr) )
-        {
-            $this->setEvnUid ($arr[$keys[2]]);
-        }
-        if ( array_key_exists ($keys[3], $arr) )
-        {
-            $this->setTmrevnOption ($arr[$keys[3]]);
-        }
-        if ( array_key_exists ($keys[4], $arr) )
-        {
-            $this->setTmrevnStartDate ($arr[$keys[4]]);
-        }
-        if ( array_key_exists ($keys[5], $arr) )
-        {
-            $this->setTmrevnEndDate ($arr[$keys[5]]);
-        }
-        if ( array_key_exists ($keys[6], $arr) )
-        {
-            $this->setTmrevnDay ($arr[$keys[6]]);
-        }
-        if ( array_key_exists ($keys[7], $arr) )
-        {
-            $this->setTmrevnHour ($arr[$keys[7]]);
-        }
-        if ( array_key_exists ($keys[8], $arr) )
-        {
-            $this->setTmrevnMinute ($arr[$keys[8]]);
-        }
-        if ( array_key_exists ($keys[9], $arr) )
-        {
-            $this->setTmrevnConfigurationData ($arr[$keys[9]]);
-        }
-        if ( array_key_exists ($keys[10], $arr) )
-        {
-            $this->setTmrevnNextRunDate ($arr[$keys[10]]);
-        }
-//        if ( array_key_exists ($keys[11], $arr) )
-//        {
-//            $this->setTmrevnLastRunDate ($arr[$keys[11]]);
-//        }
+
+        return true;
     }
 
     public function save ()
@@ -823,7 +805,7 @@ abstract class BaseTimerEvent
         }
 
         if ( trim ($this->tmrevn_uid) !== "" && is_numeric ($this->tmrevn_uid) )
-        {   
+        {
             $this->objMysql->_update ("workflow.timer_event", array("workflow_id" => $this->prj_uid,
                 "EVN_UID" => $this->evn_uid,
                 "TMREVN_OPTION" => $this->tmrevn_option,
@@ -834,7 +816,10 @@ abstract class BaseTimerEvent
                 "TMREVN_MINUTE" => $this->tmrevn_minute,
                 "TMREVN_CONFIGURATION_DATA" => $this->tmrevn_configuration_data,
                 "TMREVN_NEXT_RUN_DATE" => $this->tmrevn_next_run_date,
-                "TMREVN_STATUS" => $this->tmrevn_status), array("TMREVN_UID" => $this->tmrevn_uid)
+                "TMREVN_STATUS" => $this->tmrevn_status,
+                "TMREVN_LAST_EXECUTION_DATE" => $this->tmrevn_last_execution_date,
+                "TMREVN_LAST_RUN_DATE" => $this->tmrevn_last_run_date), 
+                    array("TMREVN_UID" => $this->tmrevn_uid)
             );
         }
         else

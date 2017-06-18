@@ -1,0 +1,10 @@
+[Sun, 18 Jun 17 12:02:47 +0200][ERROR] PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'task_manager.timer_event' doesn't exist
+ File=C:\xampp\htdocs\core\app\library\Mysql.php
+ Line=250
+#0 [internal function]: PDOStatement->execute()
+#1 [internal function]: Phalcon\Db\Adapter\Pdo->executePrepared(Object(PDOStatement), Array, NULL)
+#2 C:\xampp\htdocs\core\app\library\Mysql.php(250): Phalcon\Db\Adapter\Pdo->query('SELECT * FROM `...', Array)
+#3 C:\xampp\htdocs\core\app\library\Mysql.php(156): Mysql2->queryDatabase('SELECT * FROM `...', Array, true)
+#4 C:\xampp\htdocs\core\app\library\BusinessModel\TimerEvent.php(836): Mysql2->_query('SELECT * FROM `...')
+#5 C:\xampp\htdocs\core\app\library\test.php(103): TimerEvent->startContinueCaseByTimerEvent('2017-06-18 12:0...', true)
+#6 {main}

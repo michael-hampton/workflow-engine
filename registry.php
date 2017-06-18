@@ -16,7 +16,7 @@ class Registry
 
     public function __construct ($adapter)
     {
-        require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/config.php';
+        require_once HOME_DIR . '/core/app/library/config.php';
         $dbConfig = getConfig ();
         $this->dbConfig = $dbConfig;
 
