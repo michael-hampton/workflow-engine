@@ -406,8 +406,14 @@ class TimerEvent
             //Verify data - Field definition
             $arrayFieldDefinition = array();
             $bpmnEvent = (new Event())->getEvent ($projectUid);
-            $eventType = "START";
-            switch ($eventType) {
+
+            if ( !isset ($bpmnEvent[0]) || empty ($bpmnEvent[0]) )
+            {
+                throw new Exception ("Event doesnt exist");
+            }
+            $stepCondition = json_decode ($bpmnEvent[0]['step_condition'], true);
+
+            switch ($stepCondition['params']['hold']['evn_type']) {
                 case "START":
                     $arrayFieldDefinition = array(
                         "TMREVN_OPTION" => array("type" => "string", "required" => true, "empty" => false, "defaultValues" => array("HOURLY", "DAILY", "MONTHLY", "EVERY", "ONE-DATE-TIME"), "fieldNameAux" => "timerEventOption")
@@ -509,22 +515,26 @@ class TimerEvent
     public function create ($projectUid, array $arrayData)
     {
         try {
+
             //Verify data
             $this->throwExceptionIfDataIsNotArray ($arrayData, "\$arrayData");
             $this->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
             //Verify data
             //$process->throwExceptionIfNotExistsProcess($projectUid, $this->arrayFieldNameForException["projectUid"]);
             $this->throwExceptionIfDataIsInvalid ("", $projectUid, $arrayData);
-        
+
             //Create
             $arrayData = $this->unsetFields ($arrayData);
             try {
                 $timerEvent = new \TimerEvents();
                 $bpmnEvent = (new Event())->getEvent ($projectUid);
-                if ( empty ($bpmnEvent) )
+                if ( !isset ($bpmnEvent[0]) || empty ($bpmnEvent[0]) )
                 {
                     throw new Exception ("Event doesnt exist");
                 }
+                
+                $stepCondition = json_decode ($bpmnEvent[0]['step_condition'], true);
+                
                 //$timerEventUid = \ProcessMaker\Util\Common::generateUID();
                 $arrayData["TMREVN_START_DATE"] = (isset ($arrayData["TMREVN_START_DATE"]) && $arrayData["TMREVN_START_DATE"] . "" != "") ? $arrayData["TMREVN_START_DATE"] : null;
                 $arrayData["TMREVN_END_DATE"] = (isset ($arrayData["TMREVN_END_DATE"]) && $arrayData["TMREVN_END_DATE"] . "" != "") ? $arrayData["TMREVN_END_DATE"] : null;
@@ -532,11 +542,10 @@ class TimerEvent
                 $arrayData["TMREVN_CONFIGURATION_DATA"] = serialize ((isset ($arrayData["TMREVN_CONFIGURATION_DATA"])) ? $arrayData["TMREVN_CONFIGURATION_DATA"] : "");
                 $arrayData['EVN_UID'] = $projectUid;
                 $timerEvent->loadObject ($arrayData);
-        
+
                 //$timerEvent->setTmrevnUid ($projectUid);
                 $timerEvent->setPrjUid ($arrayData['WORKFLOW_ID']);
-                $eventType = "START";
-                if ( $eventType )
+                if ( trim($stepCondition['params']['hold']['evn_type']) !== "" )
                 {
                     switch ($arrayData["TMREVN_OPTION"]) {
                         case "HOURLY":
@@ -550,7 +559,7 @@ class TimerEvent
                 if ( $timerEvent->validate () )
                 {
                     $timerEventUid = $timerEvent->save ();
-
+                    
                     //Return
                     return $this->getTimerEvent ($timerEventUid);
                 }
@@ -936,13 +945,13 @@ class TimerEvent
     {
         try {
             try {
-                $record = $this->getTimerEvent($timerEventUid);
-                $arrayData = array_merge($record, $arrayData);
+                $record = $this->getTimerEvent ($timerEventUid);
+                $arrayData = array_merge ($record, $arrayData);
                 $timerEvent = new TimerEvents();
-                $timerEvent->setTmrevnUid($timerEventUid);
-                
-                $arrayData['TMREVN_CONFIGURATION_DATA'] = serialize($arrayData['TMREVN_CONFIGURATION_DATA']);
-         
+                $timerEvent->setTmrevnUid ($timerEventUid);
+
+                $arrayData['TMREVN_CONFIGURATION_DATA'] = serialize ($arrayData['TMREVN_CONFIGURATION_DATA']);
+
                 $timerEvent->loadObject ($arrayData);
 
                 if ( $timerEvent->validate () )
@@ -970,24 +979,24 @@ class TimerEvent
             throw $e;
         }
     }
-    
-    public function setRecord($record)
+
+    public function setRecord ($record)
     {
         $timerEvents = new TimerEvents();
-        $timerEvents->setEvnUid($record['EVN_UID']);
-        $timerEvents->setPrjUid($record['workflow_id']);
-        $timerEvents->setTmrevnConfigurationData($record['TMREVN_CONFIGURATION_DATA']);
-        $timerEvents->setTmrevnDay($record['TMREVN_DAY']);
-        $timerEvents->setTmrevnEndDate($record['TMREVN_END_DATE']);
-        $timerEvents->setTmrevnStartDate($record['TMREVN_START_DATE']);
-        $timerEvents->setTmrevnHour($record['TMREVN_HOUR']);
-        $timerEvents->setTmrevnLastRunDate($record['TMREVN_LAST_RUN_DATE']);
-        $timerEvents->setTmrevnOption($record['TMREVN_OPTION']);
-        $timerEvents->setTmrevnMinute($record['TMREVN_MINUTE']);
-        $timerEvents->setTmrevnNextRunDate($record['TMREVN_NEXT_RUN_DATE']);
-        $timerEvents->setTmrevnStatus($record['TMREVN_STATUS']);
-        $timerEvents->setTmrevnLastExecutionDate($record['TMREVN_LAST_EXECUTION_DATE']);
-        
+        $timerEvents->setEvnUid ($record['EVN_UID']);
+        $timerEvents->setPrjUid ($record['workflow_id']);
+        $timerEvents->setTmrevnConfigurationData ($record['TMREVN_CONFIGURATION_DATA']);
+        $timerEvents->setTmrevnDay ($record['TMREVN_DAY']);
+        $timerEvents->setTmrevnEndDate ($record['TMREVN_END_DATE']);
+        $timerEvents->setTmrevnStartDate ($record['TMREVN_START_DATE']);
+        $timerEvents->setTmrevnHour ($record['TMREVN_HOUR']);
+        $timerEvents->setTmrevnLastRunDate ($record['TMREVN_LAST_RUN_DATE']);
+        $timerEvents->setTmrevnOption ($record['TMREVN_OPTION']);
+        $timerEvents->setTmrevnMinute ($record['TMREVN_MINUTE']);
+        $timerEvents->setTmrevnNextRunDate ($record['TMREVN_NEXT_RUN_DATE']);
+        $timerEvents->setTmrevnStatus ($record['TMREVN_STATUS']);
+        $timerEvents->setTmrevnLastExecutionDate ($record['TMREVN_LAST_EXECUTION_DATE']);
+
         return $timerEvents;
     }
 

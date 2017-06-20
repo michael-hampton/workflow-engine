@@ -70,7 +70,7 @@ class EventModel extends BaseEvent
                 {
                     $this->setEvnType ($aData['EVN_TYPE']);
                 }
-                if ( isset ($aData['EVN_TIME_UNIT']) )
+                if ( isset ($aData['EVN_TIME_UNIT']) && isset($aData['EVN_TAS_ESTIMATED_DURATION']) )
                 {
                     $this->setEvnTimeUnit ($aData['EVN_TIME_UNIT']);
                     if ( trim ($aData['EVN_TIME_UNIT']) == 'HOURS' )

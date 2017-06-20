@@ -852,6 +852,7 @@ abstract class BaseEvent
         $conditions['params'][$this->event]['event_when'] = $this->evn_when;
         $conditions['params'][$this->event]['when_occurs'] = $this->evn_when_occurs;
         $conditions['params'][$this->event]['action_params'] = $this->evn_action_parameters;
+        $conditions['params'][$this->event]['evn_type'] = $this->evn_type;
         
         $this->objMysql->_update("workflow.status_mapping", ["step_condition" => json_encode ($conditions)], ["id" => $this->tas_uid]);
     }
