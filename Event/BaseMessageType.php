@@ -140,11 +140,11 @@ abstract class BaseMessageType
             $errorCount++;
         }
 
-        if ( trim ($this->variables) === "" )
-        {
-            $this->ValidationFailures[] = "There are no variables";
-            $errorCount++;
-        }
+//        if ( trim ($this->variables) === "" )
+//        {
+//            $this->ValidationFailures[] = "There are no variables";
+//            $errorCount++;
+//        }
 
 
         if ( $errorCount > 0 )

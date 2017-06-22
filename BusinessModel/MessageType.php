@@ -127,8 +127,8 @@ class MessageType
                 else
                 {
                     $msg = "";
-                    foreach ($messageType->getValidationFailures () as $validationFailure) {
-                        $msg = $msg . (($msg != "") ? "\n" : "") . $validationFailure->getMessage ();
+                    foreach ($messageType->getValidationFailures () as $message) {
+                        $msg = $msg . (($msg != "") ? "\n" : "") . $message;
                     }
                     throw new \Exception ("ID_RECORD_CANNOT_BE_CREATED" . (($msg != "") ? "\n" . $msg : ""));
                 }

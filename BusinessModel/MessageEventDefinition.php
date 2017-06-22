@@ -177,7 +177,7 @@ class MessageEventDefinition
                 $variables = json_decode ($arrayMessageTypeData[0]['variables'], true);
 
                 foreach ($variables as $value) {
-                    $arrayMessageTypeVariable[$value["MSGTV_NAME"]] = $value["MSGTV_DEFAULT_VALUE"];
+                    $arrayMessageTypeVariable[$value["MSGTV_NAME"]] = "test";
                 }
 
                 $newVariables = [];

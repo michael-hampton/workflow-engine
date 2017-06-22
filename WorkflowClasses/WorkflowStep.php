@@ -466,66 +466,12 @@ class WorkflowStep
 
             if ( isset ($arrConditions['sendNotification']) && trim (strtolower ($arrConditions['sendNotification'])) == "yes" )
             {
-                $messageDefinition = (new MessageEventDefinition())->getMessageEventDefinitionByEvent ($this->workflowId, $this->_workflowStepId);
-
-                if ( !empty ($messageDefinition) )
-                {
-                    $arrVariables = unserialize ($messageDefinition[0]['MSGT_VARIABLES']);
-
-                    $arrData = (new \Elements ($this->parentId, $this->elementId))->arrElement;
-
-                    if ( !empty ($arrVariables) )
-                    {
-                        foreach ($arrVariables['MSGT_VARIABLES'] as $key => $arrVariable) {
-
-                            if ( isset ($arrData[$arrVariable['FIELD']]) )
-                            {
-
-                                $arrVariables['MSGT_VARIABLES'][$key]['VALUE'] = $arrData[$arrVariable['FIELD']];
-                            }
-                        }
-
-
-                        // update message definition
-                        $this->objMysql->_update (
-                                "workflow.message_definition", array("MSGT_VARIABLES" => serialize ($arrVariables)), array("id" => $messageDefinition[0]['id']));
-                    }
-                }
-            }
-
-            if ( isset ($arrConditions['receiveNotification']) && trim (strtolower ($arrConditions['receiveNotification'])) == "yes" )
-            {
-                $messageDefinition = (new MessageEventDefinition())->getMessageEventDefinitionByEvent ($this->workflowId, $this->_workflowStepId);
-
-                if ( !empty ($messageDefinition) )
-                {
-                    $arrVariables = unserialize ($messageDefinition[0]['MSGT_VARIABLES']);
-
-                    $objElements = new Elements ($this->parentId, $this->elementId);
-
-                    $arrData = $objElements->arrElement;
-
-                    $correlationId = $messageDefinition[0]['MSGED_CORRELATION'];
-
-                    $arrSend = $this->objMysql->_select ("workflow.message_definition", [], ["MSGED_CORRELATION" => $correlationId, "MESSAGE_TYPE" => "send"]);
-                    $arrFields = unserialize ($arrSend[0]['MSGT_VARIABLES']);
-
-                    foreach ($arrFields['MSGT_VARIABLES'] as $arrField) {
-                        foreach ($arrVariables['MSGT_VARIABLES'] as $arrVariable) {
-
-                            if ( trim ($arrVariable['MSGTV_NAME']) == trim ($arrField['MSGTV_NAME']) )
-                            {
-                                $arrData[$arrVariable['FIELD']] = $arrField['VALUE'];
-                            }
-                        }
-                    }
-
-
-                    $objElements->loadObject ($arrData);
-                    $objElements->save ();
-                }
+                
+               $objMessageApplication = new MessageApplication();
+               $objMessageApplication->create($this->workflowId, $this->elementId, $this->parentId, $this->_workflowStepId, array());
+               
+               die("Yes 2");
             }
         }
     }
-
 }

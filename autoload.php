@@ -1,7 +1,8 @@
 <?php
-define("HOME_DIR", "C:/xampp/htdocs/");
-define("PATH_THIRDPARTY", HOME_DIR . '/core/app/library/thirdparty/');
-define("PATH_SEP", "/");
+
+define ("HOME_DIR", "C:/xampp/htdocs/");
+define ("PATH_THIRDPARTY", HOME_DIR . '/core/app/library/thirdparty/');
+define ("PATH_SEP", "/");
 
 require_once HOME_DIR . '/core/app/library/Persistent.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/Validator.php';
@@ -12,9 +13,15 @@ require_once HOME_DIR . '/core/app/library/Variable.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/StepVariable.php';
 require_once HOME_DIR . '/core/app/library/BaseComments.php';
 require_once HOME_DIR . '/core/app/library/Comments.php';
-//require_once HOME_DIR . '/core/app/library/MessageApplication.php';
+
 
 /* * *********************** Events ******************************************** */
+require_once HOME_DIR . '/core/app/library/Event/BaseMessageApplication.php';
+require_once HOME_DIR . '/core/app/library/Event/BaseMessageEventRelation.php';
+require_once HOME_DIR . '/core/app/library/Event/MessageApplications.php';
+require_once HOME_DIR . '/core/app/library/Event/MessageEventRelations.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/MessageEventRelation.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/MessageApplication.php';
 require_once HOME_DIR . '/core/app/library/Event/BaseEvent.php';
 require_once HOME_DIR . '/core/app/library/Event/EventModel.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/Event.php';
@@ -47,7 +54,7 @@ require_once HOME_DIR . '/core/app/library/Documents/BaseOutputDocument.php';
 require_once HOME_DIR . '/core/app/library/Documents/OutputDocument.php';
 
 
-/************************* Fields **************************************************/
+/* * *********************** Fields ************************************************* */
 require_once HOME_DIR . '/core/app/library/Fields/Field.php';
 require_once HOME_DIR . '/core/app/library/Fields/RequiredField.php';
 require_once HOME_DIR . '/core/app/library/Fields/StepField.php';
@@ -100,7 +107,8 @@ require_once HOME_DIR . '/core/app/library/BPMN/BPMNWorkflow.php';
 require_once HOME_DIR . '/core/app/library/BPMN/Task.php';
 require_once HOME_DIR . '/core/app/library/BPMN/Participant.php';
 require_once HOME_DIR . '/core/app/library/BPMN/Message.php';
-require_once HOME_DIR . '/core/app/library/BPMN/Flow.php';;
+require_once HOME_DIR . '/core/app/library/BPMN/Flow.php';
+;
 require_once HOME_DIR . '/core/app/library/BPMN/Diagram.php';
 require_once HOME_DIR . '/core/app/library/BPMN/Conditions.php';
 
@@ -116,11 +124,13 @@ require_once HOME_DIR . '/core/app/library/Process/ProcessUser.php';
 
 /* * ******************* Users ******************************************* */
 //require_once HOME_DIR.'/core/app/library/Users.php'
-require_once HOME_DIR . '/core/app/library/BusinessModel/Password.php';;
+require_once HOME_DIR . '/core/app/library/BusinessModel/Password.php';
+;
 require_once HOME_DIR . '/core/app/library/UserClasses/BaseUser.php';
 require_once HOME_DIR . '/core/app/library/UserClasses/BasePermission.php';
 require_once HOME_DIR . '/core/app/library/UserClasses/Permission.php';
-require_once HOME_DIR . '/core/app/library/UserClasses/Users.php';;
+require_once HOME_DIR . '/core/app/library/UserClasses/Users.php';
+;
 require_once HOME_DIR . '/core/app/library/BusinessModel/UsersFactory.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/RoleUser.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/Role.php';
