@@ -385,9 +385,11 @@ class WorkflowStep
             throw new Exception ("You do not have permission to do this");
         }
         $this->completeWorkflowObject ($objMike, $arrCompleteData, true, $arrEmailAddresses);
-        if ( isset ($this->nextStep) && $this->nextStep != 0 )
+        if ( isset ($this->nextStep) && $this->nextStep !== 0 )
         {
-            return new WorkflowStep ($this->nextStep, $objMike);
+            $this->checkEvents();
+            $this->_workflowStepId = $this->nextStep;
+            return new WorkflowStep ($this->_workflowStepId, $objMike);
         }
         return true;
     }
@@ -468,9 +470,13 @@ class WorkflowStep
             {
                 
                $objMessageApplication = new MessageApplication();
-               $objMessageApplication->create($this->workflowId, $this->elementId, $this->parentId, $this->_workflowStepId, array());
-               
-               die("Yes 2");
+               $objMessageApplication->create($this->workflowId, $this->elementId, $this->parentId, $this->_workflowStepId, array());               
+            }
+            
+            if ( isset ($arrConditions['receiveNotification']) && trim (strtolower ($arrConditions['receiveNotification'])) == "yes" )
+            {
+                $objMessageApplication = new MessageApplication();
+                $objMessageApplication->catchMessageEvent();
             }
         }
     }

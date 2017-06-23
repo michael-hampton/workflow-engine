@@ -636,7 +636,7 @@ class Cases
                 "project_status" => 1,
                 "dueDate" => date ("Y-m-d")
             );
-
+            
             if ( isset ($variables['form']['description']) )
             {
                 $arrData['form']['description'] = $variables['form']['description'];
@@ -691,6 +691,7 @@ class Cases
                 $objUser = (new UsersFactory)->getUser ($_SESSION['user']['usrid']);
 
                 $validation = $objStep->save ($objElements, $variables['form'], $objUser);
+                $caseId = $objElements->getId();
 
                 if ( $validation === false )
                 {
@@ -698,6 +699,8 @@ class Cases
                     echo json_encode ($validate);
                     return false;
                 }
+                
+                return array("project_id" => $projectId, "case_id" => $caseId);
             }
         } catch (Exception $ex) {
             throw new Exception ($ex);
@@ -842,7 +845,7 @@ class Cases
         }
         else
         {
-            $objStep->save ($objElement, $arrStepData, $objUser);
+            $objSteps->save ($objElement, $arrStepData, $objUser);
         }
     }
 
