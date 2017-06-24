@@ -1,6 +1,6 @@
 <?php
 
-abstract class BaseNotifications
+abstract class BaseNotifications implements Persistent
 {
 
     protected $status;
@@ -49,9 +49,9 @@ abstract class BaseNotifications
      * @param type $arrNotification
      * @return boolean
      */
-    public function loadObject ($arrNotification)
+    public function loadObject (array $arrData)
     {
-        foreach ($arrNotification as $formField => $formValue) {
+        foreach ($arrData as $formField => $formValue) {
 
             if ( isset ($this->arrFieldMapping[$formField]) )
             {
@@ -68,6 +68,11 @@ abstract class BaseNotifications
         }
 
         return true;
+    }
+    
+    public function validate ()
+    {
+        ;
     }
 
     /**

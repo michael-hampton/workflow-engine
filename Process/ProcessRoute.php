@@ -54,7 +54,10 @@ class ProcessRoute extends BaseProcessRoute
         $this->setTo ($to);
         $this->setFirstWorkflow ($firstWorkflow);
 
-        $this->saveMapping ();
+        if ( $this->validate () )
+        {
+            $this->save ();
+        }
     }
 
 }

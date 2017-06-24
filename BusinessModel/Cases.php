@@ -609,7 +609,7 @@ class Cases
      * return array Return an array with Task Case
      */
 
-    public function addCase ($processUid, $userUid, $variables, $arrFiles = array(), $blSaveProject = true, $projectId = null)
+    public function addCase ($processUid, Users $objUser, $variables, $arrFiles = array(), $blSaveProject = true, $projectId = null, $blHasEvent = FALSE)
     {
         try {
             // Check For Parent
@@ -631,12 +631,12 @@ class Cases
                 "priority" => 1,
                 "deptId" => 1,
                 "workflow_id" => $workflowId,
-                "added_by" => $_SESSION['user']['username'],
+                "added_by" => $objUser->getUsername (),
                 "date_created" => date ("Y-m-d"),
                 "project_status" => 1,
                 "dueDate" => date ("Y-m-d")
             );
-            
+
             if ( isset ($variables['form']['description']) )
             {
                 $arrData['form']['description'] = $variables['form']['description'];
@@ -649,11 +649,17 @@ class Cases
 
             $arrData['form']['status'] = "NEW PROJECT";
             $arrData['form']['dateCompleted'] = date ("Y-m-d H:i:s");
-            $arrData['form']['claimed'] = $_SESSION['user']['username'];
+            $arrData['form']['claimed'] = $objUser->getUsername ();
+
+            if ( $blHasEvent === true )
+            {
+                $arrData['form']['hasEvent'] = true;
+            }
+
 
             if ( $blSaveProject === true )
             {
-                $projectId = $this->saveProject ($arrData, $workflowId);
+                $projectId = $this->saveProject ($arrData, $workflowId, $objUser);
 
                 $this->projectUid ($projectId);
             }
@@ -685,13 +691,16 @@ class Cases
 
                 $variables['form']['status'] = "NEW";
                 $variables['form']['workflow_id'] = $processUid;
-                $variables['form']['claimed'] = $_SESSION["user"]["username"];
+                $variables['form']['claimed'] = $objUser->getUsername ();
                 $variables['form']['dateCompleted'] = date ("Y-m-d H:i:s");
 
-                $objUser = (new UsersFactory)->getUser ($_SESSION['user']['usrid']);
+                if ( $blHasEvent === true )
+                {
+                    $variables['form']['hasEvent'] = true;
+                }
 
                 $validation = $objStep->save ($objElements, $variables['form'], $objUser);
-                $caseId = $objElements->getId();
+                $caseId = $objElements->getId ();
 
                 if ( $validation === false )
                 {
@@ -699,7 +708,7 @@ class Cases
                     echo json_encode ($validate);
                     return false;
                 }
-                
+
                 return array("project_id" => $projectId, "case_id" => $caseId);
             }
         } catch (Exception $ex) {
@@ -765,13 +774,12 @@ class Cases
         return $arrFiles;
     }
 
-    public function saveProject ($arrData, $workflowId)
+    public function saveProject ($arrData, $workflowId, Users $objUser)
     {
         $objSave = new Save();
         $objWorkflow = new Workflow ($workflowId);
 
         $objStep = $objWorkflow->getNextStep ();
-        $objUser = (new UsersFactory)->getUser ($_SESSION['user']['usrid']);
         $validation = $objStep->save ($objSave, $arrData['form'], $objUser);
 
         if ( $validation === false )
@@ -784,6 +792,31 @@ class Cases
         return $projectId;
     }
 
+    /**
+     * Moves a case to a specific task
+     * @param Elements $objElement
+     * @param type $stepTo
+     * @return boolean
+     */
+    public function derivateCase (Elements $objElement, $stepTo)
+    {
+        $workflowData = $this->objMysql->_select ("workflow.workflow_data", [], ["object_id" => $objElement->getParentId ()]);
+        $workflowData = json_decode ($workflowData[0]['workflow_data'], true);
+
+        if ( isset ($workflowData['elements'][$objElement->getId ()]) )
+        {
+            $workflowData['elements'][$objElement->getId ()]['current_step'] = $stepTo;
+            $this->objMysql->_update ("workflow.workflow_data", ["workflow_data" => json_encode ($workflowData)], ["object_id" => $objElement->getParentId ()]);
+        }
+        
+        return true;
+    }
+
+    /**
+     * gets workflow name
+     * @param type $workflowId
+     * @return boolean
+     */
     private function getWorkflowName ($workflowId)
     {
         $workflow = $this->objMysql->_select ("workflow.workflows", array(), array("workflow_id" => $workflowId));
@@ -796,6 +829,11 @@ class Cases
         return false;
     }
 
+    /**
+     * get step name of a task
+     * @param type $stepName
+     * @return boolean
+     */
     private function getStepName ($stepName)
     {
         $step = $this->objMysql->_query ("SELECT s.step_name FROM workflow.status_mapping m
@@ -810,6 +848,12 @@ class Cases
         return false;
     }
 
+    /**
+     * gets previous task
+     * @param type $currentStep
+     * @param type $workflowId
+     * @return boolean
+     */
     private function getPreviousStep ($currentStep, $workflowId)
     {
         $result1 = $this->objMysql->_select ("workflow.status_mapping", array("step_from"), array("id" => $currentStep, "workflow_id" => $workflowId));
@@ -823,6 +867,12 @@ class Cases
         return false;
     }
 
+    /**
+     * udates the status of a task
+     * @param Elements $objElement
+     * @param type $status
+     * @param type $rejectionReason
+     */
     public function updateStatus (Elements $objElement, $status, $rejectionReason = '')
     {
         $arrStepData = array(
@@ -849,6 +899,10 @@ class Cases
         }
     }
 
+    /**
+     * 
+     * @param Elements $objElements
+     */
     public function assignUsers (Elements $objElements)
     {
         $arrStepData = array(

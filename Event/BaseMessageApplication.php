@@ -15,11 +15,17 @@ abstract class BaseMessageApplication implements Persistent
 {
 
     private $objMysql;
-
-    public function __construct ()
-    {
-        $this->objMysql = new Mysql2();
-    }
+    private $arrayFieldDefinition = array(
+        "APP_UID" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getAppUid", "mutator" => "setAppUid"),
+        "PRJ_UID" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getPrjUid", "mutator" => "setPrjUid"),
+        "EVENT_UID_THROW" => array("type" => "string", "required" => false, "empty" => true, "accessor" => "getEvnUidThrow", "mutator" => "setEvnUidThrow"),
+        "EVN_UID_CATCH" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getEvnUidCatch", "mutator" => "setEvnUidCatch"),
+        "MSGAPP_THROW_DATE" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getMsgappThrowDate", "mutator" => "setMsgappThrowDate"),
+        "MSGAPP_CORRRELATION" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getMsgappCorrelation", "mutator" => "setMsgappCorrelation"),
+        "MSGAPP_VARIABLES" => array("type" => "int", "required" => false, "empty" => false, "accessor" => "getMsgappVariables", "mutator" => "setMsgappVariables"),
+        "MSGAPP_STATUS" => array("type" => "int", "required" => false, "empty" => false, "accessor" => "getMsgappStatus", "mutator" => "setMsgappStatus"),
+        "MSGAPP_CATCH_DATE" => array("type" => "string", "required" => false, "empty" => true, "accessor" => "getMsgappCatchDate", "mutator" => "setMsgappCatchDate"),
+    );
 
     /**
      * The Peer class.
@@ -174,6 +180,11 @@ abstract class BaseMessageApplication implements Persistent
         return $this->msgapp_correlation;
     }
 
+    public function __construct ()
+    {
+        $this->objMysql = new Mysql2();
+    }
+
     /**
      * Get the [optionally formatted] [msgapp_throw_date] column value.
      * 
@@ -267,6 +278,8 @@ abstract class BaseMessageApplication implements Persistent
     {
         return $this->msgapp_status;
     }
+    
+    
 
     /**
      * Set the value of [msgapp_uid] column.
@@ -505,7 +518,23 @@ abstract class BaseMessageApplication implements Persistent
 
     public function loadObject (array $arrData)
     {
-        
+        foreach ($arrData as $formField => $formValue) {
+
+            if ( isset ($this->arrayFieldDefinition[$formField]) )
+            {
+                $mutator = $this->arrayFieldDefinition[$formField]['mutator'];
+
+                if ( method_exists ($this, $mutator) && is_callable (array($this, $mutator)) )
+                {
+                    if ( isset ($this->arrayFieldDefinition[$formField]) && trim ($formValue) != "" )
+                    {
+                        call_user_func (array($this, $mutator), $formValue);
+                    }
+                }
+            }
+        }
+
+        return true;
     }
 
     public function validate ()
@@ -569,18 +598,35 @@ abstract class BaseMessageApplication implements Persistent
     }
 
     public function save ()
-    {        
-        $this->objMysql->_insert ("workflow.message_application", [
-            "APP_UID" => $this->app_uid,
-            "PRJ_UID" => $this->prj_uid,
-            "EVENT_UID_THROW" => $this->evn_uid_throw,
-            "EVN_UID_CATCH" => $this->evn_uid_catch,
-            "MSGAPP_THROW_DATE" => $this->msgapp_throw_date,
-            "MSGAPP_CORRRELATION" => $this->msgapp_correlation,
-            "MSGAPP_VARIABLES" => $this->msgapp_variables,
-            "MSGAPP_STATUS" => $this->msgapp_status,
-            "MSGAPP_CATCH_DATE" => $this->msgapp_catch_date]
-        );
+    {
+        if ( trim ($this->msgapp_uid) !== "" && is_numeric ($this->msgapp_uid) )
+        {
+            $this->objMysql->_update ("workflow.message_application", [
+                "APP_UID" => $this->app_uid,
+                "PRJ_UID" => $this->prj_uid,
+                "EVENT_UID_THROW" => $this->evn_uid_throw,
+                "EVN_UID_CATCH" => $this->evn_uid_catch,
+                "MSGAPP_THROW_DATE" => $this->msgapp_throw_date,
+                "MSGAPP_CORRRELATION" => $this->msgapp_correlation,
+                "MSGAPP_VARIABLES" => $this->msgapp_variables,
+                "MSGAPP_STATUS" => $this->msgapp_status,
+                "MSGAPP_CATCH_DATE" => $this->msgapp_catch_date], ["MSGAPP_UID" => $this->msgapp_uid]
+            );
+        }
+        else
+        {
+            $this->objMysql->_insert ("workflow.message_application", [
+                "APP_UID" => $this->app_uid,
+                "PRJ_UID" => $this->prj_uid,
+                "EVENT_UID_THROW" => $this->evn_uid_throw,
+                "EVN_UID_CATCH" => $this->evn_uid_catch,
+                "MSGAPP_THROW_DATE" => $this->msgapp_throw_date,
+                "MSGAPP_CORRRELATION" => $this->msgapp_correlation,
+                "MSGAPP_VARIABLES" => $this->msgapp_variables,
+                "MSGAPP_STATUS" => $this->msgapp_status,
+                "MSGAPP_CATCH_DATE" => $this->msgapp_catch_date]
+            );
+        }
     }
 
 }

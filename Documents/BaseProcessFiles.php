@@ -1,6 +1,6 @@
 <?php
 
-abstract class BaseProcessFiles
+abstract class BaseProcessFiles implements Persistent
 {
 
     private $objMysql;
@@ -278,9 +278,14 @@ abstract class BaseProcessFiles
         $this->setId ($id);
     }
 
-    private function doUpdate ()
+    public function validate ()
     {
         
+    }
+    
+    public function loadObject (array $arrData)
+    {
+        ;
     }
 
     /**

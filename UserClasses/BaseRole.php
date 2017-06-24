@@ -1,6 +1,6 @@
 <?php
 
-abstract class BaseRole
+abstract class BaseRole implements Persistent
 {
 
     private $roleId;
@@ -47,9 +47,9 @@ abstract class BaseRole
      * @param type $arrRole
      * @return boolean
      */
-    public function loadObject ($arrRole)
+    public function loadObject (array $arrData)
     {
-        foreach ($arrRole as $formField => $formValue) {
+        foreach ($arrData as $formField => $formValue) {
 
             if ( isset ($this->arrFieldMapping[$formField]) )
             {

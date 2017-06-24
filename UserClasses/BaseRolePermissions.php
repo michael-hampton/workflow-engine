@@ -11,7 +11,7 @@
  *
  * @author michael.hampton
  */
-abstract class BaseRolePermissions
+abstract class BaseRolePermissions implements Persistent
 {
 
     public $perUid;
@@ -66,6 +66,30 @@ abstract class BaseRolePermissions
         }
 
         $this->objMysql->_delete ("user_management.role_perms", array("perm_id" => $this->perUid, "role_id" => $this->rolUid));
+    }
+    
+    public function loadObject (array $arrData)
+    {
+        ;
+    }
+    
+    public function validate ()
+    {
+        $errorCount = 0;
+        
+        if(trim($this->perUid) === "") {
+            $errorCount++;
+        }
+        
+        if(trim($this->rolUid) === "") {
+            $errorCount++;
+        }
+        
+        if($errorCount > 0) {
+            return FALSE;
+        }
+        
+        return TRUE;
     }
 
 }

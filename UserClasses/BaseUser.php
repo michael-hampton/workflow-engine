@@ -1,6 +1,6 @@
 <?php
 
-abstract class BaseUser
+abstract class BaseUser implements Persistent
 {
 
     use Validator;
@@ -65,9 +65,9 @@ abstract class BaseUser
      * 
      * @param type $arrUser
      */
-    public function loadObject ($arrUser)
+    public function loadObject (array $arrData)
     {
-        foreach ($arrUser as $formField => $formValue) {
+        foreach ($arrData as $formField => $formValue) {
 
             if ( isset ($this->arrFieldMapping[$formField]) )
             {

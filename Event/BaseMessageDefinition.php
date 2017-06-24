@@ -7,7 +7,7 @@
  *
  * @package    workflow.classes.model.om
  */
-abstract class BaseMessageDefinition
+abstract class BaseMessageDefinition implements Persistent
 {
 
     protected $eventId;
@@ -305,6 +305,11 @@ abstract class BaseMessageDefinition
     public function getConnection ()
     {
         $this->objMysql = new Mysql2();
+    }
+    
+    public function loadObject (array $arrData)
+    {
+        
     }
 
     public function save ()

@@ -1,6 +1,6 @@
 <?php
 
-class BaseFieldCondition
+class BaseFieldCondition implements Persistent
 {
 
     /**
@@ -46,9 +46,9 @@ class BaseFieldCondition
         $this->objMysql = new Mysql2();
     }
 
-    public function loadObject ($arrDocument)
+    public function loadObject (array $arrData)
     {
-        foreach ($arrDocument as $formField => $formValue) {
+        foreach ($arrData as $formField => $formValue) {
 
             if ( isset ($this->arrayFieldDefinition[$formField]) )
             {

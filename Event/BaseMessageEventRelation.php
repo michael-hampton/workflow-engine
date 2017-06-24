@@ -11,7 +11,7 @@
  *
  * @author michael.hampton
  */
-abstract class BaseMessageEventRelation
+abstract class BaseMessageEventRelation implements Persistent
 {
 
     private $MSGER_UID;
@@ -46,6 +46,21 @@ abstract class BaseMessageEventRelation
     public function setEVN_UID_CATCH ($EVN_UID_CATCH)
     {
         $this->EVN_UID_CATCH = $EVN_UID_CATCH;
+    }
+    
+    public function loadObject (array $arrData)
+    {
+        
+    }
+    
+    public function validate ()
+    {
+        return true;
+    }
+    
+    public function save ()
+    {
+        
     }
 
 }

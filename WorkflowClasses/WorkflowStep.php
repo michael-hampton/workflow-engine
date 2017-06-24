@@ -290,8 +290,7 @@ class WorkflowStep
         $blHasTrigger = false;
         $arrWorkflow['request_id'] = $this->collectionId;
         $objTrigger = new StepTrigger ($this->_workflowStepId, $this->nextStep);
-        $this->checkEvents ();
-
+       
         if ( $complete === true && $this->nextStep !== 0 && $this->nextStep != "" )
         {
 
@@ -332,10 +331,20 @@ class WorkflowStep
         {
             $this->objWorkflow = $arrWorkflow;
         }
+        
         if ( is_numeric ($this->parentId) && is_numeric ($this->elementId) && $blHasTrigger !== true )
         {
             $this->objWorkflow['elements'][$this->elementId] = $arrWorkflow;
         }
+        
+        $hasEvent = isset($arrCompleteData['hasEvent']) ? 'true' : 'false';
+        $this->objWorkflow['elements'][$this->parentId]['hasEvent'] = $hasEvent;
+        $this->objWorkflow['elements'][$this->elementId]['hasEvent'] = $hasEvent;
+     
+        if($hasEvent !== 'true') {
+            $this->checkEvents ();
+        }
+
         if ( ($this->nextStep == 0 || $this->nextStep == "") && $complete === true && $arrCompleteData['status'] == "COMPLETE" )
         {
             $arrCompleteData['status'] = "COMPLETE";
@@ -348,8 +357,12 @@ class WorkflowStep
         $this->sendNotification ($objMike, $arrCompleteData, $arrEmailAddresses);
         // Update workflow and audit object
         $strAudit = json_encode ($this->objAudit);
-        $strWorkflow = json_encode ($this->objWorkflow);
+        
         $objectId = isset ($this->parentId) && is_numeric ($this->parentId) ? $this->parentId : $this->elementId;
+
+        $strWorkflow = json_encode ($this->objWorkflow);
+        
+        
         if ( !empty ($arrWorkflowData) )
         {
             $this->objMysql->_update ("workflow.workflow_data", array(
@@ -470,7 +483,7 @@ class WorkflowStep
             {
                 
                $objMessageApplication = new MessageApplication();
-               $objMessageApplication->create($this->workflowId, $this->elementId, $this->parentId, $this->_workflowStepId, array());               
+               $objMessageApplication->create($this->workflowId, $this->elementId, $this->parentId, $this->_workflowStepId, $this->objWorkflow);               
             }
             
             if ( isset ($arrConditions['receiveNotification']) && trim (strtolower ($arrConditions['receiveNotification'])) == "yes" )

@@ -11,7 +11,7 @@
  *
  * @author michael.hampton
  */
-abstract class BaseOutputDocument
+abstract class BaseOutputDocument implements Persistent
 {
 
     private $arrayFieldDefinition = array(
@@ -992,7 +992,7 @@ abstract class BaseOutputDocument
 
 // setOutDocOpenType()
 
-    public function loadObject ($arrData)
+    public function loadObject (array $arrData)
     {
         foreach ($arrData as $formField => $formValue) {
 

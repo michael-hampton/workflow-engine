@@ -32,7 +32,7 @@ class MessageApplication
     public function exists ($messageApplicationUid)
     {
         try {
-            $obj = \MessageApplicationPeer::retrieveByPK ($messageApplicationUid);
+            $obj = $this->retrieveByPK ($messageApplicationUid);
             return (!is_null ($obj)) ? true : false;
         } catch (\Exception $e) {
             throw $e;
@@ -52,6 +52,13 @@ class MessageApplication
     public function create ($workflowId, $applicationUid, $projectUid, $eventUidThrow, array $arrayApplicationData)
     {
         try {
+
+            if ( isset ($arrayApplicationData['elements'][$applicationUid]) && isset ($arrayApplicationData['elements'][$applicationUid]['hasEvent']) && $arrayApplicationData['elements'][$applicationUid]['hasEvent'] === 'true' )
+            {
+                echo "RETURN FALSE";
+                return FALSE;
+            }
+
             $flagCreate = true;
             //Set data
             //Message-Event-Relation - Get unique id of Event (catch)
@@ -191,7 +198,7 @@ class MessageApplication
             $criteriaCount = "SELECT COUNT(*) AS NUM_REC " . $criteria;
             $countResult = $this->objMysql->_query ($criteriaCount, $arrParameters);
 
-            $numRecTotal = $countResult[0]["NUM_REC"];
+            $numRecTotal = isset ($countResult[0]) && !empty ($countResult[0]) ? $countResult[0]["NUM_REC"] : 0;
             //SQL
             if ( !is_null ($sortField) && trim ($sortField) != "" )
             {
@@ -279,7 +286,7 @@ class MessageApplication
                     $totalMessageEvent = $arrayMessageApplicationUnread["total"];
                     $flagFirstTime = true;
                 }
-  
+
                 foreach ($arrayMessageApplicationUnread["data"] as $value) {
                     $start++;
                     if ( $counter + 1 > $totalMessageEvent )
@@ -292,7 +299,7 @@ class MessageApplication
                     $taskUid = $arrayMessageApplicationData["EVN_UID_CATCH"];
                     $messageApplicationUid = $arrayMessageApplicationData["MSGAPP_UID"];
                     $messageApplicationCorrelation = $arrayMessageApplicationData["MSGAPP_CORRRELATION"];
-//                    $messageEventDefinitionUserUid = $arrayMessageApplicationData["MSGED_USR_UID"];
+                    $objUser = (new UsersFactory)->getUser ($_SESSION['user']['usrid']);
                     $messageEventDefinitionCorrelation = $arrayMessageApplicationData["MSGED_CORRELATION"];
                     $arrayVariable = $this->mergeVariables ($arrayMessageApplicationData["MSGED_VARIABLES"], $arrayMessageApplicationData["MSGAPP_VARIABLES"]);
                     $flagCatched = false;
@@ -301,7 +308,7 @@ class MessageApplication
 
                     if ( isset ($eventCondition['receiveNotification']) )
                     {
-                        $eventCondition["evn_type"] = "START";
+                        $eventCondition["evn_type"] = "INTERMEDIATE";
 
                         switch ($eventCondition["evn_type"]) {
                             case "START":
@@ -318,29 +325,82 @@ class MessageApplication
                                     $variables['description'] = "DESCRIPTION";
 
                                     //Start and derivate new Case
-                                    $arrCase = $case->addCase ($arrayMessageApplicationData['workflow_id'], $_SESSION['user']['usrid'], array("form" => $variables));
+                                    $arrCase = $case->addCase ($arrayMessageApplicationData['workflow_id'], $objUser, array("form" => $variables), [], true, null, true);
 
-                                    echo '<pre>';
-                                    print_r($arrCase);
-                                    
-                                    $workflowData = $this->objMysql->_select ("workflow.workflow_data", [], ["object_id" => $arrCase['project_id']]);
-                                    $workflowData = json_decode ($workflowData[0]['workflow_data'], true);
-                                    
-                                    if ( isset ($workflowData['elements'][$arrCase['case_id']]) )
-                                    {
-                                        $workflowData['elements'][$arrCase['case_id']]['current_step'] = $arrayMessageApplicationData['EVN_UID_CATCH'];
-                                        $this->objMysql->_update("workflow.workflow_data", ["workflow_data" => json_encode($workflowData)], ["object_id" => $arrCase['project_id']]);
-                                        die;
-                                    }
+                                    $aInfo = array(
+                                        'action' => 'CREATED-NEW-CASE'
+                                        , 'usrUid' => $_SESSION['user']['usrid']
+                                        , 'proUid' => $arrCase['project_id']
+                                        , 'tasUid' => $taskUid
+                                        , 'appUid' => $arrCase['case_id']
+                                        , 'workflowId' => $processUid
+                                    );
+                                    $this->syslog (
+                                            200
+                                            , "Case #" . $arrCase['case_id'] . " created"
+                                            , 'CREATED-NEW-CASE'
+                                            , $aInfo
+                                    );
+
+
+                                    $objElement = $case->getCaseInfo ($arrCase['project_id'], $arrCase['case_id']);
+                                    $case->derivateCase ($objElement, $arrayMessageApplicationData['EVN_UID_CATCH']);
+
+                                    $aInfo = array(
+                                        'action' => 'ROUTED-NEW-CASE'
+                                        , 'usrUid' => $_SESSION['user']['usrid']
+                                        , 'proUid' => $arrCase['project_id']
+                                        , 'tasUid' => $taskUid
+                                        , 'appUid' => $arrCase['case_id']
+                                        , 'workflowId' => $processUid
+                                    );
+                                    $this->syslog (
+                                            200
+                                            , "Case #" . $arrCase['case_id'] . " routed"
+                                            , 'ROUTED-NEW-CASE'
+                                            , $aInfo
+                                    );
+
+                                    $flagCatched = true;
                                 }
                                 break;
 
                             case "INTERMEDIATE":
 
+                                $objElement = $case->getCaseInfo ($processUid, $arrayMessageApplicationData['APP_UID']);
+                                $objElement->loadObject ($arrayVariable);
+                                $objElement->save ();
+
+                                $case->derivateCase ($objElement, $arrayMessageApplicationData['EVN_UID_CATCH']);
+
+                                $aInfo = array(
+                                    'action' => 'ROUTED-NEW-CASE'
+                                    , 'usrUid' => $_SESSION['user']['usrid']
+                                    , 'proUid' => $objElement->getParentId ()
+                                    , 'tasUid' => $taskUid
+                                    , 'appUid' => $objElement->getId ()
+                                    , 'workflowId' => $processUid
+                                );
+
+                                $this->syslog (
+                                        200
+                                        , "Case #".$objElement->getId ()." routed "
+                                        , 'ROUTED-NEW-CASE'
+                                        , $aInfo
+                                );
+
+                                $flagCatched = true;
                                 break;
                         }
-                        
-                         $counter++;
+
+                        //Message-Application catch
+                        if ( $flagCatched )
+                        {
+                            $result = $this->update ($messageApplicationUid, array("MSGAPP_STATUS" => "READ"));
+                        }
+                        $counter++;
+                        //Progress bar
+                        $flagNextRecords = true;
                     }
                 }
             }
@@ -374,6 +434,102 @@ class MessageApplication
 
             //Return
             return $arrayVariable;
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * Retrieve a single object by pkey.
+     *
+     * @param      mixed $pk the primary key.
+     * @param      Connection $con the connection to use
+     * @return     MessageApplication
+     */
+    public function retrieveByPK ($pk, $con = null)
+    {
+        $v = $this->objMysql->_select ("workflow.message_application", [], ['MSGAPP_UID' => $pk]);
+
+        $messageApplications = new MessageApplications();
+        $messageApplications->loadObject ($v[0]);
+
+        return isset ($v[0]) && !empty ($v[0]) ? $messageApplications : null;
+    }
+
+    /**
+     * Update Message-Application
+     *
+     * @param string $messageApplicationUid Unique id of Message-Application
+     * @param array  $arrayData             Data
+     *
+     * return bool Return true if been updated, false otherwise
+     */
+    public function update ($messageApplicationUid, array $arrayData)
+    {
+        try {
+            //Verify data
+            if ( !$this->exists ($messageApplicationUid) )
+            {
+                //Return
+                return false;
+            }
+            //Update
+            try {
+                $messageApplication = $this->retrieveByPK ($messageApplicationUid);
+                $messageApplication->loadObject ($arrayData);
+                $messageApplication->setMsgappUid ($messageApplicationUid);
+                $messageApplication->setMsgappCatchDate ("now");
+
+                if ( $messageApplication->validate () )
+                {
+                    $result = $messageApplication->save ();
+                    //Return
+                    return true;
+                }
+                else
+                {
+                    $msg = "";
+                    foreach ($messageApplication->getValidationFailures () as $message) {
+                        $msg = $msg . (($msg != "") ? "\n" : "") . $message;
+                    }
+                    throw new \Exception ("ID_REGISTRY_CANNOT_BE_UPDATED" . $msg != "" ? "\n" . $msg : "");
+                }
+            } catch (\Exception $e) {
+                throw $e;
+            }
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * The Syslog register the information in Monolog Class
+     *
+     * @param int $level DEBUG=100 INFO=200 NOTICE=250 WARNING=300 ERROR=400 CRITICAL=500
+     * @param string $message
+     * @param string $ipClient for Context information
+     * @param string $action for Context information
+     * @param string $timeZone for Context information
+     * @param string $workspace for Context information
+     * @param string $usrUid for Context information
+     * @param string $proUid for Context information
+     * @param string $tasUid for Context information
+     * @param string $appUid for Context information
+     * @param string $delIndex for Context information
+     * @param string $stepUid for Context information
+     * @param string $triUid for Context information
+     * @param string $outDocUid for Context information
+     * @param string $inpDocUid for Context information
+     * @param string $url for Context information
+     *
+     * return void
+     */
+    private function syslog (
+    $level, $message, $action = '', $aContext = array()
+    )
+    {
+        try {
+            // \Bootstrap::registerMonolog ('MessageEventCron', $level, $message, $aContext, SYS_SYS, 'processmaker.log');
         } catch (\Exception $e) {
             throw $e;
         }

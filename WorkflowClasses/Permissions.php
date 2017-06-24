@@ -1,6 +1,6 @@
 <?php
 
-abstract class Permissions
+abstract class Permissions implements Persistent
 {
 
     private $deptId;
@@ -21,8 +21,8 @@ abstract class Permissions
         $this->objMysql = new Mysql2();
         $this->stepId = $stepId;
     }
-    
-    private function getConnection()
+
+    private function getConnection ()
     {
         $this->objMysql = new Mysql2();
     }
@@ -101,6 +101,43 @@ abstract class Permissions
     {
         $this->accessLevel = $accessLevel;
     }
+    
+    public function loadObject (array $arrData)
+    {
+        ;
+    }
+
+    public function validate ()
+    {
+        $errorCount = 0;
+
+        if ( trim ($this->stepId) === "" )
+        {
+            $errorCount++;
+        }
+
+        if ( trim ($this->userId) === "" )
+        {
+            $errorCount++;
+        }
+
+        if ( trim ($this->permissionType) === "" )
+        {
+            $errorCount++;
+        }
+
+        if ( trim ($this->accessLevel) === "" )
+        {
+            $errorCount++;
+        }
+
+        if ( $errorCount > 0 )
+        {
+            return false;
+        }
+
+        return true;
+    }
 
     /**
      * 
@@ -159,11 +196,12 @@ abstract class Permissions
     {
         if ( $this->objMysql === null )
         {
-            $this->getConnection();
+            $this->getConnection ();
         }
 
-       $v = $this->objMysql->_select("workflow.step_permission", [], ["permission_type" => $permissionType, "permission" => $permission, "step_id" => $this->stepId]);
-       
+        $v = $this->objMysql->_select ("workflow.step_permission", [], ["permission_type" => $permissionType, "permission" => $permission, "step_id" => $this->stepId]);
+
         return !empty ($v) > 0 ? $v[0] : null;
     }
+
 }

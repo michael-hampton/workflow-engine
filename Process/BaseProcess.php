@@ -1,6 +1,6 @@
 <?php
 
-abstract class BaseProcess
+abstract class BaseProcess implements Persistent
 {
 
     private $objMysql;
@@ -36,7 +36,7 @@ abstract class BaseProcess
      * @param type $arrData
      * @return boolean
      */
-    public function loadObject ($arrData)
+    public function loadObject (array $arrData)
     {
         foreach ($arrData as $formField => $formValue) {
 

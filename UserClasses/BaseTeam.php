@@ -1,6 +1,6 @@
 <?php
 
-abstract class BaseTeam
+abstract class BaseTeam implements Persistent
 {
 
     private $id;
@@ -39,9 +39,9 @@ abstract class BaseTeam
         }
     }
 
-    public function loadObject ($arrDepartment)
+    public function loadObject (array $arrData)
     {
-        foreach ($arrDepartment as $formField => $formValue) {
+        foreach ($arrData as $formField => $formValue) {
 
             if ( isset ($this->arrFieldMapping[$formField]) )
             {

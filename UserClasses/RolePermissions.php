@@ -40,7 +40,12 @@ class RolePermissions extends BaseRolePermissions
 
             $this->setPerUid ($aData['PER_UID']);
             $this->setRolUid ($aData['ROL_UID']);
-            $iResult = $this->save ();
+
+            if ( $this->validate () )
+            {
+                $iResult = $this->save ();
+            }
+
             return true;
         } catch (Exception $oError) {
             throw($oError);

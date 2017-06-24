@@ -1,6 +1,6 @@
 <?php
 
-abstract class BaseInputDocument
+abstract class BaseInputDocument implements Persistent
 {
 
     private $title;
@@ -43,9 +43,9 @@ abstract class BaseInputDocument
      * @param type $arrDocument
      * @return boolean
      */
-    public function loadObject ($arrDocument)
+    public function loadObject (array $arrData)
     {
-        foreach ($arrDocument as $formField => $formValue) {
+        foreach ($arrData as $formField => $formValue) {
 
             if ( isset ($this->arrayFieldDefinition[$formField]) )
             {

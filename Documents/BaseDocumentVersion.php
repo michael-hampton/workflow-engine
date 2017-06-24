@@ -1,6 +1,6 @@
 <?php
 
-class BaseDocumentVersion
+class BaseDocumentVersion implements Persistent
 {
 
     /**
@@ -373,6 +373,11 @@ class BaseDocumentVersion
     public function validate ()
     {
         return true;
+    }
+    
+    public function loadObject (array $arrData)
+    {
+        ;
     }
 
 }

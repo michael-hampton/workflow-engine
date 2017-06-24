@@ -1,6 +1,6 @@
 <?php
 
-abstract class BaseWorkflowCollection
+abstract class BaseWorkflowCollection implements Persistent
 {
 
     private $deptId;
@@ -27,7 +27,7 @@ abstract class BaseWorkflowCollection
         $this->objMysql = new Mysql2();
     }
 
-    public function loadObject ($arrData)
+    public function loadObject (array $arrData)
     {
         foreach ($arrData as $formField => $formValue) {
             if ( isset ($this->arrFieldMapping[$formField]) )

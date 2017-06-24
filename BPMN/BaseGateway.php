@@ -1,6 +1,6 @@
 <?php
 
-class BaseGateway
+class BaseGateway implements Persistent
 {
 
     private $workflowId;
@@ -46,6 +46,11 @@ class BaseGateway
     public function setNew ($New)
     {
         $this->New = $New;
+    }
+    
+    public function loadObject (array $arrData)
+    {
+        ;
     }
 
     public function save ()

@@ -1,6 +1,6 @@
 <?php
 
-abstract class BaseProcessUser
+abstract class BaseProcessUser implements Persistent
 {
 
     private $objMysql;
@@ -25,9 +25,9 @@ abstract class BaseProcessUser
         $this->objMysql = new Mysql2();
     }
 
-    public function loadObject ($arrUser)
+    public function loadObject (array $arrData)
     {
-        foreach ($arrUser as $formField => $formValue) {
+        foreach ($arrData as $formField => $formValue) {
 
             if ( isset ($this->arrayFieldDefinition[$formField]) )
             {

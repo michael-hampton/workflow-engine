@@ -11,7 +11,7 @@
  *
  * @author michael.hampton
  */
-abstract class BasePermission
+abstract class BasePermission implements Persistent
 {
 
     private $objMysql;
@@ -33,9 +33,9 @@ abstract class BasePermission
      * 
      * @param type $arrUser
      */
-    public function loadObject ($arrUser)
+    public function loadObject (array $arrData)
     {
-        foreach ($arrUser as $formField => $formValue) {
+        foreach ($arrData as $formField => $formValue) {
 
             if ( isset ($this->arrFieldMapping[$formField]) )
             {

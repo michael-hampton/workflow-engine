@@ -11,7 +11,7 @@
  *
  * @author michael.hampton
  */
-abstract class BaseMessageType
+abstract class BaseMessageType implements Persistent
 {
 
     private $PrjUid;
@@ -122,6 +122,11 @@ abstract class BaseMessageType
     public function setVariables ($variables)
     {
         $this->variables = $variables;
+    }
+    
+    public function loadObject (array $arrData)
+    {
+        
     }
 
     public function validate ()

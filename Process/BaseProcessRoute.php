@@ -1,6 +1,6 @@
 <?php
 
-abstract class BaseProcessRoute
+abstract class BaseProcessRoute implements Persistent
 {
 
     private $objMysql;
@@ -55,7 +55,34 @@ abstract class BaseProcessRoute
         $this->firstWorkflow = $firstWorkflow;
     }
 
-    public function saveMapping ()
+    public function validate ()
+    {
+        $errorCount = 0;
+
+        if ( trim ($this->from) === "" )
+        {
+            $errorCount++;
+        }
+
+        if ( trim ($this->to) === "" )
+        {
+            $errorCount++;
+        }
+
+        if ( trim ($this->firstWorkflow) === "" )
+        {
+            $errorCount++;
+        }
+
+        if ( $errorCount > 0 )
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function save ()
     {
         $this->objMysql->_insert (
                 "workflow.workflow_mapping", array(
@@ -64,6 +91,11 @@ abstract class BaseProcessRoute
             "first_workflow" => $this->firstWorkflow
                 )
         );
+    }
+
+    public function loadObject (array $arrData)
+    {
+        ;
     }
 
     public function updateMapping ($from, $firstWorkflow = 0)
