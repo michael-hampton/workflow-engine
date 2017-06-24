@@ -118,8 +118,6 @@ abstract class BaseNotifications implements Persistent
      */
     public function setMessage ()
     {
-
-        require_once($_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Mysql.php');
         $objMysql = new Mysql2();
         $arrResult = $objMysql->_select ("auto_notifications", array(), array("triggering_status" => $this->status, "system" => $this->system));
         

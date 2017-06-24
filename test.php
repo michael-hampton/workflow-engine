@@ -29,6 +29,8 @@ try {
     $dateSystem = $argv[6];
 
     $sNow = $argv[7]; //$date
+    
+    /*********************** Set constants **************************/
 
     define ('PATH_SEP', ($osIsLinux) ? '/' : '\\');
 
@@ -47,20 +49,56 @@ try {
     $e_all = (defined ('E_STRICT')) ? $e_all & ~E_STRICT : $e_all;
 
     $e_all = ($arraySystemConfiguration['debug']) ? $e_all : $e_all & ~E_NOTICE;
+
     
-    define("HOME_DIR", "C:/xampp/htdocs/");
-    define("DEBUG_LOCATION", HOME_DIR . "core/app/logs/debug.log");
-    
-    
+    /***************** Load Classes *****************/
+    define ("HOME_DIR", PATH_HOME);
+    define ("DEBUG_LOCATION", HOME_DIR . "/core/app/logs/debug.log");
+
+    require_once 'Persistent.php';
     require_once 'config.php';
-     require_once 'registry.php';
+    require_once 'registry.php';
     require_once "Mysql.php";
     require_once 'BusinessModel/Validator.php';
+    require_once 'UserClasses/BaseUser.php';
+    require_once 'UserClasses/Users.php';
+    require_once 'Process/BaseProcess.php';
+    require_once 'BusinessModel/Process.php';
+    require_once 'WorkflowClasses/Save.php';
+     require_once 'BusinessModel/MessageEventRelation.php';
+     require_once 'BusinessModel/MessageEventDefinition.php';
+    require_once 'BusinessModel/MessageApplication.php';
+    require_once 'BusinessModel/Event.php';
+    require_once 'WorkflowClasses/Elements.php';
+    require_once 'BusinessModel/StepGateway.php';
+    require_once 'WorkflowClasses/WorkflowStep.php';
+    require_once 'BusinessModel/FieldFactory.php';
+    require_once 'BaseVariable.php';
+    require_once 'Variable.php';
+    require_once 'BusinessModel/StepVariable.php';
+    require_once 'BusinessModel/StepPermissions.php';
+    require_once 'BusinessModel/ProcessSupervisor.php';
+    require_once 'BusinessModel/StepTrigger.php';
+    require_once 'Notifications/BaseNotifications.php';
+    require_once 'Notifications/Notifications.php';
+    require_once 'Notifications/SendNotification.php';
+    require_once 'Fields/FieldValidator.php';
+    require_once 'WorkflowClasses/Workflow.php';
+    require_once 'BusinessModel/UsersFactory.php';
+
     require_once 'BusinessModel/Cases.php';
-     require_once 'Event/BaseTimerEvent.php';
-     require_once 'Event/TimerEvents.php';
+    require_once 'Event/BaseTimerEvent.php';
+    require_once 'Event/TimerEvents.php';
     require_once 'BusinessModel/TimerEvent.php';
 
+    if ( session_id () === "" )
+    {
+        session_start ();
+    }
+
+    $_SESSION['user']['usrid'] = 2;
+
+    // set error reporting
     //Do not change any of these settings directly, use env.ini instead
 
     ini_set ('display_errors', $arraySystemConfiguration['debug']);
@@ -74,7 +112,7 @@ try {
     $argvx = '';
 
 
-
+    // build arguments
     for ($i = 8; $i <= count ($argv) - 1; $i++) {
 
         /* ----------------------------------********--------------------------------- */
@@ -83,48 +121,42 @@ try {
 
         /* ----------------------------------********--------------------------------- */
     }
-    
-      try {
 
-            switch ($cronName) {
+    // run cron
+    try {
 
-                case 'messageeventcron':
+        switch ($cronName) {
 
-                    $messageApplication = new \ProcessMaker\BusinessModel\MessageApplication();
+            case 'messageeventcron':
 
-
-
-                    $messageApplication->catchMessageEvent(true);
-
-                    break;
-
-                case 'timereventcron':
-
-                    $timerEvent = new TimerEvent();
+                $messageApplication = new \ProcessMaker\BusinessModel\MessageApplication();
 
 
 
-                    $timerEvent->startContinueCaseByTimerEvent(date('Y-m-d H:i:s'), true);
+                $messageApplication->catchMessageEvent (true);
 
-                    break;
+                break;
 
-            }
+            //php .\test.php C:\xampp\htdocs mike mike timereventcron mike mike mike
+            case 'timereventcron':
 
-        } catch (Exception $e) {
+                $timerEvent = new TimerEvent();
 
-            echo $e->getMessage() . "\n";
+                $timerEvent->startContinueCaseByTimerEvent (date ('Y-m-d H:i:s'), true);
 
-
-
-            eprintln('Problem in workspace: ' . $workspace . ' it was omitted.', 'red');
-
+                break;
         }
+    } catch (Exception $e) {
+
+        echo $e->getMessage () . "\n";
 
 
-        print_r($argv);
 
-        //eprintln();
-    
+        eprintln ('Problem in workspace: ' . $workspace . ' it was omitted.', 'red');
+    }
+
+
+    //eprintln();
 } catch (Exception $ex) {
     
 }

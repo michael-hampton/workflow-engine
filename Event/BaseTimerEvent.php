@@ -116,6 +116,7 @@ abstract class BaseTimerEvent implements Persistent
         "PRJ_UID" => array("type" => "string", "required" => false, "empty" => true, "accessor" => "", "mutator" => "setPrjUid"),
         "workflow_id" => array("type" => "string", "required" => false, "empty" => true, "accessor" => "", "mutator" => "setPrjUid"),
         "EVN_UID" => array("type" => "string", "required" => false, "empty" => true, "accessor" => "getEvnUid", "mutator" => "setEvnUid"),
+        "TMREVN_STATUS" => array("type" => "string", "required" => false, "empty" => true, "accessor" => "getTmrevnStatus", "mutator" => "setTmrevnStatus"),
     );
 
     /**
@@ -713,7 +714,7 @@ abstract class BaseTimerEvent implements Persistent
         }
         if ( $this->tmrevn_last_run_date !== $ts )
         {
-            $this->tmrevn_last_run_date = date("Y-m-d H:i:s", $ts);
+            $this->tmrevn_last_run_date = date ("Y-m-d H:i:s", $ts);
         }
     }
 
@@ -746,7 +747,7 @@ abstract class BaseTimerEvent implements Persistent
         }
         if ( $this->tmrevn_last_execution_date !== $ts )
         {
-            $this->tmrevn_last_execution_date = date("Y-m-d H:i:s", $ts);
+            $this->tmrevn_last_execution_date = date ("Y-m-d H:i:s", $ts);
         }
     }
 
@@ -818,8 +819,7 @@ abstract class BaseTimerEvent implements Persistent
                 "TMREVN_NEXT_RUN_DATE" => $this->tmrevn_next_run_date,
                 "TMREVN_STATUS" => $this->tmrevn_status,
                 "TMREVN_LAST_EXECUTION_DATE" => $this->tmrevn_last_execution_date,
-                "TMREVN_LAST_RUN_DATE" => $this->tmrevn_last_run_date), 
-                    array("TMREVN_UID" => $this->tmrevn_uid)
+                "TMREVN_LAST_RUN_DATE" => $this->tmrevn_last_run_date), array("TMREVN_UID" => $this->tmrevn_uid)
             );
         }
         else
@@ -844,8 +844,8 @@ abstract class BaseTimerEvent implements Persistent
     {
         return true;
     }
-    
-    public function delete()
+
+    public function delete ()
     {
         
     }

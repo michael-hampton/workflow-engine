@@ -201,12 +201,9 @@ trait Validator
 
     /**
      * Validate dep_status
-     * @var string $dep_uid. Uid for Departament
-     * @var string $nameField. Name of field for message
+     * @var string $dep_status. Status for Departament
      *
      * @access public
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
      *
      * @return string
      */
@@ -282,8 +279,6 @@ trait Validator
      * @var array $field. Field type array
      *
      * @access public
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
      *
      * @return void
      */
@@ -299,11 +294,8 @@ trait Validator
      * Validate pro_uid
      *
      * @param string $pro_uid, Uid for process
-     * @param string $nameField . Name of field for message
      *
      * @access public
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
      *
      * @return string
      */
@@ -326,11 +318,8 @@ trait Validator
      * Validate cat_uid
      *
      * @param string $cat_uid, Uid for category
-     * @param string $nameField . Name of field for message
      *
      * @access public
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
      *
      * @return string
      */
@@ -362,8 +351,8 @@ trait Validator
 
         return false;
     }
-    
-     /**
+
+    /**
      * Validate dep_uid
      * @var string $dep_uid. Uid for Departament
      * @var string $nameField. Name of field for message
@@ -372,17 +361,57 @@ trait Validator
      *
      * @return string
      */
-    public function depUid($dep_uid, $nameField = 'dep_uid')
+    public function depUid ($dep_uid, $nameField = 'dep_uid')
     {
-        $dep_uid = trim($dep_uid);
-        if ($dep_uid == '') {
-            throw (new Exception("ID_DEPARTMENT_NOT_EXIST"));
+        $dep_uid = trim ($dep_uid);
+        if ( $dep_uid == '' )
+        {
+            throw (new Exception ("ID_DEPARTMENT_NOT_EXIST"));
         }
         $oDepartment = new Departments();
-        if (!($oDepartment->existsDepartment ($dep_uid))) {
-            throw (new Exception("ID_DEPARTMENT_NOT_EXIST"));
+        if ( !($oDepartment->existsDepartment ($dep_uid)) )
+        {
+            throw (new Exception ("ID_DEPARTMENT_NOT_EXIST"));
         }
         return $dep_uid;
+    }
+
+    /**
+     * getIpAddress
+     * @return string $ip
+     */
+    public function getIpAddress ()
+    {
+        if ( getenv ('HTTP_CLIENT_IP') )
+        {
+            $ip = getenv ('HTTP_CLIENT_IP');
+        }
+        elseif ( getenv ('HTTP_X_FORWARDED_FOR') )
+        {
+            $ip = getenv ('HTTP_X_FORWARDED_FOR');
+        }
+        else
+        {
+            $ip = getenv ('REMOTE_ADDR');
+        }
+        return $ip;
+    }
+
+    /**
+     * Stores a message in the log file, if the file size exceeds
+     * specified log file is renamed and a new one is created.
+     *
+     * @param type $message
+     * @param type $pathData
+     * @param type $file
+     */
+    public static function writeLog ($message, $file = 'cron.log')
+    {
+        $path = HOME_DIR . "/core/app/logs/" . $file;
+        $f = (file_exists ($path)) ? fopen ($path, "a+") : fopen ($path, "w+");
+        fwrite ($f, $message);
+        fclose ($f);
+        chmod ($path, 0777);
     }
 
 }

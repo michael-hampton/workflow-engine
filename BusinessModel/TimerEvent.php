@@ -123,11 +123,13 @@ class TimerEvent
                 case "MONTHLY":
                     $hhmmss = $arrayTimerEventData["TMREVN_HOUR"] . ":" . $arrayTimerEventData["TMREVN_MINUTE"] . ":00";
                     $arrayMonthsData = $arrayTimerEventData["TMREVN_CONFIGURATION_DATA"];
+
                     if ( !empty ($arrayMonthsData) )
                     {
                         sort ($arrayMonthsData);
                         $firstMonth = $arrayMonthsData[0];
                         $nextMonth = $firstMonth;
+
                         $flag = false;
                         foreach ($arrayMonthsData as $value) {
                             $m = $value;
@@ -176,6 +178,7 @@ class TimerEvent
                             }
                         }
                     }
+
                     break;
                 case "EVERY":
                     if ( $arrayTimerEventData["TMREVN_HOUR"] . "" != "" )
@@ -189,6 +192,7 @@ class TimerEvent
                     break;
             }
             //Return
+
             return date ("Y-m-d H:i:s", strtotime ($nextRunDate));
         } catch (\Exception $e) {
             throw $e;
@@ -223,6 +227,7 @@ class TimerEvent
                 case "MONTHLY":
                     //case "EVERY":
                     $nextRunDate = $this->getValidNextRunDateByDataAndDatetime ($arrayTimerEventData, $arrayTimerEventData["TMREVN_START_DATE"], $flagIncludeDatetime);
+
                     $timeNextRunDate = strtotime ($nextRunDate);
 
                     if ( $timeNextRunDate > $timeDatetime )
@@ -232,6 +237,7 @@ class TimerEvent
                     break;
             }
 
+
             if ( $flagNextRunDate )
             {
                 switch (strtoupper ($arrayTimerEventData["TMREVN_OPTION"])) {
@@ -240,13 +246,12 @@ class TimerEvent
                     case "MONTHLY":
                     case "EVERY":
                         $nextRunDate = $this->getValidNextRunDateByDataAndDatetime ($arrayTimerEventData, $datetime, $flagIncludeDatetime);
+
                         $timeNextRunDate = strtotime ($nextRunDate);
                         if ( $timeNextRunDate < $timeDatetime )
                         {
 
                             $nextRunDate = $this->getValidNextRunDateByDataAndDatetime ($arrayTimerEventData, $datetime, false);
-
-                            die;
                         }
                         break;
                 }
@@ -532,9 +537,9 @@ class TimerEvent
                 {
                     throw new Exception ("Event doesnt exist");
                 }
-                
+
                 $stepCondition = json_decode ($bpmnEvent[0]['step_condition'], true);
-                
+
                 //$timerEventUid = \ProcessMaker\Util\Common::generateUID();
                 $arrayData["TMREVN_START_DATE"] = (isset ($arrayData["TMREVN_START_DATE"]) && $arrayData["TMREVN_START_DATE"] . "" != "") ? $arrayData["TMREVN_START_DATE"] : null;
                 $arrayData["TMREVN_END_DATE"] = (isset ($arrayData["TMREVN_END_DATE"]) && $arrayData["TMREVN_END_DATE"] . "" != "") ? $arrayData["TMREVN_END_DATE"] : null;
@@ -545,9 +550,9 @@ class TimerEvent
 
                 //$timerEvent->setTmrevnUid ($projectUid);
                 $timerEvent->setPrjUid ($arrayData['WORKFLOW_ID']);
-                if ( trim($stepCondition['params']['hold']['evn_type']) !== "" )
+                if ( trim ($stepCondition['params']['hold']['evn_type']) !== "" )
                 {
-                    switch ($arrayData["TMREVN_OPTION"]) {
+                    switch (trim ($arrayData["TMREVN_OPTION"])) {
                         case "HOURLY":
                         case "DAILY":
                         case "MONTHLY":
@@ -559,7 +564,7 @@ class TimerEvent
                 if ( $timerEvent->validate () )
                 {
                     $timerEventUid = $timerEvent->save ();
-                    
+
                     //Return
                     return $this->getTimerEvent ($timerEventUid);
                 }
@@ -836,6 +841,7 @@ class TimerEvent
     public function startContinueCaseByTimerEvent ($datetime, $frontEnd = false)
     {
         try {
+
             //Set variables
             $case = new \Cases();
             list($year, $month, $day, $hour, $minute) = $this->getYearMonthDayHourMinuteSecondByDatetime ($datetime);
@@ -843,93 +849,223 @@ class TimerEvent
             $dateIni = "$year-$month-$day 00:00:00";
             $dateEnd = "$year-$month-$day 23:59:59";
 
+            $this->log ("START-NEW-CASES", "Date \"$datetime (UTC +00:00)\": Start new cases");
+
             $results = $this->objMysql->_query ("SELECT * FROM workflow.`timer_event` te
-                                                INNER JOIN workflow.status_mapping sm ON sm.id = te.TMREVN_UID");
+                                                INNER JOIN workflow.status_mapping sm ON sm.id = te.EVN_UID");
+
 
             foreach ($results as $result) {
-                $result["TMREVN_CONFIGURATION_DATA"] = unserialize ($result["TMREVN_CONFIGURATION_DATA"]);
 
-                //Set variables
-                $arrayTimerEventData = $result;
+                $conditions = json_decode ($result['step_condition'], true);
 
-                $bpmnEventName = "TIMER EVENT";
-                $taskUid = $result["EVN_UID"];
+                $params = $conditions['params']['hold'];
 
-                //Create the new case
-                $timerEventNextRunDate = $arrayTimerEventData["TMREVN_NEXT_RUN_DATE"];
-                $timerEventNextRunDateNew = "";
-
-                $flagCase = false;
-
-                if ( strtotime ($timerEventNextRunDate) < strtotime ($dateIni) )
+                if ( $params['evn_type'] !== "INTERMEDIATE" )
                 {
-                    $timerEventNextRunDateNew = $this->getNextRunDateByDataAndDatetime ($arrayTimerEventData, $datetime); //Generate new date for old TMREVN_NEXT_RUN_DATE
+                    $result["TMREVN_CONFIGURATION_DATA"] = unserialize ($result["TMREVN_CONFIGURATION_DATA"]);
 
-                    $flagCase = true; //Create the old case
-                }
-                else
-                {
-                    list(,,, $hourCase, $minuteCase) = $this->getYearMonthDayHourMinuteSecondByDatetime ($timerEventNextRunDate);
+                    //Set variables
+                    $arrayTimerEventData = $result;
 
-                    if ( (int) ($hour . $minute) <= (int) ($hourCase . $minuteCase) )
-                    {
-                        $flagCase = $hourCase == $hour && $minuteCase == $minute;
-                    }
-                    else
+                    $bpmnEventName = "TIMER EVENT";
+                    $taskUid = $result["EVN_UID"];
+
+                    //Create the new case
+                    $timerEventNextRunDate = $arrayTimerEventData["TMREVN_NEXT_RUN_DATE"];
+                    $timerEventNextRunDateNew = "";
+
+                    $flagCase = false;
+
+                    if ( strtotime ($timerEventNextRunDate) < strtotime ($dateIni) )
                     {
                         $timerEventNextRunDateNew = $this->getNextRunDateByDataAndDatetime ($arrayTimerEventData, $datetime); //Generate new date for old TMREVN_NEXT_RUN_DATE
 
                         $flagCase = true; //Create the old case
                     }
-                }
+                    else
+                    {
+                        list(,,, $hourCase, $minuteCase) = $this->getYearMonthDayHourMinuteSecondByDatetime ($timerEventNextRunDate);
 
-                if ( $flagCase )
-                {
-                    //Update Timer-Event
-                    $arrayData = array();
+                        if ( (int) ($hour . $minute) <= (int) ($hourCase . $minuteCase) )
+                        {
+                            $flagCase = $hourCase == $hour && $minuteCase == $minute;
+                        }
+                        else
+                        {
+                            $timerEventNextRunDateNew = $this->getNextRunDateByDataAndDatetime ($arrayTimerEventData, $datetime); //Generate new date for old TMREVN_NEXT_RUN_DATE
 
-                    switch ($arrayTimerEventData["TMREVN_OPTION"]) {
-                        case "HOURLY":
-                        case "DAILY":
-                        case "MONTHLY":
-                        case "EVERY":
-                            if ( $timerEventNextRunDateNew == "" )
-                            {
-                                $timerEventNextRunDateNew = $this->getNextRunDateByDataAndDatetime ($arrayTimerEventData, $timerEventNextRunDate, false);
-                            }
-
-                            if ( $arrayTimerEventData["TMREVN_OPTION"] != "EVERY" &&
-                                    $arrayTimerEventData["TMREVN_END_DATE"] . "" != "" && strtotime ($timerEventNextRunDateNew) > strtotime ($arrayTimerEventData["TMREVN_END_DATE"] . " 23:59:59")
-                            )
-                            {
-                                $arrayData["TMREVN_STATUS"] = "PROCESSED";
-                            }
-                            else
-                            {
-                                $arrayData["TMREVN_NEXT_RUN_DATE"] = $timerEventNextRunDateNew;
-                            }
-                            break;
-                        case "ONE-DATE-TIME":
-                            $arrayData["TMREVN_STATUS"] = "PROCESSED";
-                            break;
+                            $flagCase = true; //Create the old case
+                        }
                     }
 
-                    $arrayData["TMREVN_LAST_RUN_DATE"] = $timerEventNextRunDate;
-                    $arrayData["TMREVN_LAST_EXECUTION_DATE"] = date ("Y-m-d H:i:s");
+                    if ( $flagCase )
+                    {
 
-                    $result = $this->singleUpdate ($arrayTimerEventData["TMREVN_UID"], $arrayData);
+                        $objUser = (new UsersFactory())->getUser ($_SESSION['user']['usrid']);
+                        $variables = array("name" => "NAME", "description" => "DESCRIPTION");
+                        $arrCase = $case->addCase ($arrayTimerEventData['workflow_id'], $objUser, array("form" => $variables), [], true, null, true);
 
-                    $flagRecord = true;
+                        $arrayResult = json_decode (json_encode ($arrCase), true);
 
-                    echo '<pre>';
-                    print_r ($arrayData);
+                        $this->log ("CREATED-NEW-CASE", "Case #" . $arrCase['case_id'] . " created, PRO_UID: " . $arrCase['project_id']);
+
+                        //Update Timer-Event
+                        $arrayData = array();
+
+                        switch ($arrayTimerEventData["TMREVN_OPTION"]) {
+                            case "HOURLY":
+                            case "DAILY":
+                            case "MONTHLY":
+                            case "EVERY":
+
+                                if ( $timerEventNextRunDateNew == "" )
+                                {
+                                    $timerEventNextRunDateNew = $this->getNextRunDateByDataAndDatetime ($arrayTimerEventData, $timerEventNextRunDate, false);
+                                }
+
+                                if ( $arrayTimerEventData["TMREVN_OPTION"] != "EVERY" &&
+                                        $arrayTimerEventData["TMREVN_END_DATE"] . "" != "" && strtotime ($timerEventNextRunDateNew) > strtotime ($arrayTimerEventData["TMREVN_END_DATE"] . " 23:59:59")
+                                )
+                                {
+                                    $arrayData["TMREVN_STATUS"] = "PROCESSED";
+                                }
+                                else
+                                {
+                                    $arrayData["TMREVN_NEXT_RUN_DATE"] = $timerEventNextRunDateNew;
+                                }
+                                break;
+                            case "ONE-DATE-TIME":
+                                $arrayData["TMREVN_STATUS"] = "PROCESSED";
+                                break;
+                        }
+
+                        $arrayData["TMREVN_LAST_RUN_DATE"] = $timerEventNextRunDate;
+                        $arrayData["TMREVN_LAST_EXECUTION_DATE"] = date ("Y-m-d H:i:s");
+
+                        $result = $this->singleUpdate ($arrayTimerEventData["TMREVN_UID"], $arrayData);
+
+
+                        $flagRecord = true;
+                    }
+                }
+                else
+                {
+
+                    $workflowData = $this->objMysql->_select ("workflow.workflow_data");
+                    $rows = [];
+                    $dates = [];
+                    $total = 0;
+
+                    foreach ($workflowData as $WorkflowObject) {
+                        $obj = json_decode ($WorkflowObject['workflow_data'], true);
+                        $objAudit = json_decode ($WorkflowObject['audit_data'], true);
+
+                        if ( isset ($obj['elements']) )
+                        {
+                            foreach ($obj['elements'] as $elementId => $element) {
+                                if ( $element['current_step'] === $result['EVN_UID'] )
+                                {
+
+                                    $lastStep = end ($objAudit['elements'][$elementId]['steps']);
+
+                                    $date = $lastStep['dateCompleted'];
+                                    $rows[$WorkflowObject['object_id']] = $elementId;
+                                    $dates[$WorkflowObject['object_id']] = $lastStep['dateCompleted'];
+                                    $total++;
+                                }
+                            }
+                        }
+                    }
+
+                    $counter = 0;
+                    $flagRecord = false;
+
+                    do {
+                        $flagNextRecord = false;
+
+
+                        foreach ($rows as $projectId => $elementId) {
+                            if ( $counter + 1 > $total )
+                            {
+                                $flagNextRecord = false;
+                                break;
+                            }
+
+                            $result["TMREVN_CONFIGURATION_DATA"] = unserialize ($result["TMREVN_CONFIGURATION_DATA"]);
+                            $arrayTimerEventData = $result;
+                            $arrayApplicationData = $case->getCaseInfo ($projectId, $elementId);
+
+                            $continueCaseDate = str_replace (";", ":", $dates[$projectId]);
+
+                            switch ($arrayTimerEventData["TMREVN_OPTION"]) {
+                                case "WAIT-FOR":
+                                    if ( $arrayTimerEventData["TMREVN_DAY"] . "" != "" )
+                                    {
+                                        $continueCaseDate = date ("Y-m-d H:i:s", strtotime ("$continueCaseDate +" . ((int) ($arrayTimerEventData["TMREVN_DAY"])) . " days"));
+                                    }
+
+                                    if ( $arrayTimerEventData["TMREVN_HOUR"] . "" != "" )
+                                    {
+                                        $continueCaseDate = date ("Y-m-d H:i:s", strtotime ("$continueCaseDate +" . ((int) ($arrayTimerEventData["TMREVN_HOUR"])) . " hours"));
+                                    }
+                                    if ( $arrayTimerEventData["TMREVN_MINUTE"] . "" != "" )
+                                    {
+                                        $continueCaseDate = date ("Y-m-d H:i:s", strtotime ("$continueCaseDate +" . ((int) ($arrayTimerEventData["TMREVN_MINUTE"])) . " minutes"));
+                                    }
+                                    break;
+
+                                case "WAIT-UNTIL-SPECIFIED-DATE-TIME":
+                                    //$continueCaseDate = \G::replaceDataField ($arrayTimerEventData["TMREVN_CONFIGURATION_DATA"], $arrayApplicationData["APP_DATA"]);
+                                    break;
+                            }
+
+                            $arrayContinueCaseDateData = $this->getYearMonthDayHourMinuteSecondByDatetime ($continueCaseDate);
+
+                            if ( !empty ($arrayContinueCaseDateData) )
+                            {
+                                $flagCase = false;
+                                if ( strtotime ($continueCaseDate) < strtotime ($dateIni) )
+                                {
+                                    $flagCase = true; //Continue the old case
+                                }
+                                else
+                                {
+                                    $yearCase = $arrayContinueCaseDateData[0];
+                                    $monthCase = $arrayContinueCaseDateData[1];
+                                    $dayCase = $arrayContinueCaseDateData[2];
+                                    $hourCase = $arrayContinueCaseDateData[3];
+                                    $minuteCase = $arrayContinueCaseDateData[4];
+                                    if ( "$yearCase-$monthCase-$dayCase" == "$year-$month-$day" )
+                                    {
+                                        if ( (int) ($hour . $minute) <= (int) ($hourCase . $minuteCase) )
+                                        {
+                                            $flagCase = $hourCase == $hour && $minuteCase == $minute;
+                                        }
+                                        else
+                                        {
+                                            $flagCase = true; //Continue the old case
+                                        }
+                                    }
+                                }
+                            }
+
+                            if ( $flagCase )
+                            {
+                                $result = $case->updateStatus ($arrayApplicationData, "COMPLETE");
+                                $flagRecord = true;
+                            }
+                            $counter++;
+                        }
+                    }
+                    while ($flagNextRecord);
                 }
             }
 
 
             //echo $date . " " . $dateIni . " " . $dateEnd;
-        } catch (Exception $ex) {
-            
+        } catch (Exception $e) {
+            throw $e;
         }
     }
 
@@ -998,6 +1134,29 @@ class TimerEvent
         $timerEvents->setTmrevnLastExecutionDate ($record['TMREVN_LAST_EXECUTION_DATE']);
 
         return $timerEvents;
+    }
+
+    /**
+     * Log
+     *
+     * @param string $action Action
+     * @param string $value  Value
+     *
+     * return void
+     */
+    private function log ($action, $value = "")
+    {
+        try {
+            $workspace = (defined ("SYS_SYS")) ? SYS_SYS : "Wokspace Undefined";
+            $ipClient = $this->getIpAddress ();
+
+            $username = "timereventcron";
+            $fullname = "timereventcron";
+
+            $this->writeLog ("|" . $workspace . "|" . $ipClient . "|" . $username . "|" . $fullname . "|" . $action . "|" . $value, "timerevent.log");
+        } catch (\Exception $e) {
+            throw $e;
+        }
     }
 
 }
