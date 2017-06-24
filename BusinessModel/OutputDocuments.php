@@ -136,7 +136,7 @@ class OutputDocuments
             }
         }
         try {
-
+            
             $outputDocumentData['PRO_UID'] = $sProcessUID;
             //Verify data
             $objWorkflowStep = new WorkflowStep();
@@ -180,7 +180,7 @@ class OutputDocuments
             {
                 $oOutputDocument->setOutDocFieldMapping (null);
             }
-
+            
             $outDocUid = $oOutputDocument->create ($outputDocumentData);
 
             $this->updateOutputDocument ($sProcessUID, $outputDocumentData, 1, $outDocUid);
@@ -222,7 +222,7 @@ class OutputDocuments
             $outputDocument = new OutputDocument();
             $oOutputDocument = $outputDocument->retrieveByPK ($sOutputDocumentUID);
 
-            if ( !is_null ($oOutputDocument) )
+            if ( !empty($oOutputDocument) && is_object ($oOutputDocument) )
             {
                 if ( isset ($outputDocumentData['out_doc_pdf_security_open_password']) && $outputDocumentData['out_doc_pdf_security_open_password'] != "" )
                 {

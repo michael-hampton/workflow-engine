@@ -221,5 +221,25 @@ class Flow
     
         return true;
     }
+    
+    public function retrieveByPk($pk)
+    {
+        $result = $this->objMysql->_select("workflow.status_mapping", [], ["id" => $pk]);
+        
+        if(!isset($result[0]) || empty($result[0])) {
+            return false;
+        }
+        
+        $objFlow = new Flow();
+        $objFlow->setFirstStep($result[0]['first_step']);
+        $objFlow->setCondition($result[0]['step_condition']);
+        $objFlow->setIsActive($result[0]['is_active']);
+        $objFlow->setOrderId($result[0]['order_id']);
+        $objFlow->setStepFrom($result[0]['step_from']);
+        $objFlow->setStepTo($result[0]['step_to']);
+        $objFlow->setWorkflowId($result[0]['workflow_id']);
+        
+        return $objFlow;
+    }
 
 }

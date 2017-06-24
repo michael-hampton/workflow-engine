@@ -71,6 +71,74 @@ class MessageEventRelation
     }
 
     /**
+     * Verify if exists the Message-Event-Relation
+     *
+     * @param string $messageEventRelationUid Unique id of Message-Event-Relation
+     *
+     * return bool Return true if exists the Message-Event-Relation, false otherwise
+     */
+    public function exists ($messageEventRelationUid)
+    {
+        try {
+            $result = $this->objMysql->_select ("workflow.message_event_relation", [], ["MSGER_UID" => $messageEventRelationUid]);
+            return isset ($result[0]) && !empty ($result[0]) ? true : false;
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * Verify if does not exists the Message-Event-Relation
+     *
+     * @param string $messageEventRelationUid Unique id of Message-Event-Relation
+     * @param string $fieldNameForException   Field name for the exception
+     *
+     * return void Throw exception if does not exists the Message-Event-Relation
+     */
+    public function throwExceptionIfNotExistsMessageEventRelation ($messageEventRelationUid)
+    {
+        try {
+            if ( !$this->exists ($messageEventRelationUid) )
+            {
+                throw new \Exception ("ID_MESSAGE_EVENT_RELATION_DOES_NOT_EXIST");
+            }
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * Get data of a Message-Event-Relation
+     *
+     * @param string $messageEventRelationUid Unique id of Message-Event-Relation
+     * @param bool   $flagGetRecord           Value that set the getting
+     *
+     * return array Return an array with data of a Message-Event-Relation
+     */
+    public function getMessageEventRelation ($messageEventRelationUid, $flagGetRecord = false)
+    {
+        try {
+            //Verify data
+            $this->throwExceptionIfNotExistsMessageEventRelation ($messageEventRelationUid);
+            //Get data
+            $criteria = $this->getMessageEventRelationCriteria ();
+            $criteria .= " WHERE MSGER_UID = ?";
+            $result = $this->objMysql->_query ($criteria, [$messageEventRelationUid]);
+
+            $objMessageEventRelation = new MessageEventRelations();
+            $objMessageEventRelation->setEVN_UID_CATCH ($result[0]['EVN_UID_CATCH']);
+            $objMessageEventRelation->setEVN_UID_THROW ($result[0]['EVN_UID_THROW']);
+            $objMessageEventRelation->setPrjUid ($result[0]['PRJ_UID']);
+            $objMessageEventRelation->setMSGER_UID ($result[0]['MSGER_UID']);
+
+            //Return
+            return $objMessageEventRelation;
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
      * Get criteria for Message-Event-Relation
      *
      * return object
@@ -228,13 +296,14 @@ class MessageEventRelation
 
             //Create
             try {
+
                 $messageEventRelation = new \MessageEventRelations();
                 $messageEventRelation->loadObject ($arrayData);
                 $messageEventRelation->setPrjUid ($projectUid);
 
                 if ( $messageEventRelation->validate () )
                 {
-                    $result = $messageEventRelation->save ();
+                    $messageEventRelationUid = $messageEventRelation->save ();
                     //Return
                     return $this->getMessageEventRelation ($messageEventRelationUid);
                 }

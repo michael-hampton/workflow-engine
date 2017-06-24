@@ -503,4 +503,46 @@ class BPMNWorkflow extends BPMN
         }
     }
 
+    public function addFlow ($data)
+    {
+        switch ($data['messageType']) {
+            case "send":
+            case "receive":
+                $messageEventRelationUid = $this->createMessageEventRelationByBpmnFlow ((new Flow())->retrieveByPk($data['EVN_UID']));
+                break;
+        }
+    }
+
+    public function createMessageEventRelationByBpmnFlow (Flow $bpmnFlow)
+    {
+        try {
+            
+            $messageEventRelation = new MessageEventRelation();
+            
+            $messageEventRelationUid = "";
+      
+
+            if ( (strtolower($bpmnFlow->getCondition()['sendNotification']) === "yes" || strtolower($bpmnFlow->getCondition()['receiveNotification']) === "yes") &&
+                    (int)$bpmnFlow->getIsActive () === 1 && trim($bpmnFlow->getStepTo ()) !== "" &&
+                    !$messageEventRelation->existsEventRelation ($bpmnFlow->getWorkflowId (), $bpmnFlow->getStepFrom (), $bpmnFlow->getStepTo ())
+            )
+            {
+       
+                $arrayResult = $messageEventRelation->create (
+                        $bpmnFlow->getWorkflowId (), array(
+                    "EVN_UID_THROW" => $bpmnFlow->getStepFrom (),
+                    "EVN_UID_CATCH" => $bpmnFlow->getStepTo ()
+                        )
+                );
+                
+                $messageEventRelationUid = $arrayResult->getMSGER_UID ();
+            }
+
+            //Return
+            return $messageEventRelationUid;
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
 }
