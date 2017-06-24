@@ -297,15 +297,6 @@ class BPMNWorkflow extends BPMN
 
                 $arrStepFields[$steps['key']] = $this->objMysql->_select ("workflow.step_fields", array(), array("step_id" => $steps['key']));
 
-                if ( !empty ($check) && $steps['category'] != "event" && $steps['category'] != "gateway" )
-                {
-//                     echo "DELETING STEP " . $steps['text'] . " ";
-//
-//                    $objFlow->removeFlow ();
-//
-//                    $objTask->removeTask ($steps['key']);
-                }
-
                 if ( $steps['category'] != "event" || $steps['item'] == "start" )
                 {
 

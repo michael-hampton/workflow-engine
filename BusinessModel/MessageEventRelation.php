@@ -13,6 +13,7 @@
  */
 class MessageEventRelation
 {
+
     use Validator;
 
     private $objMysql;
@@ -106,6 +107,106 @@ class MessageEventRelation
     }
 
     /**
+     * Verify if exists the Event-Relation of a Message-Event-Relation
+     *
+     * @param string $projectUid                       Unique id of Project
+     * @param string $eventUidThrow                    Unique id of Event (throw)
+     * @param string $eventUidCatch                    Unique id of Event (catch)
+     * @param string $messageEventRelationUidToExclude Unique id of Message-Event-Relation to exclude
+     *
+     * return bool Return true if exists the Event-Relation of a Message-Event-Relation, false otherwise
+     */
+    public function existsEventRelation ($projectUid, $eventUidThrow, $eventUidCatch, $messageEventRelationUidToExclude = "")
+    {
+        try {
+
+            $sql = "SELECT * FROM workflow.message_event_relation
+                    WHERE PRJ_UID = ?";
+            $arrParameters = array($projectUid);
+
+
+            if ( $messageEventRelationUidToExclude != "" )
+            {
+                $sql .= " AND MSGER_UID != ?";
+                $arrParameters[] = $messageEventRelationUidToExclude;
+            }
+
+            $sql .= " AND EVN_UID_THROW = ?";
+            $arrParameters[] = $eventUidThrow;
+
+            $sql .= " AND EVN_UID_CATCH = ?";
+            $arrParameters[] = $eventUidCatch;
+
+            $result = $this->objMysql->_query ($sql, $arrParameters);
+
+            return isset ($result[0]) && !empty ($result[0]) ? true : false;
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * Verify if is registered the Event-Relation
+     *
+     * @param string $projectUid                       Unique id of Project
+     * @param string $eventUidThrow                    Unique id of Event (throw)
+     * @param string $eventUidCatch                    Unique id of Event (catch)
+     * @param string $messageEventRelationUidToExclude Unique id of Message-Event-Relation to exclude
+     *
+     * return void Throw exception if is registered the Event-Relation
+     */
+    public function throwExceptionIfEventRelationIsRegistered ($projectUid, $eventUidThrow, $eventUidCatch, $messageEventRelationUidToExclude = "")
+    {
+        try {
+            if ( $this->existsEventRelation ($projectUid, $eventUidThrow, $eventUidCatch, $messageEventRelationUidToExclude) )
+            {
+                throw new \Exception ("ID_MESSAGE_EVENT_RELATION_ALREADY_REGISTERED");
+            }
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * Validate the data if they are invalid (INSERT and UPDATE)
+     *
+     * @param string $messageEventRelationUid Unique id of Message-Event-Relation
+     * @param string $projectUid              Unique id of Project
+     * @param array  $arrayData               Data
+     *
+     * return void Throw exception if data has an invalid value
+     */
+    public function throwExceptionIfDataIsInvalid ($messageEventRelationUid, $projectUid, array $arrayData)
+    {
+        try {
+            //Set variables
+            $arrayMessageEventRelationData = ($messageEventRelationUid == "") ? array() : $this->getMessageEventRelation ($messageEventRelationUid, true);
+            $flagInsert = ($messageEventRelationUid == "") ? true : false;
+            $arrayFinalData = array_merge ($arrayMessageEventRelationData, $arrayData);
+            //Verify data - Field definition
+            //Verify data
+            if ( isset ($arrayData["EVN_UID_THROW"]) || isset ($arrayData["EVN_UID_CATCH"]) )
+            {
+                $this->throwExceptionIfEventRelationIsRegistered ($projectUid, $arrayFinalData["EVN_UID_THROW"], $arrayFinalData["EVN_UID_CATCH"], $messageEventRelationUid);
+            }
+
+            if ( isset ($arrayData["EVN_UID_THROW"]) || isset ($arrayData["EVN_UID_CATCH"]) )
+            {
+                //Flow
+
+                $bpmnFlow = $this->objMysql->_select ("workflow.status_mapping", [], ["step_from" => $arrayFinalData["EVN_UID_THROW"], "step_to" => $arrayFinalData["EVN_UID_CATCH"]]);
+
+                if ( !isset ($bpmnFlow[0]) || empty ($bpmnFlow[0]) )
+                {
+                    throw new \Exception ("ID_MESSAGE_EVENT_RELATION_DOES_NOT_EXIST_MESSAGE_FLOW");
+                }
+            }
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
      * Create Message-Event-Relation for a Project
      *
      * @param string $projectUid Unique id of Project
@@ -118,40 +219,34 @@ class MessageEventRelation
         try {
             //Verify data
             $this->throwExceptionIfDataIsNotArray ($arrayData, "\$arrayData");
-            $validator->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
+            $this->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
             //Set data
-            $arrayData = array_change_key_case ($arrayData, CASE_UPPER);
             unset ($arrayData["MSGER_UID"]);
             unset ($arrayData["PRJ_UID"]);
             //Verify data
-            $process->throwExceptionIfNotExistsProcess ($projectUid, $this->arrayFieldNameForException["projectUid"]);
             $this->throwExceptionIfDataIsInvalid ("", $projectUid, $arrayData);
+
             //Create
-            $cnn = \Propel::getConnection ("workflow");
             try {
-                $messageEventRelation = new \MessageEventRelation();
-                $messageEventRelationUid = \ProcessMaker\Util\Common::generateUID ();
-                $messageEventRelation->fromArray ($arrayData, \BasePeer::TYPE_FIELDNAME);
-                $messageEventRelation->setMsgerUid ($messageEventRelationUid);
+                $messageEventRelation = new \MessageEventRelations();
+                $messageEventRelation->loadObject ($arrayData);
                 $messageEventRelation->setPrjUid ($projectUid);
+
                 if ( $messageEventRelation->validate () )
                 {
-                    $cnn->begin ();
                     $result = $messageEventRelation->save ();
-                    $cnn->commit ();
                     //Return
                     return $this->getMessageEventRelation ($messageEventRelationUid);
                 }
                 else
                 {
                     $msg = "";
-                    foreach ($messageEventRelation->getValidationFailures () as $validationFailure) {
-                        $msg = $msg . (($msg != "") ? "\n" : "") . $validationFailure->getMessage ();
+                    foreach ($messageEventRelation->getValidationFailures () as $message) {
+                        $msg = $msg . (($msg != "") ? "\n" : "") . $message;
                     }
-                    throw new \Exception (\G::LoadTranslation ("ID_RECORD_CANNOT_BE_CREATED") . (($msg != "") ? "\n" . $msg : ""));
+                    throw new \Exception ("ID_RECORD_CANNOT_BE_CREATED" . $msg != "" ? "\n" . $msg : "");
                 }
             } catch (\Exception $e) {
-                $cnn->rollback ();
                 throw $e;
             }
         } catch (\Exception $e) {
