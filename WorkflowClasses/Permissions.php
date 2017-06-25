@@ -16,10 +16,14 @@ abstract class Permissions implements Persistent
      * 
      * @param type $stepId
      */
-    public function __construct ($stepId)
+    public function __construct (Task $objTask = NULL)
     {
         $this->objMysql = new Mysql2();
-        $this->stepId = $stepId;
+
+        if ( $objTask !== NULL )
+        {
+            $this->stepId = $objTask->getStepId ();
+        }
     }
 
     private function getConnection ()
@@ -101,7 +105,7 @@ abstract class Permissions implements Persistent
     {
         $this->accessLevel = $accessLevel;
     }
-    
+
     public function loadObject (array $arrData)
     {
         ;

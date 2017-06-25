@@ -88,6 +88,10 @@ require_once HOME_DIR . '/core/app/library/BusinessModel/StepTrigger.php';
 require_once HOME_DIR . '/core/app/library/WorkflowClasses/Permissions.php';
 require_once HOME_DIR . '/core/app/library/WorkflowClasses/ObjectPermissions.php';
 
+require_once HOME_DIR . '/core/app/library/WorkflowClasses/BaseProcessPermission.php';
+require_once HOME_DIR . '/core/app/library/WorkflowClasses/ProcessPermissions.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/ProcessPermission.php';
+
 require_once HOME_DIR . '/core/app/library/BusinessModel/StepPermissions.php';
 
 require_once HOME_DIR . '/core/app/library/BusinessModel/Lists.php';

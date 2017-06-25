@@ -21,9 +21,13 @@ class StepPermissions
      * 
      * @param type $stepId
      */
-    public function __construct ($stepId)
+    public function __construct (Task $objStep = null)
     {
-        $this->stepId = $stepId;
+        if ( $objStep !== null )
+        {
+            $this->stepId = $objStep->getStepId ();
+        }
+
         $this->objMysql = new Mysql2();
     }
 
@@ -158,8 +162,10 @@ class StepPermissions
         try {
 
             $this->validateStepUid ();
+            
+            $objTask = new Task($this->stepId);
 
-            $objPermissions = new ObjectPermissions ($this->stepId);
+            $objPermissions = new ObjectPermissions ($objTask);
 
             if ( isset ($data['selectedPermissions']) && !empty ($data['selectedPermissions']) )
             {
