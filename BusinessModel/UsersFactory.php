@@ -667,7 +667,7 @@ class UsersFactory
         foreach ($fieldsRoles as $fieldsRole) {
             $fieldsPermissions[] = $objUserRole->getAllPermissions ($fieldsRole['role_id'], $sUser);
         }
-
+        
         $permissions = [];
 
         foreach ($fieldsPermissions as $fieldsPermission) {
@@ -675,7 +675,7 @@ class UsersFactory
                 $permissions[] = $field;
             }
         }
- 
+
         $this->aUserInfo['USER_INFO'] = $this->getUser ($sUser);
         $this->aUserInfo['ROLE'] = $fieldsRoles;
 
@@ -684,18 +684,25 @@ class UsersFactory
         return $permissions;
     }
 
-    public function checkPermission ($userUid, $permissionCode)
+    public function checkPermission (BaseUser $objUser, $permissionCode)
     {
 
         try {
 
             $flagPermission = false;
 
+            if ( trim ($objUser->getUserId ()) === "" )
+            {
+                throw new Exception ("User could not be found");
+            }
+
+            $userUid = $objUser->getUserId ();
+
             $arrayUserRolePermission = $this->loadUserRolePermission ($userUid);
 
             foreach ($arrayUserRolePermission as $value) {
 
-                if ( trim(strtolower($value["perm_name"])) == trim(strtolower($permissionCode)) )
+                if ( trim (strtolower ($value["perm_name"])) == trim (strtolower ($permissionCode)) )
                 {
 
                     $flagPermission = true;
