@@ -16,10 +16,15 @@ class Permission extends BasePermission
 
     private $objMysql;
 
-    public function __construct ()
+    public function __construct ($permId = null)
     {
         parent::__construct ();
         $this->objMysql = new Mysql2();
+
+        if ( $permId !== null )
+        {
+            $this->permId = $permId;
+        }
     }
 
     public function checkName ($permName)
@@ -34,8 +39,8 @@ class Permission extends BasePermission
 
     public function create ($aData)
     {
-        $this->checkName($aData['perm_name']);
-        
+        $this->checkName ($aData['perm_name']);
+
         $this->loadObject ($aData);
 
         if ( $this->validate () )

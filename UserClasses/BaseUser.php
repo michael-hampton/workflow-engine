@@ -3,7 +3,7 @@
 abstract class BaseUser implements Persistent
 {
 
-    use Validator;
+    use \BusinessModel\Validator;
 
     private $username;
     private $status;

@@ -1,5 +1,5 @@
 <?php
-
+namespace BusinessModel;
 class FormBuilder
 {
 
@@ -37,7 +37,7 @@ class FormBuilder
 
                 if ( !$objFormField instanceof Field )
                 {
-                    throw new Exception ("Invalid field format");
+                    throw new \Exception ("Invalid field format");
                 }
 
                 $this->addElement (
@@ -57,7 +57,7 @@ class FormBuilder
         }
         else
         {
-            throw new Exception ("No form fields were given");
+            throw new \Exception ("No form fields were given");
         }
     }
 
@@ -151,7 +151,7 @@ class FormBuilder
 
             if ( !$objDocument instanceof InputDocuments )
             {
-                throw new Exception ("Invalid document format given.");
+                throw new \Exception ("Invalid document format given.");
             }
 
             $this->documentHTML .= '<option value="' . $objDocument->getId () . '">' . $objDocument->getTitle () . '</option>';
@@ -170,7 +170,7 @@ class FormBuilder
 
             if ( !$objAttachment instanceof ProcessFiles )
             {
-                throw new Exception ("Invalid attachment format given.");
+                throw new \Exception ("Invalid attachment format given.");
             }
 
             if ( !in_array ($objAttachment->getId (), $this->arrUploadedFiles) )

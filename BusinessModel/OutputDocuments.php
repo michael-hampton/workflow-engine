@@ -11,6 +11,9 @@
  *
  * @author michael.hampton
  */
+
+namespace BusinessModel;
+
 class OutputDocuments
 {
 
@@ -18,7 +21,7 @@ class OutputDocuments
 
     public function __construct ()
     {
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
     }
 
     /**
@@ -80,7 +83,7 @@ class OutputDocuments
                         return $outputDocArray;
                     }
 
-                    $objOutputDocument = new OutputDocument();
+                    $objOutputDocument = new \OutputDocument();
                     $objOutputDocument->setOutDocUid ($aRow['id']);
                     $objOutputDocument->loadObject ($aRow);
                     $outputDocArray[] = $objOutputDocument;
@@ -139,10 +142,10 @@ class OutputDocuments
             
             $outputDocumentData['PRO_UID'] = $sProcessUID;
             //Verify data
-            $objWorkflowStep = new WorkflowStep();
+            $objWorkflowStep = new \WorkflowStep();
             if ( !$objWorkflowStep->stepExists ($sProcessUID) )
             {
-                throw new Exception ("Step des not exit");
+                throw new \Exception ("Step des not exit");
             }
 
             if ( $outputDocumentData["OUT_DOC_TITLE"] == "" )
@@ -219,7 +222,7 @@ class OutputDocuments
             }
         }
         try {
-            $outputDocument = new OutputDocument();
+            $outputDocument = new \OutputDocument();
             $oOutputDocument = $outputDocument->retrieveByPK ($sOutputDocumentUID);
 
             if ( !empty($oOutputDocument) && is_object ($oOutputDocument) )
@@ -239,7 +242,7 @@ class OutputDocuments
                 {
                     if ( isset ($outputDocumentData['OUT_DOC_TITLE']) )
                     {
-                        $uid = $this->titleExists ($sProcessUID, $outputDocumentData["OUT_DOC_TITLE"]);
+                        $uid = $this->titleExists ($outputDocumentData["OUT_DOC_TITLE"]);
                         if ( $uid != '' )
                         {
                             if ( $uid != $sOutputDocumentUID && $sFlag == 0 )
@@ -342,7 +345,7 @@ class OutputDocuments
      * @param string $title      Title
      *
      */
-    public function titleExists ($processUid, $title)
+    public function titleExists ($title)
     {
         try {
             $sql = "SELECT d.OUT_DOC_TITLE, d.id from workflow.output_document d
@@ -429,7 +432,7 @@ class OutputDocuments
             $arrDocuments = [];
 
             foreach ($results as $key => $result) {
-                $oDocument = new OutputDocument ();
+                $oDocument = new \OutputDocument ();
                 $arrDocuments[] = $oDocument->retrieveByPk ($result['document_id']);
             }
 

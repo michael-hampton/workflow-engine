@@ -1,5 +1,7 @@
 <?php
 
+namespace BusinessModel;
+
 class NotificationsFactory
 {
 
@@ -7,7 +9,7 @@ class NotificationsFactory
 
     public function __construct ()
     {
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
     }
 
     /**
@@ -168,7 +170,7 @@ class NotificationsFactory
 
         foreach ($arrResults as $key => $arrResult) {
 
-            $objNotifications = new Notifications();
+            $objNotifications = new \Notifications();
             $objNotifications->setRecipient ($arrResult['recipient']);
             $objNotifications->setBody ($arrResult['message']);
             $objNotifications->setSubject ($arrResult['subject']);
@@ -179,7 +181,7 @@ class NotificationsFactory
 
             if ( !empty ($arrResult['case_id']) )
             {
-                $objCases = new Cases();
+                $objCases = new \BusinessModel\Cases();
                 $objElement = $objCases->getCaseInfo ($arrResult['project_id'], $arrResult['case_id']);
                 $arrAllMessages[$key]['project'] = $objElement;
 

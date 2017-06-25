@@ -11,16 +11,18 @@
  *
  * @author michael.hampton
  */
+namespace BusinessModel;
+
 class StepGateway
 {
 
     private $objMysql;
     private $stepId;
 
-    public function __construct ($stepId)
+    public function __construct (\Task $objTask)
     {
-        $this->objMysql = new Mysql2();
-        $this->stepId = $stepId;
+        $this->objMysql = new \Mysql2();
+        $this->stepId = $objTask->getStepId ();
     }
 
     public function getGateways ()
@@ -47,7 +49,7 @@ class StepGateway
         $arrField = $this->objMysql->_select ("workflow.fields", array(), array("field_identifier" => trim ($arrTrigger['field_name'])));
         if ( empty ($arrField) )
         {
-            throw new Exception ("Field cannot be found");
+            throw new \Exception ("Field cannot be found");
         }
         $strField = $arrField[0]['field_identifier'];
         $strValue = $objMike->arrElement[$strField];

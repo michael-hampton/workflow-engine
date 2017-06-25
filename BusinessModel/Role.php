@@ -1,4 +1,5 @@
 <?php
+namespace BusinessModel;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -20,7 +21,7 @@ class Role
 
     public function __construct ()
     {
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
     }
 
     /**
@@ -183,7 +184,7 @@ class Role
             $this->throwExceptionIfDataIsInvalid ("", $arrayData);
 
             //Create
-            $role = new Roles();
+            $role = new \Roles();
             $arrayData["status"] = (isset ($arrayData["status"])) ? (($arrayData["status"] == "ACTIVE") ? 1 : 0) : 1;
             $arrayData["ROL_CREATE_DATE"] = date ("Y-M-d H:i:s");
             $roleUid = $role->createRole ($arrayData);
@@ -291,7 +292,7 @@ class Role
     public function getRoleDataFromRecord (array $record)
     {
         try {
-            $objRoles = new Roles();
+            $objRoles = new \Roles();
             $objRoles->setRoleId ($record['role_id']);
             $objRoles->setRoleCode ($record['role_code']);
             $objRoles->setRoleName ($record['role_name']);
@@ -396,7 +397,7 @@ class Role
 
             $this->throwExceptionIfDataIsInvalid ($roleUid, $arrayData);
             //Update
-            $role = new Roles();
+            $role = new \Roles();
             $arrayData["role_id"] = $roleUid;
             $arrayData["ROL_UPDATE_DATE"] = date ("Y-M-d H:i:s");
 
@@ -432,7 +433,7 @@ class Role
                 throw new Exception ("ID_ROLES_CAN_NOT_DELETE");
             }
             //Delete
-            $result = $role->removeRole ($roleUid);
+           $role->removeRole ($roleUid);
         } catch (\Exception $e) {
             throw $e;
         }

@@ -1,6 +1,6 @@
 <?php
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Mysql.php';
+namespace BusinessModel;
 
 class Attachments
 {
@@ -26,7 +26,7 @@ class Attachments
             define ("PATH_SEP", "/");
         }
 
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
     }
 
     public function setId ($id)
@@ -40,7 +40,7 @@ class Attachments
         {
             if ( isset ($arrData['step']) && !$arrData['step'] instanceof WorkflowStep )
             {
-                throw new Exception ("Invalid step object given.");
+                throw new \Exception ("Invalid step object given.");
             }
 
             if ( isset ($arrData['file_type']) )
@@ -72,7 +72,7 @@ class Attachments
 
             if ( !$aData['prf_filename'] )
             {
-                throw new Exception ("ID_INVALID_VALUE_FOR");
+                throw new \Exception ("ID_INVALID_VALUE_FOR");
             }
 
             $extention = strstr ($aData['prf_filename'], '.');
@@ -97,7 +97,7 @@ class Attachments
 
             if ( $sMainDirectory != 'uploads' && $sMainDirectory != 'templates' )
             {
-                throw new Exception ("ID_INVALID_PRF_PATH");
+                throw new \Exception ("ID_INVALID_PRF_PATH");
             }
 
             if ( strstr ($aData['prf_path'], '/') )
@@ -120,7 +120,7 @@ class Attachments
 
                     if ( $extention == '.exe' )
                     {
-                        throw new Exception ('ID_FILE_UPLOAD_INCORRECT_EXTENSION');
+                        throw new \Exception ('ID_FILE_UPLOAD_INCORRECT_EXTENSION');
                     }
                     break;
                 default:
@@ -134,7 +134,7 @@ class Attachments
 
             if ( !file_exists ($sCheckDirectory) )
             {
-                $oProcessFiles = new ProcessFiles();
+                $oProcessFiles = new \ProcessFiles();
                 $sDate = date ('Y-m-d H:i:s');
                 $oProcessFiles->setProUid ($sProcessUID);
                 $oProcessFiles->setUsrUid ($userUID);
@@ -146,7 +146,7 @@ class Attachments
                 $oProcessFiles->save ();
             }
 
-            $oProcessFiles = new ProcessFiles();
+            $oProcessFiles = new \ProcessFiles();
             $sDate = date ('Y-m-d H:i:s');
             $oProcessFiles->setProUid ($sProcessUID);
             $oProcessFiles->setUsrUid ($userUID);
@@ -195,10 +195,10 @@ class Attachments
 
             if ( $path == '' )
             {
-                throw new Exception ('UPLOADING_FILE_PROBLEM');
+                throw new \Exception ('UPLOADING_FILE_PROBLEM');
             }
 
-            $objFileUpload = new FileUpload();
+            $objFileUpload = new \BusinessModel\FileUpload();
 
             if ( isset ($_FILES['fileUpload']) )
             {
@@ -225,11 +225,11 @@ class Attachments
      */
     private function uploadDocument ($arrFiles, $arrData)
     {
-        $stepDocument = new InputDocument ($this->stepId);
+        $stepDocument = new \BusinessModel\InputDocument (new \Task ($this->stepId));
 
         if ( !is_numeric ($this->documentId) )
         {
-            throw new Exception ("Invalid document id given");
+            throw new \Exception ("Invalid document id given");
         }
 
         $objStepDocument = $stepDocument->getInputDocument ($this->documentId);
@@ -290,7 +290,7 @@ class Attachments
                 $dir = $_SERVER['DOCUMENT_ROOT'] . "/FormBuilder/public/uploads/" . $dir2 . "/";
                 $destination = $dir . $filename;
 
-                $objVersioning = new DocumentVersion();
+                $objVersioning = new \DocumentVersion();
                 $originalFilename = $filename;
                 $version = $objVersioning->getLastDocVersionByFilename ($filename);
                 $version += 1;
@@ -315,7 +315,7 @@ class Attachments
                     return false;
                 }
                 
-                $objFile = new FileUpload();
+                $objFile = new \BusinessModel\FileUpload();
                 $objFile->verifyPath($dir, TRUE);
             }
 
@@ -357,7 +357,7 @@ class Attachments
      */
     public function getAttachment ()
     {
-        $objMysql = new Mysql2();
+        $objMysql = new \Mysql2();
         return $objMysql->_select ($this->table, array(), array("id" => $this->id));
     }
 
@@ -368,7 +368,7 @@ class Attachments
      */
     public function getAllAttachments ($sourceId)
     {
-        $objMysql = new Mysql2();
+        $objMysql = new \Mysql2();
         $arrAttachments = $objMysql->_select ("task_manager.attachments", array(), array("source_id" => $sourceId));
 
         $aFields = array();
@@ -383,7 +383,7 @@ class Attachments
             $filePath = str_replace ("C:/xampp/htdocs", "", $arrAttachment['file_destination']);
             $filePath = str_replace ($arrAttachment['filename'], "", $filePath);
 
-            $objProcessFiles = new ProcessFiles();
+            $objProcessFiles = new \ProcessFiles();
             $objProcessFiles->setFileType ($arrAttachment['file_type']);
             $objProcessFiles->setId ($arrAttachment['id']);
             $objProcessFiles->setPrfCreateDate ($arrAttachment['date_uploaded']);
@@ -432,7 +432,7 @@ class Attachments
             //update database
             if ( $this->existsProcessFile ($aData['prf_uid']) )
             {
-                $oProcessFiles = new ProcessFiles();
+                $oProcessFiles = new \ProcessFiles();
                 $sDate = date ('Y-m-d H:i:s');
                 $oProcessFiles->setPrfUpdateDate ($sDate);
                 $oProcessFiles->setProUid ($aData['PRO_UID']);
@@ -498,14 +498,14 @@ class Attachments
 
             if ( empty ($result) )
             {
-                throw new Exception ('Cannot find record.');
+                throw new \Exception ('Cannot find record.');
             }
 
             $path = $result[0]['file_destination'];
 
             if ( $path == '' )
             {
-                throw new Exception ("ID_INVALID_VALUE_FOR");
+                throw new \Exception ("ID_INVALID_VALUE_FOR");
             }
 
             if ( file_exists ($path) && !is_dir ($path) )
@@ -513,7 +513,7 @@ class Attachments
                 unlink ($path);
             }
 
-            $processFiles = new ProcessFiles();
+            $processFiles = new \ProcessFiles();
             $processFiles->setId ($prfUid);
             $processFiles->delete ();
         } catch (Exception $ex) {

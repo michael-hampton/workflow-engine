@@ -1,4 +1,5 @@
 <?php
+namespace BusinessModel;
 
 class FieldFactory
 {
@@ -7,7 +8,7 @@ class FieldFactory
 
     private function createConnection ()
     {
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
     }
 
     public function getFieldByIdentifier ($fieldIdentifier)
@@ -41,7 +42,7 @@ class FieldFactory
                                                         INNER JOIN workflow.field_types ft ON ft.field_type_id = f.field_type
                                                        ");
         foreach ($arrResult as $intKey => $arrField) {
-            $arrFields[$arrField['field_id']] = new Field ($arrField['field_id']);
+            $arrFields[$arrField['field_id']] = new \Field ($arrField['field_id']);
             $arrFields[$arrField['field_id']]->setFieldType ($arrField['field_type']);
             $arrFields[$arrField['field_id']]->setLabel ($arrField['label']);
             $arrFields[$arrField['field_id']]->setFieldName ($arrField['field_name']);
@@ -66,12 +67,17 @@ class FieldFactory
      * @param type $stepId
      * @return \StepField|boolean
      */
-    public function getFieldsForStep ($stepId)
+    public function getFieldsForStep (\Task $objTask)
     {
         if ( $this->objMysql == null )
         {
             $this->createConnection ();
         }
+        
+        if(trim($objTask->getStepId ()) === "") {
+            return false;
+        }
+        
         $query = "SELECT sf.*, f.*, ft.field_type, dt.options, dt.data_object_type,
                 IF(rf.field_id IS NOT NULL, 1, 0) as required_field, sf.field_conditions,
                 IFNULL(v.variable_name, f.field_identifier) AS field_identifier
@@ -84,10 +90,10 @@ class FieldFactory
                 WHERE sf.step_id = ? 
                 GROUP BY f.field_id
                 ORDER BY sf.order_id";
-        $arrParameters = array($stepId);
+        $arrParameters = array($objTask->getStepId ());
         $arrResult = $this->objMysql->_query ($query, $arrParameters);
         foreach ($arrResult as $intKey => $arrField) {
-            $arrFields[$arrField['field_id']] = new Field ($arrField['field_id']);
+            $arrFields[$arrField['field_id']] = new \Field ($arrField['field_id']);
             $arrFields[$arrField['field_id']]->setFieldType ($arrField['field_type']);
             $arrFields[$arrField['field_id']]->setLabel ($arrField['label']);
             $arrFields[$arrField['field_id']]->setFieldName ($arrField['field_name']);
@@ -159,8 +165,12 @@ class FieldFactory
      * @param type $step
      * @return type
      */
-    public function getRequiredFields ($step)
+    public function getRequiredFields (\Task $objTask)
     {
+        if(trim($objTask->getStepId ()) === "") {
+            return false;
+        }
+        
         if ( $this->objMysql == null )
         {
             $this->createConnection ();
@@ -168,7 +178,7 @@ class FieldFactory
         $query = "SELECT r.*, f.* FROM workflow.required_fields r 
                     INNER JOIN workflow.fields f ON f.field_id = r.field_id
                     WHERE r.step_id = ?";
-        $arrParameters = array($step);
+        $arrParameters = array($objTask->getStepId ());
         $arrResult = $this->objMysql->_query ($query, $arrParameters);
         return $arrResult;
     }
@@ -176,7 +186,7 @@ class FieldFactory
     public function create ($aData)
     {
         try {
-            $oFields = new Field();
+            $oFields = new \Field();
             $field = $this->getFieldByIdentifier (trim ($aData['id']));
             if ( !empty ($field) && is_numeric ($field) )
             {
@@ -195,7 +205,7 @@ class FieldFactory
                 foreach ($aValidationFailures as $strMessage) {
                     $sMessage .= $strMessage . '<br />';
                 }
-                throw(new Exception ('The field cannot be created!<br />' . $sMessage));
+                throw(new \Exception ('The field cannot be created!<br />' . $sMessage));
             }
         } catch (Exception $ex) {
             throw($ex);
@@ -268,22 +278,22 @@ class FieldFactory
         try {
             if ( empty ($fieldId) || !is_numeric ($fieldId) )
             {
-                throw new Exception ('Incorrect field id.');
+                throw new \Exception ('Incorrect field id.');
             }
             if ( empty ($stepId) || !is_numeric ($stepId) )
             {
-                throw new Exception ('Incorrect step id.');
+                throw new \Exception ('Incorrect step id.');
             }
             $oFields = $this->retrieveByPK ($fieldId);
             if ( !empty ($oFields) )
             {
-                $oFields = new Field ($fieldId, $stepId);
+                $oFields = new \Field ($fieldId, $stepId);
                 $iResult = $oFields->delete ();
                 if ( $deleteFull === true )
                 {
                     if ( !empty ($this->fieldIsAssigned ($fieldId)) )
                     {
-                        throw new Exception ('Field is assigned to a step.');
+                        throw new \Exception ('Field is assigned to a step.');
                     }
                     $this->deleteField ($fieldId);
                 }
@@ -291,7 +301,7 @@ class FieldFactory
             }
             else
             {
-                throw(new Exception ('This row doesn\'t exist!'));
+                throw(new \Exception ('This row doesn\'t exist!'));
             }
         } catch (Exception $oError) {
             throw($oError);

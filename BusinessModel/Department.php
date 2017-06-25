@@ -1,4 +1,5 @@
 <?php
+namespace BusinessModel;
 
 class Department
 {
@@ -9,7 +10,7 @@ class Department
 
     public function __construct ()
     {
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
     }
 
     /**
@@ -73,7 +74,7 @@ class Department
      */
     public function getDepartments ()
     {
-        $oDepartment = new Departments();
+        $oDepartment = new \Departments();
         $aDepts = $oDepartment->getDepartments ('');
 
         return $aDepts;
@@ -92,11 +93,11 @@ class Department
         $dep_uid = $this->depUid ($dep_uid);
         $result = $this->objMysql->_select ("user_management.departments", [], ["id" => $dep_uid]);
 
-        $oDepaertment = new Departments();
+        $oDepaertment = new \Departments();
         $record = $oDepaertment->loadDepartmentRecord ($result[0]);
 
 
-        $oUsers = new UsersFactory();
+        $oUsers = new \BusinessModel\UsersFactory();
         $manager = $result[0]['department_manager'];
 
         if ( $manager != '' && (int) $manager !== 0 )
@@ -139,7 +140,7 @@ class Department
         {
             unset ($dep_data["id"]);
         }
-        $oDepartment = new Departments();
+        $oDepartment = new \Departments();
         if ( isset ($dep_data['id']) && $dep_data['id'] != '' )
         {
             $this->depUid ($dep_data['id']);
@@ -192,7 +193,7 @@ class Department
     public function deleteDepartment ($dep_uid)
     {
         $dep_uid = $this->depUid ($dep_uid);
-        $oDepartment = new Departments();
+        $oDepartment = new \Departments();
         $countUsers = $oDepartment->countUsersInDepartment ($dep_uid);
         if ( $countUsers != 0 )
         {
@@ -348,7 +349,7 @@ class Department
     private function __getUserCustomRecordFromRecord (array $record)
     {
         try {
-            $objUser = new Users();
+            $objUser = new \Users();
             $objUser->setFirstName ($record['firstName']);
             $objUser->setLastName ($record['lastName']);
             $objUser->setStatus ($record['status']);
@@ -390,7 +391,7 @@ class Department
     )
     {
         try {
-            $objDepartments = new Departments();
+            $objDepartments = new \Departments();
             $obj = $objDepartments->retrieveByPK ($departmentUid);
             if ( is_null ($obj) )
             {
@@ -430,7 +431,7 @@ class Department
             $departmentUid = $this->depUid ($departmentUid);
             $this->validateUserId ($arrayData["USR_UID"]);
             //Assign User
-            $department = new Departments();
+            $department = new \Departments();
             $department->addUserToDepartment ($departmentUid, $arrayData["USR_UID"]);
             //Return
             $arrayData = array_merge (array("DEP_UID" => $departmentUid), $arrayData);
@@ -452,7 +453,7 @@ class Department
         $dep_uid = $this->depUid ($dep_uid);
         $usr_uid = $this->validateUserId ($usr_uid);
         $this->throwExceptionUserNotExistsInDepartment ($dep_uid, $usr_uid);
-        $dep = new Departments();
+        $dep = new \Departments();
         $objDept = $dep->getDepartmentObject ();
 
         $manager = $objDept->getDepartmentManager();

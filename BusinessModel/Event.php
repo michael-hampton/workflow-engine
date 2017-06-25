@@ -1,5 +1,7 @@
 <?php
 
+namespace BusinessModel;
+
 class Event
 {
     private $objMysql;
@@ -7,7 +9,7 @@ class Event
 
     public function __construct ()
     {
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
     }
 
     /**

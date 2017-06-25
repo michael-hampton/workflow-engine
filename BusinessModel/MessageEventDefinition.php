@@ -1,5 +1,5 @@
 <?php
-
+namespace BusinessModel;
 class MessageEventDefinition
 {
 
@@ -14,7 +14,7 @@ class MessageEventDefinition
 
     public function __construct ()
     {
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
     }
 
     /**
@@ -124,7 +124,7 @@ class MessageEventDefinition
             $arrayFinalData = array_merge ($arrayMessageEventDefinitionData, $arrayData);
             //Verify data - Field definition
             //$process = new \ProcessMaker\BusinessModel\Process();
-            $messageType = new MessageType();
+            $messageType = new \BusinessModel\MessageType();
             //$process->throwExceptionIfDataNotMetFieldDefinition($arrayData, $this->arrayFieldDefinition, $this->arrayFieldNameForException, $flagInsert);
             //Verify data
             if ( isset ($arrayData["EVN_UID"]) )
@@ -137,7 +137,7 @@ class MessageEventDefinition
 
                 $arrayEventType = array("START", "END", "INTERMEDIATE");
                 $arrayEventMarker = array("sendNotification", "receiveNotification");
-                $bpmnEvent = (new Event())->getEvent ($arrayData["EVN_UID"]);
+                $bpmnEvent = (new \BusinessModel\Event())->getEvent ($arrayData["EVN_UID"]);
 
                 if ( !isset ($bpmnEvent[0]) || empty ($bpmnEvent[0]) )
                 {
@@ -241,7 +241,7 @@ class MessageEventDefinition
 
             //Update
             try {
-                $messageEventDefinition = new MessageDefinitions();
+                $messageEventDefinition = new \MessageDefinitions();
                 if ( isset ($arrayData["MSGT_UID"]) && $arrayData["MSGT_UID"] . "" == "" )
                 {
                     $arrayData["MSGED_VARIABLES"] = array();

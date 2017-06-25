@@ -1,5 +1,5 @@
 <?php
-
+namespace BusinessModel;
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -26,7 +26,7 @@ class ProcessPermission
             $this->workflowId = $objWorkflow->getWorkflowId ();
         }
 
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
     }
 
     /**
@@ -80,7 +80,7 @@ class ProcessPermission
      */
     public function create ($arrPermissions)
     {
-        $objProcessPermissions = new ProcessPermissions();
+        $objProcessPermissions = new \BusinessModel\ProcessPermission();
 
         $currentLists = $this->getProcessPermissions ();
         $userList = explode (",", $currentLists['user']);
@@ -139,14 +139,14 @@ class ProcessPermission
                 {
                     if ( !$this->validateTeamId ($arrPermission['id']) )
                     {
-                        throw new Exception ("Team doesnt exist");
+                        throw new \Exception ("Team doesnt exist");
                     }
                 }
                 else
                 {
                     if ( !$this->validateUserId ($arrPermission['id']) )
                     {
-                        throw new Exception ("User doesnt exist");
+                        throw new \Exception ("User doesnt exist");
                     }
                 }
 
@@ -166,7 +166,7 @@ class ProcessPermission
                         $message .= "</br> " . $validationFailure;
                     }
 
-                    throw new Exception ("Process permissions could not be saved " . $message);
+                    throw new \Exception ("Process permissions could not be saved " . $message);
                 }
             }
         }

@@ -17,6 +17,7 @@ abstract class BasePermission implements Persistent
     private $objMysql;
     private $permName;
     private $status;
+    protected $permId;
 
     public function __construct ()
     {
@@ -71,7 +72,18 @@ abstract class BasePermission implements Persistent
     {
         $this->status = $status;
     }
+    
+    public function getPermId ()
+    {
+        return $this->permId;
+    }
 
+    public function setPermId ($permId)
+    {
+        $this->permId = $permId;
+    }
+
+    
     /**
      * 
      * @return boolean

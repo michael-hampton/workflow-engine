@@ -1,4 +1,5 @@
 <?php
+namespace BusinessModel;
 
 class Lists
 {
@@ -16,7 +17,7 @@ class Lists
 
     public function __construct ()
     {
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
     }
 
     private function participated ()
@@ -141,7 +142,7 @@ class Lists
         if ( !isset ($dataList["userId"]) )
         {
 
-            throw (new Exception ("ID_USER_NOT_EXIST"));
+            throw (new \Exception ("ID_USER_NOT_EXIST"));
         }
         else
         {
@@ -149,7 +150,7 @@ class Lists
             $this->validateUserId ($dataList["userId"]);
             $userUid = $dataList["userId"];
 
-            $objUsers = new UsersFactory();
+            $objUsers = new \BusinessModel\UsersFactory();
             $arrUser = $objUsers->getUser($userUid);
         }
 
@@ -165,7 +166,7 @@ class Lists
 
         //error_reporting (0);
         
-        $objNotificationsFactory = new NotificationsFactory();
+        $objNotificationsFactory = new \BusinessModel\NotificationsFactory();
 
         switch ($listName) {
             case "CASES_INBOX":
@@ -269,7 +270,7 @@ class Lists
         foreach ($list as $parentId => $arrList) {
             foreach ($arrList as $id) {
 
-                $objCases = new Cases();
+                $objCases = new \BusinessModel\Cases();
                 $objElement = $objCases->getCaseInfo ($parentId, $id);
 
                 $arrProjects[] = $objElement;

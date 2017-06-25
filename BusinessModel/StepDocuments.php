@@ -18,7 +18,7 @@ class StepDocuments
 
     public function __construct ()
     {
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
     }
 
     public function create ($aData, $stepId, $docType)
@@ -32,7 +32,7 @@ class StepDocuments
             }
         }
 
-        $objStepDocument = new StepDocument ($stepId);
+        $objStepDocument = new \StepDocument ($stepId);
 
         foreach ($aData as $docId) {
             $objStepDocument->setDocumentId ($docId);
@@ -55,7 +55,7 @@ class StepDocuments
 
     public function deleteStepDoc ($stepId, $docType, $docId)
     {
-        $objStepDocument = new StepDocument ($stepId);
+        $objStepDocument = new \StepDocument ($stepId);
         $objStepDocument->setDocumentId ($docId);
         $objStepDocument->setDocumentType ($docType);
 

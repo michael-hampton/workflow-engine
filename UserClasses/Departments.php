@@ -204,7 +204,7 @@ class Departments extends BaseDepartment
             $result = array();
             $objects = $this->objMysql->_select ("user_management.departments");
 
-            $oUsers = new UsersFactory();
+            $oUsers = new \BusinessModel\UsersFactory();
 
             foreach ($objects as $oDepartment) {
                 $node = array();

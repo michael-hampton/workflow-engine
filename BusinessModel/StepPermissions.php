@@ -1,4 +1,5 @@
 <?php
+namespace BusinessModel;
 
 class StepPermissions
 {
@@ -28,7 +29,7 @@ class StepPermissions
             $this->stepId = $objStep->getStepId ();
         }
 
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
     }
 
     /**
@@ -163,9 +164,9 @@ class StepPermissions
 
             $this->validateStepUid ();
             
-            $objTask = new Task($this->stepId);
+            $objTask = new \Task($this->stepId);
 
-            $objPermissions = new ObjectPermissions ($objTask);
+            $objPermissions = new \ObjectPermissions ($objTask);
 
             if ( isset ($data['selectedPermissions']) && !empty ($data['selectedPermissions']) )
             {
@@ -305,14 +306,14 @@ class StepPermissions
         $this->stepId = trim ($this->stepId);
         if ( $this->stepId == '' )
         {
-            throw (new Exception ("STEP ID HAS NOT BEEN SET"));
+            throw (new \Exception ("STEP ID HAS NOT BEEN SET"));
         }
 
-        $objWorkflowStep = new WorkflowStep();
+        $objWorkflowStep = new \WorkflowStep();
 
         if ( !($objWorkflowStep->stepExists ($this->stepId)) )
         {
-            throw (new Exception ("STEP ID DOES NOT EXIST"));
+            throw (new \Exception ("STEP ID DOES NOT EXIST"));
         }
         return $this->stepId;
     }

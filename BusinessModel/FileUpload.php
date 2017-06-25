@@ -1,4 +1,5 @@
 <?php
+namespace BusinessModel;
 
 class FileUpload
 {
@@ -76,12 +77,12 @@ class FileUpload
         try {
             if ( $file == '' )
             {
-                throw new Exception ('The filename is empty!');
+                throw new \Exception ('The filename is empty!');
             }
 
             if ( filesize ($file) > ((((ini_get ('upload_max_filesize') + 0)) * 1024) * 1024) )
             {
-                throw new Exception ('The size of upload file exceeds the allowed by the server!');
+                throw new \Exception ('The size of upload file exceeds the allowed by the server!');
             }
             $oldumask = umask (0);
             if ( !is_dir ($path) )
@@ -106,7 +107,7 @@ class FileUpload
                 }
             }
 
-            $password = new Password();
+            $password = new \Password();
 
             $file = $password->validateInput ($file, "path");
             $path = $password->validateInput ($path, "path");
@@ -161,7 +162,7 @@ class FileUpload
 
                         move_uploaded_file ($tmp_name, $path . "/" . $file);
                     } catch (Exception $ex) {
-                        throw new Exception ("Could not upload file " . $ex);
+                        throw new \Exception ("Could not upload file " . $ex);
                     }
                 }
             }
@@ -169,14 +170,14 @@ class FileUpload
             {
                 $result->success = false;
                 $result->fileError = true;
-                throw (new Exception ($result));
+                throw (new \Exception ($result));
             }
 
             return $result;
         }
         else
         {
-            throw new Exception ('ID_PMTABLE_UPLOADING_FILE_PROBLEM');
+            throw new \Exception ('ID_PMTABLE_UPLOADING_FILE_PROBLEM');
         }
     }
 
@@ -262,7 +263,7 @@ class FileUpload
         }
         else
         {
-            throw new Exception ("File doesnt exist");
+            throw new \Exception ("File doesnt exist");
         }
 
 

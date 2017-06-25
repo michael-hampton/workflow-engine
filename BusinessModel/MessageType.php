@@ -1,5 +1,7 @@
 <?php
 
+namespace BusinessModel;
+
 class MessageType
 {
 
@@ -9,7 +11,7 @@ class MessageType
 
     public function __construct ()
     {
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
     }
 
     /**
@@ -83,7 +85,7 @@ class MessageType
         try {
             $this->throwExceptionIfNotExistsMessageType($messageTypeUid);
             //Delete Message-Type-Variable
-            $messageTypes = new MessageTypes();
+            $messageTypes = new \MessageTypes();
             $messageTypes->setId($messageTypeUid);
             $messageTypes->delete();
            

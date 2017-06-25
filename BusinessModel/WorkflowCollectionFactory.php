@@ -1,5 +1,5 @@
 <?php
-
+namespace BusinessModel;
 class WorkflowCollectionFactory
 {
 
@@ -9,7 +9,7 @@ class WorkflowCollectionFactory
 
     public function __construct ($requestId = null, $objKondor = null)
     {
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
     }
 
     public function getSystemWorkflowCollections ($strSystemName = null)
@@ -24,7 +24,7 @@ class WorkflowCollectionFactory
 
         foreach ($arrResults as $result) {
 
-            $arrWorkflowCollectionObjects[$result['request_type']] = new WorkflowCollection ($result['request_id']);
+            $arrWorkflowCollectionObjects[$result['request_type']] = new \WorkflowCollection ($result['request_id']);
             $arrWorkflowCollectionObjects[$result['request_type']]->setDeptId ($result['dept_id']);
             $arrWorkflowCollectionObjects[$result['request_type']]->setName ($result['request_type']);
             $arrWorkflowCollectionObjects[$result['request_type']]->setDescription ($result['description']);
@@ -80,7 +80,7 @@ class WorkflowCollectionFactory
 
             if ( empty ($obj) )
             {
-                throw new Exception ("CATEGORY DOES NOT EXIST");
+                throw new \Exception ("CATEGORY DOES NOT EXIST");
             }
         } catch (Exception $e) {
             throw $e;
@@ -101,7 +101,7 @@ class WorkflowCollectionFactory
         try {
             if ( $this->existsName ($categoryName) )
             {
-                throw new Exception ("ID_CATEGORY_NAME_ALREADY_EXISTS");
+                throw new \Exception ("ID_CATEGORY_NAME_ALREADY_EXISTS");
             }
         } catch (Exception $e) {
             throw $e;
@@ -122,7 +122,7 @@ class WorkflowCollectionFactory
 
             if ( !isset ($arrayData['dept_id']) || empty ($arrayData['dept_id']) )
             {
-                throw new Exception ("DEPT ID IS MISSING");
+                throw new \Exception ("DEPT ID IS MISSING");
             }
 
             //Verify data
@@ -135,7 +135,7 @@ class WorkflowCollectionFactory
             {
 
                 // throw excption cant be empty
-                throw new Exception ("CATEGORY TITLE IS MISSING");
+                throw new \Exception ("CATEGORY TITLE IS MISSING");
             }
         } catch (Exception $e) {
             throw $e;
@@ -160,7 +160,7 @@ class WorkflowCollectionFactory
             $this->throwExceptionIfDataIsInvalid ($arrayData);
 
             //Create
-            $category = new WorkflowCollection();
+            $category = new \WorkflowCollection();
 
             $category->setNew (true);
             $category->setName ($arrayData["request_type"]);
@@ -201,16 +201,16 @@ class WorkflowCollectionFactory
 
             if ( !isset ($arrayData['dept_id']) || empty ($arrayData['dept_id']) )
             {
-                throw new Exception ("DEPT ID IS MISSING");
+                throw new \Exception ("DEPT ID IS MISSING");
             }
 
             if ( !isset ($arrayData['request_type']) || empty ($arrayData['request_type']) )
             {
-                throw new Exception ("TITLE IS MISSING");
+                throw new \Exception ("TITLE IS MISSING");
             }
 
             //Update
-            $category = new WorkflowCollection();
+            $category = new \WorkflowCollection();
 
             $category->setNew (false);
             $category->setRequestId ($categoryUid);
@@ -250,17 +250,17 @@ class WorkflowCollectionFactory
             //Verify data
             $this->throwExceptionIfNotExistsCategory ($categoryUid);
 
-            $process = new Workflow();
+            $process = new \Workflow();
 
             $arrayTotalProcessesByCategory = $process->getAllProcessesByCategory ();
 
             if ( isset ($arrayTotalProcessesByCategory[$categoryUid]) && (int) ($arrayTotalProcessesByCategory[$categoryUid]) > 0 )
             {
-                throw new Exception ("ID_MSG_CANNOT_DELETE_CATEGORY");
+                throw new \Exception ("ID_MSG_CANNOT_DELETE_CATEGORY");
             }
 
             //Delete
-            $category = new WorkflowCollection();
+            $category = new \WorkflowCollection();
 
             $category->setRequestId ($categoryUid);
             $category->delete ();
@@ -286,7 +286,7 @@ class WorkflowCollectionFactory
             $arrayCategory = array();
 
             //Verify data
-            $process = new Workflow();
+            $process = new \Workflow();
 
             //Get data
             if ( !is_null ($limit) && $limit . "" == "0" )
@@ -351,7 +351,7 @@ class WorkflowCollectionFactory
      */
     private function getCategoryDataFromRecord ($record)
     {
-        $objRequest = new WorkflowCollection();
+        $objRequest = new \WorkflowCollection();
         $objRequest->setDeptId ($record['dept_id']);
         $objRequest->setName ($record['request_type']);
         $objRequest->setRequestId ($record['request_id']);
@@ -382,7 +382,7 @@ class WorkflowCollectionFactory
             //Set variables
             if ( !$flagGetRecord )
             {
-                $process = new Workflow();
+                $process = new \Workflow();
 
                 $arrayTotalProcessesByCategory = $process->getAllProcessesByCategory ();
             }

@@ -1,4 +1,5 @@
 <?php
+namespace BusinessModel;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -20,7 +21,7 @@ class RoleUser
 
     public function __construct ()
     {
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
     }
 
     /**
@@ -98,7 +99,7 @@ class RoleUser
             $this->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
             //Set data
             //Verify data
-            $role = new Role();
+            $role = new \BusinessModel\Role();
             $role->throwExceptionIfNotExistsRole ($roleUid);
             $this->validateUserId ($arrayData["USR_UID"]);
             $this->throwExceptionIfItsAssignedUserToRole ($roleUid, $arrayData["USR_UID"]);
@@ -127,36 +128,36 @@ class RoleUser
     {
         try {
             //Verify data
-            $role = new Role();
+            $role = new \BusinessModel\Role();
             $role->throwExceptionIfNotExistsRole ($roleUid);
             $this->validateUserId ($userUid);
             $this->throwExceptionIfNotItsAssignedUserToRole ($roleUid, $userUid);
 
 
             //Delete
-            $role = new Roles();
+            $role = new \Roles();
             $role->deleteUserRole ($roleUid, $userUid);
         } catch (Exception $e) {
             throw $e;
         }
     }
 
-    public function getRolesForUser ($userId)
+    public function getRolesForUser (\Users $objUser)
     {
         $results = $this->objMysql->_query ("SELECT * FROM user_management.user_roles ur
                                     INNER JOIN user_management.roles r ON r.role_id = ur.roleId
                                     WHERE ur.userId = ?
-                                    GROUP BY r.role_id", [$userId]);
+                                    GROUP BY r.role_id", [$objUser->getUserId ()]);
 
         return $results;
     }
 
-    function getAllPermissions ($sRolUid, $sUsrUid)
+    function getAllPermissions (\Roles $objRole)
     {
         try {
             $results = $this->objMysql->_query ("SELECT p.* FROM user_management.role_perms rp
                                                     INNER JOIN user_management.permissions p ON p.perm_id = rp.perm_id
-                                                    WHERE rp.role_id = ?", [$sRolUid]);
+                                                    WHERE rp.role_id = ?", [$objRole->getRoleId ()]);
             return $results;
         } catch (Exception $oError) {
             throw($oError);

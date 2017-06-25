@@ -1,4 +1,5 @@
 <?php
+namespace BusinessModel;
 
 class StepTrigger
 {
@@ -18,7 +19,7 @@ class StepTrigger
     public function __construct ($currentStep = null, $nextStep = null)
     {
 
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
 
         $this->currentStep = $currentStep;
         $this->nextStep = $nextStep;
@@ -34,7 +35,7 @@ class StepTrigger
 
         // check gateways
 
-        $objGateway = new StepGateway ($this->currentStep);
+        $objGateway = new \BusinessModel\StepGateway (new \Task ($this->currentStep));
         $arrGateways = $objGateway->getGateways ();
 
         if ( !empty ($arrGateways) )
@@ -141,7 +142,7 @@ class StepTrigger
                     }
                     elseif ( $triggerType == "gateway" )
                     {
-                        $objGateway = new StepGateway ($this->arrWorkflowObject['elements'][$this->parentId]['current_step']);
+                        $objGateway = new \BusinessModel\StepGateway (new \Task ($this->arrWorkflowObject['elements'][$this->parentId]['current_step']));
                         $this->arrWorkflowObject = $objGateway->updateStep ($arrTrigger, $this->arrWorkflowObject, $objMike);
                         $blHasTrigger = true;
                         $this->blMove = false;
@@ -166,7 +167,7 @@ class StepTrigger
                     }
                     elseif ( $triggerType == "gateway" )
                     {
-                        $objGateway = new StepGateway(null);
+                        $objGateway = new \BusinessModel\StepGateway(null);
                         $this->arrWorkflowObject = $objGateway->updateStep ($arrTrigger, $this->arrWorkflowObject, $objMike);
 
                         $blHasTrigger = true;
@@ -238,7 +239,7 @@ class StepTrigger
 
             if ( !$this->stepExists ($stepUid) )
             {
-                throw new Exception ("ID_STEP_DOES_NOT_EXIST");
+                throw new \Exception ("ID_STEP_DOES_NOT_EXIST");
             }
 
             if ( $create && (isset ($dataTrigger['triggerId'])) )
@@ -252,13 +253,13 @@ class StepTrigger
             {
                 if ( $this->verifyNameTrigger ($stepUid, $dataTrigger['title'], $sTriggerUid) )
                 {
-                    throw new Exception ("ID_CANT_SAVE_TRIGGER");
+                    throw new \Exception ("ID_CANT_SAVE_TRIGGER");
                 }
             }
 
             $dataTrigger['step_id'] = $stepUid;
 
-            $oTrigger = new Trigger ($stepUid);
+            $oTrigger = new \Trigger ($stepUid);
 
             if ( $create )
             {
@@ -345,7 +346,7 @@ class StepTrigger
             }
             else
             {
-                throw (new Exception ("The row '$StepUid, $TasUid, $TriUid, $StType' in table StepTrigger doesn't exist!"));
+                throw (new \Exception ("The row '$StepUid, $TasUid, $TriUid, $StType' in table StepTrigger doesn't exist!"));
             }
         } catch (Exception $oError) {
             $oConnection->rollback ();

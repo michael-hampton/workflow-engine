@@ -11,6 +11,8 @@
  *
  * @author michael.hampton
  */
+namespace BusinessModel;
+
 class MessageEventRelation
 {
 
@@ -20,7 +22,7 @@ class MessageEventRelation
 
     public function __construct ()
     {
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
     }
 
     /**
@@ -125,7 +127,7 @@ class MessageEventRelation
             $criteria .= " WHERE MSGER_UID = ?";
             $result = $this->objMysql->_query ($criteria, [$messageEventRelationUid]);
 
-            $objMessageEventRelation = new MessageEventRelations();
+            $objMessageEventRelation = new \MessageEventRelations();
             $objMessageEventRelation->setEVN_UID_CATCH ($result[0]['EVN_UID_CATCH']);
             $objMessageEventRelation->setEVN_UID_THROW ($result[0]['EVN_UID_THROW']);
             $objMessageEventRelation->setPrjUid ($result[0]['PRJ_UID']);
@@ -163,7 +165,7 @@ class MessageEventRelation
     public function getMessageEventRelationDataFromRecord (array $record)
     {
         try {
-            $objMessageEventRelations = new MessageDefinitions();
+            $objMessageEventRelations = new \MessageDefinitions();
             return array(
                 $objMessageEventRelations->setPrjUid ($record["MSGER_UID"]),
                 //$objMessageEventRelations $record["EVN_UID_THROW"],

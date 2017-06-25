@@ -1,5 +1,7 @@
 <?php
 
+namespace BusinessModel;
+
 class Team
 {
 
@@ -12,7 +14,7 @@ class Team
 
     public function __construct ()
     {
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
     }
 
     /**
@@ -118,7 +120,7 @@ class Team
             //Verify data
             $this->throwExceptionIfExistsTitle ($arrayData["team_name"]);
             //Create
-            $group = new Teams();
+            $group = new \Teams();
             $groupUid = $group->create ($arrayData);
             //Return
             $arrayData = array_merge (array("GRP_UID" => $groupUid), $arrayData);
@@ -147,7 +149,7 @@ class Team
                 $this->throwExceptionIfExistsTitle ($arrayData["team_name"], $groupUid);
             }
             //Update
-            $group = new Teams();
+            $group = new \Teams();
             $arrayData["team_id"] = $groupUid;
             $result = $group->update ($arrayData);
             //Return
@@ -178,11 +180,11 @@ class Team
             }
             
             //Delete
-            $group = new Teams();
+            $group = new \Teams();
             $result = $group->remove ($groupUid);
 
 
-            $objPermissions = new ObjectPermissions (null);
+            $objPermissions = new \ObjectPermissions (null);
             $objPermissions->deleteAll ("team", $groupUid);
         } catch (Exception $e) {
             throw $e;
@@ -273,7 +275,7 @@ class Team
             if ( !empty ($arrUsers) )
             {
                 foreach ($arrUsers as $strUser) {
-                    $objUsersFactory = new UsersFactory();
+                    $objUsersFactory = new \BusinessModel\UsersFactory();
                     $arrUser = $objUsersFactory->getUsers (array("filter" => "user", "filterOption" => $strUser));
 
                     $teamId = $arrUser['data'][0]->getTeam_id ();
@@ -417,7 +419,7 @@ class Team
     {
         try {
 
-            $objTeams = new Teams();
+            $objTeams = new \Teams();
             $objTeams->setTeamName ($record['team_name']);
             $objTeams->setId ($record['team_id']);
             $objTeams->setDeptId ($record['dept_id']);
@@ -531,7 +533,7 @@ class Team
 
         try {
 
-            $objUsers = new Users();
+            $objUsers = new \Users();
             $objUsers->setUserId ($record['usrid']);
             $objUsers->setUsername ($record['username']);
             $objUsers->setFirstName ($record['firstName']);
@@ -599,7 +601,7 @@ class Team
                             $arrayUid[] = $row["usrid"];
                         }
                     foreach ($arrayUid as $userId) {
-                        $objUser = new UsersFactory();
+                        $objUser = new \BusinessModel\UsersFactory();
                         $arrayUser[] = $objUser->getUser ($userId);
                     }
                     

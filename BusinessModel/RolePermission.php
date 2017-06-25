@@ -1,4 +1,5 @@
 <?php
+namespace BusinessModel;
 
 class RolePermission
 {
@@ -19,7 +20,7 @@ class RolePermission
 
     public function getConnection ()
     {
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
     }
 
     private function retrieveByPK ($roleId, $permId)
@@ -127,26 +128,21 @@ class RolePermission
      *
      * return array Return data of the Permission assigned to Role
      */
-    public function create ($roleUid, array $arrayData)
+    public function create (\Roles $objRole, \Permission $objPermission)
     {
         try {
-            //Verify data
-
-            $this->throwExceptionIfDataIsEmpty ($arrayData);
             //Set data
-            //Verify data
-            $role = new Roles();
-            $this->throwExceptionIfNotExistsRole ($roleUid);
+            $role = new \Roles();
+            $this->throwExceptionIfNotExistsRole ($objRole->getRoleId ());
 
-            $this->throwExceptionIfNotExistsPermission ($arrayData["perm_id"]);
-            $this->throwExceptionIfItsAssignedPermissionToRole ($roleUid, $arrayData["perm_id"]);
+            $this->throwExceptionIfNotExistsPermission ($objPermission->getPermId ());
+            $this->throwExceptionIfItsAssignedPermissionToRole ($objRole->getRoleId (), $objPermission->getPermId ());
 
             //Create
             $role = new \Roles();
-            $arrayData = array_merge (array("ROL_UID" => $roleUid), $arrayData);
-            $role->assignPermissionRole ($arrayData);
+            $role->assignPermissionRole ($objRole, $objPermission);
 
-            return $arrayData;
+            return true;
         } catch (Exception $e) {
             throw $e;
         }
@@ -160,20 +156,18 @@ class RolePermission
      *
      * return void
      */
-    public function delete ($roleUid, $permissionUid)
+    public function delete (\Roles $objRole, \Permission $objPermission)
     {
         try {
             //Verify data
 
-            $role = new Roles();
-            $this->throwExceptionIfNotExistsRole ($roleUid);
-            $this->throwExceptionIfNotExistsPermission ($permissionUid);
-            $this->throwExceptionIfNotItsAssignedPermissionToRole ($roleUid, $permissionUid);
-
-
             $role = new \Roles();
+            $this->throwExceptionIfNotExistsRole ($objRole->getRoleId ());
+            $this->throwExceptionIfNotExistsPermission ($objPermission->getPermId ());
+            $this->throwExceptionIfNotItsAssignedPermissionToRole ($objRole->getRoleId (), $objPermission->getPermId ());
 
-            $role->deletePermissionRole ($roleUid, $permissionUid);
+
+            $role->deletePermissionRole ($objRole, $objPermission);
         } catch (Exception $e) {
             throw $e;
         }
@@ -230,7 +224,7 @@ class RolePermission
     public function getPermissionDataFromRecord (array $record)
     {
         try {
-            $objRole = new RolePermissions();
+            $objRole = new \RolePermissions();
             $objRole->setPerUid ($record['id']);
             $objRole->setPermissionName ($record['perm_name']);
             $objRole->setRolUid ($record['role_id']);

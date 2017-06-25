@@ -1,4 +1,5 @@
 <?php
+namespace BusinessModel;
 
 class Process 
 {
@@ -12,7 +13,7 @@ class Process
      */
     public function __construct ()
     {
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
     }
 
     /**
@@ -70,7 +71,7 @@ class Process
 
             if ( !$this->processExists ($processUid) )
             {
-                throw new Exception ("ID_PROJECT_DOES_NOT_EXIST");
+                throw new \Exception ("ID_PROJECT_DOES_NOT_EXIST");
             }
         } catch (\Exception $e) {
             throw $e;
@@ -88,8 +89,7 @@ class Process
         try {
             if ( $this->existsTitle ($processTitle) )
             {
-                throw new Exception ("ID_PROJECT_TITLE_ALREADY_EXISTS");
-                die;
+                throw new \Exception ("ID_PROJECT_TITLE_ALREADY_EXISTS");
             }
         } catch (\Exception $e) {
             throw $e;
@@ -107,7 +107,7 @@ class Process
 
         if ( !isset ($result[0]) || empty ($result[0]) )
         {
-            throw new Exception ("CREATE_USER_DOES_NOT_EXIST");
+            throw new \Exception ("CREATE_USER_DOES_NOT_EXIST");
         }
     }
 
@@ -129,7 +129,7 @@ class Process
             }
             else
             {
-                throw new Exception ("ID_PROJECT_CATEGORY_DOES_NOT_EXIST");
+                throw new \Exception ("ID_PROJECT_CATEGORY_DOES_NOT_EXIST");
             }
         } catch (\Exception $e) {
             throw $e;
@@ -163,19 +163,19 @@ class Process
             case "CREATE":
                 if ( !isset ($arrayProcessData["USR_UID"]) || trim ($arrayProcessData["USR_UID"]) == "" )
                 {
-                    throw (new Exception ("User data do not exist"));
+                    throw (new \Exception ("User data do not exist"));
                 }
                 if ( !isset ($arrayProcessData["PRO_TITLE"]) || trim ($arrayProcessData["PRO_TITLE"]) == "" )
                 {
-                    throw (new Exception ("Process title data do not exist"));
+                    throw (new \Exception ("Process title data do not exist"));
                 }
                 if ( !isset ($arrayProcessData["PRO_DESCRIPTION"]) )
                 {
-                    throw (new Exception ("Process description data do not exist"));
+                    throw (new \Exception ("Process description data do not exist"));
                 }
                 if ( !isset ($arrayProcessData["PRO_CATEGORY"]) )
                 {
-                    throw (new Exception ("Process category data do not exist"));
+                    throw (new \Exception ("Process category data do not exist"));
                 }
 
                 $arrayProcessData['PRO_DATE_CREATED'] = date ("Y-m-d H:i:s");
@@ -195,7 +195,7 @@ class Process
         }
         if ( isset ($arrayProcessData["PRO_TITLE"]) && $this->existsTitle ($arrayProcessData["PRO_TITLE"]) )
         {
-            throw (new Exception ("ID_PROCESSTITLE_ALREADY_EXISTS"));
+            throw (new \Exception ("ID_PROCESSTITLE_ALREADY_EXISTS"));
         }
 
 
@@ -210,7 +210,7 @@ class Process
             $this->throwExceptionIfNotExistsUser ($arrayProcessData["PRO_CREATE_USER"]);
         }
 
-        $process = new Workflow();
+        $process = new \Workflow();
 
         switch ($option) {
             case "CREATE":
@@ -230,7 +230,7 @@ class Process
 
         if ( isset ($arrayDefineProcessData['routes']) )
         {
-            $objProcessRoute = new ProcessRoute();
+            $objProcessRoute = new \ProcessRoute();
             
             if ( $arrayDefineProcessData['routes']['position'] == "last" )
             {

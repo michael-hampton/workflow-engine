@@ -131,7 +131,7 @@ class DocumentVersion extends BaseDocumentVersion
 
             if ( $docType === "INPUT" )
             {
-                $o = new InputDocument();
+                $o = new \BusinessModel\InputDocument(null);
                 $oInputDocument = $o->getInputDocument ($aData['document_id']);
                 if ( !$oInputDocument->getVersioning () )
                 {

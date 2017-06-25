@@ -106,19 +106,19 @@ class Password
                 $value = str_replace (',', '.', $value);
                 if ( !filter_var ($value, FILTER_VALIDATE_FLOAT) )
                 {
-                    throw new Exception ('not a float value');
+                    throw new \Exception ('not a float value');
                 }
                 break;
             case 'int':
                 if ( !filter_var ($value, FILTER_VALIDATE_INT) )
                 {
-                    throw new Exception ('not a int value');
+                    throw new \Exception ('not a int value');
                 }
                 break;
             case 'boolean':
                 if ( !preg_match ('/\b(yes|no|false|true|1|0)\b/i', $value) )
                 {
-                    throw new Exception ('not a boolean value');
+                    throw new \Exception ('not a boolean value');
                 }
                 break;
             case 'path':
@@ -126,20 +126,20 @@ class Password
                 {
                     if ( !is_dir ($value) )
                     {
-                        throw new Exception ('not a valid path');
+                        throw new \Exception ('not a valid path');
                     }
                 }
                 break;
             case 'nosql':
                 if ( preg_match ('/\b(or|and|xor|drop|insert|update|delete|select)\b/i', $value) )
                 {
-                    throw new Exception ('sql command found');
+                    throw new \Exception ('sql command found');
                 }
                 break;
             default:
                 if ( !is_string ($value) )
                 {
-                    throw new Exception ('not a string value');
+                    throw new \Exception ('not a string value');
                 }
         }
     }

@@ -481,9 +481,12 @@ class WorkflowStep
 
             if ( isset ($arrConditions['sendNotification']) && trim (strtolower ($arrConditions['sendNotification'])) == "yes" )
             {
+                $objFlow = new Flow();
+                $objFlow->setWorkflowId($this->workflowId);
+                $objFlow->setStepFrom($this->_workflowStepId);
                 
                $objMessageApplication = new MessageApplication();
-               $objMessageApplication->create($this->workflowId, $this->elementId, $this->parentId, $this->_workflowStepId, $this->objWorkflow);               
+               $objMessageApplication->create($objFlow, $this->elementId, $this->parentId, $this->objWorkflow);               
             }
             
             if ( isset ($arrConditions['receiveNotification']) && trim (strtolower ($arrConditions['receiveNotification'])) == "yes" )

@@ -1,4 +1,5 @@
 <?php
+namespace BusinessModel;
 
 class InputDocument
 {
@@ -11,15 +12,15 @@ class InputDocument
      * 
      * @param type $stepId
      */
-    public function __construct ($stepId = null)
+    public function __construct (\Task $objTask)
     {
 
-        if ( $stepId !== null )
+        if ( $objTask !== null )
         {
-            $this->stepId = $stepId;
+            $this->stepId = $objTask->getStepId ();
         }
 
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
     }
 
     /**
@@ -59,7 +60,7 @@ class InputDocument
             if ( $blReturnArray === false )
             {
                 foreach ($results as $result) {
-                    $arrDocuments[$result['id']] = new InputDocuments ($this->stepId);
+                    $arrDocuments[$result['id']] = new \InputDocuments ($this->stepId);
                     $arrDocuments[$result['id']]->setDescription ($result['description']);
                     $arrDocuments[$result['id']]->setDestinationPath ($result['destination_path']);
                     $arrDocuments[$result['id']]->setFileType ($result['filetype']);
@@ -94,7 +95,7 @@ class InputDocument
             $arrDocuments = [];
 
             foreach ($results as $key => $result) {
-                $arrDocuments[$key] = new InputDocuments ($this->stepId);
+                $arrDocuments[$key] = new \InputDocuments ($this->stepId);
                 $arrDocuments[$key]->setDescription ($result['description']);
                 $arrDocuments[$key]->setDestinationPath ($result['destination_path']);
                 $arrDocuments[$key]->setFileType ($result['filetype']);
@@ -126,10 +127,10 @@ class InputDocument
             //$process->throwExceptionIfNotExistsProcess ($processUid, $this->arrayFieldNameForException["processUid"]);
             //$process->throwExceptionIfDataNotMetFieldDefinition ($arrayData, $this->arrayFieldDefinition, $this->arrayFieldNameForException, true);
 
-            $objStep = new WorkflowStep();
+            $objStep = new \WorkflowStep();
             if ( !$objStep->stepExists ($this->stepId) )
             {
-                throw new Exception ("Step does not exist");
+                throw new \Exception ("Step does not exist");
             }
             $this->throwExceptionIfExistsTitle ($this->stepId, $arrayData["INP_DOC_TITLE"]);
 
@@ -223,7 +224,7 @@ class InputDocument
             list($flagAssigned, $arrayData) = $this->itsAssignedInOtherObjects ($inputDocumentUid);
             if ( $flagAssigned )
             {
-                throw new Exception ("INPUT DOCUMENT IS ASSIGNED TO A STEP");
+                throw new \Exception ("INPUT DOCUMENT IS ASSIGNED TO A STEP");
             }
         } catch (\Exception $e) {
             throw $e;
@@ -244,7 +245,7 @@ class InputDocument
             //Verify data
             $this->throwExceptionIfNotExistsInputDocument ($inputDocumentUid);
             //Load InputDocument
-            $inputDocument = new InputDocuments ($this->stepId);
+            $inputDocument = new \InputDocuments ($this->stepId);
 
             //Verify data
 
@@ -274,17 +275,17 @@ class InputDocument
         try {
             //Verify data
 
-            $objWorkflowStep = new WorkflowStep();
+            $objWorkflowStep = new \WorkflowStep();
 
             if ( !$objWorkflowStep->stepExists ($this->stepId) )
             {
-                throw new Exception ("Step doews not exist");
+                throw new \Exception ("Step doews not exist");
             }
 
             $this->throwExceptionIfNotExistsInputDocument ($inputDocumentUid);
             $this->throwExceptionIfItsAssignedInOtherObjects ($inputDocumentUid);
 
-            $inputDocument = new InputDocuments ($this->stepId);
+            $inputDocument = new \InputDocuments ($this->stepId);
             $inputDocument->delete ($inputDocumentUid);
         } catch (Exception $e) {
             throw $e;
@@ -347,9 +348,9 @@ class InputDocument
 
     public function assignToStep ($assignArr)
     {
-        $inputDocument = new InputDocument ($this->stepId);
+        $inputDocument = new \InputDocument ($this->stepId);
         try {
-            $inputDocument = new InputDocument ($this->stepId);
+            $inputDocument = new \InputDocument ($this->stepId);
             $arrAssignedDocs = $this->getInputDocumentForStep ();
             $arrAssigned = [];
 

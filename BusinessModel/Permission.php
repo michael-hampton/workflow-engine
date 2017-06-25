@@ -1,4 +1,5 @@
 <?php
+namespace BusinessModel;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -18,7 +19,7 @@ class Permission
     
     public function __construct ()
     {
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
     }
 
     public function getAllPermissions()

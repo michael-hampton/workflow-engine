@@ -1,5 +1,7 @@
 <?php
 
+namespace BusinessModel;
+
 class ProcessSupervisor
 {
 
@@ -7,7 +9,7 @@ class ProcessSupervisor
 
     public function __construct ()
     {
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
     }
 
     /**
@@ -34,7 +36,7 @@ class ProcessSupervisor
             $limitbk = $limit;
 
             //Verify data
-            $process = new Process();
+            $process = new \BusinessModel\Process();
 
 
             //Set variables
@@ -410,35 +412,35 @@ class ProcessSupervisor
      */
     public function addProcessSupervisor ($sProcessUID, $sUsrUID, $sTypeUID)
     {
-        $objUsers = new UsersFactory ($sUsrUID, null, null, $sUsrUID);
-        $objTeams = new Team();
+        $objUsers = new \BusinessModel\UsersFactory ($sUsrUID, null, null, $sUsrUID);
+        $objTeams = new \BusinessModel\Team();
         $oTypeAssigneeT = $objTeams->getGroups ();
         $oTypeAssigneeU = $objUsers->getUsers ();
 
         if ( empty ($oTypeAssigneeT) && empty ($oTypeAssigneeU) )
         {
-            throw new Exception ("ID_USER_DOES_NOT_CORRESPOND_TYPE");
+            throw new \Exception ("ID_USER_DOES_NOT_CORRESPOND_TYPE");
         }
 
         if ( empty ($oTypeAssigneeT) && !empty ($oTypeAssigneeU) )
         {
             if ( "SUPERVISOR" != $sTypeUID )
             {
-                throw new Exception ("ID_USER_DOES_NOT_CORRESPOND_TYPE");
+                throw new \Exception ("ID_USER_DOES_NOT_CORRESPOND_TYPE");
             }
         }
         if ( !empty ($oTypeAssigneeT) && empty ($oTypeAssigneeU) )
         {
             if ( "GROUP_SUPERVISOR" != $sTypeUID )
             {
-                throw new Exception ("ID_USER_DOES_NOT_CORRESPOND_TYPE");
+                throw new \Exception ("ID_USER_DOES_NOT_CORRESPOND_TYPE");
             }
         }
 
         // validate group id
 
         $sPuUIDT = array();
-        $oProcessUser = new ProcessUser();
+        $oProcessUser = new \ProcessUser();
 
         if ( $sTypeUID == "GROUP_SUPERVISOR" )
         {
@@ -488,7 +490,7 @@ class ProcessSupervisor
     public function removeProcessSupervisor ($sProcessUID, $sPuUID)
     {
         try {
-            $processUser = new ProcessUser();
+            $processUser = new \ProcessUser();
             $oProcessUser = $processUser->retrieveByPK ($sPuUID);
             if ( !empty ($oProcessUser) )
             {
@@ -497,7 +499,7 @@ class ProcessSupervisor
             }
             else
             {
-                throw new Exception ("ID_ROW_DOES_NOT_EXIST");
+                throw new \Exception ("ID_ROW_DOES_NOT_EXIST");
             }
         } catch (Exception $e) {
             throw $e;

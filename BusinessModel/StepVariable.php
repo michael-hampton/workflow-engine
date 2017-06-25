@@ -1,5 +1,7 @@
 <?php
 
+namespace BusinessModel;
+
 class StepVariable
 {
 
@@ -12,13 +14,13 @@ class StepVariable
      * 
      * @param type $fieldId
      */
-    public function __construct ($fieldId = null)
+    public function __construct (\Field $objField = null)
     {
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
 
-        if ( $fieldId !== null )
+        if ( $objField !== null )
         {
-            $this->fieldId = $fieldId;
+            $this->fieldId = $objField->getFieldId ();
         }
     }
 
@@ -46,7 +48,7 @@ class StepVariable
 
                 if ( !empty ($arrSql) )
                 {
-                    $objDatabase = new DatabaseOptions ($fieldId);
+                    $objDatabase = new \DatabaseOptions ($fieldId);
                     $objDatabase->setDatabaseName ($arrayData['VAR_DBCONNECTION']);
                     $objDatabase->setTableName ($arrSql['from']);
                     $objDatabase->setIdColumn ($arrSql['select']);
@@ -69,7 +71,7 @@ class StepVariable
                 }
             }
 
-            $variable = new Variable ($fieldId);
+            $variable = new \Variable ($fieldId);
 
             if ( isset ($arrayData["VAR_NAME"]) && trim ($arrayData['VAR_NAME']) !== "" )
             {
@@ -77,7 +79,7 @@ class StepVariable
             }
             else
             {
-                throw new Exception ("Variable Name cant be empty");
+                throw new \Exception ("Variable Name cant be empty");
             }
 
             if ( isset ($arrayData["VAR_FIELD_TYPE"]) )
@@ -86,7 +88,7 @@ class StepVariable
             }
             else
             {
-                throw new Exception ("Validation type cannot be empty");
+                throw new \Exception ("Validation type cannot be empty");
             }
 
             if ( isset ($arrayData["VAR_DBCONNECTION"]) )
@@ -124,7 +126,7 @@ class StepVariable
                 foreach ($variable->getValidationErrors () as $validationFailure) {
                     $msg = $msg . (($msg != "") ? "\n" : "") . $validationFailure;
                 }
-                throw new Exception ("Cannot create variable " . $msg);
+                throw new \Exception ("Cannot create variable " . $msg);
             }
         } catch (Exception $e) {
             throw $e;
@@ -243,7 +245,7 @@ class StepVariable
 
             if ( $isUsed !== false )
             {
-                throw new Exception ("Variable is assigned to other fields");
+                throw new \Exception ("Variable is assigned to other fields");
             }
 
             $this->objMysql->_delete ("workflow.workflow_variables", array("field_id" => $this->fieldId));
@@ -271,7 +273,7 @@ class StepVariable
                 $arrVariables = [];
 
 
-                $arrVariables = new Variable ($result[0]['field_id']);
+                $arrVariables = new \Variable ($result[0]['field_id']);
                 $arrVariables->setValidationType ($result[0]['validation_type']);
                 $arrVariables->setVariableName ($result[0]['variable_name']);
                 $arrVariables->setId ($result[0]['id']);
@@ -301,7 +303,7 @@ class StepVariable
                 $arrVariables = [];
 
 
-                $arrVariables = new Variable ($result[0]['field_id']);
+                $arrVariables = new \Variable ($result[0]['field_id']);
                 $arrVariables->setValidationType ($result[0]['validation_type']);
                 $arrVariables->setVariableName ($result[0]['variable_name']);
                 $arrVariables->setId ($result[0]['id']);
@@ -331,7 +333,7 @@ class StepVariable
             $arrVariables = [];
 
             foreach ($results as $key => $result) {
-                $arrVariables[$result['field_id']] = new Variable ($result['field_id']);
+                $arrVariables[$result['field_id']] = new \Variable ($result['field_id']);
                 $arrVariables[$result['field_id']]->setValidationType ($result['validation_type']);
                 $arrVariables[$result['field_id']]->setVariableName ($result['variable_name']);
                 $arrVariables[$result['field_id']]->setId ($result['id']);
@@ -376,7 +378,7 @@ class StepVariable
         try {
             if ( $this->checkFieldHasVariable ($fieldId) === false )
             {
-                throw new Exception ("Could not find Variable");
+                throw new \Exception ("Could not find Variable");
             }
         } catch (\Exception $e) {
             throw $e;
@@ -402,7 +404,7 @@ class StepVariable
             {
                 if ( $throwException )
                 {
-                    throw new Exception ('ID_DOES_NOT_EXIST');
+                    throw new \Exception ('ID_DOES_NOT_EXIST');
                 }
                 else
                 {

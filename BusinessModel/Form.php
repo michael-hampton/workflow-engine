@@ -1,5 +1,5 @@
 <?php
-
+namespace BusinessModel;
 class Form extends FieldFactory
 {
 
@@ -13,14 +13,17 @@ class Form extends FieldFactory
      * @param type $stepId
      * @param type $workflowId
      */
-    public function __construct ($stepId = null, $workflowId = null)
+    public function __construct (\Task $objTask = null, \Workflow $objWorkflow)
     {
-        $this->stepId = $stepId;
-        $this->objMysql = new Mysql2();
+        if($objTask !== null) {
+            $this->stepId = $objTask->getStepId ();
+        }
+        
+        $this->objMysql = new \Mysql2();
 
-        if ( $workflowId !== null )
+        if ( $objWorkflow !== null )
         {
-            $this->workflowId = $workflowId;
+            $this->workflowId = $objWorkflow->getWorkflowId ();
         }
     }
 
@@ -33,7 +36,7 @@ class Form extends FieldFactory
     {
 
         // Fields
-        $arrStepFields = $this->getFieldsForStep ($this->stepId);
+        $arrStepFields = $this->getFieldsForStep (new \Task ($this->stepId));
 
         $arrFields = [];
 
@@ -67,7 +70,7 @@ class Form extends FieldFactory
     public function getInputDocuments ()
     {
         // Input Documents
-        $objStepDocument = new InputDocument ($this->stepId);
+        $objStepDocument = new \BusinessModel\InputDocument (new \Task ($this->stepId));
         $arrInputDocuments = $objStepDocument->getInputDocumentForStep ();
 
         if ( !empty ($arrInputDocuments) )
@@ -88,7 +91,7 @@ class Form extends FieldFactory
         $arrFields = json_decode ($arrData, true);
         $arrErrors = array();
 
-        $objFieldFactory = new FieldFactory();
+        $objFieldFactory = new \BusinessModel\FieldFactory();
 
         foreach ($arrFields as $arrField) {
 
@@ -96,7 +99,7 @@ class Form extends FieldFactory
 
             if ( !isset ($fieldType[0]) || empty ($fieldType[0]) )
             {
-                throw new Exception ("Field type is unrecognized");
+                throw new \Exception ("Field type is unrecognized");
             }
 
             $arrField['type'] = $fieldType[0]['field_type_id'];
@@ -106,7 +109,7 @@ class Form extends FieldFactory
 
             if ( !is_numeric ($fieldId) )
             {
-                throw new Exception ("Field could not be created");
+                throw new \Exception ("Field could not be created");
             }
 
             $this->fieldId = $fieldId;
@@ -132,7 +135,7 @@ class Form extends FieldFactory
                     $optionCount++;
                 }
 
-                $objFieldOptions = new FieldOptions ($fieldId);
+                $objFieldOptions = new \FieldOptions ($fieldId);
                 $objFieldOptions->setDataType (3);
                 $objFieldOptions->set_strOptions ($arrOptions);
                 $objFieldOptions->saveDataType ();
@@ -141,7 +144,7 @@ class Form extends FieldFactory
             /*             * **************** save database option values ************************ */
             elseif ( !empty ($arrFormData['databaseName']) && !empty ($arrFormData['tableName']) )
             {
-                $objDatabaseOptions = new DatabaseOptions ($fieldId);
+                $objDatabaseOptions = new \DatabaseOptions ($fieldId);
                 $objDatabaseOptions->setDatabaseName ($arrFormData['databaseName']);
                 $objDatabaseOptions->setIdColumn ($arrFormData['columnName']);
                 $objDatabaseOptions->setTableName ($arrFormData['tableName']);
@@ -161,13 +164,13 @@ class Form extends FieldFactory
                 }
             }
 
-            $objStepField = new StepField ($this->stepId);
+            $objStepField = new \StepField ($this->stepId);
 
             /*             * ********************* Assign Field to step ********************** */
             if ( $checked == "true" )
             {
                 $objStepField->delete ();
-                $objRequiredField = new RequiredField ($this->stepId, $fieldId, $this->workflowId);
+                $objRequiredField = new \RequiredField ($this->stepId, $fieldId, $this->workflowId);
                 $objRequiredField->removeAllRequiredFieldsFromStep ();
 
                 foreach ($arrFieldIds as $key => $fieldId) {
@@ -185,7 +188,7 @@ class Form extends FieldFactory
                         foreach ($objStepField->getArrayValidation () as $validationFailure) {
                             $msg = $msg . (($msg != "") ? "\n" : "") . $validationFailure;
                         }
-                        throw new Exception ("Failed to assign field to step " . $msg);
+                        throw new \Exception ("Failed to assign field to step " . $msg);
                     }
                 }
             }
@@ -194,7 +197,7 @@ class Form extends FieldFactory
             if ( !empty ($arrRequired) )
             {
                 foreach ($arrRequired as $fieldId) {
-                    $objRequiredField = new RequiredField ($this->stepId, $fieldId, $this->workflowId);
+                    $objRequiredField = new \RequiredField ($this->stepId, $fieldId, $this->workflowId);
 
                     if ( $objRequiredField->validate () )
                     {
@@ -206,7 +209,7 @@ class Form extends FieldFactory
                         foreach ($objRequiredField->getArrayValidation () as $validationFailure) {
                             $msg = $msg . (($msg != "") ? "\n" : "") . $validationFailure;
                         }
-                        throw new Exception ("Failed to save required field " . $msg);
+                        throw new \Exception ("Failed to save required field " . $msg);
                     }
                 }
             }
@@ -214,7 +217,7 @@ class Form extends FieldFactory
             /*             * ******************** Save Variables ***************************** */
             if ( isset ($arrField['id']) && trim ($arrField['id']) !== "" )
             {
-                $objVariable = new StepVariable ($fieldId);
+                $objVariable = new \BusinessModel\StepVariable (new \Field ($fieldId));
                 $variableName = strtolower (trim (str_replace (" ", "", $arrField['id'])));
 
                 $objVariable->create ($fieldId, array("VAR_NAME" => $variableName, "VAR_FIELD_TYPE" => "string"));
@@ -224,23 +227,23 @@ class Form extends FieldFactory
 
     public function buildFormForStep (WorkflowStep $objWorkflowStep, Users $objUser, $projectId, $elementId = null)
     {
-        $objCases = new Cases();
+        $objCases = new \BusinessModel\Cases();
         $objCase = $objCases->getCaseInfo ($projectId, $elementId);
 
         $currentStepId = $objCase->getCurrentStepId ();
         $workflowId = $objWorkflowStep->getWorkflowId ();
         $stepId = $objWorkflowStep->getStepId ();
         $taskId = $objWorkflowStep->getWorkflowStepId ();
-        $objFormBuilder = new FormBuilder();
+        $objFormBuilder = new \BusinessModel\FormBuilder();
         $buildSummary = false;
         $html = '';
 
         $userPermissions = $objCases->getAllObjectsFrom ($projectId, $elementId, $stepId, $objUser);
         
-        $objProcessSupervisor = new ProcessSupervisor();
+        $objProcessSupervisor = new \BusinessModel\ProcessSupervisor();
         $blProcessSupervisor = $objProcessSupervisor->isUserProcessSupervisor ($workflowId, $objUser);
 
-        $objAttachments = new Attachments();
+        $objAttachments = new \BusinessModel\Attachments();
         $arrAttachments = $objAttachments->getAllAttachments ($projectId);
         $attachmentHTML = $objFormBuilder->buildAttachments ($arrAttachments);
 
@@ -254,14 +257,14 @@ class Form extends FieldFactory
 
             if ( !empty ($firstStep) )
             {
-                $objWorkflowStep = new WorkflowStep ($firstStep[0]['id']);
+                $objWorkflowStep = new \WorkflowStep ($firstStep[0]['id']);
                 $arrFields = $objWorkflowStep->getFields ();
             }
         }
 
         // Permissions
 
-        $objVariables = new StepVariable();
+        $objVariables = new \BusinessModel\StepVariable();
 
         foreach ($arrFields as $key => $objField) {
 
@@ -318,7 +321,7 @@ class Form extends FieldFactory
             $objFormBuilder->buildForm ($arrFields);
         }
 
-        $objStepDocument = new InputDocument ($taskId);
+        $objStepDocument = new \BusinessModel\InputDocument (new \Task ($taskId));
         $arrDocuments = $objStepDocument->getInputDocumentForStep ();
 
         if ( !empty ($arrDocuments) )

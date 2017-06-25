@@ -1,5 +1,7 @@
 <?php
 
+namespace BusinessModel;
+
 class TimerEvent
 {
 
@@ -14,7 +16,7 @@ class TimerEvent
      */
     public function __construct ()
     {
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
     }
 
     /**
@@ -410,11 +412,11 @@ class TimerEvent
             }
             //Verify data - Field definition
             $arrayFieldDefinition = array();
-            $bpmnEvent = (new Event())->getEvent ($projectUid);
+            $bpmnEvent = (new \Event())->getEvent ($projectUid);
 
             if ( !isset ($bpmnEvent[0]) || empty ($bpmnEvent[0]) )
             {
-                throw new Exception ("Event doesnt exist");
+                throw new \Exception ("Event doesnt exist");
             }
             $stepCondition = json_decode ($bpmnEvent[0]['step_condition'], true);
 
@@ -680,7 +682,7 @@ class TimerEvent
     public function getTimerEventDataFromRecord (array $record)
     {
         try {
-            $objTimerEvent = new TimerEvents();
+            $objTimerEvent = new \TimerEvents();
             $objTimerEvent->setTmrevnUid ($record['TMREVN_UID']);
             $objTimerEvent->setPrjUid ($record['workflow_id']);
             $objTimerEvent->setEvnUid ($record['EVN_UID']);
@@ -723,12 +725,12 @@ class TimerEvent
             //Update
             $arrayData = $this->unsetFields ($arrayData);
             try {
-                $timerEvent = new TimerEvents();
-                $bpmnEvent = (new Event())->getEvent ($arrayFinalData["EVN_UID"]);
+                $timerEvent = new \TimerEvents();
+                $bpmnEvent = (new \Event())->getEvent ($arrayFinalData["EVN_UID"]);
 
                 if ( !isset ($bpmnEvent[0]) || empty ($bpmnEvent[0]) )
                 {
-                    throw new Exception ("Event doesnt exist");
+                    throw new \Exception ("Event doesnt exist");
                 }
 
                 if ( isset ($arrayData["TMREVN_START_DATE"]) )
@@ -843,7 +845,7 @@ class TimerEvent
         try {
 
             //Set variables
-            $case = new \Cases();
+            $case = new \BusinessModel\Cases();
             list($year, $month, $day, $hour, $minute) = $this->getYearMonthDayHourMinuteSecondByDatetime ($datetime);
             $date = "$year-$month-$day";
             $dateIni = "$year-$month-$day 00:00:00";
@@ -1083,7 +1085,7 @@ class TimerEvent
             try {
                 $record = $this->getTimerEvent ($timerEventUid);
                 $arrayData = array_merge ($record, $arrayData);
-                $timerEvent = new TimerEvents();
+                $timerEvent = new \TimerEvents();
                 $timerEvent->setTmrevnUid ($timerEventUid);
 
                 $arrayData['TMREVN_CONFIGURATION_DATA'] = serialize ($arrayData['TMREVN_CONFIGURATION_DATA']);
@@ -1118,7 +1120,7 @@ class TimerEvent
 
     public function setRecord ($record)
     {
-        $timerEvents = new TimerEvents();
+        $timerEvents = new \TimerEvents();
         $timerEvents->setEvnUid ($record['EVN_UID']);
         $timerEvents->setPrjUid ($record['workflow_id']);
         $timerEvents->setTmrevnConfigurationData ($record['TMREVN_CONFIGURATION_DATA']);

@@ -1,4 +1,5 @@
 <?php
+namespace BusinessModel;
 
 class UsersFactory
 {
@@ -20,7 +21,7 @@ class UsersFactory
      */
     public function __construct ($userId = null, $deptId = null, $permId = null, $teamId = null)
     {
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
         $this->userId = $userId;
         $this->deptId = $deptId;
         $this->permId = $permId;
@@ -291,8 +292,8 @@ class UsersFactory
 
                 $arrayData['dept_id'] = trim ($arrayData['dept_id']) !== "" ? $arrayData['dept_id'] : 1;
 
-                $password = new Password();
-                $user = new Users();
+                $password = new \Password();
+                $user = new \Users();
 
                 $arrayData["USR_PASSWORD"] = $password->hashPassword ($arrayData["password"]);
 
@@ -359,10 +360,10 @@ class UsersFactory
             //Update
 
             try {
-                $user = new Users();
+                $user = new \Users();
                 if ( isset ($arrayData['password']) )
                 {
-                    $password = new Password();
+                    $password = new \Password();
                     $arrayData['USR_PASSWORD'] = $password->hashPassword ($arrayData['password']);
                 }
 
@@ -543,7 +544,7 @@ class UsersFactory
     private function __getUserCustomRecordFromRecord (array $record)
     {
         try {
-            $objUsers = new Users();
+            $objUsers = new \Users();
 
             //Get photo
             $pathPhotoUser = PATH_IMAGES_ENVIRONMENT_USERS . $record["username"] . ".jpg";
@@ -595,7 +596,7 @@ class UsersFactory
             {
                 if ( $_FILES['upload']['tmp_name'] != '' )
                 {
-                    $objFile = new FileUpload();
+                    $objFile = new \BusinessModel\FileUpload();
 
                     $aAux = explode ('.', $_FILES['upload']['name']);
                     $objFile->uploadFile ($_FILES['upload']['tmp_name'], PATH_IMAGES_ENVIRONMENT_USERS, $userUid . '.' . $aAux[1]);
@@ -659,13 +660,14 @@ class UsersFactory
      */
     public function loadUserRolePermission ($sUser)
     {
-        $objUserRole = new RoleUser();
-        $fieldsRoles = $objUserRole->getRolesForUser ($sUser);
+        $objUser = (new BusinessModel\UsersFactory())->getUser($sUser);
+        $objUserRole = new \BusinessModel\RoleUser();
+        $fieldsRoles = $objUserRole->getRolesForUser ($objUser);
 
         $fieldsPermissions = [];
 
         foreach ($fieldsRoles as $fieldsRole) {
-            $fieldsPermissions[] = $objUserRole->getAllPermissions ($fieldsRole['role_id'], $sUser);
+            $fieldsPermissions[] = $objUserRole->getAllPermissions (new \Roles ($fieldsRole['role_id']));
         }
         
         $permissions = [];
@@ -684,7 +686,7 @@ class UsersFactory
         return $permissions;
     }
 
-    public function checkPermission (BaseUser $objUser, $permissionCode)
+    public function checkPermission (\BaseUser $objUser, $permissionCode)
     {
 
         try {

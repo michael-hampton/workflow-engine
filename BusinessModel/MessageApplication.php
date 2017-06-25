@@ -11,6 +11,9 @@
  *
  * @author michael.hampton
  */
+
+namespace BusinessModel;
+
 class MessageApplication
 {
 
@@ -19,7 +22,7 @@ class MessageApplication
 
     private function getConnection ()
     {
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
     }
 
     /**
@@ -49,7 +52,7 @@ class MessageApplication
      *
      * return bool Return true if been created, false otherwise
      */
-    public function create ($workflowId, $applicationUid, $projectUid, $eventUidThrow, array $arrayApplicationData)
+    public function create (\Flow $objFlow, $applicationUid, $projectUid, array $arrayApplicationData)
     {
         try {
 
@@ -62,11 +65,11 @@ class MessageApplication
             $flagCreate = true;
             //Set data
             //Message-Event-Relation - Get unique id of Event (catch)
-            $messageEventRelation = new MessageEventRelation();
+            $messageEventRelation = new \BusinessModel\MessageEventRelation();
             $arrayMessageEventRelationData = $messageEventRelation->getMessageEventRelationWhere (
                     array(
-                "PRJ_UID" => $workflowId,
-                "EVN_UID_THROW" => $eventUidThrow
+                "PRJ_UID" => $objFlow->getWorkflowId (),
+                "EVN_UID_THROW" => $objFlow->getStepFrom ()
                     ), true
             );
 
@@ -79,10 +82,10 @@ class MessageApplication
                 $flagCreate = false;
             }
             //Message-Application - Get data ($eventUidThrow)
-            $messageEventDefinition = new MessageEventDefinition();
-            if ( $messageEventDefinition->existsEvent ($projectUid, $eventUidThrow) )
+            $messageEventDefinition = new \BusinessModel\MessageEventDefinition();
+            if ( $messageEventDefinition->existsEvent ($projectUid, $objFlow->getStepFrom ()) )
             {
-                $arrayMessageEventDefinitionData = $messageEventDefinition->getMessageEventDefinitionByEvent ($projectUid, $eventUidThrow, true);
+                $arrayMessageEventDefinitionData = $messageEventDefinition->getMessageEventDefinitionByEvent ($projectUid, $objFlow->getStepFrom (), true);
 
 
                 $arrayMessageApplicationVariables = unserialize ($arrayMessageEventDefinitionData[0]["MSGT_VARIABLES"]);
@@ -118,7 +121,7 @@ class MessageApplication
                 $messageApplication = new \MessageApplications();
                 $messageApplication->setAppUid ($applicationUid);
                 $messageApplication->setPrjUid ($projectUid);
-                $messageApplication->setEvnUidThrow ($eventUidThrow);
+                $messageApplication->setEvnUidThrow ($objFlow->getStepFrom ());
                 $messageApplication->setEvnUidCatch ($eventUidCatch);
                 $messageApplication->setMsgappVariables (serialize ($arrayMessageApplicationVariables));
                 $messageApplication->setMsgappCorrelation ($messageApplicationCorrelation);
@@ -299,7 +302,7 @@ class MessageApplication
                     $taskUid = $arrayMessageApplicationData["EVN_UID_CATCH"];
                     $messageApplicationUid = $arrayMessageApplicationData["MSGAPP_UID"];
                     $messageApplicationCorrelation = $arrayMessageApplicationData["MSGAPP_CORRRELATION"];
-                    $objUser = (new UsersFactory)->getUser ($_SESSION['user']['usrid']);
+                    $objUser = (new \BusinessModel\UsersFactory())->getUser ($_SESSION['user']['usrid']);
                     $messageEventDefinitionCorrelation = $arrayMessageApplicationData["MSGED_CORRELATION"];
                     $arrayVariable = $this->mergeVariables ($arrayMessageApplicationData["MSGED_VARIABLES"], $arrayMessageApplicationData["MSGAPP_VARIABLES"]);
                     $flagCatched = false;
@@ -446,11 +449,11 @@ class MessageApplication
      * @param      Connection $con the connection to use
      * @return     MessageApplication
      */
-    public function retrieveByPK ($pk, $con = null)
+    public function retrieveByPK ($pk)
     {
         $v = $this->objMysql->_select ("workflow.message_application", [], ['MSGAPP_UID' => $pk]);
 
-        $messageApplications = new MessageApplications();
+        $messageApplications = new \MessageApplications();
         $messageApplications->loadObject ($v[0]);
 
         return isset ($v[0]) && !empty ($v[0]) ? $messageApplications : null;

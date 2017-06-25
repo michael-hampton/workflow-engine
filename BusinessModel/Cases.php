@@ -1,4 +1,5 @@
 <?php
+namespace BusinessModel;
 
 class Cases
 {
@@ -9,7 +10,7 @@ class Cases
 
     private function getConnection ()
     {
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
     }
 
     /**
@@ -168,7 +169,7 @@ class Cases
 
             return [];
         } catch (Exception $ex) {
-            throw new Exception ($ex);
+            throw new \Exception ($ex);
         }
     }
 
@@ -286,7 +287,7 @@ class Cases
 
             foreach ($arrCases['data'] as $key => $arrCase) {
 
-                $objCase = new Elements ($arrCase['projectId'], $arrCase['elementId']);
+                $objCase = new \Elements ($arrCase['projectId'], $arrCase['elementId']);
 
                 if ( isset ($arrCase['workflow_id']) )
                 {
@@ -406,7 +407,7 @@ class Cases
                             $audit = $auditData['elements'][$elementId]['steps'][$previousStep];
                         }
 
-                        $objElements = new Elements ($projectId, $elementId);
+                        $objElements = new \Elements ($projectId, $elementId);
 
                         if ( isset ($audit['dateCompleted']) )
                         {
@@ -447,7 +448,7 @@ class Cases
 
             return [];
         } catch (Exception $ex) {
-            throw new Exception ($ex);
+            throw new \Exception ($ex);
         }
     }
 
@@ -501,7 +502,7 @@ class Cases
                 $this->isDate ($dateTo, 'Y-m-d', '$date_to');
             }
 
-            $objComments = new Comments();
+            $objComments = new \Comments();
             $note_data = $objComments->getNotesList ($app_uid, $user, $start, $limit, $sort, $dir, $dateFrom, $dateTo, $search);
             $response = array();
 
@@ -568,7 +569,7 @@ class Cases
 
         if ( strlen ($note_content) > 500 )
         {
-            throw (new Exception ("COMMENT CANNOT BE MORE THAN 500 CHARACTERS"));
+            throw (new \Exception ("COMMENT CANNOT BE MORE THAN 500 CHARACTERS"));
         }
 
         $this->isBoolean ($send_mail);
@@ -576,22 +577,22 @@ class Cases
         //$caseLoad = $case->loadCase ($app_uid);
         //$pro_uid = $caseLoad['PRO_UID'];
         $note_content = addslashes ($note_content);
-        $comments = new Comments();
+        $comments = new \Comments();
         $comments->addCaseNote ($app_uid, $usr_uid, $note_content, intval ($send_mail));
     }
 
     public function startCase ($workflowId)
     {
-        $objWorkflow = new Workflow ($workflowId, null);
+        $objWorkflow = new \Workflow ($workflowId, null);
 
         $objStep = $objWorkflow->getNextStep ();
 
         $stepId = $objStep->getStepId ();
 
-        $objForm = new Form ($stepId, $workflowId);
+        $objForm = new \BusinessModel\Form (new \Task ($stepId), new \Workflow ($workflowId));
         $arrFields = $objForm->getFields ();
 
-        $objFprmBuilder = new FormBuilder ("AddNewForm");
+        $objFprmBuilder = new \BusinessModel\FormBuilder ("AddNewForm");
         $objFprmBuilder->buildForm ($arrFields, array());
         $html = $objFprmBuilder->render ();
 
@@ -612,18 +613,18 @@ class Cases
     {
         try {
             // Check For Parent
-            $objWorkflow = new Workflow ($processUid);
+            $objWorkflow = new \Workflow ($processUid);
             $arrWorkflow = $objWorkflow->getProcess ();
 
             $workflowId = isset ($arrWorkflow[0]['parent_id']) && $arrWorkflow[0]['parent_id'] !== '0' ? $arrWorkflow[0]['parent_id'] : $processUid;
 
-            $oProcesses = new Process();
+            $oProcesses = new \Process();
 
             $pro = $oProcesses->processExists ($processUid);
 
             if ( !$pro )
             {
-                throw new Exception ("Process doesnt exist");
+                throw new \Exception ("Process doesnt exist");
             }
 
             $arrData['form'] = array(
@@ -665,8 +666,8 @@ class Cases
 
             $errorCounter = 0;
 
-            $objElements = new Elements ($projectId);
-            $objWorkflow = new Workflow ($processUid);
+            $objElements = new \Elements ($projectId);
+            $objWorkflow = new \Workflow ($processUid);
             $objStep = $objWorkflow->getNextStep ();
 
             if ( isset ($arrFiles['fileUpload']) )
@@ -711,7 +712,7 @@ class Cases
                 return array("project_id" => $projectId, "case_id" => $caseId);
             }
         } catch (Exception $ex) {
-            throw new Exception ($ex);
+            throw new \Exception ($ex);
         }
     }
 
@@ -742,7 +743,7 @@ class Cases
                     $arrData['file_type'] = $fileType;
                 }
 
-                $objAttachments = new Attachments();
+                $objAttachments = new \BusinessModel\Attachments();
                 $id = $arrFiles = $objAttachments->loadObject ($arrData);
 
                 if ( $id === false )
@@ -754,7 +755,7 @@ class Cases
                         $html .= $message . "</br>";
                     }
 
-                    throw new Exception ("File could not be uploaded </br>" . $html);
+                    throw new \Exception ("File could not be uploaded </br>" . $html);
                 }
 
                 $arrFiles[] = $id;
@@ -775,8 +776,8 @@ class Cases
 
     public function saveProject ($arrData, $workflowId, Users $objUser)
     {
-        $objSave = new Save();
-        $objWorkflow = new Workflow ($workflowId);
+        $objSave = new \Save();
+        $objWorkflow = new \Workflow ($workflowId);
 
         $objStep = $objWorkflow->getNextStep ();
         $validation = $objStep->save ($objSave, $arrData['form'], $objUser);
@@ -885,8 +886,8 @@ class Cases
             $arrStepData['rejectionReason'] = $rejectionReason;
         }
 
-        $objSteps = new WorkflowStep (null, $objElement);
-        $objUser = (new UsersFactory)->getUser ($_SESSION['user']['usrid']);
+        $objSteps = new \WorkflowStep (null, $objElement);
+        $objUser = (new \BusinessModel\UsersFactory())->getUser ($_SESSION['user']['usrid']);
 
         if ( $status === "COMPLETE" )
         {
@@ -910,7 +911,7 @@ class Cases
             "status" => "CLAIMED"
         );
 
-        $objStep = new WorkflowStep (null, $objElements);
+        $objStep = new \WorkflowStep (null, $objElements);
         $objStep->assignUserToStep ($objElements, $arrStepData);
     }
 
@@ -944,7 +945,7 @@ class Cases
 
         if ( !is_null ($dynaFormUid) )
         {
-            $objForm = new Form ($dynaFormUid);
+            $objForm = new \BusinessModel\Form (new \Task ($dynaFormUid));
             $arrAllFields = $objForm->getFields (true);
             $arrFields = [];
 
@@ -1039,7 +1040,7 @@ class Cases
 
             $fileTags = $aOD->getOutDocTags ();
 
-            $objDocumentVersion = new DocumentVersion (array());
+            $objDocumentVersion = new \DocumentVersion (array());
             $lastDocVersion = $objDocumentVersion->getLastDocVersionByFilename ($sFilename);
 
             if ( ($aOD->getOutDocVersioning () ) )
@@ -1050,7 +1051,7 @@ class Cases
 
             $sFilename = $aOD->getOutDocUid () . "_" . $lastDocVersion;
             $pathOutput = $_SERVER['DOCUMENT_ROOT'] . "/FormBuilder/public/uploads/OutputDocuments/" . $projectId . "/";
-            $objFile = new FileUpload();
+            $objFile = new \BusinessModel\FileUpload();
             $objFile->mk_dir ($pathOutput);
 
             $aProperties = array();
@@ -1161,7 +1162,7 @@ class Cases
 
         $listing = false;
 
-        $objUserFactory = new UsersFactory();
+        $objUserFactory = new \BusinessModel\UsersFactory();
         $objUser = $objUserFactory->getUser ($sUserUID);
 
         $aObjectPermissions = $this->getAllObjectsFrom ($sProcessUID, $sApplicationUID, $sTasKUID, $objUser);
@@ -1210,7 +1211,7 @@ class Cases
 
         foreach ($results as $aRow) {
 
-            $oAppDocument = new DocumentVersion();
+            $oAppDocument = new \DocumentVersion();
 
             $lastVersion = $oAppDocument->getLastDocVersion ($aRow['document_id']);
 
@@ -1218,7 +1219,7 @@ class Cases
             {
                 $aAux = $oAppDocument->load ($aRow['document_id'], $lastVersion);
 
-                $oOutputDocument = new OutputDocument();
+                $oOutputDocument = new \OutputDocument();
                 $aGields = $oOutputDocument->retrieveByPk ($aRow['document_id']);
                 //OUTPUTDOCUMENT
                 $outDocTitle = $aGields->getOutDocTitle ();
@@ -1262,7 +1263,7 @@ class Cases
                 }
 
                 try {
-                    $oUser = new UsersFactory();
+                    $oUser = new \BusinessModel\UsersFactory();
                     $aAux1 = $oUser->getUser ($aAux['user_id']);
 
                     $sUser = $this->usersNameFormatBySetParameters ("@lastName, @firstName (@userName)", $aAux1->getUsername (), $aAux1->getFirstName (), $aAux1->getLastName ());
@@ -1374,7 +1375,7 @@ class Cases
                 /* ----------------------------------********--------------------------------- */
         );
 
-        $objPermissions = new StepPermissions ($TAS_UID);
+        $objPermissions = new \BusinessModel\StepPermissions ($TAS_UID);
         $arrPermissions = $objPermissions->getProcessPermissions ();
 
         if ( !empty ($arrPermissions) )
@@ -1526,7 +1527,7 @@ class Cases
         if ( !empty ($objCase) && is_object ($objCase) )
         {
             $workflowId = $objCase->getWorkflow_id ();
-            $supervisor = new ProcessSupervisor();
+            $supervisor = new \BusinessModel\ProcessSupervisor();
             $isSupervisor = $supervisor->isUserProcessSupervisor ($workflowId, $objUser);
             $arrayAccess['supervisor'] = ($isSupervisor) ? true : false;
 
@@ -1597,8 +1598,8 @@ class Cases
             $stepId = $objStep->getStepId ();
             $taskId = $objStep->getWorkflowStepId ();
             $workflowId = $objStep->getWorkflowId ();
-            $user = new UsersFactory();
-            $group = new Team();
+            $user = new \BusinessModel\UsersFactory();
+            $group = new \BusinessModel\Team();
             //Set variables
             $filterName = 'filter';
 
@@ -1620,7 +1621,7 @@ class Cases
                 ];
             }
             //Set variables
-            $processSupervisor = new ProcessSupervisor();
+            $processSupervisor = new \BusinessModel\ProcessSupervisor();
             $arrayResult = $processSupervisor->getProcessSupervisors ($workflowId, 'ASSIGNED', null, null, null, 'teams');
 
             $arrayGroupUid = array_merge (
