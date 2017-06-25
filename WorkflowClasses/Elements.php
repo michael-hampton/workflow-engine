@@ -107,7 +107,7 @@ class Elements
             elseif ( !in_array ($formField, $this->arrToIgnore) )
             {
 
-                $objVariable = (new StepVariable())->getVariableForField ($formField);
+                $objVariable = (new \BusinessModel\StepVariable())->getVariableForField ($formField);
 
                 if ( is_a ($objVariable, 'Variable') )
                 {

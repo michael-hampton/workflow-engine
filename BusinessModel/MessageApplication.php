@@ -269,7 +269,7 @@ class MessageApplication
     public function catchMessageEvent ($frontEnd = false)
     {
         try {
-            $case = new \Cases();
+            $case = new \BusinessModel\Cases();
 
             //Get data
             $totalMessageEvent = 0;
@@ -328,7 +328,7 @@ class MessageApplication
                                     $variables['description'] = "DESCRIPTION";
 
                                     //Start and derivate new Case
-                                    $arrCase = $case->addCase ($arrayMessageApplicationData['workflow_id'], $objUser, array("form" => $variables), [], true, null, true);
+                                    $arrCase = $case->addCase ((new \Workflow( $arrayMessageApplicationData['workflow_id'])), $objUser, array("form" => $variables), [], true, null, true);
 
                                     $aInfo = array(
                                         'action' => 'CREATED-NEW-CASE'

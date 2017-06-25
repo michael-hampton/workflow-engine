@@ -19,7 +19,7 @@ class ProcessPermission
     private $workflowId;
     private $objMysql;
 
-    public function __construct (Workflow $objWorkflow = null)
+    public function __construct (\Workflow $objWorkflow = null)
     {
         if ( $objWorkflow !== null )
         {
@@ -62,10 +62,10 @@ class ProcessPermission
                                                 permission_type,
                                                 workflow_id
                                         FROM workflow.process_permission 
-                                        GROUP BY `permission_type`");
+                                        GROUP BY `permission_type`, workflow_id");
 
         $processPermissions = [];
-
+        
         foreach ($results as $result) {
             $processPermissions[$result['workflow_id']][$result['permission_type']] = explode (",", $result['users']);
         }
@@ -80,11 +80,11 @@ class ProcessPermission
      */
     public function create ($arrPermissions)
     {
-        $objProcessPermissions = new \BusinessModel\ProcessPermission();
+        $objProcessPermissions = new \ProcessPermissions();
 
         $currentLists = $this->getProcessPermissions ();
-        $userList = explode (",", $currentLists['user']);
-        $teamList = explode (",", $currentLists['team']);
+        $userList = isset($currentLists['user']) ? explode (",", $currentLists['user']) : array();
+        $teamList = isset( $currentLists['team']) ? explode (",", $currentLists['team']) : array();
 
         $arrUsers = [];
         $arrTeams = [];

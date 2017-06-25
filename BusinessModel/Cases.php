@@ -581,15 +581,15 @@ class Cases
         $comments->addCaseNote ($app_uid, $usr_uid, $note_content, intval ($send_mail));
     }
 
-    public function startCase ($workflowId)
+    public function startCase (\Workflow $objWorkflow)
     {
-        $objWorkflow = new \Workflow ($workflowId, null);
+        $objWorkflow = new \Workflow ($objWorkflow->getWorkflowId (), null);
 
         $objStep = $objWorkflow->getNextStep ();
 
         $stepId = $objStep->getStepId ();
 
-        $objForm = new \BusinessModel\Form (new \Task ($stepId), new \Workflow ($workflowId));
+        $objForm = new \BusinessModel\Form (new \Task ($stepId), new \Workflow ($objWorkflow->getWorkflowId ()));
         $arrFields = $objForm->getFields ();
 
         $objFprmBuilder = new \BusinessModel\FormBuilder ("AddNewForm");
@@ -609,18 +609,14 @@ class Cases
      * return array Return an array with Task Case
      */
 
-    public function addCase ($processUid, Users $objUser, $variables, $arrFiles = array(), $blSaveProject = true, $projectId = null, $blHasEvent = FALSE)
+    public function addCase (\Workflow $objWorkflow, \Users $objUser, $variables, $arrFiles = array(), $blSaveProject = true, $projectId = null, $blHasEvent = FALSE)
     {
         try {
             // Check For Parent
-            $objWorkflow = new \Workflow ($processUid);
-            $arrWorkflow = $objWorkflow->getProcess ();
+ 
+            $oProcesses = new \BusinessModel\Process();
 
-            $workflowId = isset ($arrWorkflow[0]['parent_id']) && $arrWorkflow[0]['parent_id'] !== '0' ? $arrWorkflow[0]['parent_id'] : $processUid;
-
-            $oProcesses = new \Process();
-
-            $pro = $oProcesses->processExists ($processUid);
+            $pro = $oProcesses->processExists ($objWorkflow->getWorkflowId ());
 
             if ( !$pro )
             {
@@ -630,7 +626,7 @@ class Cases
             $arrData['form'] = array(
                 "priority" => 1,
                 "deptId" => 1,
-                "workflow_id" => $workflowId,
+                "workflow_id" => $objWorkflow->getWorkflowId (),
                 "added_by" => $objUser->getUsername (),
                 "date_created" => date ("Y-m-d"),
                 "project_status" => 1,
@@ -656,18 +652,16 @@ class Cases
                 $arrData['form']['hasEvent'] = true;
             }
 
-
             if ( $blSaveProject === true )
             {
-                $projectId = $this->saveProject ($arrData, $workflowId, $objUser);
+                $projectId = $this->saveProject ($arrData, $objWorkflow, $objUser);
 
                 $this->projectUid ($projectId);
             }
-
+            
             $errorCounter = 0;
 
             $objElements = new \Elements ($projectId);
-            $objWorkflow = new \Workflow ($processUid);
             $objStep = $objWorkflow->getNextStep ();
 
             if ( isset ($arrFiles['fileUpload']) )
@@ -690,7 +684,7 @@ class Cases
                 $variables['form']['source_id'] = $projectId;
 
                 $variables['form']['status'] = "NEW";
-                $variables['form']['workflow_id'] = $processUid;
+                $variables['form']['workflow_id'] = $objWorkflow->getWorkflowId ();
                 $variables['form']['claimed'] = $objUser->getUsername ();
                 $variables['form']['dateCompleted'] = date ("Y-m-d H:i:s");
 
@@ -720,7 +714,7 @@ class Cases
      * Uploads files that were saved as part of the new case process
      * @see addCase
      */
-    public function uploadCaseFiles ($arrFilesUploaded, $projectId, WorkflowStep $objStep, $fileType = '')
+    public function uploadCaseFiles ($arrFilesUploaded, $projectId, \WorkflowStep $objStep, $fileType = '')
     {
         if ( isset ($arrFilesUploaded['fileUpload']['name'][0]) && !empty ($arrFilesUploaded['fileUpload']['name'][0]) )
         {
@@ -744,8 +738,9 @@ class Cases
                 }
 
                 $objAttachments = new \BusinessModel\Attachments();
+                                
                 $id = $arrFiles = $objAttachments->loadObject ($arrData);
-
+                
                 if ( $id === false )
                 {
                     $messages = $objAttachments->getArrayValidation ();
@@ -774,12 +769,13 @@ class Cases
         return $arrFiles;
     }
 
-    public function saveProject ($arrData, $workflowId, Users $objUser)
+    public function saveProject ($arrData, \Workflow $objWorkflow, \Users $objUser)
     {
         $objSave = new \Save();
-        $objWorkflow = new \Workflow ($workflowId);
+        $arrWorkflow = $objWorkflow->getProcess();
+        $workflowId = isset ($arrWorkflow[0]['parent_id']) && $arrWorkflow[0]['parent_id'] !== '0' ? $arrWorkflow[0]['parent_id'] : $objWorkflow->getWorkflowId ();
 
-        $objStep = $objWorkflow->getNextStep ();
+        $objStep = (new \Workflow($workflowId))->getNextStep ();
         $validation = $objStep->save ($objSave, $arrData['form'], $objUser);
 
         if ( $validation === false )
@@ -798,7 +794,7 @@ class Cases
      * @param type $stepTo
      * @return boolean
      */
-    public function derivateCase (Elements $objElement, $stepTo)
+    public function derivateCase (\Elements $objElement, $stepTo)
     {
         $workflowData = $this->objMysql->_select ("workflow.workflow_data", [], ["object_id" => $objElement->getParentId ()]);
         $workflowData = json_decode ($workflowData[0]['workflow_data'], true);
@@ -873,8 +869,11 @@ class Cases
      * @param type $status
      * @param type $rejectionReason
      */
-    public function updateStatus (Elements $objElement, $status, $rejectionReason = '')
+    public function updateStatus (\Elements $objElement, $status, $rejectionReason = '')
     {
+        /** Todo
+         * Pass in user object
+         */
         $arrStepData = array(
             'claimed' => $_SESSION["user"]["username"],
             "dateCompleted" => date ("Y-m-d H:i;s"),
@@ -903,7 +902,7 @@ class Cases
      * 
      * @param Elements $objElements
      */
-    public function assignUsers (Elements $objElements)
+    public function assignUsers (\Elements $objElements)
     {
         $arrStepData = array(
             'claimed' => $_SESSION["user"]["username"],
@@ -978,7 +977,7 @@ class Cases
      *
      * return array Return array
      */
-    private function __getFieldsAndValuesByDynaFormAndAppData (array $form, Elements $objElements, array $caseVariables)
+    private function __getFieldsAndValuesByDynaFormAndAppData (array $form, \Elements $objElements, array $caseVariables)
     {
         try {
             $caseVariableAux = [];
@@ -1351,7 +1350,7 @@ class Cases
      * @return Array with user permissions for all objects types
 
      */
-    public function getAllObjectsFrom ($PRO_UID, $APP_UID, $TAS_UID = "", Users $objUser, $ACTION = "")
+    public function getAllObjectsFrom ($PRO_UID, $APP_UID, $TAS_UID = "", \Users $objUser, $ACTION = "")
     {
         if ( $this->objMysql === null )
         {
@@ -1375,7 +1374,7 @@ class Cases
                 /* ----------------------------------********--------------------------------- */
         );
 
-        $objPermissions = new \BusinessModel\StepPermissions ($TAS_UID);
+        $objPermissions = new \BusinessModel\StepPermissions (new \Task ($TAS_UID));
         $arrPermissions = $objPermissions->getProcessPermissions ();
 
         if ( !empty ($arrPermissions) )
@@ -1504,7 +1503,7 @@ class Cases
      * @param string $appUid
      * @return array Returns array with all access
      */
-    public function userAuthorization (Users $objUser, $proUid, $appUid)
+    public function userAuthorization (\Users $objUser, $proUid, $appUid)
     {
         if ( $this->objMysql === null )
         {
@@ -1548,7 +1547,7 @@ class Cases
         return $arrayAccess;
     }
 
-    public function hasPermission (Users $objUser, $proUid, $appUid)
+    public function hasPermission (\Users $objUser, $proUid, $appUid)
     {
         $userPermission = $this->userAuthorization ($objUser, $proUid, $appUid);
 
@@ -1583,7 +1582,7 @@ class Cases
      *
      * @return array Return Users to reassign
      */
-    public function getUsersToReassign ($projectId, $caseId, Users $objUser, WorkflowStep $objStep, $arrayFilterData = null, $sortField = null, $sortDir = null, $start = null, $limit = null)
+    public function getUsersToReassign ($projectId, $caseId, \Users $objUser, \WorkflowStep $objStep, $arrayFilterData = null, $sortField = null, $sortDir = null, $start = null, $limit = null)
     {
         try {
 

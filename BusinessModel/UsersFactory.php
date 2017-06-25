@@ -660,7 +660,7 @@ class UsersFactory
      */
     public function loadUserRolePermission ($sUser)
     {
-        $objUser = (new BusinessModel\UsersFactory())->getUser($sUser);
+        $objUser = (new UsersFactory())->getUser($sUser);
         $objUserRole = new \BusinessModel\RoleUser();
         $fieldsRoles = $objUserRole->getRolesForUser ($objUser);
 

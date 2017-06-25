@@ -75,7 +75,7 @@ class SendNotification extends Notifications
             {
                 if ( $blSendToAllParticipants === true )
                 {
-                    $case = new Cases();
+                    $case = new \BusinessModel\Cases();
                     $p = $case->getUsersParticipatedInCase ($this->projectId);
 
                     $noteRecipientsList = array();
@@ -85,7 +85,7 @@ class SendNotification extends Notifications
                         foreach ($p as $userParticipated) {
                             if ( $userParticipated != '' )
                             {
-                                $objUsers = new UsersFactory();
+                                $objUsers = new \BusinessModel\UsersFactory();
                                 $arrUser = $objUsers->getUsers (array("filter" => "mike", "filterOption" => trim ($userParticipated)));
 
                                 if ( isset ($arrUser['data'][0]) && !empty ($arrUser['data'][0]) )
@@ -115,7 +115,7 @@ class SendNotification extends Notifications
                 }
             }
 
-            $objCases = new Cases();
+            $objCases = new \BusinessModel\Cases();
 
             $Fields = $objCases->getCaseVariables ($this->elementId, $_SESSION['user']['usrid'], $this->projectId, $status);
 

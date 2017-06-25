@@ -153,8 +153,8 @@ class WorkflowStep
 
     public function getFields ()
     {
-        $objFieldFactory = new FieldFactory();
-        $this->arrFields = $objFieldFactory->getFieldsForStep ($this->_stepId);
+        $objFieldFactory = new \BusinessModel\FieldFactory();
+        $this->arrFields = $objFieldFactory->getFieldsForStep (new Task ($this->_stepId));
         return $this->arrFields;
     }
 
@@ -184,6 +184,7 @@ class WorkflowStep
         {
             return false;
         }
+        
         if ( $this->completeWorkflowObject ($objMike, $arrFormData, false) === false )
         {
             return false;
@@ -198,7 +199,7 @@ class WorkflowStep
             $parentId = $objMike->getParentId ();
         }
         $elementId = $objMike->getId ();
-        $objCases = new Cases();
+        $objCases = new \BusinessModel\Cases();
         if ( !$objCases->hasPermission ($objUser, $parentId, $elementId) )
         {
             throw new Exception ("You do not have permission to do this");
@@ -273,7 +274,7 @@ class WorkflowStep
         }
     }
 
-    private function completeWorkflowObject ($objMike, $arrCompleteData, $complete = false, $arrEmailAddresses)
+    private function completeWorkflowObject ($objMike, $arrCompleteData, $complete = false, $arrEmailAddresses = array())
     {
         $this->elementId = $objMike->getId ();
         $arrWorkflow = array();
@@ -289,7 +290,7 @@ class WorkflowStep
         $arrWorkflowObject = json_decode ($arrWorkflowData[0]['workflow_data'], true);
         $blHasTrigger = false;
         $arrWorkflow['request_id'] = $this->collectionId;
-        $objTrigger = new StepTrigger ($this->_workflowStepId, $this->nextStep);
+        $objTrigger = new \BusinessModel\StepTrigger ($this->_workflowStepId, $this->nextStep);
        
         if ( $complete === true && $this->nextStep !== 0 && $this->nextStep != "" )
         {
@@ -313,7 +314,6 @@ class WorkflowStep
             if ( $this->nextStep == 0 || $this->nextStep == "" )
             {
                 $arrWorkflow['status'] = "WORKFLOW COMPLETE";
-                $arrCompleteData['status'] = "COMPLETE";
             }
             else
             {
@@ -321,6 +321,7 @@ class WorkflowStep
                 //$arrCompleteData['status'] = "SAVED";
             }
         }
+        
         $arrWorkflow['workflow_id'] = $this->workflowId;
         if ( !empty ($arrWorkflowData) )
         {
@@ -354,6 +355,7 @@ class WorkflowStep
         {
             $this->completeAuditObject ($arrCompleteData);
         }
+        
         $this->sendNotification ($objMike, $arrCompleteData, $arrEmailAddresses);
         // Update workflow and audit object
         $strAudit = json_encode ($this->objAudit);
@@ -392,7 +394,7 @@ class WorkflowStep
             $parentId = $objMike->getParentId ();
         }
         $elementId = $objMike->getId ();
-        $objCases = new Cases();
+        $objCases = new \BusinessModel\Cases();
         if ( !$objCases->hasPermission ($objUser, $parentId, $elementId) )
         {
             throw new Exception ("You do not have permission to do this");
@@ -471,7 +473,7 @@ class WorkflowStep
 
     public function checkEvents ()
     {
-        $objEvent = new Event();
+        $objEvent = new \BusinessModel\Event();
         $arrEvents = $objEvent->getEvent ($this->_workflowStepId);
 
         /*         * *************** MESSAGES ****************************** */
@@ -485,13 +487,13 @@ class WorkflowStep
                 $objFlow->setWorkflowId($this->workflowId);
                 $objFlow->setStepFrom($this->_workflowStepId);
                 
-               $objMessageApplication = new MessageApplication();
+               $objMessageApplication = new \BusinessModel\MessageApplication();
                $objMessageApplication->create($objFlow, $this->elementId, $this->parentId, $this->objWorkflow);               
             }
             
             if ( isset ($arrConditions['receiveNotification']) && trim (strtolower ($arrConditions['receiveNotification'])) == "yes" )
             {
-                $objMessageApplication = new MessageApplication();
+                $objMessageApplication = new \BusinessModel\MessageApplication();
                 $objMessageApplication->catchMessageEvent();
             }
         }

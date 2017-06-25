@@ -426,6 +426,7 @@ class StepVariable
      */
     public function throwExceptionFieldDefinition ($aData)
     {
+        
         try {
             if ( isset ($aData["VAR_NAME"]) )
             {

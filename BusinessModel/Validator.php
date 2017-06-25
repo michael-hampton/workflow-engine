@@ -20,13 +20,13 @@ trait Validator
     {
         if ( $this->connection === null )
         {
-            $this->connection = new Mysql2();
+            $this->connection = new \Mysql2();
         }
 
         $project_uid = trim ($project_uid);
         if ( $project_uid == '' )
         {
-            throw (new Exception ("PROJECT DOES NOT EXIST"));
+            throw (new \Exception ("PROJECT DOES NOT EXIST"));
         }
 
         $result = $this->connection->_select ("task_manager.projects", array(), array("id" => $project_uid));
@@ -36,7 +36,7 @@ trait Validator
             return $project_uid;
         }
 
-        throw (new Exception ("PROJECT DOES NOT EXIST"));
+        throw (new \Exception ("PROJECT DOES NOT EXIST"));
     }
 
     /**
@@ -48,7 +48,7 @@ trait Validator
     {
         if ( $this->connection === null )
         {
-            $this->connection = new Mysql2();
+            $this->connection = new \Mysql2();
         }
 
         $result = $this->connection->_select ("user_management.poms_users", array(), array("username" => $username));
@@ -70,7 +70,7 @@ trait Validator
     {
         if ( $this->connection === null )
         {
-            $this->connection = new Mysql2();
+            $this->connection = new \Mysql2();
         }
 
         $result = $this->connection->_select ("user_management.poms_users", array(), array("usrid" => $userId));
@@ -92,7 +92,7 @@ trait Validator
     {
         if ( $this->connection === null )
         {
-            $this->connection = new Mysql2();
+            $this->connection = new \Mysql2();
         }
 
         $result = $this->connection->_select ("user_management.teams", array(), array("team_id" => $teamId));
@@ -114,7 +114,7 @@ trait Validator
     {
         if ( $this->connection === null )
         {
-            $this->connection = new Mysql2();
+            $this->connection = new \Mysql2();
         }
 
         $result = $this->connection->_select ("user_management.departments", array(), array("id" => $deptId));
@@ -142,12 +142,12 @@ trait Validator
         $date = trim ($date);
         if ( $date == '' )
         {
-            throw (new Exception ("ID_DATE_NOT_VALID"));
+            throw (new \Exception ("ID_DATE_NOT_VALID"));
         }
         $d = \DateTime::createFromFormat ($format, $date);
         if ( !($d && $d->format ($format) == $date) )
         {
-            throw (new Exception ("ID_DATE_NOT_VALID"));
+            throw (new \Exception ("ID_DATE_NOT_VALID"));
         }
         return $date;
     }
@@ -164,7 +164,7 @@ trait Validator
     {
         if ( !is_string ($field) )
         {
-            throw (new Exception ("ID_INVALID_VALUE_STRING"));
+            throw (new \Exception ("ID_INVALID_VALUE_STRING"));
         }
     }
 
@@ -180,7 +180,7 @@ trait Validator
     {
         if ( !is_integer ($field) )
         {
-            throw (new Exception ("ID_INVALID_VALUE_INTEGER"));
+            throw (new \Exception ("ID_INVALID_VALUE_INTEGER"));
         }
     }
 
@@ -196,7 +196,7 @@ trait Validator
     {
         if ( !is_bool ($field) )
         {
-            throw (new Exception ("ID_INVALID_VALUE_BOOLEAN"));
+            throw (new \Exception ("ID_INVALID_VALUE_BOOLEAN"));
         }
     }
 
@@ -214,7 +214,7 @@ trait Validator
         $values = array('0', '1');
         if ( !in_array ($dep_status, $values) )
         {
-            throw (new Exception ("ID_DEPARTMENT_NOT_EXIST"));
+            throw (new \Exception ("ID_DEPARTMENT_NOT_EXIST"));
         }
         return $dep_status;
     }
@@ -231,7 +231,7 @@ trait Validator
     {
         if ( empty ($field) )
         {
-            throw (new Exception ("ID_INVALID_VALUE_IS_EMPTY"));
+            throw (new \Exception ("ID_INVALID_VALUE_IS_EMPTY"));
         }
     }
 
@@ -248,7 +248,7 @@ trait Validator
         try {
             if ( !is_array ($data) )
             {
-                throw new Exception ("ID_INVALID_VALUE_THIS_MUST_BE_ARRAY");
+                throw new \Exception ("ID_INVALID_VALUE_THIS_MUST_BE_ARRAY");
             }
         } catch (Exception $e) {
             throw $e;
@@ -268,7 +268,7 @@ trait Validator
         try {
             if ( empty ($data) )
             {
-                throw new Exception ("ID_INVALID_VALUE_CAN_NOT_BE_EMPTY");
+                throw new \Exception ("ID_INVALID_VALUE_CAN_NOT_BE_EMPTY");
             }
         } catch (\Exception $e) {
             throw $e;
@@ -287,7 +287,7 @@ trait Validator
     {
         if ( !is_array ($field) )
         {
-            throw (new Exception ("ID_INVALID_VALUE_ARRAY"));
+            throw (new \Exception ("ID_INVALID_VALUE_ARRAY"));
         }
     }
 
@@ -305,12 +305,12 @@ trait Validator
         $pro_uid = trim ($pro_uid);
         if ( $pro_uid == '' )
         {
-            throw (new Exception ("ID_PROCESS_NOT_EXIST"));
+            throw (new \Exception ("ID_PROCESS_NOT_EXIST"));
         }
-        $oProcess = new Process();
+        $oProcess = new \BusinessModel\Process();
         if ( !($oProcess->processExists ($pro_uid)) )
         {
-            throw (new Exception ("ID_PROCESS_NOT_EXIST"));
+            throw (new \Exception ("ID_PROCESS_NOT_EXIST"));
         }
         return $pro_uid;
     }
@@ -329,13 +329,13 @@ trait Validator
         $cat_uid = trim ($cat_uid);
         if ( $cat_uid == '' )
         {
-            throw (new Exception ("ID_CATEGORY_NOT_EXIST"));
+            throw (new \Exception ("ID_CATEGORY_NOT_EXIST"));
         }
-        $oCategory = new WorkflowCollectionFactory();
+        $oCategory = new \BusinessModel\WorkflowCollectionFactory();
 
         if ( empty ($oCategory->retrieveByPk ($cat_uid)) )
         {
-            throw (new Exception ("ID_CATEGORY_NOT_EXIST"));
+            throw (new \Exception ("ID_CATEGORY_NOT_EXIST"));
         }
         return $cat_uid;
     }
@@ -367,12 +367,12 @@ trait Validator
         $dep_uid = trim ($dep_uid);
         if ( $dep_uid == '' )
         {
-            throw (new Exception ("ID_DEPARTMENT_NOT_EXIST"));
+            throw (new \Exception ("ID_DEPARTMENT_NOT_EXIST"));
         }
-        $oDepartment = new Departments();
+        $oDepartment = new \Departments();
         if ( !($oDepartment->existsDepartment ($dep_uid)) )
         {
-            throw (new Exception ("ID_DEPARTMENT_NOT_EXIST"));
+            throw (new \Exception ("ID_DEPARTMENT_NOT_EXIST"));
         }
         return $dep_uid;
     }

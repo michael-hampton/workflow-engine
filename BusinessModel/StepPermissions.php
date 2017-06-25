@@ -22,7 +22,7 @@ class StepPermissions
      * 
      * @param type $stepId
      */
-    public function __construct (Task $objStep = null)
+    public function __construct (\Task $objStep = null)
     {
         if ( $objStep !== null )
         {
@@ -218,7 +218,7 @@ class StepPermissions
      * @param Users $objUser
      * @return boolean
      */
-    public function validateUserPermissions (Users $objUser)
+    public function validateUserPermissions (\Users $objUser)
     {
 
         $permissions = $this->getProcessPermissions ();

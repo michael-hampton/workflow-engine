@@ -13,7 +13,7 @@ class Form extends FieldFactory
      * @param type $stepId
      * @param type $workflowId
      */
-    public function __construct (\Task $objTask = null, \Workflow $objWorkflow)
+    public function __construct (\Task $objTask = null, \Workflow $objWorkflow = null)
     {
         if($objTask !== null) {
             $this->stepId = $objTask->getStepId ();
@@ -225,7 +225,7 @@ class Form extends FieldFactory
         }
     }
 
-    public function buildFormForStep (WorkflowStep $objWorkflowStep, Users $objUser, $projectId, $elementId = null)
+    public function buildFormForStep (\WorkflowStep $objWorkflowStep, \Users $objUser, $projectId, $elementId = null)
     {
         $objCases = new \BusinessModel\Cases();
         $objCase = $objCases->getCaseInfo ($projectId, $elementId);

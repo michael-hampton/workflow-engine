@@ -29,8 +29,8 @@ try {
     $dateSystem = $argv[6];
 
     $sNow = $argv[7]; //$date
-    
-    /*********************** Set constants **************************/
+
+    /*     * ********************* Set constants ************************* */
 
     define ('PATH_SEP', ($osIsLinux) ? '/' : '\\');
 
@@ -50,8 +50,8 @@ try {
 
     $e_all = ($arraySystemConfiguration['debug']) ? $e_all : $e_all & ~E_NOTICE;
 
-    
-    /***************** Load Classes *****************/
+
+    /*     * *************** Load Classes **************** */
     define ("HOME_DIR", PATH_HOME);
     define ("DEBUG_LOCATION", HOME_DIR . "/core/app/logs/debug.log");
 
@@ -59,14 +59,17 @@ try {
     require_once 'config.php';
     require_once 'registry.php';
     require_once "Mysql.php";
+     require_once 'BPMN/Flow.php';
+    require_once 'BPMN/Task.php';
+
     require_once 'BusinessModel/Validator.php';
     require_once 'UserClasses/BaseUser.php';
     require_once 'UserClasses/Users.php';
     require_once 'Process/BaseProcess.php';
     require_once 'BusinessModel/Process.php';
     require_once 'WorkflowClasses/Save.php';
-     require_once 'BusinessModel/MessageEventRelation.php';
-     require_once 'BusinessModel/MessageEventDefinition.php';
+    require_once 'BusinessModel/MessageEventRelation.php';
+    require_once 'BusinessModel/MessageEventDefinition.php';
     require_once 'BusinessModel/MessageApplication.php';
     require_once 'BusinessModel/Event.php';
     require_once 'WorkflowClasses/Elements.php';
@@ -129,7 +132,7 @@ try {
 
             case 'messageeventcron':
 
-                $messageApplication = new \ProcessMaker\BusinessModel\MessageApplication();
+                $messageApplication = new \BusinessModel\MessageApplication();
 
 
 
@@ -140,7 +143,7 @@ try {
             //php .\test.php C:\xampp\htdocs mike mike timereventcron mike mike mike
             case 'timereventcron':
 
-                $timerEvent = new TimerEvent();
+                $timerEvent = new \BusinessModel\TimerEvent();
 
                 $timerEvent->startContinueCaseByTimerEvent (date ('Y-m-d H:i:s'), true);
 

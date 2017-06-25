@@ -396,7 +396,7 @@ class Workflow extends BaseProcess
     public function getProcess ()
     {
         try {
-            $process = new Process();
+            $process = new \BusinessModel\Process();
             $process->throwExceptionIfNotExistsProcess ($this->intWorkflowId);
             $result = $this->objMysql->_select ("workflow.workflows", array(), array("workflow_id" => $this->intWorkflowId));
 

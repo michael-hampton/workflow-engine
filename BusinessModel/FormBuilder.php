@@ -35,7 +35,7 @@ class FormBuilder
         {
             foreach ($arrFormFields as $objFormField) {
 
-                if ( !$objFormField instanceof Field )
+                if ( !$objFormField instanceof \Field )
                 {
                     throw new \Exception ("Invalid field format");
                 }
@@ -149,7 +149,7 @@ class FormBuilder
 
         foreach ($arrDocs as $objDocument) {
 
-            if ( !$objDocument instanceof InputDocuments )
+            if ( !$objDocument instanceof \InputDocuments )
             {
                 throw new \Exception ("Invalid document format given.");
             }
@@ -168,7 +168,7 @@ class FormBuilder
         $this->attachmentHtml = '<div class="col-lg-12 pull-left">';
         foreach ($arrAttachments as $objAttachment) {
 
-            if ( !$objAttachment instanceof ProcessFiles )
+            if ( !$objAttachment instanceof \ProcessFiles )
             {
                 throw new \Exception ("Invalid attachment format given.");
             }

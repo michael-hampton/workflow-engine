@@ -103,8 +103,8 @@ class FieldValidator
      */
     public function validate ($arrFormData)
     {
-        $objFields = new FieldFactory();
-        $arrRequiredFields = $objFields->getRequiredFields ($this->stepId);
+        $objFields = new \BusinessModel\FieldFactory();
+        $arrRequiredFields = $objFields->getRequiredFields (new Task ($this->stepId));
 
         if ( !is_array ($arrFormData) )
         {

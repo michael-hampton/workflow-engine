@@ -84,7 +84,7 @@ class Comments extends BaseComments
             $aUser = $this->objMysql->_select ("user_management.poms_users", array(), array("username" => $usrUid));
 
             $authorName = ((($aUser[0]['firstName'] != '') || ($aUser[0]['lastName'] != '')) ? $aUser[0]['firstName'] . ' ' . $aUser[0]['lastName'] . ' ' : '') . '<' . $aUser[0]['user_email'] . '>';
-            $objCase = new Cases();
+            $objCase = new \BusinessModel\Cases();
             $arrData = $objCase->getCaseInfo ($appUid);
 
             $configNoteNotification['subject'] = "NEW COMMENT ADDED";
@@ -93,7 +93,7 @@ class Comments extends BaseComments
             $sFrom = "bluetiger_uan@yahoo.com";
             $sBody = nl2br ($configNoteNotification['body']);
 
-            $oUser = new UsersFactory();
+            $oUser = new \BusinessModel\UsersFactory();
             $recipientsArray = explode (",", $noteRecipients);
 
             foreach ($recipientsArray as $recipientUid) {
@@ -240,7 +240,7 @@ class Comments extends BaseComments
 
         if ( $sendMail == 1 )
         {
-            $case = new Cases();
+            $case = new \BusinessModel\Cases();
             $p = $case->getUsersParticipatedInCase ($projectId);
 
             $noteRecipientsList = array();

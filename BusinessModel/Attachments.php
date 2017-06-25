@@ -38,7 +38,7 @@ class Attachments
     {
         if ( isset ($arrData['files']) )
         {
-            if ( isset ($arrData['step']) && !$arrData['step'] instanceof WorkflowStep )
+            if ( isset ($arrData['step']) && !$arrData['step'] instanceof \WorkflowStep )
             {
                 throw new \Exception ("Invalid step object given.");
             }

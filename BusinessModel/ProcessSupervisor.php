@@ -514,7 +514,7 @@ class ProcessSupervisor
      *
      * @return bool Return
      */
-    public function isUserProcessSupervisor ($workflowId, Users $objUser)
+    public function isUserProcessSupervisor ($workflowId, \Users $objUser)
     {
         try {
             $result = $this->objMysql->_query ("SELECT * FROM workflow.`process_supervisors` 
