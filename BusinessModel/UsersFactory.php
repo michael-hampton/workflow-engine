@@ -512,7 +512,6 @@ class UsersFactory
                 $_SESSION["pagination"]["current_page"] = $current_page;
             }
 
-
             $_SESSION["pagination"]["total_counter"] = $numRecTotal;
 
             $records = $this->objMysql->_query ($criteria, $arrWhere);

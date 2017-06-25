@@ -12,6 +12,9 @@ abstract class BaseProcess implements Persistent
     private $ProCreateDate;
     private $ProStatus;
     private $ProCreateUser;
+    private $parentId;
+    private $categoryName;
+    private $status;
     public $arrValidationErrors = array();
     private $arrayFieldDefinition = array(
         "PRO_CREATE_USER" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getProCreateUser", "mutator" => "setProCreateUser"),
@@ -71,7 +74,48 @@ abstract class BaseProcess implements Persistent
     {
         return $this->systemId;
     }
+    
+    public function getId ()
+    {
+        return $this->workflowId;
+    }
 
+    public function setId ($workflowId)
+    {
+        $this->workflowId = $workflowId;
+    }
+
+    public function getParentId ()
+    {
+        return $this->parentId;
+    }
+
+    public function setParentId ($parentId)
+    {
+        $this->parentId = $parentId;
+    }
+
+    public function getCategoryName ()
+    {
+        return $this->categoryName;
+    }
+
+    public function setCategoryName ($categoryName)
+    {
+        $this->categoryName = $categoryName;
+    }
+
+    public function getStatus ()
+    {
+        return $this->status;
+    }
+
+    public function setStatus ($status)
+    {
+        $this->status = $status;
+    }
+
+        
     /**
      * 
      * @param type $workflowName

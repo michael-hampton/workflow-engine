@@ -35,9 +35,20 @@ class ProcessPermission
      */
     public function getProcessPermissions ()
     {
-        $result = $this->objMysql->_select ("workflow.process_permissions", [], ["workflow_id" => $this->workflowId]);
+        $results = $this->objMysql->_query ("SELECT 
+                                                GROUP_CONCAT(`user_id`) AS users, 
+                                                permission_type 
+                                        FROM workflow.process_permission 
+                                        WHERE workflow_id = ?
+                                        GROUP BY `permission_type`", [$this->workflowId]);
 
-        return $result;
+        $permissions = [];
+
+        foreach ($results as $result) {
+            $permissions[$result['permission_type']] = $result['users'];
+        }
+
+        return $permissions;
     }
 
     /**
@@ -46,12 +57,17 @@ class ProcessPermission
      */
     public function getAllProcessPermissions ()
     {
-        $results = $this->objMysql->_select ("workflow.process_permissions");
+        $results = $this->objMysql->_query ("SELECT 
+                                                GROUP_CONCAT(`user_id`) AS users, 
+                                                permission_type,
+                                                workflow_id
+                                        FROM workflow.process_permission 
+                                        GROUP BY `permission_type`");
 
         $processPermissions = [];
 
         foreach ($results as $result) {
-            $processPermissions[$result['workflow_id']][] = $result;
+            $processPermissions[$result['workflow_id']][$result['permission_type']] = explode (",", $result['users']);
         }
 
         return $processPermissions;
@@ -64,46 +80,96 @@ class ProcessPermission
      */
     public function create ($arrPermissions)
     {
+        $objProcessPermissions = new ProcessPermissions();
 
-        foreach ($arrPermissions as $arrPermission) {
-            if ( $arrPermission['objectType'] === "team" )
-            {
-                if ( !$this->validateTeamId ($arrPermission['id']) )
+        $currentLists = $this->getProcessPermissions ();
+        $userList = explode (",", $currentLists['user']);
+        $teamList = explode (",", $currentLists['team']);
+
+        $arrUsers = [];
+        $arrTeams = [];
+
+        if ( !empty ($arrPermissions) )
+        {
+            foreach ($arrPermissions as $arrPermission) {
+                if ( $arrPermission['objectType'] === "team" )
                 {
-                    throw new Exception ("Team doesnt exist");
+                    $arrTeams[] = $arrPermission['id'];
                 }
-            }
-            else
-            {
-                if ( !$this->validateUserId ($arrPermission['id']) )
+
+                if ( $arrPermission['objectType'] === "user" )
                 {
-                    throw new Exception ("User doesnt exist");
+                    $arrUsers[] = $arrPermission['id'];
                 }
-            }
-
-            $objProcessPermissions = new ProcessPermissions();
-            $objProcessPermissions->setUserId ($arrPermission['id']);
-            $objProcessPermissions->setPermissionType ($arrPermission['objectType']);
-            $objProcessPermissions->setWorkflowId ($this->workflowId);
-
-            if ( $objProcessPermissions->validate () )
-            {
-                die("OK");
-            }
-            else
-            {
-                $message = '';
-                
-                foreach ($objProcessPermissions->getValidationFailures() as $validationFailure) {
-                    $message .= "</br> " . $validationFailure;
-                }
-                
-                throw new Exception("Process permissions could not be saved " . $message);
             }
         }
-        echo '<pre>';
-        print_r ($arrData);
-        die;
+
+
+        if ( !empty ($userList) )
+        {
+            foreach ($userList as $user) {
+                if ( !in_array ($user, $arrUsers) )
+                {
+                    $objProcessPermissions->setPermissionType ("user");
+                    $objProcessPermissions->setWorkflowId ($this->workflowId);
+                    $objProcessPermissions->setUserId ($user);
+                    $objProcessPermissions->delete ();
+                }
+            }
+        }
+
+
+        if ( !empty ($teamList) )
+        {
+            foreach ($teamList as $team) {
+                if ( !in_array ($team, $arrTeams) )
+                {
+                    $objProcessPermissions->setPermissionType ("team");
+                    $objProcessPermissions->setWorkflowId ($this->workflowId);
+                    $objProcessPermissions->setUserId ($team);
+                    $objProcessPermissions->delete ();
+                }
+            }
+        }
+
+        if ( !empty ($arrPermissions) )
+        {
+            foreach ($arrPermissions as $arrPermission) {
+                if ( $arrPermission['objectType'] === "team" )
+                {
+                    if ( !$this->validateTeamId ($arrPermission['id']) )
+                    {
+                        throw new Exception ("Team doesnt exist");
+                    }
+                }
+                else
+                {
+                    if ( !$this->validateUserId ($arrPermission['id']) )
+                    {
+                        throw new Exception ("User doesnt exist");
+                    }
+                }
+
+                $objProcessPermissions->setUserId ($arrPermission['id']);
+                $objProcessPermissions->setPermissionType ($arrPermission['objectType']);
+                $objProcessPermissions->setWorkflowId ($this->workflowId);
+
+                if ( $objProcessPermissions->validate () )
+                {
+                    $objProcessPermissions->save ();
+                }
+                else
+                {
+                    $message = '';
+
+                    foreach ($objProcessPermissions->getValidationFailures () as $validationFailure) {
+                        $message .= "</br> " . $validationFailure;
+                    }
+
+                    throw new Exception ("Process permissions could not be saved " . $message);
+                }
+            }
+        }
     }
 
 }

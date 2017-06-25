@@ -192,8 +192,7 @@ class Cases
             if ( isset ($workflowData['elements']) )
             {
                 foreach ($workflowData['elements'] as $elementId => $element) {
-
-
+  
                     $intSkip = 0;
                     $dateCompleted = '';
 
@@ -292,12 +291,12 @@ class Cases
                 if ( isset ($arrCase['workflow_id']) )
                 {
 
-                    $objCase->setWorkflow_id ($workflow_id);
+                    $objCase->setWorkflow_id ($element['workflow_id']);
                     $workflowName = $this->getWorkflowName ($arrCase['workflow_id']);
 
                     if ( $workflowName !== false )
                     {
-                        $objCase->setWorkflowName ($workflow[0]['workflow_name']);
+                        $objCase->setWorkflowName ($workflowName);
                     }
                 }
 

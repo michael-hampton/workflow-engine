@@ -263,10 +263,27 @@ class Workflow extends BaseProcess
 
         if ( is_numeric ($start) && is_numeric ($limit) )
         {
-            return $this->paginate ($aProcesses, $limit, $start);
+            $aProcesses = $this->paginate ($aProcesses, $limit, $start);
+        }
+        
+        $arrWorkflows = [];
+        
+        foreach ($aProcesses as $aProcess) {
+            $objProcess = new Workflow();
+            $objProcess->setId($aProcess['workflow_id']);
+            $objProcess->setWorkflowName($aProcess['PRO_TITLE']);
+            $objProcess->setDescription($aProcess['description']);
+            $objProcess->setRequestId($aProcess['request_id']);
+            $objProcess->setProCreateDate($aProcess['date_created']);
+            $objProcess->setParentId($aProcess['parent_id']);
+            $objProcess->setCategoryName($aProcess['PRO_CATEGORY_LABEL']);
+            $objProcess->setProStatus($aProcess['PRO_STATUS_LABEL']);
+            $objProcess->setProCreateUser($aProcess['PRO_CREATE_USER_LABEL']);
+            
+            $arrWorkflows[$aProcess['workflow_id']] = $objProcess;
         }
 
-        return $aProcesses;
+        return $arrWorkflows;
     }
 
     private function paginate ($array, $intPageLimit, $page = 1)
