@@ -18,38 +18,38 @@ require_once HOME_DIR . '/core/app/library/Comments.php';
 /* * *********************** Events ******************************************** */
 require_once HOME_DIR . '/core/app/library/Event/BaseMessageApplication.php';
 require_once HOME_DIR . '/core/app/library/Event/BaseMessageEventRelation.php';
-require_once HOME_DIR . '/core/app/library/Event/MessageApplications.php';
-require_once HOME_DIR . '/core/app/library/Event/MessageEventRelations.php';
+require_once HOME_DIR . '/core/app/library/Event/MessageApplication.php';
+require_once HOME_DIR . '/core/app/library/Event/MessageEventRelation.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/MessageEventRelation.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/MessageApplication.php';
 require_once HOME_DIR . '/core/app/library/Event/BaseEvent.php';
 require_once HOME_DIR . '/core/app/library/Event/EventModel.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/Event.php';
 require_once HOME_DIR . '/core/app/library/Event/BaseMessageType.php';
-require_once HOME_DIR . '/core/app/library/Event/MessageTypes.php';
+require_once HOME_DIR . '/core/app/library/Event/MessageType.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/MessageType.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/TimerEvent.php';
 require_once HOME_DIR . '/core/app/library/Event/BaseTimerEvent.php';
-require_once HOME_DIR . '/core/app/library/Event/TimerEvents.php';
+require_once HOME_DIR . '/core/app/library/Event/TimerEvent.php';
 require_once HOME_DIR . '/core/app/library/Event/BaseMessageDefinition.php';
-require_once HOME_DIR . '/core/app/library/Event/MessageDefinitions.php';
+require_once HOME_DIR . '/core/app/library/Event/MessageDefinition.php';
 
 require_once HOME_DIR . '/core/app/library/BusinessModel/MessageEventDefinition.php';
 
 /* * *********************** Documents ******************************************** */
 require_once HOME_DIR . '/core/app/library/Documents/StepDocument.php';
-require_once HOME_DIR . '/core/app/library/BusinessModel/StepDocuments.php';
-require_once HOME_DIR . '/core/app/library/Documents/BaseProcessFiles.php';
-require_once HOME_DIR . '/core/app/library/Documents/ProcessFiles.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/StepDocument.php';
+require_once HOME_DIR . '/core/app/library/Documents/BaseProcessFile.php';
+require_once HOME_DIR . '/core/app/library/Documents/ProcessFile.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/FileUpload.php';
 require_once HOME_DIR . '/core/app/library/Documents/BaseDocumentVersion.php';
 require_once HOME_DIR . '/core/app/library/Documents/BaseInputDocument.php';
 require_once HOME_DIR . '/core/app/library/Documents/DocumentVersion.php';
-require_once HOME_DIR . '/core/app/library/BusinessModel/Attachments.php';
-require_once HOME_DIR . '/core/app/library/Documents/InputDocuments.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/Attachment.php';
+require_once HOME_DIR . '/core/app/library/Documents/InputDocument.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/InputDocument.php';
 
-require_once HOME_DIR . '/core/app/library/BusinessModel/OutputDocuments.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/OutputDocument.php';
 require_once HOME_DIR . '/core/app/library/Documents/BaseOutputDocument.php';
 require_once HOME_DIR . '/core/app/library/Documents/OutputDocument.php';
 
@@ -92,7 +92,7 @@ require_once HOME_DIR . '/core/app/library/WorkflowClasses/BaseProcessPermission
 require_once HOME_DIR . '/core/app/library/WorkflowClasses/ProcessPermissions.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/ProcessPermission.php';
 
-require_once HOME_DIR . '/core/app/library/BusinessModel/StepPermissions.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/StepPermission.php';
 
 require_once HOME_DIR . '/core/app/library/BusinessModel/Lists.php';
 

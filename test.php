@@ -91,7 +91,7 @@ try {
 
     require_once 'BusinessModel/Cases.php';
     require_once 'Event/BaseTimerEvent.php';
-    require_once 'Event/TimerEvents.php';
+    require_once 'Event/TimerEvent.php';
     require_once 'BusinessModel/TimerEvent.php';
 
     if ( session_id () === "" )

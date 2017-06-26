@@ -118,7 +118,7 @@ class MessageApplication
 
             //Create
             try {
-                $messageApplication = new \MessageApplications();
+                $messageApplication = new \MessageApplication();
                 $messageApplication->setAppUid ($applicationUid);
                 $messageApplication->setPrjUid ($projectUid);
                 $messageApplication->setEvnUidThrow ($objFlow->getStepFrom ());
@@ -453,7 +453,7 @@ class MessageApplication
     {
         $v = $this->objMysql->_select ("workflow.message_application", [], ['MSGAPP_UID' => $pk]);
 
-        $messageApplications = new \MessageApplications();
+        $messageApplications = new \MessageApplication();
         $messageApplications->loadObject ($v[0]);
 
         return isset ($v[0]) && !empty ($v[0]) ? $messageApplications : null;

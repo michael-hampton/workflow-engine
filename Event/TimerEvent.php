@@ -7,11 +7,11 @@
  */
 
 /**
- * Description of MessageDefinitions
+ * Description of TimerEvent
  *
  * @author michael.hampton
  */
-class MessageDefinitions extends BaseMessageDefinition
+class TimerEvent extends BaseTimerEvent
 {
 
     //put your code here

@@ -291,11 +291,11 @@ class WorkflowStep
         $blHasTrigger = false;
         $arrWorkflow['request_id'] = $this->collectionId;
         $objTrigger = new \BusinessModel\StepTrigger ($this->_workflowStepId, $this->nextStep);
+        $blHasTrigger = $objTrigger->checkTriggers ($objMike);
        
         if ( $complete === true && $this->nextStep !== 0 && $this->nextStep != "" )
         {
-
-            $blHasTrigger = $objTrigger->checkTriggers ($objMike);
+            
             if ( $blHasTrigger === true )
             {
                 $arrWorkflowObject = $objTrigger->arrWorkflowObject;

@@ -609,7 +609,7 @@ class Cases
      * return array Return an array with Task Case
      */
 
-    public function addCase (\Workflow $objWorkflow, \Users $objUser, $variables, $arrFiles = array(), $blSaveProject = true, $projectId = null, $blHasEvent = FALSE)
+    public function addCase (\Workflow $objWorkflow, \Users $objUser, array $variables, $arrFiles = array(), $blSaveProject = true, $projectId = null, $blHasEvent = FALSE)
     {
         try {
             // Check For Parent
@@ -737,7 +737,7 @@ class Cases
                     $arrData['file_type'] = $fileType;
                 }
 
-                $objAttachments = new \BusinessModel\Attachments();
+                $objAttachments = new \BusinessModel\Attachment();
                                 
                 $id = $arrFiles = $objAttachments->loadObject ($arrData);
                 
@@ -1374,7 +1374,7 @@ class Cases
                 /* ----------------------------------********--------------------------------- */
         );
 
-        $objPermissions = new \BusinessModel\StepPermissions (new \Task ($TAS_UID));
+        $objPermissions = new \BusinessModel\StepPermission (new \Task ($TAS_UID));
         $arrPermissions = $objPermissions->getProcessPermissions ();
 
         if ( !empty ($arrPermissions) )

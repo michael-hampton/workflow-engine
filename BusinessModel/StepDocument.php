@@ -11,7 +11,9 @@
  *
  * @author michael.hampton
  */
-class StepDocuments
+namespace BusinessModel;
+
+class StepDocument
 {
 
     private $objMysql;

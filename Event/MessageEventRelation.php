@@ -7,11 +7,12 @@
  */
 
 /**
- * Description of MessageApplications
+ * Description of MessageEventRelation
  *
  * @author michael.hampton
  */
-class MessageApplications extends BaseMessageApplication
+class MessageEventRelation extends BaseMessageEventRelation
 {
-    
+
+   
 }

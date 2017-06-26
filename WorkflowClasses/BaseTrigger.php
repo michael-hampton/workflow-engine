@@ -15,6 +15,7 @@ abstract class BaseTrigger
     private $description;
     private $triggerId;
     private $New;
+    private $eventType;
 
     /**
      *
@@ -185,6 +186,16 @@ abstract class BaseTrigger
     {
         $this->arrayValidationErrors = $arrayValidationErrors;
     }
+    
+    public function getEventType ()
+    {
+        return $this->eventType;
+    }
+
+    public function setEventType ($eventType)
+    {
+        $this->eventType = $eventType;
+    }
 
     public function save ()
     {
@@ -197,7 +208,8 @@ abstract class BaseTrigger
                 "step_to" => $this->stepTo,
                 "step_id" => $this->id,
                 "title" => $this->title,
-                "description" => $this->description
+                "description" => $this->description,
+                "event_type" => $this->eventType
             ));
             
              $this->triggerId = $id;
@@ -211,7 +223,8 @@ abstract class BaseTrigger
                 "step_to" => $this->stepTo,
                 "step_id" => $this->id,
                 "title" => $this->title,
-                "description" => $this->description
+                "description" => $this->description,
+                "event_type" => $this->eventType
                     ), array(
                 "id" => $this->triggerId
             ));

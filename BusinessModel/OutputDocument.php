@@ -14,7 +14,7 @@
 
 namespace BusinessModel;
 
-class OutputDocuments
+class OutputDocument
 {
 
     private $objMysql;

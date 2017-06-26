@@ -1,7 +1,7 @@
 <?php
 namespace BusinessModel;
 
-class StepPermissions
+class StepPermission
 {
 
     use Validator;

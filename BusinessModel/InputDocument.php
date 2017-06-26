@@ -60,7 +60,7 @@ class InputDocument
             if ( $blReturnArray === false )
             {
                 foreach ($results as $result) {
-                    $arrDocuments[$result['id']] = new \InputDocuments ($this->stepId);
+                    $arrDocuments[$result['id']] = new \InputDocument ($this->stepId);
                     $arrDocuments[$result['id']]->setDescription ($result['description']);
                     $arrDocuments[$result['id']]->setDestinationPath ($result['destination_path']);
                     $arrDocuments[$result['id']]->setFileType ($result['filetype']);
@@ -95,7 +95,7 @@ class InputDocument
             $arrDocuments = [];
 
             foreach ($results as $key => $result) {
-                $arrDocuments[$key] = new \InputDocuments ($this->stepId);
+                $arrDocuments[$key] = new \InputDocument ($this->stepId);
                 $arrDocuments[$key]->setDescription ($result['description']);
                 $arrDocuments[$key]->setDestinationPath ($result['destination_path']);
                 $arrDocuments[$key]->setFileType ($result['filetype']);
@@ -139,7 +139,7 @@ class InputDocument
             $flagDataTags = (isset ($arrayData["INP_DOC_TAGS"])) ? 1 : 0;
 
             //Create
-            $inputDocument = new \InputDocuments ($this->stepId);
+            $inputDocument = new \InputDocument ($this->stepId);
             $arrayData["PRO_UID"] = $this->stepId;
             $arrayData["INP_DOC_DESTINATION_PATH"] = ($flagDataDestinationPath == 1) ? $arrayData["INP_DOC_DESTINATION_PATH"] : "";
             $arrayData["INP_DOC_TAGS"] = ($flagDataTags == 1) ? $arrayData["INP_DOC_TAGS"] : "";
@@ -245,7 +245,7 @@ class InputDocument
             //Verify data
             $this->throwExceptionIfNotExistsInputDocument ($inputDocumentUid);
             //Load InputDocument
-            $inputDocument = new \InputDocuments ($this->stepId);
+            $inputDocument = new \InputDocument ($this->stepId);
 
             //Verify data
 
@@ -285,7 +285,7 @@ class InputDocument
             $this->throwExceptionIfNotExistsInputDocument ($inputDocumentUid);
             $this->throwExceptionIfItsAssignedInOtherObjects ($inputDocumentUid);
 
-            $inputDocument = new \InputDocuments ($this->stepId);
+            $inputDocument = new \InputDocument ($this->stepId);
             $inputDocument->delete ($inputDocumentUid);
         } catch (Exception $e) {
             throw $e;

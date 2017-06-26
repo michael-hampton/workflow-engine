@@ -241,7 +241,7 @@ class MessageEventDefinition
 
             //Update
             try {
-                $messageEventDefinition = new \MessageDefinitions();
+                $messageEventDefinition = new \MessageDefinition();
                 if ( isset ($arrayData["MSGT_UID"]) && $arrayData["MSGT_UID"] . "" == "" )
                 {
                     $arrayData["MSGED_VARIABLES"] = array();
@@ -306,7 +306,7 @@ class MessageEventDefinition
             }
             //Create
             try {
-                $messageEventDefinition = new \MessageDefinitions();
+                $messageEventDefinition = new \MessageDefinition();
                 if ( !isset ($arrayData["MSGT_UID"]) || $arrayData["MSGT_UID"] . "" == "" )
                 {
                     $arrayData["MSGT_UID"] = "";

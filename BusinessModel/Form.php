@@ -243,7 +243,7 @@ class Form extends FieldFactory
         $objProcessSupervisor = new \BusinessModel\ProcessSupervisor();
         $blProcessSupervisor = $objProcessSupervisor->isUserProcessSupervisor ($workflowId, $objUser);
 
-        $objAttachments = new \BusinessModel\Attachments();
+        $objAttachments = new \BusinessModel\Attachment();
         $arrAttachments = $objAttachments->getAllAttachments ($projectId);
         $attachmentHTML = $objFormBuilder->buildAttachments ($arrAttachments);
 

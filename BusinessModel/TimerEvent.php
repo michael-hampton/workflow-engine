@@ -533,7 +533,7 @@ class TimerEvent
             //Create
             $arrayData = $this->unsetFields ($arrayData);
             try {
-                $timerEvent = new \TimerEvents();
+                $timerEvent = new \TimerEvent();
                 $bpmnEvent = (new Event())->getEvent ($projectUid);
                 if ( !isset ($bpmnEvent[0]) || empty ($bpmnEvent[0]) )
                 {
@@ -682,7 +682,7 @@ class TimerEvent
     public function getTimerEventDataFromRecord (array $record)
     {
         try {
-            $objTimerEvent = new \TimerEvents();
+            $objTimerEvent = new \TimerEvent();
             $objTimerEvent->setTmrevnUid ($record['TMREVN_UID']);
             $objTimerEvent->setPrjUid ($record['workflow_id']);
             $objTimerEvent->setEvnUid ($record['EVN_UID']);
@@ -725,7 +725,7 @@ class TimerEvent
             //Update
             $arrayData = $this->unsetFields ($arrayData);
             try {
-                $timerEvent = new \TimerEvents();
+                $timerEvent = new \TimerEvent();
                 $bpmnEvent = (new \Event())->getEvent ($arrayFinalData["EVN_UID"]);
 
                 if ( !isset ($bpmnEvent[0]) || empty ($bpmnEvent[0]) )
@@ -1086,7 +1086,7 @@ class TimerEvent
             try {
                 $record = $this->getTimerEvent ($timerEventUid);
                 $arrayData = array_merge ($record, $arrayData);
-                $timerEvent = new \TimerEvents();
+                $timerEvent = new \TimerEvent();
                 $timerEvent->setTmrevnUid ($timerEventUid);
 
                 $arrayData['TMREVN_CONFIGURATION_DATA'] = serialize ($arrayData['TMREVN_CONFIGURATION_DATA']);
@@ -1121,7 +1121,7 @@ class TimerEvent
 
     public function setRecord ($record)
     {
-        $timerEvents = new \TimerEvents();
+        $timerEvents = new \TimerEvent();
         $timerEvents->setEvnUid ($record['EVN_UID']);
         $timerEvents->setPrjUid ($record['workflow_id']);
         $timerEvents->setTmrevnConfigurationData ($record['TMREVN_CONFIGURATION_DATA']);

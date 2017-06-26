@@ -1,6 +1,6 @@
 <?php
 
-abstract class BaseProcessFiles implements Persistent
+abstract class BaseProcessFile implements Persistent
 {
 
     private $objMysql;

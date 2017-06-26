@@ -2,7 +2,7 @@
 
 namespace BusinessModel;
 
-class Attachments
+class Attachment
 {
 
     private $stepId;
@@ -134,7 +134,7 @@ class Attachments
 
             if ( !file_exists ($sCheckDirectory) )
             {
-                $oProcessFiles = new \ProcessFiles();
+                $oProcessFiles = new \ProcessFile();
                 $sDate = date ('Y-m-d H:i:s');
                 $oProcessFiles->setProUid ($sProcessUID);
                 $oProcessFiles->setUsrUid ($userUID);
@@ -146,7 +146,7 @@ class Attachments
                 $oProcessFiles->save ();
             }
 
-            $oProcessFiles = new \ProcessFiles();
+            $oProcessFiles = new \ProcessFile();
             $sDate = date ('Y-m-d H:i:s');
             $oProcessFiles->setProUid ($sProcessUID);
             $oProcessFiles->setUsrUid ($userUID);
@@ -383,7 +383,7 @@ class Attachments
             $filePath = str_replace ("C:/xampp/htdocs", "", $arrAttachment['file_destination']);
             $filePath = str_replace ($arrAttachment['filename'], "", $filePath);
 
-            $objProcessFiles = new \ProcessFiles();
+            $objProcessFiles = new \ProcessFile();
             $objProcessFiles->setFileType ($arrAttachment['file_type']);
             $objProcessFiles->setId ($arrAttachment['id']);
             $objProcessFiles->setPrfCreateDate ($arrAttachment['date_uploaded']);
@@ -432,7 +432,7 @@ class Attachments
             //update database
             if ( $this->existsProcessFile ($aData['prf_uid']) )
             {
-                $oProcessFiles = new \ProcessFiles();
+                $oProcessFiles = new \ProcessFile();
                 $sDate = date ('Y-m-d H:i:s');
                 $oProcessFiles->setPrfUpdateDate ($sDate);
                 $oProcessFiles->setProUid ($aData['PRO_UID']);
@@ -513,7 +513,7 @@ class Attachments
                 unlink ($path);
             }
 
-            $processFiles = new \ProcessFiles();
+            $processFiles = new \ProcessFile();
             $processFiles->setId ($prfUid);
             $processFiles->delete ();
         } catch (Exception $ex) {

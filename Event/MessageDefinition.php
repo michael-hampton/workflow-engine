@@ -7,12 +7,12 @@
  */
 
 /**
- * Description of MessageEventRelations
+ * Description of MessageDefinition
  *
  * @author michael.hampton
  */
-class MessageEventRelations extends BaseMessageEventRelation
+class MessageDefinitions extends BaseMessageDefinition
 {
 
-   
+    //put your code here
 }

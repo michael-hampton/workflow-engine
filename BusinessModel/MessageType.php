@@ -40,7 +40,7 @@ class MessageType
             $this->throwExceptionIfDataIsInvalid ($messageTypeUid, $arrayMessageTypeData[0]["workflow_id"], $arrayData);
             //Update
             try {
-                $messageType = new \MessageTypes();
+                $messageType = new \MessageType();
                 $messageType->setPrjUid ($arrayMessageTypeData[0]["workflow_id"]);
                 $messageType->setTitle ($arrayData['name']);
                 $messageType->setDescription ($arrayData['description']);
@@ -85,7 +85,7 @@ class MessageType
         try {
             $this->throwExceptionIfNotExistsMessageType($messageTypeUid);
             //Delete Message-Type-Variable
-            $messageTypes = new \MessageTypes();
+            $messageTypes = new \MessageType();
             $messageTypes->setId($messageTypeUid);
             $messageTypes->delete();
            
@@ -112,7 +112,7 @@ class MessageType
             $this->throwExceptionIfDataIsInvalid ("", $projectUid, $arrayData);
             //Create
             try {
-                $messageType = new \MessageTypes();
+                $messageType = new \MessageType();
                 $messageType->setPrjUid ($projectUid);
                 $messageType->setTitle ($arrayData['name']);
                 $messageType->setDescription ($arrayData['description']);

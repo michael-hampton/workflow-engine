@@ -7,11 +7,11 @@
  */
 
 /**
- * Description of MessageTypes
+ * Description of MessageType
  *
  * @author michael.hampton
  */
-class MessageTypes extends BaseMessageType
+class MessageType extends BaseMessageType
 {
 
     //put your code here

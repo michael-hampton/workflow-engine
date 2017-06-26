@@ -26,6 +26,7 @@ class Trigger extends BaseTrigger
             $this->setWorkflowId ($aData['workflow_id']);
             $this->setId ($stepUid);
             $this->setTriggerType ($aData['trigger_type']);
+            $this->setEventType($aData['event_type']);
             if ( $this->validate () )
             {
                 $result = $this->save ();
@@ -54,6 +55,7 @@ class Trigger extends BaseTrigger
             $this->setWorkflowId ($fields['workflow_id']);
             $this->setStepTo ($fields['step_to']);
             $this->setTriggerId($fields['triggerId']);
+            $this->setEventType($fields['event_type']);
             if ( $this->validate () )
             {
                 $this->setNew (false);
