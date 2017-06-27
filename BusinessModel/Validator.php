@@ -369,7 +369,7 @@ trait Validator
         {
             throw (new \Exception ("ID_DEPARTMENT_NOT_EXIST"));
         }
-        $oDepartment = new \Departments();
+        $oDepartment = new \Department();
         if ( !($oDepartment->existsDepartment ($dep_uid)) )
         {
             throw (new \Exception ("ID_DEPARTMENT_NOT_EXIST"));

@@ -11,7 +11,7 @@
  *
  * @author michael.hampton
  */
-abstract class BaseRolePermissions implements Persistent
+abstract class BaseRolePermission implements Persistent
 {
 
     public $perUid;

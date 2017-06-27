@@ -89,7 +89,7 @@ require_once HOME_DIR . '/core/app/library/WorkflowClasses/Permissions.php';
 require_once HOME_DIR . '/core/app/library/WorkflowClasses/ObjectPermissions.php';
 
 require_once HOME_DIR . '/core/app/library/WorkflowClasses/BaseProcessPermission.php';
-require_once HOME_DIR . '/core/app/library/WorkflowClasses/ProcessPermissions.php';
+require_once HOME_DIR . '/core/app/library/WorkflowClasses/ProcessPermission.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/ProcessPermission.php';
 
 require_once HOME_DIR . '/core/app/library/BusinessModel/StepPermission.php';
@@ -101,7 +101,7 @@ require_once HOME_DIR . '/core/app/library/WorkflowClasses/Elements.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/Cases.php';
 
 /* * ************** Notification Classes *********************** */
-require_once HOME_DIR . '/core/app/library/Notifications/BaseNotifications.php';
+require_once HOME_DIR . '/core/app/library/Notifications/BaseNotification.php';
 require_once HOME_DIR . '/core/app/library/Notifications/Notifications.php';
 require_once HOME_DIR . '/core/app/library/Notifications/SendNotification.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/NotificationsFactory.php';
@@ -141,14 +141,14 @@ require_once HOME_DIR . '/core/app/library/BusinessModel/Role.php';
 require_once HOME_DIR . '/core/app/library/UserClasses/Users.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/Department.php';
 require_once HOME_DIR . '/core/app/library/UserClasses/BaseDepartment.php';
-require_once HOME_DIR . '/core/app/library/UserClasses/Departments.php';
+require_once HOME_DIR . '/core/app/library/UserClasses/Department.php';
 require_once HOME_DIR . '/core/app/library/UserClasses/BaseRole.php';
-require_once HOME_DIR . '/core/app/library/UserClasses/BaseRolePermissions.php';
+require_once HOME_DIR . '/core/app/library/UserClasses/BaseRolePermission.php';
 require_once HOME_DIR . '/core/app/library/UserClasses/RolePermissions.php';
-require_once HOME_DIR . '/core/app/library/UserClasses/Roles.php';
+require_once HOME_DIR . '/core/app/library/UserClasses/Role.php';
 require_once HOME_DIR . '/core/app/library/UserClasses/Login.php';
 require_once HOME_DIR . '/core/app/library/UserClasses/BaseTeam.php';
-require_once HOME_DIR . '/core/app/library/UserClasses/Teams.php';
+require_once HOME_DIR . '/core/app/library/UserClasses/Team.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/GroupUser.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/Team.php';
 require_once HOME_DIR . '/core/app/library/UserClasses/RolePermissions.php';

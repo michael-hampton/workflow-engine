@@ -7,11 +7,11 @@
  */
 
 /**
- * Description of ProcessPermissions
+ * Description of ProcessPermission
  *
  * @author michael.hampton
  */
-class ProcessPermissions extends BaseProcessPermission
+class ProcessPermission extends BaseProcessPermission
 {
 
     //put your code here

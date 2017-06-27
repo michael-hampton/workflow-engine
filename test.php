@@ -82,7 +82,7 @@ try {
     require_once 'BusinessModel/StepPermissions.php';
     require_once 'BusinessModel/ProcessSupervisor.php';
     require_once 'BusinessModel/StepTrigger.php';
-    require_once 'Notifications/BaseNotifications.php';
+    require_once 'Notifications/BaseNotification.php';
     require_once 'Notifications/Notifications.php';
     require_once 'Notifications/SendNotification.php';
     require_once 'Fields/FieldValidator.php';

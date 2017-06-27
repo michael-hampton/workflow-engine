@@ -1,6 +1,6 @@
 <?php
 
-abstract class BaseNotifications implements Persistent
+abstract class BaseNotification implements Persistent
 {
 
     protected $status;

@@ -12,6 +12,7 @@ class StepTrigger
     private $workflowId;
     private $currentStep;
     private $nextStep;
+    public $blAddedCase = false;
 
     /**
      * 
@@ -121,31 +122,7 @@ class StepTrigger
                     $objWorkflow = new \Workflow ($workflowTo);
                     $objUser = (new \BusinessModel\UsersFactory())->getUser ($_SESSION['user']['usrid']);
                     $objCase->addCase($objWorkflow, $objUser, array(), array(), false, $projectId);
-
-                    $workflow = isset ($arrTrigger['workflow_from']) ? $arrTrigger['workflow_from'] : $arrTrigger['workflow_id'];
-
-                    if ( (int) $this->nextStep === 0 )
-                    {
-                        $result = $this->objMysql->_select("workflow.workflow_data", [], ["object_id" => $this->parentId]);
-                        $workflowData = json_decode($result[0]['workflow_data'], true);
-                        $this->arrWorkflowObject = $workflowData;
-                        
-                        if ( trim ($workflow) == trim ($this->arrWorkflowObject['workflow_id']) )
-                        {
-                            $this->arrWorkflowObject['status'] = "WORKFLOW COMPLETE";
-                        }
-                        elseif ( trim ($this->arrWorkflowObject['elements'][$this->elementId]['workflow_id']) == trim ($workflow) )
-                        {
-                            $this->arrWorkflowObject['elements'][$this->elementId]['status'] = "WORKFLOW COMPLETE";
-                        }
-                        
-                        $this->objMysql->_update("workflow.workflow_data", ["workflow_data" => json_encode($this->arrWorkflowObject)], ["object_id" => $this->parentId]);
-                        
-                        die;
-                    }
-
-                    $blHasTrigger = true;
-                    $this->blMove = false;
+                    $this->blAddedCase = true;
                     break;
 
                 default:

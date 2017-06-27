@@ -1,6 +1,6 @@
 <?php
 
-class Departments extends BaseDepartment
+class Department extends BaseDepartment
 {
 
     private $objMysql;
@@ -252,8 +252,9 @@ class Departments extends BaseDepartment
     public function existsDepartment ($DepUid)
     {
         $result = $this->objMysql->_select ("user_management.departments", [], ["id" => $DepUid]);
+        
         $oPro = $this->loadDepartmentRecord ($result[0]);
-        if ( is_object ($oPro) && get_class ($oPro) == 'Departments' )
+        if ( is_object ($oPro) && get_class ($oPro) == 'Department' )
         {
             return true;
         }
@@ -265,7 +266,7 @@ class Departments extends BaseDepartment
 
     public function loadDepartmentRecord ($record)
     {
-        $objDepartment = new Departments();
+        $objDepartment = new Department();
         $objDepartment->setDepartment ($record['department']);
         $objDepartment->setDepartmentManager ($record['department_manager']);
         $objDepartment->setId ($record['id']);

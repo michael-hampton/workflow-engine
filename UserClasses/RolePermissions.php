@@ -11,7 +11,7 @@
  *
  * @author michael.hampton
  */
-class RolePermissions extends BaseRolePermissions
+class RolePermissions extends BaseRolePermission
 {
 
     private $objMysql;

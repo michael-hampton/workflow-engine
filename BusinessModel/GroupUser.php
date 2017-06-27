@@ -126,7 +126,7 @@ class GroupUser
             $this->validateUserId ($userId);
             $this->throwExceptionIfExistsGroupUser ($objGroup, $objUser);
             //Create
-            $group = new Teams();
+            $group = new Team();
             
             $group->addUserToGroup ($groupUid, $userId);
             //Return

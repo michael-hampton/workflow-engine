@@ -80,7 +80,7 @@ class ProcessPermission
      */
     public function create ($arrPermissions)
     {
-        $objProcessPermissions = new \ProcessPermissions();
+        $objProcessPermissions = new \ProcessPermission();
 
         $currentLists = $this->getProcessPermissions ();
         $userList = isset($currentLists['user']) ? explode (",", $currentLists['user']) : array();

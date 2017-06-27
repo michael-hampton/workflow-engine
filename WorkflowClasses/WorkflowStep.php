@@ -184,7 +184,7 @@ class WorkflowStep
         {
             return false;
         }
-        
+
         if ( $this->completeWorkflowObject ($objMike, $arrFormData, false) === false )
         {
             return false;
@@ -291,11 +291,21 @@ class WorkflowStep
         $blHasTrigger = false;
         $arrWorkflow['request_id'] = $this->collectionId;
         $objTrigger = new \BusinessModel\StepTrigger ($this->_workflowStepId, $this->nextStep);
-        $blHasTrigger = $objTrigger->checkTriggers ($objMike);
-       
+        
+        if(!isset($arrCompleteData['status']) || trim($arrCompleteData['status']) !== "REJECT") {
+            $blHasTrigger = $objTrigger->checkTriggers ($objMike);
+        }
+
+        // reload
+        if ( $objTrigger->blAddedCase )
+        {
+            $arrWorkflowData = $this->getWorkflowData ();
+            $arrWorkflowObject = json_decode ($arrWorkflowData[0]['workflow_data'], true);
+        }
+
         if ( $complete === true && $this->nextStep !== 0 && $this->nextStep != "" )
         {
-            
+
             if ( $blHasTrigger === true )
             {
                 $arrWorkflowObject = $objTrigger->arrWorkflowObject;
@@ -321,7 +331,7 @@ class WorkflowStep
                 //$arrCompleteData['status'] = "SAVED";
             }
         }
-        
+
         $arrWorkflow['workflow_id'] = $this->workflowId;
         if ( !empty ($arrWorkflowData) )
         {
@@ -332,17 +342,18 @@ class WorkflowStep
         {
             $this->objWorkflow = $arrWorkflow;
         }
-        
+
         if ( is_numeric ($this->parentId) && is_numeric ($this->elementId) && $blHasTrigger !== true )
         {
             $this->objWorkflow['elements'][$this->elementId] = $arrWorkflow;
         }
-        
-        $hasEvent = isset($arrCompleteData['hasEvent']) ? 'true' : 'false';
+
+        $hasEvent = isset ($arrCompleteData['hasEvent']) ? 'true' : 'false';
         $this->objWorkflow['elements'][$this->parentId]['hasEvent'] = $hasEvent;
         $this->objWorkflow['elements'][$this->elementId]['hasEvent'] = $hasEvent;
-     
-        if($hasEvent !== 'true') {
+
+        if ( $hasEvent !== 'true' )
+        {
             $this->checkEvents ();
         }
 
@@ -355,16 +366,16 @@ class WorkflowStep
         {
             $this->completeAuditObject ($arrCompleteData);
         }
-        
+
         $this->sendNotification ($objMike, $arrCompleteData, $arrEmailAddresses);
         // Update workflow and audit object
         $strAudit = json_encode ($this->objAudit);
-        
+
         $objectId = isset ($this->parentId) && is_numeric ($this->parentId) ? $this->parentId : $this->elementId;
 
         $strWorkflow = json_encode ($this->objWorkflow);
-        
-        
+
+
         if ( !empty ($arrWorkflowData) )
         {
             $this->objMysql->_update ("workflow.workflow_data", array(
@@ -402,7 +413,7 @@ class WorkflowStep
         $this->completeWorkflowObject ($objMike, $arrCompleteData, true, $arrEmailAddresses);
         if ( isset ($this->nextStep) && $this->nextStep !== 0 )
         {
-            $this->checkEvents();
+            $this->checkEvents ();
             $this->_workflowStepId = $this->nextStep;
             return new WorkflowStep ($this->_workflowStepId, $objMike);
         }
@@ -449,7 +460,7 @@ class WorkflowStep
     public function getGroupsOfTask ($sTaskUID, $iType)
     {
         try {
-            
+
             $aGroups = [];
 
             $sql = "SELECT sp.* FROM workflow.step_permission sp "
@@ -464,7 +475,7 @@ class WorkflowStep
             foreach ($results as $aRow) {
                 $aGroups[] = $aRow;
             }
-            
+
             return $aGroups;
         } catch (Exception $oError) {
             throw ($oError);
@@ -484,18 +495,19 @@ class WorkflowStep
             if ( isset ($arrConditions['sendNotification']) && trim (strtolower ($arrConditions['sendNotification'])) == "yes" )
             {
                 $objFlow = new Flow();
-                $objFlow->setWorkflowId($this->workflowId);
-                $objFlow->setStepFrom($this->_workflowStepId);
-                
-               $objMessageApplication = new \BusinessModel\MessageApplication();
-               $objMessageApplication->create($objFlow, $this->elementId, $this->parentId, $this->objWorkflow);               
+                $objFlow->setWorkflowId ($this->workflowId);
+                $objFlow->setStepFrom ($this->_workflowStepId);
+
+                $objMessageApplication = new \BusinessModel\MessageApplication();
+                $objMessageApplication->create ($objFlow, $this->elementId, $this->parentId, $this->objWorkflow);
             }
-            
+
             if ( isset ($arrConditions['receiveNotification']) && trim (strtolower ($arrConditions['receiveNotification'])) == "yes" )
             {
                 $objMessageApplication = new \BusinessModel\MessageApplication();
-                $objMessageApplication->catchMessageEvent();
+                $objMessageApplication->catchMessageEvent ();
             }
         }
     }
+
 }

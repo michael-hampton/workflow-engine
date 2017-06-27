@@ -184,7 +184,7 @@ class Role
             $this->throwExceptionIfDataIsInvalid ("", $arrayData);
 
             //Create
-            $role = new \Roles();
+            $role = new \Role();
             $arrayData["status"] = (isset ($arrayData["status"])) ? (($arrayData["status"] == "ACTIVE") ? 1 : 0) : 1;
             $arrayData["ROL_CREATE_DATE"] = date ("Y-M-d H:i:s");
             $roleUid = $role->createRole ($arrayData);
@@ -292,7 +292,7 @@ class Role
     public function getRoleDataFromRecord (array $record)
     {
         try {
-            $objRoles = new \Roles();
+            $objRoles = new \Role();
             $objRoles->setRoleId ($record['role_id']);
             $objRoles->setRoleCode ($record['role_code']);
             $objRoles->setRoleName ($record['role_name']);
@@ -327,7 +327,7 @@ class Role
                 return $arrayRole;
             }
             //Set variables
-            $role = new \Roles();
+            $role = new \Role();
             //SQL
             $criteria = $this->getRoleCriteria ();
 
@@ -397,7 +397,7 @@ class Role
 
             $this->throwExceptionIfDataIsInvalid ($roleUid, $arrayData);
             //Update
-            $role = new \Roles();
+            $role = new \Role();
             $arrayData["role_id"] = $roleUid;
             $arrayData["ROL_UPDATE_DATE"] = date ("Y-M-d H:i:s");
 
@@ -425,7 +425,7 @@ class Role
     public function delete ($roleUid)
     {
         try {
-            $role = new \Roles();
+            $role = new \Role();
             //Verify data
             $this->throwExceptionIfNotExistsRole ($roleUid);
             if ( $role->numUsersWithRole ($roleUid) > 0 )

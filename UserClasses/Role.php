@@ -11,7 +11,7 @@
  *
  * @author michael.hampton
  */
-class Roles extends BaseRole
+class Role extends BaseRole
 {
 
     private $objMysql;

@@ -56,9 +56,9 @@ class Department
         try {
             if ( $this->checkNameExists ($departmentTitle, $id) )
             {
-                throw new Exception ("ID_DEPARTMENT_TITLE_ALREADY_EXISTS");
+                throw new \Exception ("ID_DEPARTMENT_TITLE_ALREADY_EXISTS");
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -74,7 +74,7 @@ class Department
      */
     public function getDepartments ()
     {
-        $oDepartment = new \Departments();
+        $oDepartment = new \Department();
         $aDepts = $oDepartment->getDepartments ('');
 
         return $aDepts;
@@ -93,7 +93,7 @@ class Department
         $dep_uid = $this->depUid ($dep_uid);
         $result = $this->objMysql->_select ("user_management.departments", [], ["id" => $dep_uid]);
 
-        $oDepaertment = new \Departments();
+        $oDepaertment = new \Department();
         $record = $oDepaertment->loadDepartmentRecord ($result[0]);
 
 
@@ -140,7 +140,7 @@ class Department
         {
             unset ($dep_data["id"]);
         }
-        $oDepartment = new \Departments();
+        $oDepartment = new \Department();
         if ( isset ($dep_data['id']) && $dep_data['id'] != '' )
         {
             $this->depUid ($dep_data['id']);
@@ -173,10 +173,11 @@ class Department
             }
             else
             {
-                throw (new Exception ("DEPARTMENT NAME IS MISSING"));
+                throw (new \Exception ("DEPARTMENT NAME IS MISSING"));
             }
 
             $dep_uid = $oDepartment->create ($dep_data);
+
             $response = $this->getDepartment ($dep_uid);
             return $response;
         }
@@ -193,11 +194,11 @@ class Department
     public function deleteDepartment ($dep_uid)
     {
         $dep_uid = $this->depUid ($dep_uid);
-        $oDepartment = new \Departments();
+        $oDepartment = new \Department();
         $countUsers = $oDepartment->countUsersInDepartment ($dep_uid);
         if ( $countUsers != 0 )
         {
-            throw (new Exception ("ID_CANT_DELETE_DEPARTMENT_HAS_USERS"));
+            throw (new \Exception ("ID_CANT_DELETE_DEPARTMENT_HAS_USERS"));
         }
 
         $oDepartment->remove ($dep_uid);
@@ -334,7 +335,7 @@ class Department
                 $filterName => ($flagFilter) ? $arrayFilterData['filter'] : '',
                 'data' => $arrayUser
             ];
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -371,7 +372,7 @@ class Department
 //                $recordc['usr_supervisor'] = $record['USR_SUPERVISOR'];
 //            }
 //            return $recordc;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -391,13 +392,13 @@ class Department
     )
     {
         try {
-            $objDepartments = new \Departments();
+            $objDepartments = new \Department();
             $obj = $objDepartments->retrieveByPK ($departmentUid);
             if ( is_null ($obj) )
             {
                 if ( $throwException )
                 {
-                    throw new Exception ('ID_DEPARTMENT_NOT_EXIST');
+                    throw new \Exception ('ID_DEPARTMENT_NOT_EXIST');
                 }
                 else
                 {
@@ -406,7 +407,7 @@ class Department
             }
             //Return
             return $objDepartments->loadDepartmentRecord ($obj);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -431,12 +432,12 @@ class Department
             $departmentUid = $this->depUid ($departmentUid);
             $this->validateUserId ($arrayData["USR_UID"]);
             //Assign User
-            $department = new \Departments();
+            $department = new \Department();
             $department->addUserToDepartment ($departmentUid, $arrayData["USR_UID"]);
             //Return
             $arrayData = array_merge (array("DEP_UID" => $departmentUid), $arrayData);
             return $arrayData;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -453,7 +454,7 @@ class Department
         $dep_uid = $this->depUid ($dep_uid);
         $usr_uid = $this->validateUserId ($usr_uid);
         $this->throwExceptionUserNotExistsInDepartment ($dep_uid, $usr_uid);
-        $dep = new \Departments();
+        $dep = new \Department();
         $objDept = $dep->getDepartmentObject ();
 
         $manager = $objDept->getDepartmentManager();

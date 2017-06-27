@@ -1,5 +1,5 @@
 <?php
-class Notifications extends BaseNotifications
+class Notifications extends BaseNotification
 {
     
 }

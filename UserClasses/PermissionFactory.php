@@ -116,7 +116,7 @@ class PermissionFactory
             //Set data
 
             //Verify data
-            $role = new Roles();
+            $role = new Role();
             $this->throwExceptionIfNotExistsRole ($roleUid);
           
             $this->throwExceptionIfNotExistsPermission ($arrayData["perm_id"]);
@@ -147,7 +147,7 @@ class PermissionFactory
         try {
             //Verify data
 
-            $role = new Roles();
+            $role = new Role();
             $this->throwExceptionIfNotExistsRole ($roleUid);
             $this->throwExceptionIfNotExistsPermission ($permissionUid);
             $this->throwExceptionIfNotItsAssignedPermissionToRole ($roleUid, $permissionUid);
@@ -209,7 +209,7 @@ class PermissionFactory
     public function getPermissionDataFromRecord (array $record)
     {
         try {
-          $objRole = new Roles();
+          $objRole = new Role();
           $objRole->setPermId($record['perm_id']);
           $objRole->setPermName($record['perm_name']);
           $objRole->setRoleId($record['role_id']);
@@ -239,7 +239,7 @@ class PermissionFactory
         try {
             $arrayPermission = array();
             //Verify data
-            $role = new Roles();
+            $role = new Role();
             $this->throwExceptionIfNotExistsRole ($roleUid);
           
             //Get data
