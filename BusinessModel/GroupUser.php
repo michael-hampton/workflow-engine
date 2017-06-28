@@ -1,4 +1,5 @@
 <?php
+
 namespace BusinessModel;
 
 /*
@@ -16,12 +17,12 @@ class GroupUser
 {
 
     use Validator;
-    
+
     private $objMysql;
-    
+
     public function __construct ()
     {
-        $this->objMysql = new Mysql2();
+        $this->objMysql = new \Mysql2();
     }
 
     /**
@@ -33,19 +34,21 @@ class GroupUser
      *
      * return void Throw exception if doesn't exist the User in Group
      */
-    public function throwExceptionIfNotExistsGroupUser (\Teams $objGroup, \Users $objUser, $fieldNameForException)
+    public function throwExceptionIfNotExistsGroupUser (\Team $objGroup, \Users $objUser, $fieldNameForException)
     {
         try {
-            
-            if(trim($objGroup->getId ()) === "") {
+
+            if ( trim ($objGroup->getId ()) === "" )
+            {
                 return false;
             }
-            
-            if(trim($objUser->getUserId ()) === "") {
+
+            if ( trim ($objUser->getUserId ()) === "" )
+            {
                 return false;
             }
-            
-            $obj = $this->retrieveByPK ($objGroup,  $objUser);
+
+            $obj = $this->retrieveByPK ($objGroup, $objUser);
             if ( !(is_object ($obj) && get_class ($obj) == "GroupUser") )
             {
                 throw new \Exception ("ID_GROUP_USER_IS_NOT_ASSIGNED");
@@ -62,11 +65,11 @@ class GroupUser
      * @param      Connection $con
      * @return     GroupUser
      */
-    public function retrieveByPK (\Teams $objGroup, \Users $objUser)
+    public function retrieveByPK (\Team $objGroup, \Users $objUser)
     {
-      
-        $v = $this->objMysql->_select("user_management.poms_users", [], ["team_id" => $objGroup->getId (), "usrid" => $objUser->getUserId ()]);
-        
+
+        $v = $this->objMysql->_select ("user_management.poms_users", [], ["team_id" => $objGroup->getId (), "usrid" => $objUser->getUserId ()]);
+
         return !empty ($v) ? $v[0] : null;
     }
 
@@ -78,23 +81,25 @@ class GroupUser
      *
      * return void Throw exception if exists the User in Group
      */
-    public function throwExceptionIfExistsGroupUser (\Teams $objGroup, \Users $objUser)
+    public function throwExceptionIfExistsGroupUser (\Team $objGroup, \Users $objUser)
     {
         try {
-            
-             if(trim($objGroup->getId ()) === "") {
+
+            if ( trim ($objGroup->getId ()) === "" )
+            {
                 return false;
             }
-            
-            if(trim($objUser->getUserId ()) === "") {
+
+            if ( trim ($objUser->getUserId ()) === "" )
+            {
                 return false;
             }
-            
-            $obj =  $this->retrieveByPK ($objGroup, $objUser);
-            
+
+            $obj = $this->retrieveByPK ($objGroup, $objUser);
+
             if ( $obj !== null )
             {
-                throw new Exception ("ID_GROUP_USER_IS_ALREADY_ASSIGNED");
+                throw new \Exception ("ID_GROUP_USER_IS_ALREADY_ASSIGNED");
             }
         } catch (Exception $e) {
             throw $e;
@@ -109,34 +114,37 @@ class GroupUser
      *
      * return array Return data of the User assigned to Group
      */
-    public function create (\Teams $objGroup, \Users $objUser)
+    public function create (\Team $objGroup, \Users $objUser)
     {
         try {
-            
-             if(trim($objGroup->getId ()) === "") {
+
+            if ( trim ($objGroup->getId ()) === "" )
+            {
                 return false;
             }
-            
-            if(trim($objUser->getUserId ()) === "") {
+
+            if ( trim ($objUser->getUserId ()) === "" )
+            {
                 return false;
             }
 
             $group = new Team();
-            $group->throwExceptionIfNotExistsGroup ($groupUid);
-            $this->validateUserId ($userId);
+            $group->throwExceptionIfNotExistsGroup ($objGroup->getId ());
+            $this->validateUserId ($objUser->getUserId ());
             $this->throwExceptionIfExistsGroupUser ($objGroup, $objUser);
             //Create
-            $group = new Team();
-            
-            $group->addUserToGroup ($groupUid, $userId);
+            $group = new \Team();
+
+            $group->addUserToGroup ($objGroup, $objUser);
             //Return
-            $arrayData = array("GRP_UID" => $groupUid, "USR_UID" => $userId);
+            $arrayData = array("GRP_UID" => $objGroup->getId (), "USR_UID" => $objUser->getUserId ());
 
             return $arrayData;
         } catch (Exception $e) {
             throw $e;
         }
     }
+
     /**
      * Unassign User of the Group
      *
@@ -145,28 +153,31 @@ class GroupUser
      *
      * return void
      */
-    public function delete (\Users $objUser, \Teams $objTeam = null)
+    public function delete (\Users $objUser, \Team $objTeam = null)
     {
         try {
-            
-            if(trim($objUser->getUserId ()) === "") {
+
+            if ( trim ($objUser->getUserId ()) === "" )
+            {
                 return false;
             }
-            
+
             //Verify data
             $group = new Team();
-            if($groupUid !== null) {
-                 $group->throwExceptionIfNotExistsGroup ($objTeam->getId ()); 
-                 $this->throwExceptionIfNotExistsGroupUser ($objTeam, $objUser);
+            if ( $groupUid !== null )
+            {
+                $group->throwExceptionIfNotExistsGroup ($objTeam->getId ());
+                $this->throwExceptionIfNotExistsGroupUser ($objTeam, $objUser);
             }
-           
+
             $this->validateUserId ($objUser->getUserId ());
-           
+
             //Delete
-            $groups = new \Teams();
+            $groups = new \Team();
             $group->removeUsersFromGroup ($userUid, $groupUid);
         } catch (Exception $e) {
             throw $e;
         }
     }
+
 }

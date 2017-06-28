@@ -36,6 +36,7 @@ abstract class BaseTeam implements Persistent
         if ( $teamId !== null )
         {
             $this->teamId = $teamId;
+            $this->id = $teamId;
         }
     }
 

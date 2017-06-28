@@ -7,7 +7,7 @@
  */
 
 /**
- * Description of Roles
+ * Description of Role
  *
  * @author michael.hampton
  */
@@ -89,7 +89,7 @@ class Role extends BaseRole
     function deleteUserRole ($ROL_UID, $USR_UID)
     {
         $objUser = new Users();
-        $objUser->removeRolesFromUser ($USR_UID, $ROL_UID);
+        $objUser->removeRoleFromUser ($USR_UID, $ROL_UID);
     }
 
     function assignUserToRole ($aData)
@@ -118,7 +118,7 @@ class Role extends BaseRole
         return count ($result);
     }
     
-     function assignPermissionRole(Roles $objRole, Permission $objPermission) {
+     function assignPermissionRole(Role $objRole, Permission $objPermission) {
         $o = new RolePermissions();
         
         $o->setPerUid($objPermission->getPermId ());
@@ -128,7 +128,7 @@ class Role extends BaseRole
       
     }
     
-     function deletePermissionRole(Roles $objRole, Permission $objPermission) {
+     function deletePermissionRole(Role $objRole, Permission $objPermission) {
         $o = new RolePermissions();
         $o->setPerUid($objPermission->getPermId ());
         $o->setRolUid($objRole->getRoleId ());

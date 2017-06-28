@@ -77,6 +77,10 @@ class Event
     {
         $result = $this->objMysql->_select("workflow.status_mapping", ['step_condition'], ['id' => $taskId]);
         
+        if(!isset($result[0]) || empty($result[0])) {
+            return false;
+        }
+        
        return $result;
     }
 

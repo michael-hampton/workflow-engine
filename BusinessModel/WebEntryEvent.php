@@ -52,11 +52,9 @@ class WebEntryEvent
     public function existsEvent ($projectUid, $eventUid, $webEntryEventUidToExclude = "")
     {
         try {
-            $criteria = new \Criteria ("workflow");
 
             $sql = "SELECT WEE_UID FROM web_entry WHERE PRJ_UID = ?";
             $arrParameters = array($projectUid);
-
 
             if ( $webEntryEventUidToExclude != "" )
             {
@@ -67,8 +65,8 @@ class WebEntryEvent
             $sql .= " AND EVN_UID = ?";
             $arrParameters[] = $eventUid;
 
-
             $result = $this->objMysql->_query ($sql, $arrParameters);
+
             return isset ($result[0]) && !empty ($result[0]) ? true : false;
         } catch (\Exception $e) {
             throw $e;
@@ -134,7 +132,7 @@ class WebEntryEvent
      *
      * return void Throw exception if is registered the Event
      */
-    public function throwExceptionIfEventIsRegistered ($projectUid, $eventUid, $fieldNameForException, $webEntryEventUidToExclude = "")
+    public function throwExceptionIfEventIsRegistered ($projectUid, $eventUid, $webEntryEventUidToExclude = "")
     {
         try {
             if ( $this->existsEvent ($projectUid, $eventUid, $webEntryEventUidToExclude) )
@@ -190,19 +188,19 @@ class WebEntryEvent
             //Verify data
             if ( isset ($arrayData["EVN_UID"]) )
             {
-                $this->throwExceptionIfEventIsRegistered ($projectUid, $arrayData["EVN_UID"], $this->arrayFieldNameForException["eventUid"], $webEntryEventUid);
+                $this->throwExceptionIfEventIsRegistered ($projectUid, $arrayData["EVN_UID"], $webEntryEventUid);
             }
 
             if ( isset ($arrayData["EVN_UID"]) )
             {
-                $obj = \BpmnEventPeer::retrieveByPK ($arrayData["EVN_UID"]);
+                $obj = (new \Flow())->retrieveByPk ($arrayData['EVN_UID']);
 
-                if ( is_null ($obj) )
+                if ( $obj === FALSE )
                 {
                     throw new \Exception ("ID_EVENT_NOT_EXIST");
                 }
 
-                if ( ($obj->getEvnType () != "START") || ($obj->getEvnType () == "START" && $obj->getEvnMarker () != "EMPTY") )
+                if ( ((int) $obj->getFirstStep () != 1) || ((int) $obj->getFirstStep () !== 1 && trim ($obj->getStepTo ()) === "") )
                 {
                     throw new \Exception ("ID_EVENT_NOT_IS_START_EVENT");
                 }
@@ -223,34 +221,37 @@ class WebEntryEvent
                 }
             }
 
-            if ( isset ($arrayData["EVN_UID"]) || isset ($arrayData["ACT_UID"]) )
-            {
-                $criteria = new \Criteria ("workflow");
-
-                $criteria->addSelectColumn (\BpmnFlowPeer::FLO_UID);
-                $criteria->add (\BpmnFlowPeer::FLO_ELEMENT_ORIGIN, $arrayFinalData["EVN_UID"], \Criteria::EQUAL);
-                $criteria->add (\BpmnFlowPeer::FLO_ELEMENT_ORIGIN_TYPE, "bpmnEvent", \Criteria::EQUAL);
-                $criteria->add (\BpmnFlowPeer::FLO_ELEMENT_DEST, $arrayFinalData["ACT_UID"], \Criteria::EQUAL);
-                $criteria->add (\BpmnFlowPeer::FLO_ELEMENT_DEST_TYPE, "bpmnActivity", \Criteria::EQUAL);
-
-                $rsCriteria = \BpmnFlowPeer::doSelectRS ($criteria);
-
-                if ( !$rsCriteria->next () )
-                {
-                    throw new \Exception (\G::LoadTranslation ("ID_WEB_ENTRY_EVENT_FLOW_EVENT_TO_ACTIVITY_DOES_NOT_EXIST"));
-                }
-            }
+//            if ( isset ($arrayData["EVN_UID"]) || isset ($arrayData["ACT_UID"]) )
+//            {
+//                
+//
+//                $criteria->addSelectColumn (\BpmnFlowPeer::FLO_UID);
+//                $criteria->add (\BpmnFlowPeer::FLO_ELEMENT_ORIGIN, $arrayFinalData["EVN_UID"], \Criteria::EQUAL);
+//                $criteria->add (\BpmnFlowPeer::FLO_ELEMENT_ORIGIN_TYPE, "bpmnEvent", \Criteria::EQUAL);
+//                $criteria->add (\BpmnFlowPeer::FLO_ELEMENT_DEST, $arrayFinalData["ACT_UID"], \Criteria::EQUAL);
+//                $criteria->add (\BpmnFlowPeer::FLO_ELEMENT_DEST_TYPE, "bpmnActivity", \Criteria::EQUAL);
+//
+//                $rsCriteria = \BpmnFlowPeer::doSelectRS ($criteria);
+//
+//                if ( !$rsCriteria->next () )
+//                {
+//                    throw new \Exception (\G::LoadTranslation ("ID_WEB_ENTRY_EVENT_FLOW_EVENT_TO_ACTIVITY_DOES_NOT_EXIST"));
+//                }
+//            }
 
             if ( isset ($arrayData["DYN_UID"]) )
             {
-                $dynaForm = new \ProcessMaker\BusinessModel\DynaForm();
+                $dynaForm = new \WorkflowStep();
 
-                $dynaForm->throwExceptionIfNotExistsDynaForm ($arrayData["DYN_UID"], $projectUid, $this->arrayFieldNameForException["dynaFormUid"]);
+                if ( $dynaForm->stepExists ($arrayData['DYN_UID']) === false )
+                {
+                    throw new Exception ("Step doesnt exist");
+                }
             }
 
             if ( isset ($arrayData["USR_UID"]) )
             {
-                $process->throwExceptionIfNotExistsUser ($arrayData["USR_UID"], $this->arrayFieldNameForException["userUid"]);
+                (new \BusinessModel\UsersFactory())->throwExceptionIfNotExistsUser($arrayData['USR_UID']);
             }
         } catch (\Exception $e) {
             throw $e;
@@ -271,7 +272,7 @@ class WebEntryEvent
      *
      * return void
      */
-    public function createWebEntry ($projectUid, $eventUid, $activityUid, $dynaFormUid, $userUid, $title, $description, $userUidCreator)
+    public function createWebEntry ($projectUid, $eventUid, $dynaFormUid, $userUid, $title, $description, $userUidCreator)
     {
         try {
             $bpmn = new \ProcessMaker\Project\Bpmn();
@@ -380,15 +381,11 @@ class WebEntryEvent
     {
         try {
             //Verify data
-            $process = new \ProcessMaker\BusinessModel\Process();
-            $validator = new \ProcessMaker\BusinessModel\Validator();
 
-            $validator->throwExceptionIfDataIsNotArray ($arrayData, "\$arrayData");
-            $validator->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
+            $this->throwExceptionIfDataIsNotArray ($arrayData, "\$arrayData");
+            $this->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
 
             //Set data
-            $arrayData = array_change_key_case ($arrayData, CASE_UPPER);
-
             unset ($arrayData["WEE_UID"]);
             unset ($arrayData["PRJ_UID"]);
             unset ($arrayData["WEE_WE_UID"]);
@@ -405,7 +402,9 @@ class WebEntryEvent
             }
 
             //Verify data
-            $process->throwExceptionIfNotExistsProcess ($projectUid, $this->arrayFieldNameForException["projectUid"]);
+            $process = new Process();
+
+            $process->throwExceptionIfNotExistsProcess ($projectUid);
 
             $this->throwExceptionIfDataIsInvalid ("", $projectUid, $arrayData);
 
@@ -419,7 +418,7 @@ class WebEntryEvent
                 if ( $arrayData["WEE_STATUS"] == "ENABLED" )
                 {
                     $this->createWebEntry (
-                            $projectUid, $arrayData["EVN_UID"], $arrayData["ACT_UID"], $arrayData["DYN_UID"], $arrayData["USR_UID"], $arrayData["WEE_TITLE"], $arrayData["WEE_DESCRIPTION"], $userUidCreator
+                            $projectUid, $arrayData["EVN_UID"], $arrayData["DYN_UID"], $arrayData["USR_UID"], $arrayData["WEE_TITLE"], $arrayData["WEE_DESCRIPTION"], $userUidCreator
                     );
                 }
 
@@ -729,7 +728,6 @@ class WebEntryEvent
 
             //Delete WebEntry
             $this->deleteWebEntry ($arrayWebEntryEventData["WEE_WE_UID"], $arrayWebEntryEventData["WEE_WE_TAS_UID"]);
-
         } catch (\Exception $e) {
             throw $e;
         }
@@ -796,6 +794,7 @@ class WebEntryEvent
     public function getWebEntryEvents ($projectUid)
     {
         try {
+
             $arrayWebEntryEvent = array();
 
             //Get data
@@ -810,14 +809,14 @@ class WebEntryEvent
             }
 
 
-            foreach ($results as $result)
+            foreach ($results as $result) {
 
                 $arrayWebEntryEvent[] = $this->getWebEntryEventDataFromRecord ($result);
             }
 
             //Return
             return $arrayWebEntryEvent;
-        } catch (\Exception $e) {
+        } catch (Exception $ex) {
             throw $e;
         }
     }

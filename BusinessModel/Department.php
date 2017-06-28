@@ -1,4 +1,5 @@
 <?php
+
 namespace BusinessModel;
 
 class Department
@@ -420,22 +421,28 @@ class Department
      *
      * return array Return data of the User assigned to Department
      */
-    public function assignUser ($departmentUid, array $arrayData)
+    public function assignUser (\Department $objDepartment, \Users $objUser)
     {
         try {
+
+            if ( trim ($objDepartment->getId ()) === "" )
+            {
+                return false;
+            }
+
+            if ( trim ($objUser->getUserId ()) === "" )
+            {
+                return false;
+            }
+
             //Verify data
-            $this->throwExceptionIfDataIsNotArray ($arrayData, "\$arrayData");
-            $this->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
-            //Set data
-            //Set variables
-            //Verify data
-            $departmentUid = $this->depUid ($departmentUid);
-            $this->validateUserId ($arrayData["USR_UID"]);
+            $departmentUid = $this->depUid ($objDepartment->getId ());
+            $this->validateUserId ($objUser->getUserId ());
             //Assign User
             $department = new \Department();
-            $department->addUserToDepartment ($departmentUid, $arrayData["USR_UID"]);
+            $department->addUserToDepartment ($objDepartment, $objUser);
             //Return
-            $arrayData = array_merge (array("DEP_UID" => $departmentUid), $arrayData);
+            $arrayData = array("DEP_UID" => $objDepartment->getId (), "userId" => $objUser->getUserId ());
             return $arrayData;
         } catch (\Exception $e) {
             throw $e;
@@ -457,9 +464,9 @@ class Department
         $dep = new \Department();
         $objDept = $dep->getDepartmentObject ();
 
-        $manager = $objDept->getDepartmentManager();
+        $manager = $objDept->getDepartmentManager ();
         $dep->removeUserFromDepartment ($dep_uid, $usr_uid);
-        
+
         if ( $usr_uid == $manager )
         {
             $dep->updateDepartmentManager ($dep_uid, 0);

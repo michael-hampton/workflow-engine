@@ -152,7 +152,7 @@ class RoleUser
         return $results;
     }
 
-    function getAllPermissions (\Roles $objRole)
+    function getAllPermissions (\Role $objRole)
     {
         try {
             $results = $this->objMysql->_query ("SELECT p.* FROM user_management.role_perms rp

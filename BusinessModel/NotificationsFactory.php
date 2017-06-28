@@ -78,15 +78,15 @@ class NotificationsFactory
         return $total;
     }
 
-    /**
-     * 
-     * @param type $arrParameters
-     * @param type $pageLimit
-     * @param type $page
-     * @param type $strOrderBy
-     * @param type $strOrderDir
-     * @return \Notifications
-     */
+  /**
+   * 
+   * @param type $arrParameters
+   * @param type $pageLimit
+   * @param type $page
+   * @param type $strOrderBy
+   * @param type $strOrderDir
+   * @return \Notification
+   */
     public function getNotifications ($arrParameters, $pageLimit = 10, $page = 0, $strOrderBy = "ns.date_sent", $strOrderDir = "DESC")
     {
 
@@ -170,7 +170,7 @@ class NotificationsFactory
 
         foreach ($arrResults as $key => $arrResult) {
 
-            $objNotifications = new \Notifications();
+            $objNotifications = new \Notification();
             $objNotifications->setRecipient ($arrResult['recipient']);
             $objNotifications->setBody ($arrResult['message']);
             $objNotifications->setSubject ($arrResult['subject']);

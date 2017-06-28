@@ -35,6 +35,8 @@ require_once HOME_DIR . '/core/app/library/Event/BaseMessageDefinition.php';
 require_once HOME_DIR . '/core/app/library/Event/MessageDefinition.php';
 
 require_once HOME_DIR . '/core/app/library/BusinessModel/MessageEventDefinition.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/WebEntry.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/WebEntryEvent.php';
 
 /* * *********************** Documents ******************************************** */
 require_once HOME_DIR . '/core/app/library/Documents/StepDocument.php';
@@ -102,7 +104,7 @@ require_once HOME_DIR . '/core/app/library/BusinessModel/Cases.php';
 
 /* * ************** Notification Classes *********************** */
 require_once HOME_DIR . '/core/app/library/Notifications/BaseNotification.php';
-require_once HOME_DIR . '/core/app/library/Notifications/Notifications.php';
+require_once HOME_DIR . '/core/app/library/Notifications/Notification.php';
 require_once HOME_DIR . '/core/app/library/Notifications/SendNotification.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/NotificationsFactory.php';
 /* * ********************* BPMN Classes ***************************************************** */

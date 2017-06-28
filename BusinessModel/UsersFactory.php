@@ -635,7 +635,7 @@ class UsersFactory
 
             if ( !isset ($result[0]) || empty ($result[0]) )
             {
-                throw new Exception ("Failed to find user");
+                throw new \Exception ("Failed to find user");
             }
 
             //Return
@@ -667,7 +667,7 @@ class UsersFactory
         $fieldsPermissions = [];
 
         foreach ($fieldsRoles as $fieldsRole) {
-            $fieldsPermissions[] = $objUserRole->getAllPermissions (new \Roles ($fieldsRole['role_id']));
+            $fieldsPermissions[] = $objUserRole->getAllPermissions (new \Role ($fieldsRole['role_id']));
         }
         
         $permissions = [];

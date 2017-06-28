@@ -26,7 +26,8 @@ class Trigger extends BaseTrigger
             $this->setWorkflowId ($aData['workflow_id']);
             $this->setId ($stepUid);
             $this->setTriggerType ($aData['trigger_type']);
-            $this->setEventType($aData['event_type']);
+            $this->setEventType ($aData['event_type']);
+            $this->setWorkflowTo ($aData['workflow_id']);
             if ( $this->validate () )
             {
                 $result = $this->save ();
@@ -46,16 +47,17 @@ class Trigger extends BaseTrigger
         try {
             $triTitle = isset ($fields['title']) ? $fields['title'] : '';
             $this->setTitle ($triTitle);
-            
-             $triDescription = isset ($fields['description']) ? $fields['description'] : '';
+
+            $triDescription = isset ($fields['description']) ? $fields['description'] : '';
             $this->setDescription ($triDescription);
-            
+
             $this->setId ($fields['step_id']);
             $this->setTriggerType ($fields['trigger_type']);
             $this->setWorkflowId ($fields['workflow_id']);
             $this->setStepTo ($fields['step_to']);
-            $this->setTriggerId($fields['triggerId']);
-            $this->setEventType($fields['event_type']);
+            $this->setTriggerId ($fields['triggerId']);
+            $this->setEventType ($fields['event_type']);
+            $this->setWorkflowTo ($fields['workflow_id']);
             if ( $this->validate () )
             {
                 $this->setNew (false);
@@ -90,14 +92,15 @@ class Trigger extends BaseTrigger
             throw($oError);
         }
     }
-    
-    public function remove($TriUid)
+
+    public function remove ($TriUid)
     {
         try {
             $result = false;
-            $oTri = $this->retrieveByPK($TriUid);
-            if (!is_null($oTri)) {
-                $result = $this->delete($TriUid);
+            $oTri = $this->retrieveByPK ($TriUid);
+            if ( !is_null ($oTri) )
+            {
+                $result = $this->delete ($TriUid);
             }
             return $result;
         } catch (Exception $e) {

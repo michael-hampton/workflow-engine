@@ -275,14 +275,11 @@ class Department extends BaseDepartment
         return $objDepartment;
     }
 
-    public function addUserToDepartment ($departmentUid, $userUid)
+    public function addUserToDepartment (Department $objDepartment, Users $objUser)
     {
-
         try {
             
-            $objUser = new Users();
-            $objUser->setDept_id ($departmentUid);
-            $objUser->setUserId ($userUid);
+            $objUser->setDept_id ($objDepartment->getId ());
             $objUser->save ();
         } catch (Exception $ex) {
             throw $ex;

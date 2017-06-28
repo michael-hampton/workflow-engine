@@ -11,7 +11,7 @@
  *
  * @author michael.hampton
  */
-class MessageDefinitions extends BaseMessageDefinition
+class MessageDefinition extends BaseMessageDefinition
 {
 
     //put your code here

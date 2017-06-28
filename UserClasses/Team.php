@@ -11,7 +11,7 @@
  *
  * @author michael.hampton
  */
-class Teams extends BaseTeam
+class Team extends BaseTeam
 {
 
     private $objMysql;
@@ -145,10 +145,20 @@ class Teams extends BaseTeam
         }
     }
 
-    public function addUserToGroup ($groupUid, $userUid)
+    public function addUserToGroup (Team $objTeam, Users $objUser)
     {
-        $this->removeUserOfGroup ($userUid);
-        $this->addUserOfGroup ($groupUid, $userUid);
+        if ( trim ($objTeam->getId ()) === "" )
+        {
+            return false;
+        }
+
+        if ( trim ($objUser->getUserId ()) === "" )
+        {
+            return false;
+        }
+
+        $this->removeUserOfGroup ($objUser->getUserId ());
+        $this->addUserOfGroup ($objTeam->getId (), $objUser->getUserId ());
     }
 
     public function removeUsersFromGroup ($userUid, $groupUid = null)
@@ -169,10 +179,10 @@ class Teams extends BaseTeam
     public function remove ($groupUid)
     {
         try {
-            $oPro = $this->retrieveByPk($groupUid);
+            $oPro = $this->retrieveByPk ($groupUid);
             if ( is_object ($oPro) && get_class ($oPro) === "Teams" )
             {
-                return $oPro->deleteTeam();
+                return $oPro->deleteTeam ();
             }
             else
             {

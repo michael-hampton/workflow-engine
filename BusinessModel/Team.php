@@ -120,7 +120,7 @@ class Team
             //Verify data
             $this->throwExceptionIfExistsTitle ($arrayData["team_name"]);
             //Create
-            $group = new \Teams();
+            $group = new \Team();
             $groupUid = $group->create ($arrayData);
             //Return
             $arrayData = array_merge (array("GRP_UID" => $groupUid), $arrayData);
@@ -149,7 +149,7 @@ class Team
                 $this->throwExceptionIfExistsTitle ($arrayData["team_name"], $groupUid);
             }
             //Update
-            $group = new \Teams();
+            $group = new \Team();
             $arrayData["team_id"] = $groupUid;
             $result = $group->update ($arrayData);
             //Return
@@ -180,7 +180,7 @@ class Team
             }
             
             //Delete
-            $group = new \Teams();
+            $group = new \Team();
             $result = $group->remove ($groupUid);
 
 
@@ -419,13 +419,13 @@ class Team
     {
         try {
 
-            $objTeams = new \Teams();
-            $objTeams->setTeamName ($record['team_name']);
-            $objTeams->setId ($record['team_id']);
-            $objTeams->setDeptId ($record['dept_id']);
-            $objTeams->setStatus ($record['status']);
+            $objTeam = new \Team();
+            $objTeam->setTeamName ($record['team_name']);
+            $objTeam->setId ($record['team_id']);
+            $objTeam->setDeptId ($record['dept_id']);
+            $objTeam->setStatus ($record['status']);
 
-            return $objTeams;
+            return $objTeam;
         } catch (Exception $e) {
             throw $e;
         }

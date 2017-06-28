@@ -128,18 +128,18 @@ class RolePermission
      *
      * return array Return data of the Permission assigned to Role
      */
-    public function create (\Roles $objRole, \Permission $objPermission)
+    public function create (\Role $objRole, \Permission $objPermission)
     {
         try {
             //Set data
-            $role = new \Roles();
+            $role = new \Role();
             $this->throwExceptionIfNotExistsRole ($objRole->getRoleId ());
 
             $this->throwExceptionIfNotExistsPermission ($objPermission->getPermId ());
             $this->throwExceptionIfItsAssignedPermissionToRole ($objRole->getRoleId (), $objPermission->getPermId ());
 
             //Create
-            $role = new \Roles();
+            $role = new \Role();
             $role->assignPermissionRole ($objRole, $objPermission);
 
             return true;
@@ -156,12 +156,12 @@ class RolePermission
      *
      * return void
      */
-    public function delete (\Roles $objRole, \Permission $objPermission)
+    public function delete (\Role $objRole, \Permission $objPermission)
     {
         try {
             //Verify data
 
-            $role = new \Roles();
+            $role = new \Role();
             $this->throwExceptionIfNotExistsRole ($objRole->getRoleId ());
             $this->throwExceptionIfNotExistsPermission ($objPermission->getPermId ());
             $this->throwExceptionIfNotItsAssignedPermissionToRole ($objRole->getRoleId (), $objPermission->getPermId ());

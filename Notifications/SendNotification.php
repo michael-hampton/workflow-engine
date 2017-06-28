@@ -1,6 +1,6 @@
 <?php
 
-class SendNotification extends Notifications
+class SendNotification extends Notification
 {
 
     private $elementId;
