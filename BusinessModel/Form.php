@@ -354,5 +354,44 @@ class Form extends FieldFactory
 
         return $html;
     }
+    
+     /**
+     * Verify if doesn't exists the DynaForm in table DYNAFORM
+     *
+     * @param string $dynaFormUid           Unique id of DynaForm
+     * @param string $processUid            Unique id of Process
+     * @param string $fieldNameForException Field name for the exception
+     *
+     * return void Throw exception if doesn't exists the DynaForm in table DYNAFORM
+     */
+    public function throwExceptionIfNotExistsDynaForm($dynaFormUid, $fieldNameForException = '')
+    {
+        try {
+            $sql = "SELECT * FROM workflow.steps s
+                    INNER JOIN workflow.step_fields sf ON sf.step_id = s.step_id
+                    WHERE s.step_id = ? ";
+            $arrParameters = array($dynaFormUid);
 
+           $result = $this->objMysql->_query($sql, $arrParameters);
+
+            if (!isset($result[0]) || empty($result[0])) {
+                $this->throwExceptionDynaFormDoesNotExist($dynaFormUid, $fieldNameForException);
+            }
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+    
+     /**
+     * Throw the exception "The DynaForm doesn't exist"
+     *
+     * @param string $dynaFormUid           Unique id of DynaForm
+     * @param string $fieldNameForException Field name for the exception
+     *
+     * @return void
+     */
+    private function throwExceptionDynaFormDoesNotExist($dynaFormUid, $fieldNameForException)
+    {
+        throw new \Exception('ID_DYNAFORM_DOES_NOT_EXIST');
+    }
 }

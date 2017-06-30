@@ -35,6 +35,8 @@ require_once HOME_DIR . '/core/app/library/Event/BaseMessageDefinition.php';
 require_once HOME_DIR . '/core/app/library/Event/MessageDefinition.php';
 
 require_once HOME_DIR . '/core/app/library/BusinessModel/MessageEventDefinition.php';
+require_once HOME_DIR . '/core/app/library/Event/BaseWebEntry.php';
+require_once HOME_DIR . '/core/app/library/Event/WebEntry.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/WebEntry.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/WebEntryEvent.php';
 

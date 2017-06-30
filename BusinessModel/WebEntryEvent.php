@@ -20,6 +20,7 @@ class WebEntryEvent
     public function __construct ()
     {
         $this->objMysql = new \Mysql2();
+        $this->webEntry = new WebEntry();
     }
 
     /**
@@ -251,7 +252,7 @@ class WebEntryEvent
 
             if ( isset ($arrayData["USR_UID"]) )
             {
-                (new \BusinessModel\UsersFactory())->throwExceptionIfNotExistsUser($arrayData['USR_UID']);
+                (new \BusinessModel\UsersFactory())->throwExceptionIfNotExistsUser ($arrayData['USR_UID']);
             }
         } catch (\Exception $e) {
             throw $e;
@@ -275,7 +276,7 @@ class WebEntryEvent
     public function createWebEntry ($projectUid, $eventUid, $dynaFormUid, $userUid, $title, $description, $userUidCreator)
     {
         try {
-            $bpmn = new \ProcessMaker\Project\Bpmn();
+            $bpmn = new Event();
 
             $arrayEventData = $bpmn->getEvent ($eventUid);
 
@@ -284,33 +285,20 @@ class WebEntryEvent
 
             $prefix = "wee-";
 
-            $this->webEntryEventWebEntryTaskUid = $task->create (
-                    array(
-                "TAS_UID" => $prefix . substr (\ProcessMaker\Util\Common::generateUID (), (32 - strlen ($prefix)) * -1),
-                "PRO_UID" => $projectUid,
-                "TAS_TYPE" => "WEBENTRYEVENT",
-                "TAS_TITLE" => "WEBENTRYEVENT",
-                "TAS_START" => "TRUE",
-                "TAS_POSX" => (int) ($arrayEventData["BOU_X"]),
-                "TAS_POSY" => (int) ($arrayEventData["BOU_Y"])
-                    ), false
+            //Task - User
+            $task = new StepPermission (new \Task ($dynaFormUid));
+            $permissions = array(
+                "selectedPermissions" => array(
+                    0 => array(
+                        "objectType" => "user",
+                        "id" => $userUid,
+                        "permissionType" => "master"
+                    )
+                )
             );
 
-            //Task - Step
-            $step = new \Step();
-
-            $stepUid = $step->create (array("PRO_UID" => $projectUid, "TAS_UID" => $this->webEntryEventWebEntryTaskUid));
-            $result = $step->update (array("STEP_UID" => $stepUid, "STEP_TYPE_OBJ" => "DYNAFORM", "STEP_UID_OBJ" => $dynaFormUid, "STEP_POSITION" => 1, "STEP_MODE" => "EDIT"));
-
-            //Task - User
-            $task = new \Tasks();
-
-            $result = $task->assignUser ($this->webEntryEventWebEntryTaskUid, $userUid, 1);
-
-            //Route
-            $workflow = \ProcessMaker\Project\Workflow::load ($projectUid);
-
-            $result = $workflow->addRoute ($this->webEntryEventWebEntryTaskUid, $activityUid, "SEQUENTIAL");
+            $result = $task->saveProcessPermission ($permissions);
+            $this->webEntryEventWebEntryTaskUid = $eventUid;
 
             //WebEntry
             $arrayWebEntryData = $this->webEntry->create (
@@ -418,7 +406,13 @@ class WebEntryEvent
                 if ( $arrayData["WEE_STATUS"] == "ENABLED" )
                 {
                     $this->createWebEntry (
-                            $projectUid, $arrayData["EVN_UID"], $arrayData["DYN_UID"], $arrayData["USR_UID"], $arrayData["WEE_TITLE"], $arrayData["WEE_DESCRIPTION"], $userUidCreator
+                            $projectUid, 
+                            $arrayData["EVN_UID"], 
+                            $arrayData["DYN_UID"], 
+                            $arrayData["USR_UID"],
+                            $arrayData["WEE_TITLE"], 
+                            $arrayData["WEE_DESCRIPTION"], 
+                            $userUidCreator
                     );
                 }
 
@@ -468,9 +462,8 @@ class WebEntryEvent
                     throw new \Exception (\G::LoadTranslation ("ID_RECORD_CANNOT_BE_CREATED") . (($msg != "") ? "\n" . $msg : ""));
                 }
             } catch (\Exception $e) {
-                $cnn->rollback ();
 
-                $this->deleteWebEntry ($this->webEntryEventWebEntryUid, $this->webEntryEventWebEntryTaskUid);
+                //$this->deleteWebEntry ($this->webEntryEventWebEntryUid, $this->webEntryEventWebEntryTaskUid);
 
                 throw $e;
             }

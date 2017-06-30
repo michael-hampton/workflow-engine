@@ -65,11 +65,8 @@ class Event
         {
             throw (new \Exception ("TASK ID DOESNT EXIST"));
         }
-        $oProcess = new \WorkflowStep();
-        if ( !($oProcess->taskExists ($taskId)) )
-        {
-            throw (new \Exception ("TASK ID DOESNT EXIST"));
-        }
+        $oProcess = new \Flow();
+        $oProcess->throwExceptionIfNotExistsTask($taskId);
         return $taskId;
     }
     

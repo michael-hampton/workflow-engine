@@ -8,6 +8,7 @@ class WebEntry
     use Validator;
 
     private $objMysql;
+    private $pathDataPublic;
 
     /**
      * Constructor of the class
@@ -17,6 +18,7 @@ class WebEntry
     public function __construct ()
     {
         $this->objMysql = new \Mysql2();
+        $this->pathDataPublic = defined ("PATH_DATA_PUBLIC") ? PATH_DATA_PUBLIC : $_SERVER['DOCUMENT_ROOT'] . "/core/public/webentry/";
     }
 
     /**
@@ -43,6 +45,18 @@ class WebEntry
         return $newName;
     }
 
+    public function retrieveByPK ($pk)
+    {
+        $result = $this->objMysql->_select ("workflow.web_entry", [], ["WE_UID" => $pk]);
+
+        if ( !isset ($result[0]) || empty ($result[0]) )
+        {
+            return false;
+        }
+
+        return $result;
+    }
+
     /**
      * Verify if exists the Web Entry
      *
@@ -55,7 +69,7 @@ class WebEntry
         try {
             $obj = $this->retrieveByPK ($webEntryUid);
 
-            return (!is_null ($obj)) ? true : false;
+            return $obj !== false ? true : false;
         } catch (\Exception $e) {
             throw $e;
         }
@@ -108,7 +122,7 @@ class WebEntry
      *
      * return void Throw exception if does not exists the Web Entry
      */
-    public function throwExceptionIfNotExistsWebEntry ($webEntryUid, $fieldNameForException)
+    public function throwExceptionIfNotExistsWebEntry ($webEntryUid)
     {
         try {
             if ( !$this->exists ($webEntryUid) )
@@ -164,81 +178,64 @@ class WebEntry
             //Verify data
             if ( isset ($arrayData["WE_TITLE"]) )
             {
-                $this->throwExceptionIfExistsTitle ($processUid, $arrayData["WE_TITLE"], $this->arrayFieldNameForException["webEntryTitle"], $webEntryUid);
+                $this->throwExceptionIfExistsTitle ($processUid, $arrayData["WE_TITLE"], $webEntryUid);
             }
 
             if ( isset ($arrayData["TAS_UID"]) )
             {
-                $task = new \ProcessMaker\BusinessModel\Task();
-
-                $task->throwExceptionIfNotExistsTask ($processUid, $arrayData["TAS_UID"], $this->arrayFieldNameForException["taskUid"]);
+                $task = new \Flow();
+                $task->throwExceptionIfNotExistsTask ($arrayData["TAS_UID"]);
             }
 
             if ( isset ($arrayData["DYN_UID"]) )
             {
-                $dynaForm = new \ProcessMaker\BusinessModel\DynaForm();
+                $dynaForm = new Form();
 
-                $dynaForm->throwExceptionIfNotExistsDynaForm ($arrayData["DYN_UID"], $processUid, $this->arrayFieldNameForException["dynaFormUid"]);
+                $dynaForm->throwExceptionIfNotExistsDynaForm ($arrayData["DYN_UID"]);
             }
+
+            $process = new Process();
 
             if ( $arrayDataMain["WE_METHOD"] == "WS" && isset ($arrayData["USR_UID"]) )
             {
-                $process->throwExceptionIfNotExistsUser ($arrayData["USR_UID"], $this->arrayFieldNameForException["userUid"]);
+                $process->throwExceptionIfNotExistsUser ($arrayData["USR_UID"]);
             }
 
-            $task = new \Task();
+            $task = new \Flow();
 
-            $arrayTaskData = $task->load ($arrayDataMain["TAS_UID"]);
+            $arrayTaskData = $task->retrieveByPk ($arrayDataMain["TAS_UID"]);
 
-            if ( isset ($arrayData["TAS_UID"]) )
+            if ( trim ($arrayTaskData->getStepFrom ()) !== "" )
             {
-                if ( $arrayTaskData["TAS_START"] == "FALSE" )
+                if ( (int) $arrayTaskData->getFirstStep () !== 1 )
                 {
                     throw new \Exception ("ID_ACTIVITY_IS_NOT_INITIAL_ACTIVITY");
                 }
 
-                if ( $arrayTaskData["TAS_ASSIGN_TYPE"] != "BALANCED" )
+                if ( trim ($arrayTaskData->getStepTo ()) === "" )
                 {
                     throw new \Exception ("ID_WEB_ENTRY_ACTIVITY_DOES_NOT_HAVE_VALID_ASSIGNMENT_TYPE");
                 }
             }
 
+            $objStepPermissions = new StepPermission (new \Task ($arrayData['TAS_UID']));
+            $arrStepPermissions = $objStepPermissions->getProcessPermissions ();
+            $arrMasterUser = explode (",", $arrStepPermissions['master']['user']);
+
             if ( $arrayDataMain["WE_METHOD"] == "WS" && isset ($arrayData["TAS_UID"]) )
             {
-                $task = new \Tasks();
-
-                if ( $task->assignUsertoTask ($arrayData["TAS_UID"]) == 0 )
+                if ( count ($arrMasterUser) == 0 )
                 {
                     throw new \Exception ("ID_ACTIVITY_DOES_NOT_HAVE_USERS");
                 }
             }
 
-            if ( isset ($arrayData["DYN_UID"]) )
-            {
-                $dynaForm = new \Dynaform();
-
-                $arrayDynaFormData = $dynaForm->Load ($arrayData["DYN_UID"]);
-
-                $step = new \ProcessMaker\BusinessModel\Step();
-
-                if ( !$step->existsRecord ($arrayDataMain["TAS_UID"], "DYNAFORM", $arrayData["DYN_UID"]) )
-                {
-                    throw new \Exception ("ID_DYNAFORM_IS_NOT_ASSIGNED_TO_ACTIVITY");
-                }
-            }
 
             if ( $arrayDataMain["WE_METHOD"] == "WS" && isset ($arrayData["USR_UID"]) )
             {
-                $user = new \Users();
-
-                $arrayUserData = $user->load ($arrayData["USR_UID"]);
-
-                //Verify if User is assigned to Task
-                $projectUser = new \ProcessMaker\BusinessModel\ProjectUser();
-
-                if ( !$projectUser->userIsAssignedToTask ($arrayData["USR_UID"], $arrayDataMain["TAS_UID"]) )
+                if ( !in_array ($arrayData['USR_UID'], $arrMasterUser) )
                 {
-                    throw new \Exception (\G::LoadTranslation ("ID_USER_DOES_NOT_HAVE_ACTIVITY_ASSIGNED", array($arrayUserData["USR_USERNAME"], $arrayTaskData["TAS_TITLE"])));
+                    throw new \Exception ("ID_USER_DOES_NOT_HAVE_ACTIVITY_ASSIGNED");
                 }
             }
         } catch (\Exception $e) {
@@ -271,7 +268,7 @@ class WebEntry
 
             $wsRoundRobin = 0; //0, 1 //0 - Cyclical Assignment
 
-            $pathDataPublicProcess = PATH_DATA_PUBLIC . $processUid;
+            $pathDataPublicProcess = $this->pathDataPublic . $processUid;
 
             //Delete previous files
             if ( trim ($arrayWebEntryData["WE_DATA"]) != "" )
@@ -294,18 +291,17 @@ class WebEntry
 
             switch ($webEntryMethod) {
                 case "WS":
-                    require_once(PATH_RBAC . "model" . PATH_SEP . "RbacUsers.php");
+                    //require_once(PATH_RBAC . "model" . PATH_SEP . "RbacUsers.php");
+                    //$user = new \RbacUsers();
 
-                    $user = new \RbacUsers();
+                    $arrayUserData = (new UsersFactory())->getUser ($arrayWebEntryData["USR_UID"]);
 
-                    $arrayUserData = $user->load ($arrayWebEntryData["USR_UID"]);
 
-                    $usrUsername = $arrayUserData["USR_USERNAME"];
-                    $usrPassword = $arrayUserData["USR_PASSWORD"];
+                    $usrUsername = $arrayUserData->getUsername ();
+                    $usrPassword = $arrayUserData->getPassword ();
 
-                    $dynaForm = new \Dynaform();
-
-                    $arrayDynaFormData = $dynaForm->Load ($arrayWebEntryData["DYN_UID"]);
+                    $dynaForm = new Form (new \Task ($arrayWebEntryData["DYN_UID"]));
+                    $arrayDynaFormData = $dynaForm->getFields ();
 
                     //Creating sys.info;
                     $sitePublicPath = "";
@@ -319,175 +315,57 @@ class WebEntry
                     $weTitle = $this->sanitizeFilename ($arrayWebEntryData["WE_TITLE"]);
                     $fileName = $weTitle;
 
-                    $fileContent = "<?php\n";
-                    $fileContent .= "global \$_DBArray;\n";
-                    $fileContent .= "if (!isset(\$_DBArray)) {\n";
-                    $fileContent .= "  \$_DBArray = array();\n";
-                    $fileContent .= "}\n";
-                    $fileContent .= "\$_SESSION[\"PROCESS\"] = \"" . $processUid . "\";\n";
-                    $fileContent .= "\$_SESSION[\"CURRENT_DYN_UID\"] = \"" . $dynaFormUid . "\";\n";
-                    $fileContent .= "\$G_PUBLISH = new Publisher();\n";
+                    $header = "<?php\n";
+                    $header .= "global \$_DBArray;\n";
+                    $header .= "if (!isset(\$_DBArray)) {\n";
+                    $header .= "  \$_DBArray = array();\n";
+                    $header .= "}\n";
+                    $header .= "\$_SESSION[\"PROCESS\"] = \"" . $processUid . "\";\n";
+                    $header .= "\$_SESSION[\"CURRENT_DYN_UID\"] = \"" . $dynaFormUid . "\";\n";
+                    $header .= "?>";
 
-                    $fileContent .= "G::LoadClass(\"pmDynaform\");\n";
-                    $fileContent .= "\$a = new pmDynaform(array(\"CURRENT_DYNAFORM\" => \"" . $arrayWebEntryData["DYN_UID"] . "\"));\n";
-                    $fileContent .= "if (\$a->isResponsive()) {";
-                    $fileContent .= "  \$a->printWebEntry(\"" . $fileName . "Post.php\");";
-                    $fileContent .= "} else {";
-                    $fileContent .= "  \$G_PUBLISH->AddContent(\"dynaform\", \"xmlform\", \"" . $processUid . PATH_SEP . $dynaFormUid . "\", \"\", array(), \"" . $fileName . "Post.php\");\n";
-                    $fileContent .= "  G::RenderPage(\"publish\", \"blank\");";
-                    $fileContent .= "}";
-
-                    file_put_contents ($pathDataPublicProcess . PATH_SEP . $fileName . ".php", $fileContent);
 
                     //Creating the second file, the  post file who receive the post form.
-                    $pluginTpl = PATH_TPL . "processes" . PATH_SEP . "webentryPost.tpl";
+                    $pluginTpl = $_SERVER['DOCUMENT_ROOT'] . "/core/public/webentry/template.phtml";
 
-                    $template = new \TemplatePower ($pluginTpl);
-                    $template->prepare ();
+                    $objFormBuilder = new FormBuilder ("AddNewForm");
+                    $objFormBuilder->buildForm ($arrayDynaFormData);
+                    $html = $objFormBuilder->render ();
+                    $html .= '<input type="hidden" id="workflowId" name="workflowId" value="' . $processUid . '">';
+                    $html .= '<input type="hidden" id="stepId" name="stepId" value="' . $dynaFormUid . '">';
+                    $fileTemplate = file_get_contents ($pluginTpl);
+                    $fileTemplate = str_replace ("<!-- CONTENT -->", $html, $fileTemplate);
 
-                    $template->assign ("wsdlUrl", $http . $_SERVER["HTTP_HOST"] . "/sys" . SYS_SYS . "/" . SYS_LANG . "/" . SYS_SKIN . "/services/wsdl2");
-                    $template->assign ("wsUploadUrl", $http . $_SERVER["HTTP_HOST"] . "/sys" . SYS_SYS . "/" . SYS_LANG . "/" . SYS_SKIN . "/services/upload");
-                    $template->assign ("processUid", $processUid);
-                    $template->assign ("dynaformUid", $dynaFormUid);
-                    $template->assign ("taskUid", $taskUid);
-                    $template->assign ("wsUser", $usrUsername);
-                    $template->assign ("wsPass", \Bootstrap::getPasswordHashType () . ':' . $usrPassword);
-                    $template->assign ("wsRoundRobin", $wsRoundRobin);
+                    $fileContent = $header . $fileTemplate;
 
-                    if ( $webEntryInputDocumentAccess == 0 )
-                    {
-                        //Restricted to process permissions
-                        $template->assign ("USR_VAR", "\$cInfo = ws_getCaseInfo(\$caseId);\n\t  \$USR_UID = \$cInfo->currentUsers->userId;");
-                    }
-                    else
-                    {
-                        //No Restriction
-                        $template->assign ("USR_VAR", "\$USR_UID = -1;");
-                    }
-
-                    $template->assign ("dynaform", $arrayDynaFormData["DYN_TITLE"]);
-                    $template->assign ("timestamp", date ("l jS \of F Y h:i:s A"));
-                    $template->assign ("ws", SYS_SYS);
-                    $template->assign ("version", \System::getVersion ());
-
-                    $fileName = $pathDataPublicProcess . PATH_SEP . $weTitle . "Post.php";
-
-                    file_put_contents ($fileName, $template->getOutputContent ());
-
-                    //Creating the third file, only if this wsClient.php file doesn't exist.
-                    $fileName = $pathDataPublicProcess . PATH_SEP . "wsClient.php";
-                    $pluginTpl = PATH_CORE . "templates" . PATH_SEP . "processes" . PATH_SEP . "wsClient.php";
-
-                    if ( file_exists ($fileName) )
-                    {
-                        if ( filesize ($fileName) != filesize ($pluginTpl) )
-                        {
-                            copy ($fileName, $pathDataPublicProcess . PATH_SEP . "wsClient.php.bak");
-                            unlink ($fileName);
-
-                            $template = new \TemplatePower ($pluginTpl);
-                            $template->prepare ();
-
-                            file_put_contents ($fileName, $template->getOutputContent ());
-                        }
-                    }
-                    else
-                    {
-                        $template = new \TemplatePower ($pluginTpl);
-                        $template->prepare ();
-
-                        file_put_contents ($fileName, $template->getOutputContent ());
-                    }
-
-                    //Event
-                    $task = new \Task();
-
-                    $arrayTaskData = $task->load ($arrayWebEntryData["TAS_UID"]);
-
-                    $weEventUid = $task->getStartingEvent ();
-
-                    if ( $weEventUid != "" )
-                    {
-                        $event = new \Event();
-
-                        $arrayEventData = array();
-
-                        $arrayEventData["EVN_UID"] = $weEventUid;
-                        $arrayEventData["EVN_RELATED_TO"] = "MULTIPLE";
-                        $arrayEventData["EVN_ACTION"] = $dynaFormUid;
-                        $arrayEventData["EVN_CONDITIONS"] = $usrUsername;
-
-                        $result = $event->update ($arrayEventData);
-                    }
+                    file_put_contents ($pathDataPublicProcess . PATH_SEP . $fileName . ".php", $fileContent);
 
                     //WE_DATA
                     $webEntryData = $weTitle . ".php";
                     break;
                 case "HTML":
-                    global $G_FORM;
 
-                    if ( !class_exists ("Smarty") )
-                    {
-                        $loader = \Maveriks\Util\ClassLoader::getInstance ();
-                        $loader->addClass ("Smarty", PATH_THIRDPARTY . "smarty" . PATH_SEP . "libs" . PATH_SEP . "Smarty.class.php");
-                    }
+                    $dynaForm = new Form (new \Task ($arrayWebEntryData["DYN_UID"]));
+                    $arrayDynaFormData = $dynaForm->getFields ();
 
-                    $G_FORM = new \Form ($processUid . "/" . $dynaFormUid, PATH_DYNAFORM, SYS_LANG, false);
-                    $G_FORM->action = $http . $_SERVER["HTTP_HOST"] . "/sys" . SYS_SYS . "/" . SYS_LANG . "/" . SYS_SKIN . "/services/cases_StartExternal.php";
+                    //Creating the second file, the  post file who receive the post form.
+                    $pluginTpl = $_SERVER['DOCUMENT_ROOT'] . "/core/public/webentry/template.phtml";
 
-                    $scriptCode = "";
-                    $scriptCode = $G_FORM->render (PATH_TPL . "xmlform" . ".html", $scriptCode);
-                    $scriptCode = str_replace ("/controls/", $http . $_SERVER["HTTP_HOST"] . "/controls/", $scriptCode);
-                    $scriptCode = str_replace ("/js/maborak/core/images/", $http . $_SERVER["HTTP_HOST"] . "/js/maborak/core/images/", $scriptCode);
+                    $objFormBuilder = new FormBuilder ("AddNewForm");
+                    $objFormBuilder->buildForm ($arrayDynaFormData);
+                    $html = $objFormBuilder->render ();
+                    $html .= '<input type="hidden" id="workflowId" name="workflowId" value="' . $processUid . '">';
+                    $html .= '<input type="hidden" id="stepId" name="stepId" value="' . $dynaFormUid . '">';
+                    $fileTemplate = file_get_contents ($pluginTpl);
+                    $fileTemplate = str_replace ("<!-- CONTENT -->", $html, $fileTemplate);
 
-                    //Render the template
-                    $pluginTpl = PATH_TPL . "processes" . PATH_SEP . "webentry.tpl";
+                    $webEntryData = $fileTemplate;
 
-                    $template = new \TemplatePower ($pluginTpl);
-                    $template->prepare ();
-
-                    $step = new \Step();
-                    $sUidGrids = $step->lookingforUidGrids ($processUid, $dynaFormUid);
-
-                    $template->assign ("URL_MABORAK_JS", \G::browserCacheFilesUrl ("/js/maborak/core/maborak.js"));
-                    $template->assign ("URL_TRANSLATION_ENV_JS", \G::browserCacheFilesUrl ("/jscore/labels/" . SYS_LANG . ".js"));
-                    $template->assign ("siteUrl", $http . $_SERVER["HTTP_HOST"]);
-                    $template->assign ("sysSys", SYS_SYS);
-                    $template->assign ("sysLang", SYS_LANG);
-                    $template->assign ("sysSkin", SYS_SKIN);
-                    $template->assign ("processUid", $processUid);
-                    $template->assign ("dynaformUid", $dynaFormUid);
-                    $template->assign ("taskUid", $taskUid);
-                    $template->assign ("dynFileName", $processUid . "/" . $dynaFormUid);
-                    $template->assign ("formId", $G_FORM->id);
-                    $template->assign ("scriptCode", $scriptCode);
-
-                    if ( sizeof ($sUidGrids) > 0 )
-                    {
-                        foreach ($sUidGrids as $k => $v) {
-                            $template->newBlock ("grid_uids");
-                            $template->assign ("siteUrl", $http . $_SERVER["HTTP_HOST"]);
-                            $template->assign ("gridFileName", $processUid . "/" . $v);
-                        }
-                    }
-
-                    //WE_DATA
-                    $html = str_replace ("</body>", "</form></body>", str_replace ("</form>", "", $template->getOutputContent ()));
-
-                    $webEntryData = $html;
                     break;
             }
 
-            //Update
-            //Update where
-            $criteriaWhere = new \Criteria ("workflow");
-            $criteriaWhere->add (\WebEntryPeer::WE_UID, $webEntryUid);
+            $this->objMysql->_update("workflow.web_entry", ["WE_DATA" => $webEntryData], ["WE_UID" => $webEntryUid]);
 
-            //Update set
-            $criteriaSet = new \Criteria ("workflow");
-            $criteriaSet->add (\WebEntryPeer::WE_DATA, $webEntryData);
-
-            \BasePeer::doUpdate ($criteriaWhere, $criteriaSet, \Propel::getConnection ("workflow"));
         } catch (\Exception $e) {
             throw $e;
         }
@@ -525,15 +403,15 @@ class WebEntry
 
                 $webEntry->loadObject ($arrayData);
 
-                $webEntry->setWeUid ($webEntryUid);
                 $webEntry->setProUid ($processUid);
                 $webEntry->setWeCreateUsrUid ($userUidCreator);
-                $webEntry->setWeCreateDate ("now");
+                $webEntry->setWeCreateDate (date ("Y-m-d H:i:s"));
+
 
                 if ( $webEntry->validate () )
                 {
 
-                    $result = $webEntry->save ();
+                    $webEntryUid = $webEntry->save ();
 
                     //Set WE_DATA
                     $this->setWeData ($webEntryUid);
@@ -577,8 +455,6 @@ class WebEntry
             $arrayWebEntryData = $this->getWebEntry ($webEntryUid, true);
 
             //Delete web entry
-
-
             //Delete files
             if ( $arrayWebEntryData["WE_METHOD"] == "WS" )
             {
@@ -606,11 +482,22 @@ class WebEntry
     public function getWebEntryCriteria ()
     {
         try {
-            $delimiter = \DBAdapter::getStringDelimiter ();
 
-            $criteria = new \Criteria ("workflow");
-            
-            $sql = "SELECT WE_UID, PRO_UID, TAS_UID, DYN_UID, USR_UID, WE_METHOD, WE_INPUT_DOCUMENT_ACCESS, WE_DATA, WE_CREATE_USR_UID, WE_UPDATE_USR_UID, WE_CREATE_DATE, WE_UPDATE_DATE FROM web_entry";
+            $criteria = "SELECT 
+                    `WE_UID`, 
+                    WE_TITLE,
+                    `PRO_UID`, 
+                    `TAS_UID`, 
+                    `DYN_UID`, 
+                    `USR_UID`, 
+                    `WE_METHOD`, 
+                    `WE_INPUT_DOCUMENT_ACCESS`, 
+                    `WE_DATA`, 
+                    `WE_CREATE_USR_UID`, 
+                    `WE_UPDATE_USR_UID`, 
+                    `WE_CREATE_DATE`, 
+                    `WE_UPDATE_DATE`
+                    FROM workflow.web_entry";
 
 
             return $criteria;
@@ -631,15 +518,16 @@ class WebEntry
         try {
             if ( $record["WE_METHOD"] == "WS" )
             {
-                $http =  "http://";
-                $url = $http . $_SERVER["HTTP_HOST"] . "/sys" . SYS_SYS . "/" . SYS_LANG . "/" . SYS_SKIN . "/" . $record["PRO_UID"];
-
+                
+                $http = "http://";
+                $url = $http . $_SERVER["HTTP_HOST"] . "/public/webentry/" . $record["PRO_UID"];
+                
                 $record["WE_DATA"] = $url . "/" . $record["WE_DATA"];
             }
 
 
             $dateTime = new \DateTime ($record["WE_CREATE_DATE"]);
-            $webEntryCreateDate = $dateTime->format ($confEnvSetting["dateFormat"]);
+            $webEntryCreateDate = $dateTime->format ("Y-m-d H:i:s");
 
             $webEntryUpdateDate = "";
 
@@ -648,22 +536,23 @@ class WebEntry
                 $dateTime = new \DateTime ($record["WE_UPDATE_DATE"]);
                 $webEntryUpdateDate = $dateTime->format ($confEnvSetting["dateFormat"]);
             }
+           
+            $webEntry = new \WebEntry();
+            $webEntry->setWeUid($record["WE_UID"]);
+            $webEntry->setTasUid($record["TAS_UID"]);
+            $webEntry->setWeTitle($record["WE_TITLE"] . "");
+            $webEntry->setWeInputDocumentAccess((int) ($record["WE_INPUT_DOCUMENT_ACCESS"]));
+            $webEntry->setWeData($record["WE_DATA"]);
+            $webEntry->setUsrUid($record["USR_UID"] . "");
+            $webEntry->setDynUid($record["DYN_UID"]);
+            $webEntry->setWeMethod($record["WE_METHOD"]);
+            $webEntry->setWeCreateUsrUid($record["WE_CREATE_USR_UID"]);
+            $webEntry->setWeUpdateUsrUid($record["WE_UPDATE_USR_UID"] . "");
+            $webEntry->setWeCreateDate($webEntryCreateDate);
+            $webEntry->setWeUpdateDate($webEntryUpdateDate);
+            
+           return $webEntry;
 
-            return array(
-                $this->getFieldNameByFormatFieldName ("WE_UID") => $record["WE_UID"],
-                $this->getFieldNameByFormatFieldName ("TAS_UID") => $record["TAS_UID"],
-                $this->getFieldNameByFormatFieldName ("DYN_UID") => $record["DYN_UID"],
-                $this->getFieldNameByFormatFieldName ("USR_UID") => $record["USR_UID"] . "",
-                $this->getFieldNameByFormatFieldName ("WE_TITLE") => $record["WE_TITLE"] . "",
-                $this->getFieldNameByFormatFieldName ("WE_DESCRIPTION") => $record["WE_DESCRIPTION"] . "",
-                $this->getFieldNameByFormatFieldName ("WE_METHOD") => $record["WE_METHOD"],
-                $this->getFieldNameByFormatFieldName ("WE_INPUT_DOCUMENT_ACCESS") => (int) ($record["WE_INPUT_DOCUMENT_ACCESS"]),
-                $this->getFieldNameByFormatFieldName ("WE_DATA") => $record["WE_DATA"],
-                $this->getFieldNameByFormatFieldName ("WE_CREATE_USR_UID") => $record["WE_CREATE_USR_UID"],
-                $this->getFieldNameByFormatFieldName ("WE_UPDATE_USR_UID") => $record["WE_UPDATE_USR_UID"] . "",
-                $this->getFieldNameByFormatFieldName ("WE_CREATE_DATE") => $webEntryCreateDate,
-                $this->getFieldNameByFormatFieldName ("WE_UPDATE_DATE") => $webEntryUpdateDate
-            );
         } catch (\Exception $e) {
             throw $e;
         }
@@ -683,14 +572,14 @@ class WebEntry
 
             //Get data
             $criteria = $this->getWebEntryCriteria ();
-            
+
             $criteria .= " WHERE PRO_UID = ?";
             $criteria .= "ORDER BY WE_TITLE ASC";
 
 
-           $results = $this->objMysql->_query($criteria, [$processUid]);
+            $results = $this->objMysql->_query ($criteria, [$processUid]);
 
-           foreach ($results as $result) {
+            foreach ($results as $result) {
 
                 $arrayWebEntry[] = $this->getWebEntryDataFromRecord ($result);
             }
@@ -714,19 +603,20 @@ class WebEntry
     {
         try {
             //Verify data
-            $this->throwExceptionIfNotExistsWebEntry ($webEntryUid, $this->arrayFieldNameForException["webEntryUid"]);
+            $this->throwExceptionIfNotExistsWebEntry ($webEntryUid);
 
             //Get data
             //SQL
             $criteria = $this->getWebEntryCriteria ();
-            
+
             $criteria .= " WHERE WE_UID = ?";
-            $results = $this->objMysql->_query($criteria, [$webEntryUid]);
-            
-            if(!isset($results[0]) || empty($results[0])) {
+            $results = $this->objMysql->_query ($criteria, [$webEntryUid]);
+
+            if ( !isset ($results[0]) || empty ($results[0]) )
+            {
                 return false;
             }
-            
+
             $row = $results[0];
 
             //Return

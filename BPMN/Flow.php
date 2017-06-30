@@ -77,7 +77,7 @@ class Flow
      */
     function getCondition ()
     {
-        
+
         if ( !is_array ($this->condition) )
         {
             return json_decode ($this->condition, true);
@@ -207,7 +207,7 @@ class Flow
             "loc" => $this->loc
                 )
         );
-        
+
         return true;
     }
 
@@ -218,28 +218,72 @@ class Flow
     public function removeFlow ()
     {
         $this->objMysql->_delete ("workflow.status_mapping", array("step_from" => $this->id, "workflow_id" => $this->workflowId));
-    
+
         return true;
     }
-    
-    public function retrieveByPk($pk)
+
+    public function retrieveByPk ($pk)
     {
-        $result = $this->objMysql->_select("workflow.status_mapping", [], ["id" => $pk]);
-        
-        if(!isset($result[0]) || empty($result[0])) {
+        $result = $this->objMysql->_select ("workflow.status_mapping", [], ["id" => $pk]);
+
+        if ( !isset ($result[0]) || empty ($result[0]) )
+        {
             return false;
         }
-        
+
         $objFlow = new Flow();
-        $objFlow->setFirstStep($result[0]['first_step']);
-        $objFlow->setCondition($result[0]['step_condition']);
-        $objFlow->setIsActive($result[0]['is_active']);
-        $objFlow->setOrderId($result[0]['order_id']);
-        $objFlow->setStepFrom($result[0]['step_from']);
-        $objFlow->setStepTo($result[0]['step_to']);
-        $objFlow->setWorkflowId($result[0]['workflow_id']);
-        
+        $objFlow->setFirstStep ($result[0]['first_step']);
+        $objFlow->setCondition ($result[0]['step_condition']);
+        $objFlow->setIsActive ($result[0]['is_active']);
+        $objFlow->setOrderId ($result[0]['order_id']);
+        $objFlow->setStepFrom ($result[0]['step_from']);
+        $objFlow->setStepTo ($result[0]['step_to']);
+        $objFlow->setWorkflowId ($result[0]['workflow_id']);
+
         return $objFlow;
+    }
+
+    /**
+
+     * Verify if doesn't exists the Task
+
+     *
+
+     * @param string $processUid            Unique id of Process
+
+     * @param string $taskUid               Unique id of Task
+
+     * @param string $fieldNameForException Field name for the exception
+
+     *
+
+     * return void Throw exception if doesn't exists the Task
+
+     */
+    public function throwExceptionIfNotExistsTask ($taskUid, $processUid = '', $fieldNameForException = '')
+    {
+        try {
+
+            $sql = "SELECT * FROM workflow.status_mapping WHERE id = ?";
+            $arrParameters = array($taskUid);
+
+            if ( $processUid != "" )
+            {
+
+                $sql .= " AND workflow_id = ?";
+                $arrParameters[] = $processUid;
+            }
+
+            $result = $this->objMysql->_query ($sql, $arrParameters);
+
+            if ( !isset ($result[0]) || empty ($result[0]) )
+            {
+                throw new Exception ("TASK DOES NOT EXIST");
+            }
+        } catch (\Exception $e) {
+
+            throw $e;
+        }
     }
 
 }

@@ -16,14 +16,14 @@ abstract class BaseMessageApplication implements Persistent
 
     private $objMysql;
     private $arrayFieldDefinition = array(
-        "APP_UID" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getAppUid", "mutator" => "setAppUid"),
+        "APP_UID" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getAppUid", "mutator" => "setAppUid"),
         "PRJ_UID" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getPrjUid", "mutator" => "setPrjUid"),
-        "EVENT_UID_THROW" => array("type" => "string", "required" => false, "empty" => true, "accessor" => "getEvnUidThrow", "mutator" => "setEvnUidThrow"),
-        "EVN_UID_CATCH" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getEvnUidCatch", "mutator" => "setEvnUidCatch"),
+        "EVENT_UID_THROW" => array("type" => "string", "required" => true, "empty" => true, "accessor" => "getEvnUidThrow", "mutator" => "setEvnUidThrow"),
+        "EVN_UID_CATCH" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getEvnUidCatch", "mutator" => "setEvnUidCatch"),
         "MSGAPP_THROW_DATE" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getMsgappThrowDate", "mutator" => "setMsgappThrowDate"),
         "MSGAPP_CORRRELATION" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getMsgappCorrelation", "mutator" => "setMsgappCorrelation"),
-        "MSGAPP_VARIABLES" => array("type" => "int", "required" => false, "empty" => false, "accessor" => "getMsgappVariables", "mutator" => "setMsgappVariables"),
-        "MSGAPP_STATUS" => array("type" => "int", "required" => false, "empty" => false, "accessor" => "getMsgappStatus", "mutator" => "setMsgappStatus"),
+        "MSGAPP_VARIABLES" => array("type" => "int", "required" => true, "empty" => false, "accessor" => "getMsgappVariables", "mutator" => "setMsgappVariables"),
+        "MSGAPP_STATUS" => array("type" => "int", "required" => true, "empty" => false, "accessor" => "getMsgappStatus", "mutator" => "setMsgappStatus"),
         "MSGAPP_CATCH_DATE" => array("type" => "string", "required" => false, "empty" => true, "accessor" => "getMsgappCatchDate", "mutator" => "setMsgappCatchDate"),
     );
 
@@ -278,8 +278,6 @@ abstract class BaseMessageApplication implements Persistent
     {
         return $this->msgapp_status;
     }
-    
-    
 
     /**
      * Set the value of [msgapp_uid] column.
@@ -539,45 +537,17 @@ abstract class BaseMessageApplication implements Persistent
 
     public function validate ()
     {
-        $intEroorCount = 0;
+        foreach ($this->arrayFieldDefinition as $field => $arrValue) {
 
-        if ( trim ($this->prj_uid) === "" )
-        {
-            $this->validationFailures[] = "Project id missing";
-            $intEroorCount++;
+            $fieldValue = $this->$arrValue['accessor'] ();
+
+            if ( $arrValue['required'] === true && trim ($fieldValue) === "" )
+            {
+                $this->validationFailures[] = $field . " Is missing";
+            }
         }
 
-        if ( trim ($this->app_uid) === "" )
-        {
-            $this->validationFailures[] = "App id missing";
-            $intEroorCount++;
-        }
-
-        if ( trim ($this->evn_uid_catch) === "" )
-        {
-            $this->validationFailures[] = "Catch id missing";
-            $intEroorCount++;
-        }
-
-        if ( trim ($this->evn_uid_throw) === "" )
-        {
-            $this->validationFailures[] = "Throw id missing";
-            $intEroorCount++;
-        }
-
-        if ( trim ($this->msgapp_variables) === "" )
-        {
-            $this->validationFailures[] = "Variables missing";
-            $intEroorCount++;
-        }
-
-        if ( trim ($this->msgapp_correlation) === "" )
-        {
-            $this->validationFailures[] = "Message Correlation missing";
-            $intEroorCount++;
-        }
-
-        if ( $intEroorCount > 0 )
+        if ( count ($this->validationFailures) > 0 )
         {
             return false;
         }
