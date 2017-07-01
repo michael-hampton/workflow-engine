@@ -14,6 +14,10 @@ class Flow
     private $id;
     private $loc;
     private $stepName;
+    private $TasDuration;
+    private $TasTimeUnit;
+    private $TasTypeDay;
+    private $calendarUid;
 
     /**
      * 
@@ -190,7 +194,48 @@ class Flow
     {
         $this->stepName = $stepName;
     }
+    
+    public function getTasDuration ()
+    {
+        return $this->TasDuration;
+    }
 
+    public function getTasTimeUnit ()
+    {
+        return $this->TasTimeUnit;
+    }
+
+    public function getTasTypeDay ()
+    {
+        return $this->TasTypeDay;
+    }
+
+    public function setTasDuration ($TasDuration)
+    {
+        $this->TasDuration = $TasDuration;
+    }
+
+    public function setTasTimeUnit ($TasTimeUnit)
+    {
+        $this->TasTimeUnit = $TasTimeUnit;
+    }
+
+    public function setTasTypeDay ($TasTypeDay)
+    {
+        $this->TasTypeDay = $TasTypeDay;
+    }
+    
+    public function getCalendarUid ()
+    {
+        return $this->calendarUid;
+    }
+
+    public function setCalendarUid ($calendarUid)
+    {
+        $this->calendarUid = $calendarUid;
+    }
+
+    
     /**
      * 
      * @return boolean

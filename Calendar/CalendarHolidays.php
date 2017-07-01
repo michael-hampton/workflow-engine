@@ -25,7 +25,7 @@ class CalendarHolidays extends BaseCalendarHolidays
     public function getCalendarHolidays ($CalendarUid)
     {
 
-        $sql = "SELECT CALENDAR_UID, CALENDAR_HOLIDAY_NAME, CALENDAR_HOLIDAY_START, CALENDAR_HOLIDAY_END WHERE CALENDAR_UID = ?";
+        $sql = "SELECT CALENDAR_UID, CALENDAR_HOLIDAY_NAME, CALENDAR_HOLIDAY_START, CALENDAR_HOLIDAY_END FROM calendar.calendar_holidays WHERE CALENDAR_UID = ?";
         $arrParameters = array($CalendarUid);
         $results = $this->objMysql->_query ($sql, $arrParameters);
 

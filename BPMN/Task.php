@@ -17,22 +17,22 @@ class Task
         }
     }
 
-    function getStepName ()
+    public function getStepName ()
     {
         return $this->stepName;
     }
 
-    function setStepName ($stepName)
+    public function setStepName ($stepName)
     {
         $this->stepName = $stepName;
     }
 
-    function getStepId ()
+    public function getStepId ()
     {
         return $this->stepId;
     }
 
-    function setStepId ($stepId)
+    public function setStepId ($stepId)
     {
         $this->stepId = $stepId;
     }

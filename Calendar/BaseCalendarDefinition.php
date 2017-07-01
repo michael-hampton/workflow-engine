@@ -63,8 +63,56 @@ abstract class BaseCalendarDefinition implements Persistent
      * @var        boolean
      */
     protected $alreadyInSave = false;
+    
+    protected $workHours;
 
-    /**
+    protected $holidays;
+    
+    protected $totalProcesses = 0;
+    
+    protected $totalUsers = 0;
+    
+    public function getWorkHours ()
+    {
+        return $this->workHours;
+    }
+
+    public function getHolidays ()
+    {
+        return $this->holidays;
+    }
+
+    public function getTotalProcesses ()
+    {
+        return $this->totalProcesses;
+    }
+
+    public function getTotalUsers ()
+    {
+        return $this->totalUsers;
+    }
+
+    public function setWorkHours ($workHours)
+    {
+        $this->workHours = $workHours;
+    }
+
+    public function setHolidays ($holidays)
+    {
+        $this->holidays = $holidays;
+    }
+
+    public function setTotalProcesses ($totalProcesses)
+    {
+        $this->totalProcesses = $totalProcesses;
+    }
+
+    public function setTotalUsers ($totalUsers)
+    {
+        $this->totalUsers = $totalUsers;
+    }
+
+        /**
      * Flag to prevent endless validation loop, if this object is referenced
      * by another object which falls in this transaction.
      * @var        boolean
@@ -157,8 +205,8 @@ abstract class BaseCalendarDefinition implements Persistent
             $ts = strtotime ($this->calendar_update_date);
             if ( $ts === -1 || $ts === false )
             {
-                throw new PropelException ("Unable to parse value of [calendar_update_date] as date/time value: " .
-                var_export ($this->calendar_update_date, true));
+                //throw new PropelException ("Unable to parse value of [calendar_update_date] as date/time value: " .
+                //var_export ($this->calendar_update_date, true));
             }
         }
         else
@@ -314,8 +362,8 @@ abstract class BaseCalendarDefinition implements Persistent
             }
             if ( $ts === -1 || $ts === false )
             {
-                throw new PropelException ("Unable to parse date/time value for [calendar_update_date] from input: " .
-                var_export ($v, true));
+                //throw new PropelException ("Unable to parse date/time value for [calendar_update_date] from input: " .
+                //var_export ($v, true));
             }
         }
         else

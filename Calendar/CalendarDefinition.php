@@ -243,7 +243,7 @@ class CalendarDefinition extends BaseCalendarDefinition
         }
     }
     
-    private function retrieveByPK($pk)
+    public function retrieveByPK($pk)
     {
         $result = $this->objMysql->_select("calendar.calendar", [], ["CALENDAR_UID" => $pk]);
         
@@ -252,6 +252,17 @@ class CalendarDefinition extends BaseCalendarDefinition
         }
         
         $objCalendarDefinition = new CalendarDefinition();
+        $objCalendarDefinition->setCalendarCreateDate($result[0]['CALENDAR_CREATE_DATE']);
+        $objCalendarDefinition->setCalendarName($result[0]['CALENDAR_NAME']);
+        $objCalendarDefinition->setCalendarUpdateDate($result[0]['CALENDAR_UPDATE_DATE']);
+        
+        if(isset($result[0]['CALENDAR_DESCRIPTION'])) {
+             $objCalendarDefinition->setCalendarDescription($result[0]['CALENDAR_DESCRIPTION']);
+        }
+       
+        $objCalendarDefinition->setCalendarStatus($result[0]['CALENDAR_STATUS']);
+        $objCalendarDefinition->setCalendarWorkDays($result[0]['CALENDAR_WORK_DAYS']);
+        $objCalendarDefinition->setCalendarUid($pk);
         
         return $objCalendarDefinition;
     }
@@ -464,17 +475,16 @@ class CalendarDefinition extends BaseCalendarDefinition
     //Added by Qennix
     //Counts all users,task,process by calendar
     public function getAllCounterByCalendar ($type)
-    {
-        $oCriteria = new Criteria ('workflow');
-        $oCriteria->addSelectColumn (CalendarAssignmentsPeer::CALENDAR_UID);
-        $oCriteria->addSelectColumn ('COUNT(*) AS CNT');
-        $oCriteria->addGroupByColumn (CalendarAssignmentsPeer::CALENDAR_UID);
-        $oCriteria->add (CalendarAssignmentsPeer::OBJECT_TYPE, $type);
-        $oDataset = CalendarAssignmentsPeer::doSelectRS ($oCriteria);
-        $oDataset->setFetchmode (ResultSet::FETCHMODE_ASSOC);
+    {        
+        $sql = "SELECT CALENDAR_UID, COUNT(*) AS CNT FROM calendar.calendar_assignees
+                WHERE OBJECT_TYPE = ?
+                GROUP BY CALENDAR_UID";
+        
+        $results = $this->objMysql->_query($sql, [$type]);
+
         $aCounter = Array();
-        while ($oDataset->next ()) {
-            $row = $oDataset->getRow ();
+        
+        foreach ($results as $row) {
             $aCounter[$row['CALENDAR_UID']] = $row['CNT'];
         }
         return $aCounter;
