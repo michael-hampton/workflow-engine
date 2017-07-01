@@ -113,6 +113,8 @@ class StepTrigger
         $blHasTrigger = false;
 
         foreach ($arrTriggers as $arrTrigger) {
+            
+            $arrTrigger['event_type'] = isset($arrTrigger['event_type']) && trim($arrTrigger['event_type']) !== "" ? $arrTrigger['event_type'] : "INTERMEDIATE";
 
             switch ($arrTrigger['event_type']) {
                 case "START":

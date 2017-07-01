@@ -11,6 +11,7 @@
  *
  * @author michael.hampton
  */
+
 namespace BusinessModel;
 
 class StepDocument
@@ -25,12 +26,12 @@ class StepDocument
 
     public function create ($aData, $stepId, $docType)
     {
-        $assignedDocs = $this->getStepDocuments ($stepId, $docType);
+        $assignedDocs = $this->getStepDocuments (new \Task ($stepId), $docType);
 
         foreach ($assignedDocs as $assignedDoc) {
             if ( !in_array ($assignedDoc['document_id'], $aData) )
             {
-                $this->deleteStepDoc ($stepId, $docType, $assignedDoc['document_id']);
+                $this->deleteStepDoc (new \Task ($stepId), $docType, $assignedDoc['document_id']);
             }
         }
 
@@ -47,17 +48,26 @@ class StepDocument
         }
     }
 
-    public function getStepDocuments ($stepId, $docType)
+    public function getStepDocuments (\Task $objTask, $docType)
     {
+        if ( trim ($objTask->getStepId ()) === "" )
+        {
+            return false;
+        }
 
-        $results = $this->objMysql->_select ("workflow.step_document", [], ["step_id" => $stepId, "document_type" => $docType]);
+        $results = $this->objMysql->_select ("workflow.step_document", [], ["step_id" => $objTask->getStepId (), "document_type" => $docType]);
 
         return $results;
     }
 
-    public function deleteStepDoc ($stepId, $docType, $docId)
+    public function deleteStepDoc (\Task $objTask, $docType, $docId)
     {
-        $objStepDocument = new \StepDocument ($stepId);
+        if ( trim ($objTask->getStepId ()) === "" )
+        {
+            return false;
+        }
+
+        $objStepDocument = new \StepDocument ($objTask->getStepId ());
         $objStepDocument->setDocumentId ($docId);
         $objStepDocument->setDocumentType ($docType);
 
