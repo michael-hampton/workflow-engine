@@ -323,6 +323,8 @@ class WebEntry
                     $header .= "\$_SESSION[\"PROCESS\"] = \"" . $processUid . "\";\n";
                     $header .= "\$_SESSION[\"CURRENT_DYN_UID\"] = \"" . $dynaFormUid . "\";\n";
                     $header .= "?>";
+                    
+                    $header .= '<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>';
 
 
                     //Creating the second file, the  post file who receive the post form.
@@ -331,7 +333,7 @@ class WebEntry
                     $objFormBuilder = new FormBuilder ("AddNewForm");
                     $objFormBuilder->buildForm ($arrayDynaFormData);
                     $html = $objFormBuilder->render ();
-                    $html .= '<input type="hidden" id="workflowId" name="workflowId" value="' . $processUid . '">';
+                    $html .= '<input type="hidden" id="workflowid" name="workflowid" value="' . $processUid . '">';
                     $html .= '<input type="hidden" id="stepId" name="stepId" value="' . $dynaFormUid . '">';
                     $fileTemplate = file_get_contents ($pluginTpl);
                     $fileTemplate = str_replace ("<!-- CONTENT -->", $html, $fileTemplate);

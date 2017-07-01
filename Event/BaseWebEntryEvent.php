@@ -6,6 +6,16 @@
 abstract class BaseWebEntryEvent implements Persistent
 {
 
+    private $objMysql;
+    private $arrayFieldDefinition = array(
+        "EVN_UID" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getEvnUid", "mutator" => "setEvnUid"),
+        "DYN_UID" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getDynUid", "mutator" => "setDynUid"),
+        "USR_UID" => array("type" => "string", "required" => true, "empty" => true, "accessor" => "getUsrUid", "mutator" => "setUsrUid"),
+        "WEE_DESCRIPTION" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getWeeDescription", "mutator" => "setWeeDescription"),
+        "WEE_STATUS" => array("type" => "int", "required" => true, "empty" => false, "accessor" => "getWeeStatus", "mutator" => "setWeeStatus"),
+        "WEE_TITLE" => array("type" => "int", "required" => true, "empty" => false, "accessor" => "getWeeTitle", "mutator" => "setWeeTitle"),
+    );
+
     /**
      * The value for the wee_uid field.
      * @var        string
@@ -85,6 +95,23 @@ abstract class BaseWebEntryEvent implements Persistent
      * @var        boolean
      */
     protected $alreadyInValidation = false;
+    
+    protected $weeUrl;
+    
+    public function __construct ()
+    {
+        $this->objMysql = new Mysql2();
+    }
+    
+    public function getWeeUrl ()
+    {
+        return $this->weeUrl;
+    }
+
+    public function setWeeUrl ($weeUrl)
+    {
+        $this->weeUrl = $weeUrl;
+    }
 
     /**
      * Get the [wee_uid] column value.
@@ -223,7 +250,6 @@ abstract class BaseWebEntryEvent implements Persistent
      * @param      string $v new value
      * @return     void
      */
-
     public function setWeeTitle ($v)
     {
         // Since the native PHP type for this column is string,
@@ -245,7 +271,6 @@ abstract class BaseWebEntryEvent implements Persistent
      * @param      string $v new value
      * @return     void
      */
-
     public function setWeeDescription ($v)
     {
         // Since the native PHP type for this column is string,
@@ -267,7 +292,6 @@ abstract class BaseWebEntryEvent implements Persistent
      * @param      string $v new value
      * @return     void
      */
-
     public function setPrjUid ($v)
     {
         // Since the native PHP type for this column is string,
@@ -289,7 +313,6 @@ abstract class BaseWebEntryEvent implements Persistent
      * @param      string $v new value
      * @return     void
      */
-
     public function setEvnUid ($v)
     {
         // Since the native PHP type for this column is string,
@@ -311,7 +334,6 @@ abstract class BaseWebEntryEvent implements Persistent
      * @param      string $v new value
      * @return     void
      */
-
     public function setActUid ($v)
     {
         // Since the native PHP type for this column is string,
@@ -333,7 +355,6 @@ abstract class BaseWebEntryEvent implements Persistent
      * @param      string $v new value
      * @return     void
      */
-
     public function setDynUid ($v)
     {
         // Since the native PHP type for this column is string,
@@ -355,7 +376,6 @@ abstract class BaseWebEntryEvent implements Persistent
      * @param      string $v new value
      * @return     void
      */
-
     public function setUsrUid ($v)
     {
         // Since the native PHP type for this column is string,
@@ -377,7 +397,6 @@ abstract class BaseWebEntryEvent implements Persistent
      * @param      string $v new value
      * @return     void
      */
-
     public function setWeeStatus ($v)
     {
         // Since the native PHP type for this column is string,
@@ -399,7 +418,6 @@ abstract class BaseWebEntryEvent implements Persistent
      * @param      string $v new value
      * @return     void
      */
-
     public function setWeeWeUid ($v)
     {
         // Since the native PHP type for this column is string,
@@ -421,7 +439,6 @@ abstract class BaseWebEntryEvent implements Persistent
      * @param      string $v new value
      * @return     void
      */
-
     public function setWeeWeTasUid ($v)
     {
         // Since the native PHP type for this column is string,
@@ -460,16 +477,26 @@ abstract class BaseWebEntryEvent implements Persistent
     /**
      * Stores the object in the database.  If the object is new,
      * it inserts it; otherwise an update is performed.  This method
-     * wraps the doSave() worker method in a transaction.
      *
-     * @param      Connection $con
      * @return     int The number of rows affected by this insert/update
-     * @throws     PropelException
-     * @see        doSave()
      */
     public function save ()
     {
+        $id = $this->objMysql->_insert ("workflow.WEB_ENTRY_EVENT", [
+            "WEE_TITLE" => $this->wee_title,
+            "WEE_DESCRIPTION" => $this->wee_description,
+            "PRJ_UID" => $this->prj_uid,
+            "EVN_UID" => $this->evn_uid,
+            "ACT_UID" => $this->act_uid,
+            "DYN_UID" => $this->dyn_uid,
+            "USR_UID" => $this->usr_uid,
+            "WEE_STATUS" => $this->wee_status,
+            "WEE_WE_UID" => $this->wee_we_uid,
+            "WEE_WE_TAS_UID" => $this->wee_we_tas_uid
+                ]
+        );
         
+        return $id;
     }
 
     /**
@@ -498,22 +525,47 @@ abstract class BaseWebEntryEvent implements Persistent
      *
      * @param      mixed $columns Column name or an array of column names.
      * @return     boolean Whether all columns pass validation.
-     * @see        doValidate()
      * @see        getValidationFailures()
      */
-    public function validate ($columns = null)
+    public function validate ()
     {
-        $res = $this->doValidate ($columns);
-        if ( $res === true )
-        {
-            $this->validationFailures = array();
-            return true;
+        foreach ($this->arrayFieldDefinition as $field => $arrValue) {
+
+            $fieldValue = $this->$arrValue['accessor'] ();
+
+            if ( $arrValue['required'] === true && trim ($fieldValue) === "" )
+            {
+                $this->validationFailures[] = $field . " Is missing";
+            }
         }
-        else
+
+        if ( count ($this->validationFailures) > 0 )
         {
-            $this->validationFailures = $res;
             return false;
         }
+
+        return true;
+    }
+
+    public function loadObject (array $arrData)
+    {
+        foreach ($arrData as $formField => $formValue) {
+
+            if ( isset ($this->arrayFieldDefinition[$formField]) )
+            {
+                $mutator = $this->arrayFieldDefinition[$formField]['mutator'];
+
+                if ( method_exists ($this, $mutator) && is_callable (array($this, $mutator)) )
+                {
+                    if ( isset ($this->arrayFieldDefinition[$formField]) && trim ($formValue) != "" )
+                    {
+                        call_user_func (array($this, $mutator), $formValue);
+                    }
+                }
+            }
+        }
+
+        return true;
     }
 
 }

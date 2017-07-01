@@ -38,6 +38,8 @@ require_once HOME_DIR . '/core/app/library/BusinessModel/MessageEventDefinition.
 require_once HOME_DIR . '/core/app/library/Event/BaseWebEntry.php';
 require_once HOME_DIR . '/core/app/library/Event/WebEntry.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/WebEntry.php';
+require_once HOME_DIR . '/core/app/library/Event/BaseWebEntryEvent.php';
+require_once HOME_DIR . '/core/app/library/Event/WebEntryEvent.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/WebEntryEvent.php';
 
 /* * *********************** Documents ******************************************** */
