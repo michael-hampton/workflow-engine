@@ -174,3 +174,14 @@ require_once HOME_DIR . '/core/app/library/Dashboard/DashboardFactory.php';
 require_once HOME_DIR . '/core/app/library/Audit/BaseAudit.php';
 require_once HOME_DIR . '/core/app/library/Audit/Audit.php';
 
+/**************** Calendar ************************/
+require_once HOME_DIR . '/core/app/library/Calendar/BaseCalendarBusinessHours.php';
+require_once HOME_DIR . '/core/app/library/Calendar/CalendarBusinessHours.php';
+
+require_once HOME_DIR . '/core/app/library/Calendar/BaseCalendarHolidays.php';
+require_once HOME_DIR . '/core/app/library/Calendar/CalendarHolidays.php';
+
+require_once HOME_DIR . '/core/app/library/Calendar/BaseCalendarDefinition.php';
+require_once HOME_DIR . '/core/app/library/Calendar/CalendarDefinition.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/Calendar.php';
+
