@@ -299,7 +299,7 @@ class Flow
                 $this->setTasTimeUnit ($arrConditions['task_properties']['TAS_TIMEUNIT']);
             }
             
-             if ( isset ($arrConditions['task_properties']['TAS_DURATION']) )
+            if ( isset ($arrConditions['task_properties']['TAS_DURATION']) )
             {
                 $this->setTasDuration ($arrConditions['task_properties']['TAS_DURATION']);
             }
