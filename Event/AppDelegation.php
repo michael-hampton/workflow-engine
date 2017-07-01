@@ -11,7 +11,7 @@
  *
  * @author michael.hampton
  */
-class AppDelegation extends BaseAppDelegation
+class AppDelegation
 {
 
     private $del_delegate_date;
@@ -188,6 +188,8 @@ class AppDelegation extends BaseAppDelegation
 
         $delTaskDueDate = $this->calculateDueDate ($objFlow);
         $delRiskDate = $this->calculateRiskDate ($objFlow, date ("Y-m-d H:i:s"), $this->getRisk ());
+
+        echo $delRiskDate . " " . $delTaskDueDate;
     }
 
     public function calculateDuration ($cron = 0)
@@ -231,11 +233,6 @@ class AppDelegation extends BaseAppDelegation
 
             $arrDone[] = $result['USER_UID'];
         }
-
-
-        echo '<pre>';
-        print_r ($arrValues);
-        die;
     }
 
     public function getValuesToStoreForCalculateDuration ($row, $calendar, $calData, $nowDate)
@@ -280,9 +277,10 @@ class AppDelegation extends BaseAppDelegation
             "cTaskDurationUnit" => $arrData['TASK']['task_properties']['TAS_TIMEUNIT'],
         );
 
-        $arrMike['dFinishDate'] = trim ($rowValues['dFinishDate']) !== "" ? $rowValues['dFinishDate']->format ('Y-m-d H:i:s') : date ("Y-m-d H:i:s", strtotime ("+2 days"));;
-        
-        
+        $arrMike['dFinishDate'] = trim ($rowValues['dFinishDate']) !== "" ? $rowValues['dFinishDate']->format ('Y-m-d H:i:s') : date ("Y-m-d H:i:s", strtotime ("+2 days"));
+        ;
+
+
         return Array(
             'isStarted' => $this->createDateFromString ($arrMike['dInitDate']) != null ? 1 : 0,
             'isFinished' => $this->createDateFromString ($arrMike['dFinishDate']) != null ? 1 : 0,
@@ -300,7 +298,7 @@ class AppDelegation extends BaseAppDelegation
         $initDateForCalc = $this->selectDate ($rowValues['dInitDate'], $rowValues['dDelegateDate'], 'max');
         $endDateForCalc = $this->selectDate ($rowValues['dFinishDate'], $rowValues['dNow'], 'min');
         return $calendar->dashCalculateDurationWithCalendar (
-                        (new DateTime ($initDateForCalc))->format ('Y-m-d H:i:s'), (new DateTime ($endDateForCalc))->format ('Y-m-d H:i:s'), $calData) / (24 * 60 * 60);
+                        $initDateForCalc->format ('Y-m-d H:i:s'), $endDateForCalc->format ('Y-m-d H:i:s'), $calData) / (24 * 60 * 60);
     }
 
     private function calculateOverduePercentage ($calendar, $calData, $rowValues)
@@ -311,7 +309,6 @@ class AppDelegation extends BaseAppDelegation
         }
         //TODO 8 daily/hours must be extracted from calendar
         $taskTime = ($rowValues['cTaskDurationUnit'] == 'DAYS') ? $rowValues['fTaskDuration'] * 8 / 24 : $rowValues['fTaskDuration'] / 24;
-        
         return $this->calculateDelayTime ($calendar, $calData, $rowValues) * 100 / $taskTime;
     }
 

@@ -412,7 +412,7 @@ class TimerEvent
             }
             //Verify data - Field definition
             $arrayFieldDefinition = array();
-            $bpmnEvent = (new \Event())->getEvent ($projectUid);
+            $bpmnEvent = (new Event())->getEvent ($projectUid);
 
             if ( !isset ($bpmnEvent[0]) || empty ($bpmnEvent[0]) )
             {
