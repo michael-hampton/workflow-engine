@@ -381,7 +381,7 @@ class Calendar
 
     public function dashCalculateDate ($iniDate, $duration, $formatDuration, $calendarData = array())
     {
-        
+
         if ( strtoupper ($formatDuration) == 'DAYS' )
         {
             $duration = $duration * $calendarData['HOURS_FOR_DAY'];
@@ -803,6 +803,7 @@ class Calendar
             $row["CALENDAR_TOTAL_USERS"] = (isset ($arrayTotalUsersByCalendar[$calendarUid])) ? $arrayTotalUsersByCalendar[$calendarUid] : 0;
             $row["CALENDAR_TOTAL_PROCESSES"] = (isset ($arrayTotalProcessesByCalendar[$calendarUid])) ? $arrayTotalProcessesByCalendar[$calendarUid] : 0;
             $row["CALENDAR_TOTAL_TASKS"] = (isset ($arrayTotalTasksByCalendar[$calendarUid])) ? $arrayTotalTasksByCalendar[$calendarUid] : 0;
+
             //Return
             return $this->getCalendarDataFromRecord ($row);
         } catch (\Exception $e) {
@@ -812,7 +813,7 @@ class Calendar
 
     public function getCalendarData ($calendarUid = null)
     {
-        
+
         $calendarUid = (is_null ($calendarUid)) ? $this->pmCalendarUid : $calendarUid;
         $this->pmCalendarUid = $calendarUid;
         //if exists the row in the database propel will update it, otherwise will insert.
@@ -854,7 +855,7 @@ class Calendar
 
         $CalendarBusinessHoursObj = new \CalendarBusinessHours();
         $CalendarBusinessHours = $this->getCalendarBusinessHours ($calendarUid);
-        
+
         $numDay = 8;
         $daysHours = array();
         $hoursCant = array();
@@ -948,7 +949,7 @@ class Calendar
 
     public function validateCalendarInfo ($fields, $defaultCalendar)
     {
-        
+
         try {
             //Validate if Working days are Correct
             //Minimun 3 ?
@@ -997,6 +998,46 @@ class Calendar
             $defaultCalendar ['CALENDAR_WORK_DAYS_A'] = explode ('|', '1|2|3|4|5');
             return $defaultCalendar;
         }
+    }
+
+     //Calculate the duration betwen two dates with a calendar
+    public function dashCalculateDurationWithCalendar ($iniDate, $finDate = null, $calendarData = array())
+    {
+    	if ((is_null($finDate)) || ($finDate == '')) {
+    		$finDate = date('Y-m-d H:i:s');
+    	}
+    
+
+        if ((strtotime($finDate)) <= (strtotime($iniDate))) {
+            return 0.00;
+        }
+	
+        $secondDuration = 0.00;
+    
+    	$finDate = $this->dashGetIniDate($finDate, $calendarData);
+    	$newDate = $iniDate;
+
+		$timeIniDate = strtotime($iniDate);
+		$timeFinDate = strtotime($finDate);
+
+    	while ($timeIniDate < $timeFinDate) {
+    		$newDate = $this->dashGetIniDate($newDate, $calendarData);
+    
+    		$rangeWorkHour = $this->dashGetRangeWorkHours($newDate, $calendarData['BUSINESS_DAY']);
+    		$onlyDate = (date('Y-m-d',strtotime($newDate))) . ' ' . $rangeWorkHour['END'];
+    
+    		if ( (strtotime($finDate)) < (strtotime($onlyDate)) ) {
+    			$secondRes = ( ((float)strtotime($finDate)) - ((float)strtotime($newDate)) );
+    			$timeIniDate = strtotime($finDate);
+    			$secondDuration += (float)$secondRes;
+    		} else {
+    			$secondRes = ( ((float)strtotime($onlyDate)) - ((float)strtotime($newDate)) );
+    			$newDate = $onlyDate;
+    			$timeIniDate = strtotime($onlyDate);
+    			$secondDuration += (float)$secondRes;
+    		}
+    	}
+    	return $secondDuration;
     }
 
 }

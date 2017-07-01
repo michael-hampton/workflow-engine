@@ -1,4 +1,5 @@
 <?php
+
 namespace BusinessModel;
 
 class Cases
@@ -193,7 +194,7 @@ class Cases
             if ( isset ($workflowData['elements']) )
             {
                 foreach ($workflowData['elements'] as $elementId => $element) {
-  
+
                     $intSkip = 0;
                     $dateCompleted = '';
 
@@ -613,7 +614,7 @@ class Cases
     {
         try {
             // Check For Parent
- 
+
             $oProcesses = new \BusinessModel\Process();
 
             $pro = $oProcesses->processExists ($objWorkflow->getWorkflowId ());
@@ -658,7 +659,7 @@ class Cases
 
                 $this->projectUid ($projectId);
             }
-            
+
             $errorCounter = 0;
 
             $objElements = new \Elements ($projectId);
@@ -738,9 +739,9 @@ class Cases
                 }
 
                 $objAttachments = new \BusinessModel\Attachment();
-                                
+
                 $id = $arrFiles = $objAttachments->loadObject ($arrData);
-                
+
                 if ( $id === false )
                 {
                     $messages = $objAttachments->getArrayValidation ();
@@ -772,10 +773,10 @@ class Cases
     public function saveProject ($arrData, \Workflow $objWorkflow, \Users $objUser)
     {
         $objSave = new \Save();
-        $arrWorkflow = $objWorkflow->getProcess();
+        $arrWorkflow = $objWorkflow->getProcess ();
         $workflowId = isset ($arrWorkflow[0]['parent_id']) && $arrWorkflow[0]['parent_id'] !== '0' ? $arrWorkflow[0]['parent_id'] : $objWorkflow->getWorkflowId ();
 
-        $objStep = (new \Workflow($workflowId))->getNextStep ();
+        $objStep = (new \Workflow ($workflowId))->getNextStep ();
         $validation = $objStep->save ($objSave, $arrData['form'], $objUser);
 
         if ( $validation === false )
@@ -804,7 +805,7 @@ class Cases
             $workflowData['elements'][$objElement->getId ()]['current_step'] = $stepTo;
             $this->objMysql->_update ("workflow.workflow_data", ["workflow_data" => json_encode ($workflowData)], ["object_id" => $objElement->getParentId ()]);
         }
-        
+
         return true;
     }
 
@@ -1724,6 +1725,55 @@ class Cases
             ];
         } catch (\Exception $e) {
             throw $e;
+        }
+    }
+
+    public function getCasesForTask (\Flow $objFlow)
+    {
+        if ( trim ($objFlow->getId ()) === "" )
+        {
+            return false;
+        }
+
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        $rows = [];
+        $dates = [];
+        $total = 0;
+
+        $workflowData = $this->objMysql->_select ("workflow.workflow_data");
+
+        foreach ($workflowData as $WorkflowObject) {
+            $obj = json_decode ($WorkflowObject['workflow_data'], true);
+            $objAudit = json_decode ($WorkflowObject['audit_data'], true);
+
+            if ( isset ($obj['elements']) )
+            {
+                foreach ($obj['elements'] as $elementId => $element) {
+
+                    if ( $element['current_step'] === $objFlow->getId () )
+                    {
+                        $lastStep = end ($objAudit['elements'][$elementId]['steps']);
+
+                        $date = $lastStep['dateCompleted'];
+                        $rows[$WorkflowObject['object_id']] = $elementId;
+                        $dates[$WorkflowObject['object_id']] = $lastStep['dateCompleted'];
+                        $total++;
+                    }
+                }
+            }
+        }
+
+        if ( !empty ($rows) )
+        {
+            return array(
+                "total" => $total,
+                "dates" => $dates,
+                "rows" => $rows
+            );
         }
     }
 

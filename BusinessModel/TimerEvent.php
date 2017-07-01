@@ -955,33 +955,11 @@ class TimerEvent
                 else
                 {
 
-                    $workflowData = $this->objMysql->_select ("workflow.workflow_data");
-                    $rows = [];
-                    $dates = [];
-                    $total = 0;
-
-                    foreach ($workflowData as $WorkflowObject) {
-                        $obj = json_decode ($WorkflowObject['workflow_data'], true);
-                        $objAudit = json_decode ($WorkflowObject['audit_data'], true);
-
-                        if ( isset ($obj['elements']) )
-                        {
-                            foreach ($obj['elements'] as $elementId => $element) {
-                                                                
-                                if ( $element['current_step'] === $result['EVN_UID'] )
-                                {
-
-                                    $lastStep = end ($objAudit['elements'][$elementId]['steps']);
-
-                                    $date = $lastStep['dateCompleted'];
-                                    $rows[$WorkflowObject['object_id']] = $elementId;
-                                    $dates[$WorkflowObject['object_id']] = $lastStep['dateCompleted'];
-                                    $total++;
-                                }
-                            }
-                        }
-                    }
-
+                   $arrCases = $case->getCasesForTask(new \Flow($$result['EVN_UID']));
+                   $total = $arrCases['total'];
+                   $dates = $arrCases['dates'];
+                   $rows = $arrCases['rows'];
+           
                     $counter = 0;
                     $flagRecord = false;
 

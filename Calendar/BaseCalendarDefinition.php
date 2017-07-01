@@ -63,15 +63,11 @@ abstract class BaseCalendarDefinition implements Persistent
      * @var        boolean
      */
     protected $alreadyInSave = false;
-    
     protected $workHours;
-
     protected $holidays;
-    
     protected $totalProcesses = 0;
-    
     protected $totalUsers = 0;
-    
+
     public function getWorkHours ()
     {
         return $this->workHours;
@@ -112,7 +108,7 @@ abstract class BaseCalendarDefinition implements Persistent
         $this->totalUsers = $totalUsers;
     }
 
-        /**
+    /**
      * Flag to prevent endless validation loop, if this object is referenced
      * by another object which falls in this transaction.
      * @var        boolean
@@ -386,17 +382,24 @@ abstract class BaseCalendarDefinition implements Persistent
      */
     public function setCalendarWorkDays ($v)
     {
-
-        // Since the native PHP type for this column is string,
-        // we will cast the input to a string (if it is not).
-        if ( $v !== null && !is_string ($v) )
-        {
-            $v = (string) $v;
-        }
-
-        if ( $this->calendar_work_days !== $v || $v === '' )
+        if ( is_array ($v) )
         {
             $this->calendar_work_days = $v;
+        }
+        else
+        {
+
+            // Since the native PHP type for this column is string,
+            // we will cast the input to a string (if it is not).
+            if ( $v !== null && !is_string ($v) )
+            {
+                $v = (string) $v;
+            }
+
+            if ( $this->calendar_work_days !== $v || $v === '' )
+            {
+                $this->calendar_work_days = $v;
+            }
         }
     }
 
@@ -541,7 +544,7 @@ abstract class BaseCalendarDefinition implements Persistent
             "CALENDAR_DESCRIPTION" => $this->calendar_description
                 ]
         );
-        
+
         return $id;
     }
 
@@ -620,7 +623,7 @@ abstract class BaseCalendarDefinition implements Persistent
      */
     public function validate ($columns = null)
     {
-       return true;
+        return true;
     }
 
     /**
