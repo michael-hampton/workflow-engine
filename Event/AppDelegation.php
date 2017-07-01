@@ -298,7 +298,7 @@ class AppDelegation
         $initDateForCalc = $this->selectDate ($rowValues['dInitDate'], $rowValues['dDelegateDate'], 'max');
         $endDateForCalc = $this->selectDate ($rowValues['dFinishDate'], $rowValues['dNow'], 'min');
         return $calendar->dashCalculateDurationWithCalendar (
-                        $initDateForCalc->format ('Y-m-d H:i:s'), $endDateForCalc->format ('Y-m-d H:i:s'), $calData) / (24 * 60 * 60);
+                        - (new DateTime ($initDateForCalc))->format ('Y-m-d H:i:s'), (new DateTime ($endDateForCalc))->format ('Y-m-d H:i:s'), $calData) / (24 * 60 * 60);
     }
 
     private function calculateOverduePercentage ($calendar, $calData, $rowValues)
