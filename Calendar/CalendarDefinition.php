@@ -435,13 +435,15 @@ class CalendarDefinition extends BaseCalendarDefinition
 
     public function assignCalendarTo ($objectUid, $calendarUid, $objectType)
     {
+        $objCalendarAssignment = new CalendarAssignment();
         //if exists the row in the database propel will update it, otherwise will insert.
-        $tr = CalendarAssignmentsPeer::retrieveByPK ($objectUid);
+        $tr = $objCalendarAssignment->retrieveByPk ($objectUid, $objectType);
+        
         if ( $calendarUid != "" )
         {
-            if ( !(is_object ($tr) && get_class ($tr) == 'CalendarAssignments') )
+            if ( !(is_object ($tr) && get_class ($tr) == 'CalendarAssignment') )
             {
-                $tr = new CalendarAssignments();
+                $tr = new CalendarAssignment();
             }
             $tr->setObjectUid ($objectUid);
             $tr->setCalendarUid ($calendarUid);
@@ -456,7 +458,7 @@ class CalendarDefinition extends BaseCalendarDefinition
                 // Something went wrong. We can now get the validationFailures and handle them.
                 $msg = '';
                 $validationFailuresArray = $tr->getValidationFailures ();
-                foreach ($validationFailuresArray as $objValidationFailure) {
+                foreach ($validationFailuresArray as $message) {
                     $msg .= $objValidationFailure->getMessage () . "<br/>";
                 }
                 //return array ( 'codError' => -100, 'rowsAffected' => 0, 'message' => $msg );
@@ -465,9 +467,9 @@ class CalendarDefinition extends BaseCalendarDefinition
         else
         {
             //Delete record
-            if ( (is_object ($tr) && get_class ($tr) == 'CalendarAssignments' ) )
+            if ( (is_object ($tr) && get_class ($tr) == 'CalendarAssignment' ) )
             {
-                $tr->delete ();
+                $this->objMysql->_delete("calendar.calendar_assignees", [], ["OBJECT_TYPE" => $objectType, "USER_UID" => $objectUid]);
             }
         }
     }

@@ -117,6 +117,7 @@ require_once HOME_DIR . '/core/app/library/BusinessModel/NotificationsFactory.ph
 require_once HOME_DIR . '/core/app/library/BPMN/BPMN.php';
 require_once HOME_DIR . '/core/app/library/BPMN/BPMNWorkflow.php';
 require_once HOME_DIR . '/core/app/library/BPMN/Task.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/Task.php';
 require_once HOME_DIR . '/core/app/library/BPMN/Participant.php';
 require_once HOME_DIR . '/core/app/library/BPMN/Message.php';
 require_once HOME_DIR . '/core/app/library/BPMN/Flow.php';
@@ -183,6 +184,8 @@ require_once HOME_DIR . '/core/app/library/Calendar/CalendarBusinessHours.php';
 require_once HOME_DIR . '/core/app/library/Calendar/BaseCalendarHolidays.php';
 require_once HOME_DIR . '/core/app/library/Calendar/CalendarHolidays.php';
 
+require_once HOME_DIR . '/core/app/library/Calendar/BaseCalendarAssignment.php';
+require_once HOME_DIR . '/core/app/library/Calendar/CalendarAssignment.php';
 require_once HOME_DIR . '/core/app/library/Calendar/BaseCalendarDefinition.php';
 require_once HOME_DIR . '/core/app/library/Calendar/CalendarDefinition.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/Calendar.php';
