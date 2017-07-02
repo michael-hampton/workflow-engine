@@ -241,7 +241,7 @@ class Form extends FieldFactory
         $userPermissions = $objCases->getAllObjectsFrom ($projectId, $elementId, $stepId, $objUser);
         
         $objProcessSupervisor = new \BusinessModel\ProcessSupervisor();
-        $blProcessSupervisor = $objProcessSupervisor->isUserProcessSupervisor ($workflowId, $objUser);
+        $blProcessSupervisor = $objProcessSupervisor->isUserProcessSupervisor (new \Workflow ($workflowId), $objUser);
 
         $objAttachments = new \BusinessModel\Attachment();
         $arrAttachments = $objAttachments->getAllAttachments ($projectId);

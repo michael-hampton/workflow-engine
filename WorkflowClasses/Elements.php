@@ -454,8 +454,13 @@ class Elements
         $JSON = json_decode ($result[0]['step_data'], true);
 
         $arrWorkflowData = $objMysql->_select ("workflow.workflow_data", array(), array("object_id" => $this->source_id));
-        $workflowData = json_decode ($arrWorkflowData[0]['workflow_data'], true);
-
+        
+        $workflowData = [];
+        
+        if(isset($arrWorkflowData[0]['workflow_data'])) {
+            $workflowData = json_decode ($arrWorkflowData[0]['workflow_data'], true);
+        }
+  
         $count = 0;
 
         if ( isset ($JSON['elements']) && !empty ($JSON['elements']) )
