@@ -113,17 +113,18 @@ class StepTrigger
         $blHasTrigger = false;
 
         foreach ($arrTriggers as $arrTrigger) {
-            
-            $arrTrigger['event_type'] = isset($arrTrigger['event_type']) && trim($arrTrigger['event_type']) !== "" ? $arrTrigger['event_type'] : "INTERMEDIATE";
+
+            $arrTrigger['event_type'] = isset ($arrTrigger['event_type']) && trim ($arrTrigger['event_type']) !== "" ? $arrTrigger['event_type'] : "INTERMEDIATE";
 
             switch ($arrTrigger['event_type']) {
                 case "START":
+                                        
                     $projectId = $this->parentId;
                     $workflowTo = $arrTrigger['workflow_to'];
                     $objCase = new Cases();
                     $objWorkflow = new \Workflow ($workflowTo);
                     $objUser = (new \BusinessModel\UsersFactory())->getUser ($_SESSION['user']['usrid']);
-                    $objCase->addCase($objWorkflow, $objUser, array(), array(), false, $projectId);
+                    $objCase->addCase ($objWorkflow, $objUser, array(), array(), false, $projectId);
                     $this->blAddedCase = true;
                     break;
 
@@ -135,6 +136,7 @@ class StepTrigger
 
                     if ( $arrTrigger !== false && !empty ($arrTrigger) )
                     {
+
                         if ( $workflow == $this->arrWorkflowObject['workflow_id'] )
                         {
                             if ( $triggerType == "step" )
@@ -146,7 +148,8 @@ class StepTrigger
 
                                 if ( isset ($this->arrWorkflowObject['elements'][$this->parentId]) )
                                 {
-                                    if ( $this->arrWorkflowObject['elements'][$this->parentId]['workflow_id'] == $arrTrigger['workflow_from'] )
+                                    if ( $this->arrWorkflowObject['elements'][$this->parentId]['workflow_id'] == $arrTrigger['workflow_to'] || $this->arrWorkflowObject['elements'][$this->parentId]['workflow_id'] == $arrTrigger['workflow_id']
+                                    )
                                     {
                                         $this->arrWorkflowObject['elements'][$this->parentId]['current_step'] = $arrTrigger['step_to'];
                                     }
@@ -164,33 +167,34 @@ class StepTrigger
                                 $this->blMove = false;
                             }
                         }
-                    }
-                    else
-                    {
-                        if ( $this->arrWorkflowObject['elements'][$this->elementId]['workflow_id'] == $workflow )
+                        else
                         {
-                            if ( $triggerType == "step" )
+                            if ( $this->arrWorkflowObject['elements'][$this->elementId]['workflow_id'] == $workflow )
                             {
-                                $this->arrWorkflowObject['elements'][$this->elementId]['current_step'] = $arrTrigger['step_to'];
-                                $strTriggerType = "step";
-                                $this->blMove = true;
-                                $blHasTrigger = true;
-                            }
-                            elseif ( $triggerType == "workflow" )
-                            {
-                                $this->arrWorkflowObject['elements'][$this->elementId]['workflow_id'] = $arrTrigger['workflow_to'];
-                                $strTriggerType = "workflow";
-                            }
-                            elseif ( $triggerType == "gateway" )
-                            {
-                                $objGateway = new \BusinessModel\StepGateway (null);
-                                $this->arrWorkflowObject = $objGateway->updateStep ($arrTrigger, $this->arrWorkflowObject, $objMike);
+                                if ( $triggerType == "step" )
+                                {
+                                    $this->arrWorkflowObject['elements'][$this->elementId]['current_step'] = $arrTrigger['step_to'];
+                                    $strTriggerType = "step";
+                                    $this->blMove = true;
+                                    $blHasTrigger = true;
+                                }
+                                elseif ( $triggerType == "workflow" )
+                                {
+                                    $this->arrWorkflowObject['elements'][$this->elementId]['workflow_id'] = $arrTrigger['workflow_to'];
+                                    $strTriggerType = "workflow";
+                                }
+                                elseif ( $triggerType == "gateway" )
+                                {
+                                    $objGateway = new \BusinessModel\StepGateway (null);
+                                    $this->arrWorkflowObject = $objGateway->updateStep ($arrTrigger, $this->arrWorkflowObject, $objMike);
 
-                                $blHasTrigger = true;
-                                $this->blMove = false;
+                                    $blHasTrigger = true;
+                                    $this->blMove = false;
+                                }
                             }
                         }
                     }
+
                     break;
             }
         }
