@@ -227,6 +227,8 @@ class AppDelegation
                     $calculatedValues = $this->getValuesToStoreForCalculateDuration (array("case_id" => $caseId, "parentId" => $parentId, "TASK" => $result['step_condition']), $calendar, $calData, $now);
                     $calculatedValues['elementId'] = $caseId;
                     $calculatedValues['parentId'] = $parentId;
+                    
+                    return $calculatedValues;
 
                     $arrValues[] = $calculatedValues;
                 }

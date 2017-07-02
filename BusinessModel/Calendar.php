@@ -253,44 +253,31 @@ class Calendar
     {
         try {
             //Verify data
-            $process = new \ProcessMaker\BusinessModel\Process();
-            $validator = new \ProcessMaker\BusinessModel\Validator();
-            $validator->throwExceptionIfDataIsNotArray ($arrayData, "\$arrayData");
-            $validator->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
+            $this->throwExceptionIfDataIsNotArray ($arrayData, "\$arrayData");
+            $this->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
             //Set data
-            $arrayData = \G::array_change_key_case2 ($arrayData, CASE_UPPER);
             //Verify data
             $this->throwExceptionIfNotExistsCalendar ($calendarUid);
-            $process->throwExceptionIfDataNotMetFieldDefinition ($arrayData, $this->arrayFieldDefinition, $this->arrayFieldNameForException, false);
-            if ( isset ($arrayData["CAL_NAME"]) )
+
+            if ( isset ($arrayData["CALENDAR_NAME"]) )
             {
-                $this->throwExceptionIfExistsName ($arrayData["CAL_NAME"], $this->arrayFieldNameForException["calendarName"], $calendarUid);
+                $this->throwExceptionIfExistsName ($arrayData["CALENDAR_NAME"], $calendarUid);
             }
-            if ( isset ($arrayData["CAL_WORK_DAYS"]) && count ($arrayData["CAL_WORK_DAYS"]) < 3 )
+            if ( isset ($arrayData["CALENDAR_WORK_DAYS"]) && count ($arrayData["CALENDAR_WORK_DAYS"]) < 3 )
             {
-                throw (new \Exception (\G::LoadTranslation ("ID_MOST_AT_LEAST_3_DAY")));
+                throw (new \Exception ("ID_MOST_AT_LEAST_3_DAY"));
             }
-            if ( isset ($arrayData["CAL_WORK_HOUR"]) )
-            {
-                foreach ($arrayData["CAL_WORK_HOUR"] as $value) {
-                    $process->throwExceptionIfDataNotMetFieldDefinition ($value, $this->arrayWorkHourFieldDefinition, $this->arrayWorkHourFieldNameForException, true);
-                }
-            }
-            if ( isset ($arrayData["CAL_HOLIDAY"]) )
-            {
-                foreach ($arrayData["CAL_HOLIDAY"] as $value) {
-                    $process->throwExceptionIfDataNotMetFieldDefinition ($value, $this->arrayHolidayFieldDefinition, $this->arrayHolidayFieldNameForException, true);
-                }
-            }
+           
+          
             //Set variables
-            $arrayCalendarData = \G::array_change_key_case2 ($this->getCalendar ($calendarUid), CASE_UPPER);
-            $calendarWorkDays = (isset ($arrayData["CAL_WORK_DAYS"])) ? $arrayData["CAL_WORK_DAYS"] : array_keys ($arrayCalendarData["CAL_WORK_DAYS"]);
+            $calendarWorkDays = (isset ($arrayData["CALENDAR_WORK_DAYS"])) ? $arrayData["CALENDAR_WORK_DAYS"] : array_keys ($arrayCalendarData["CALENDAR_WORK_DAYS"]);
             $arrayCalendarWorkHour = array();
-            $arrayAux = (isset ($arrayData["CAL_WORK_HOUR"])) ? $arrayData["CAL_WORK_HOUR"] : $arrayCalendarData["CAL_WORK_HOUR"];
+            $arrayAux = (isset ($arrayData["CALENDAR_WORK_HOUR"])) ? $arrayData["CALENDAR_WORK_HOUR"] : $arrayCalendarData["CALENDAR_WORK_HOUR"];
+            
             foreach ($arrayAux as $value) {
-                if ( isset ($arrayData["CAL_WORK_HOUR"]) && $value["DAY"] != 0 && !in_array ($value["DAY"], $calendarWorkDays, true) )
+                if ( isset ($arrayData["CALENDAR_WORK_HOUR"]) && $value["DAY"] != 0 && !in_array ($value["DAY"], $calendarWorkDays, true) )
                 {
-                    throw new \Exception (\G::LoadTranslation ("ID_VALUE_SPECIFIED_DOES_NOT_EXIST", array($this->arrayWorkHourFieldNameForException["day"], $this->arrayFieldNameForException["calendarWorkDays"])));
+                    throw new \Exception ("ID_VALUE_SPECIFIED_DOES_NOT_EXIST");
                 }
                 $arrayCalendarWorkHour[] = array(
                     "CALENDAR_BUSINESS_DAY" => $this->workDaysTransformData ($value["DAY"]),
@@ -299,7 +286,7 @@ class Calendar
                 );
             }
             $arrayCalendarHoliday = array();
-            $arrayAux = (isset ($arrayData["CAL_HOLIDAY"])) ? $arrayData["CAL_HOLIDAY"] : $arrayCalendarData["CAL_HOLIDAY"];
+            $arrayAux = (isset ($arrayData["HOLIDAY"])) ? $arrayData["HOLIDAY"] : $arrayCalendarData["HOLIDAY"];
             foreach ($arrayAux as $value) {
                 $arrayCalendarHoliday[] = array(
                     "CALENDAR_HOLIDAY_NAME" => $value["NAME"],
@@ -319,10 +306,7 @@ class Calendar
             $calendarDefinition = new \CalendarDefinition();
             $calendarDefinition->saveCalendarInfo ($arrayDataAux);
             //Return
-            if ( !$this->formatFieldNameInUppercase )
-            {
-                $arrayData = \G::array_change_key_case2 ($arrayData, CASE_LOWER);
-            }
+           
             return $arrayData;
         } catch (\Exception $e) {
             throw $e;
@@ -701,8 +685,7 @@ class Calendar
         try {
             $arrayCalendar = array();
             //Verify data
-            $process = new \ProcessMaker\BusinessModel\Process();
-            $process->throwExceptionIfDataNotMetPagerVarDefinition (array("start" => $start, "limit" => $limit), $this->arrayFieldNameForException);
+           
             //Get data
             if ( !is_null ($limit) && $limit . "" == "0" )
             {
@@ -715,18 +698,16 @@ class Calendar
             $arrayTotalTasksByCalendar = $calendar->getAllCounterByCalendar ("TASK");
             //SQL
             $criteria = $this->getCalendarCriteria ();
+            
             if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"]) && trim ($arrayFilterData["filter"]) != "" )
             {
-                $criteria->add (
-                        $criteria->getNewCriterion (\CalendarDefinitionPeer::CALENDAR_NAME, "%" . $arrayFilterData["filter"] . "%", \Criteria::LIKE)->addOr (
-                                $criteria->getNewCriterion (\CalendarDefinitionPeer::CALENDAR_DESCRIPTION, "%" . $arrayFilterData["filter"] . "%", \Criteria::LIKE))
-                );
+                $criteria .=  " AND (CALENDAR_NAME LIKE '%". $arrayFilterData["filter"] ."%' OR CALENDAR_DESCRIPTION LIKE '%". $arrayFilterData["filter"] ."%') ";
             }
             //SQL
             if ( !is_null ($sortField) && trim ($sortField) != "" )
             {
-                $sortField = strtoupper ($sortField);
-                $sortField = (isset ($this->arrayFieldDefinition[$sortField]["fieldName"])) ? $this->arrayFieldDefinition[$sortField]["fieldName"] : $sortField;
+                //$sortField = strtoupper ($sortField);
+                //$sortField = (isset ($this->arrayFieldDefinition[$sortField]["fieldName"])) ? $this->arrayFieldDefinition[$sortField]["fieldName"] : $sortField;
                 switch ($sortField) {
                     case "CALENDAR_UID":
                     case "CALENDAR_NAME":
@@ -735,42 +716,48 @@ class Calendar
                     case "CALENDAR_STATUS":
                     case "CALENDAR_CREATE_DATE":
                     case "CALENDAR_UPDATE_DATE":
-                        $sortField = \CalendarDefinitionPeer::TABLE_NAME . "." . $sortField;
+                        $sortField = $sortField;
                         break;
                     default:
-                        $sortField = \CalendarDefinitionPeer::CALENDAR_NAME;
+                        $sortField = "CALENDAR_NAME";
                         break;
                 }
             }
             else
             {
-                $sortField = \CalendarDefinitionPeer::CALENDAR_NAME;
+                $sortField = "CALENDAR_NAME";
             }
             if ( !is_null ($sortDir) && trim ($sortDir) != "" && strtoupper ($sortDir) == "DESC" )
             {
-                $criteria->addDescendingOrderByColumn ($sortField);
+               $criteria .= " ORDER BY ". $sortField ." DESC";
             }
             else
             {
-                $criteria->addAscendingOrderByColumn ($sortField);
+                 $criteria .= " ORDER BY ". $sortField ." ASC";
             }
-            if ( !is_null ($start) )
-            {
-                $criteria->setOffset ((int) ($start));
-            }
+            
             if ( !is_null ($limit) )
             {
-                $criteria->setLimit ((int) ($limit));
+                $criteria .= " LIMIT " . (int) $limit;
             }
-            $rsCriteria = \CalendarDefinitionPeer::doSelectRS ($criteria);
-            $rsCriteria->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
-            while ($rsCriteria->next ()) {
-                $row = $rsCriteria->getRow ();
+            
+            if ( !is_null ($start) )
+            {
+                $criteria .= " OFFSET " . (int) $start;
+            }
+            
+            $results = $this->objMysql->_query($criteria);
+            
+            foreach ($results as $row) {
                 $row["CALENDAR_TOTAL_USERS"] = (isset ($arrayTotalUsersByCalendar[$row["CALENDAR_UID"]])) ? $arrayTotalUsersByCalendar[$row["CALENDAR_UID"]] : 0;
                 $row["CALENDAR_TOTAL_PROCESSES"] = (isset ($arrayTotalProcessesByCalendar[$row["CALENDAR_UID"]])) ? $arrayTotalProcessesByCalendar[$row["CALENDAR_UID"]] : 0;
                 $row["CALENDAR_TOTAL_TASKS"] = (isset ($arrayTotalTasksByCalendar[$row["CALENDAR_UID"]])) ? $arrayTotalTasksByCalendar[$row["CALENDAR_UID"]] : 0;
-                $arrayCalendar[] = $this->getCalendarDataFromRecord ($row);
+                
+                $calendarObj = $this->getCalendarDataFromRecord ($row);
+
+                $arrayCalendar[] = $calendarObj[0];
             }
+            
             //Return
             return $arrayCalendar;
         } catch (\Exception $e) {

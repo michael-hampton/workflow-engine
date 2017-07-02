@@ -1770,7 +1770,7 @@ class Cases
             {
                 foreach ($obj['elements'] as $elementId => $element) {
 
-                    if ( $element['current_step'] === $objFlow->getId () )
+                    if (isset($element['current_step']) && $element['current_step'] === $objFlow->getId () )
                     {
                         $lastStep = end ($objAudit['elements'][$elementId]['steps']);
 
@@ -1901,7 +1901,7 @@ class Cases
                 {
                     return false;
                 }
-
+                
                 $oTask = new \Task ($stepResult[0]['step_from']);
 
                 $permission = new StepPermission ($oTask);

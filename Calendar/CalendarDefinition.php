@@ -278,7 +278,7 @@ class CalendarDefinition extends BaseCalendarDefinition
         if ( in_array ($aData['CALENDAR_UID'], $defaultCalendars) )
         {
             $CalendarStatus = 'ACTIVE';
-            $CalendarName = G::LoadTranslation ('ID_DEFAULT_CALENDAR');
+            //$CalendarName = G::LoadTranslation ('ID_DEFAULT_CALENDAR');
         }
         $CalendarWorkDays = isset ($aData['CALENDAR_WORK_DAYS']) ? implode ("|", $aData['CALENDAR_WORK_DAYS']) : "";
         $msgCalendarDescriptionStatus = ($aData["CALENDAR_DESCRIPTION"] != "") ? ", Description: " . $aData["CALENDAR_DESCRIPTION"] . ", Status: " . ucwords (strtolower ($aData["CALENDAR_STATUS"])) : ", Status: " . ucwords (strtolower ($aData["CALENDAR_STATUS"]));

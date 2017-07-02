@@ -297,8 +297,8 @@ class WorkflowStep
         {
             $this->parentId = $objMike->getId ();
         }
-        
-        /**************** Determine next step if there is one else stay at current step ***********************/
+
+        /*         * ************** Determine next step if there is one else stay at current step ********************** */
         $arrWorkflowData = $this->getWorkflowData ();
         $arrWorkflowObject = json_decode ($arrWorkflowData[0]['workflow_data'], true);
         $blHasTrigger = false;
@@ -349,7 +349,7 @@ class WorkflowStep
             }
         }
 
-        /********************** Get due date for Task ***********************/
+        /*         * ******************** Get due date for Task ********************** */
         $objAppDelegation = new AppDelegation();
 
         try {
@@ -387,7 +387,7 @@ class WorkflowStep
             $this->objWorkflow['elements'][$this->elementId] = $arrWorkflow;
         }
 
-        /******************* Check events for task ***************************/
+        /*         * ***************** Check events for task ************************** */
         $hasEvent = isset ($arrCompleteData['hasEvent']) ? 'true' : 'false';
         $this->objWorkflow['elements'][$this->parentId]['hasEvent'] = $hasEvent;
         $this->objWorkflow['elements'][$this->elementId]['hasEvent'] = $hasEvent;
@@ -402,33 +402,35 @@ class WorkflowStep
             $arrCompleteData['status'] = "COMPLETE";
             $this->objWorkflow['elements'][$this->elementId]['status'] = "WORKFLOW COMPLETE";
         }
-        
-        /******************** Validate User *******************/
-        
-        if(isset($arrCompleteData['status']) && trim($arrCompleteData['status']) === "CLAIMED") {
+
+        /*         * ****************** Validate User ****************** */
+
+        if ( isset ($arrCompleteData['status']) && trim ($arrCompleteData['status']) === "CLAIMED" )
+        {
             $claimFlag = true;
-        } else {
+        }
+        else
+        {
             $claimFlag = false;
         }
 
         // check permissions
         $objCase = new \BusinessModel\Cases();
         $isValidUser = $objCase->doPostReassign (
-                new Flow($step),
-                array(
-                    "cases" => array(
-                        0 => array(
-                            "elementId" => $this->elementId,
-                            "parentId" => $this->parentId,
-                            "user" => $objUser
-                        )
-                    )
-                ),
-                $claimFlag
+                new Flow ($step), array(
+            "cases" => array(
+                0 => array(
+                    "elementId" => $this->elementId,
+                    "parentId" => $this->parentId,
+                    "user" => $objUser
+                )
+            )
+                ), $claimFlag
         );
-        
-        if($isValidUser === false) {
-            return false;
+
+        if ( $isValidUser === false )
+        {
+            throw new Exception ("Invalid user given. Cannot complete workflow step " . $step . " - " . $this->workflowId);
         }
 
         if ( isset ($arrCompleteData['dateCompleted']) && isset ($arrCompleteData['claimed']) )
