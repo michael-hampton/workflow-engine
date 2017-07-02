@@ -303,25 +303,25 @@ class Flow
         if ( trim ($result[0]['step_condition']) !== "" )
         {
             $arrConditions = json_decode ($result[0]['step_condition'], true);
-
+            
             if ( isset ($arrConditions['task_properties']['TAS_TIMEUNIT']) )
             {
-                $this->setTasTimeUnit ($arrConditions['task_properties']['TAS_TIMEUNIT']);
+                $objFlow->setTasTimeUnit ($arrConditions['task_properties']['TAS_TIMEUNIT']);
             }
             
             if ( isset ($arrConditions['task_properties']['TAS_DURATION']) )
             {
-                $this->setTasDuration ($arrConditions['task_properties']['TAS_DURATION']);
+                $objFlow->setTasDuration ($arrConditions['task_properties']['TAS_DURATION']);
             }
             
              if ( isset ($arrConditions['task_properties']['TAS_CALENDAR']) )
             {
-                $this->setCalendarUid ($arrConditions['task_properties']['TAS_CALENDAR']);
+                $objFlow->setCalendarUid ($arrConditions['task_properties']['TAS_CALENDAR']);
             }
             
             if ( isset ($arrConditions['task_properties']['TAS_TYPE_DAY']) )
             {
-                $this->setTasTypeDay ($arrConditions['task_properties']['TAS_TYPE_DAY']);
+                $objFlow->setTasTypeDay ($arrConditions['task_properties']['TAS_TYPE_DAY']);
             }
         }
 

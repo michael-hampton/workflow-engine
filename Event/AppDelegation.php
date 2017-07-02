@@ -146,6 +146,7 @@ class AppDelegation
 
     public function calculateDueDate (Flow $objFlow)
     {
+        
         $aData['TAS_DURATION'] = $objFlow->getTasDuration ();
         $aData['TAS_TIMEUNIT'] = $objFlow->getTasTimeUnit ();
         $aData['TAS_TYPE_DAY'] = $objFlow->getTasTypeDay ();
@@ -164,17 +165,17 @@ class AppDelegation
         if ( $calendar->pmCalendarUid == "" )
         {
             $calendar->getCalendar (null, $this->getProUid (), $this->getTasUid ());
-            $arrayCalendarData = $calendar->getCalendarData ();
+            $arrayCalendarData = $calendar->getCalendarData ($aCalendarUID);
         }
 
-        $initDate = date ('Y-m-d', strtotime ('-30 days'));
+        $initDate = date ('Y-m-d H:i:s', strtotime ('now'));
         $date = new DateTime ($initDate);
         $timezone = 'Europe/London';
         $date->setTimezone (new DateTimeZone ($timezone)); // +04
         $timezone = $date->format ('Y-m-d H:i:s');
-
+        
         $dueDate = $calendar->dashCalculateDate ($initDate, $aData["TAS_DURATION"], $aData["TAS_TIMEUNIT"], $arrayCalendarData);
-
+        
         return $dueDate;
     }
 

@@ -41,7 +41,7 @@ class Task
 
             $arrayResult = array();
 
-            if ( $arrayProperty["TAS_SELFSERVICE_TIMEOUT"] == "1" )
+            if (isset($arrayProperty["TAS_SELFSERVICE_TIMEOUT"]) && $arrayProperty["TAS_SELFSERVICE_TIMEOUT"] == "1" )
             {
                 if ( !is_numeric ($arrayProperty["TAS_SELFSERVICE_TIME"]) || $arrayProperty["TAS_SELFSERVICE_TIME"] == '' )
                 {

@@ -118,7 +118,7 @@ class SendNotification extends Notification
             $objCases = new \BusinessModel\Cases();
 
             $Fields = $objCases->getCaseVariables ($this->elementId, $_SESSION['user']['usrid'], $this->projectId, $status);
-
+            
             $this->subject = $objCases->replaceDataField ($this->subject, $Fields);
             $this->body = $objCases->replaceDataField ($this->body, $Fields);
 

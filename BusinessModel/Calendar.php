@@ -381,7 +381,8 @@ class Calendar
 
     public function dashCalculateDate ($iniDate, $duration, $formatDuration, $calendarData = array())
     {
-
+        $calendarData['HOURS_FOR_DAY'] = 8;
+        
         if ( strtoupper ($formatDuration) == 'DAYS' )
         {
             $duration = $duration * $calendarData['HOURS_FOR_DAY'];
@@ -397,6 +398,7 @@ class Calendar
             $newDate = $this->dashGetIniDate ($newDate, $calendarData);
 
             $rangeWorkHour = $this->dashGetRangeWorkHours ($newDate, $calendarData['BUSINESS_DAY']);
+            
             $onlyDate = (date ('Y-m-d', strtotime ($newDate))) . ' ' . $rangeWorkHour['END'];
 
             if ( (((float) $hoursDuration) >= ((float) $rangeWorkHour['TOTAL'])) ||
@@ -488,6 +490,7 @@ class Calendar
                 $timeStart = $value['CALENDAR_BUSINESS_START'];
                 $timeEnd = $value['CALENDAR_BUSINESS_END'];
                 $rangeWorkHour['START'] = ((strlen ($timeStart) == 8) ? $timeStart : $timeStart . ':00');
+                
                 $rangeWorkHour['END'] = ((strlen ($timeEnd) == 8) ? $timeEnd : $timeEnd . ':00');
 
                 $workHoursDay[] = $rangeWorkHour;
@@ -597,6 +600,7 @@ class Calendar
             }
             else
             {
+             
                 $iniDate = $workHours['DATE'];
             }
             $flagIniDate = false;
@@ -886,6 +890,7 @@ class Calendar
                 $keyModa = $key;
             }
         }
+        
         $fields ['HOURS_FOR_DAY'] = $keyModa;
         $fields ['BUSINESS_DAY'] = $CalendarBusinessHours;
 

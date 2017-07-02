@@ -191,7 +191,7 @@ class WorkflowStep
         }
     }
 
-    public function save ($objMike, $arrFormData, Users $objUser, $arrEmailAddresses = array())
+    public function save ($objMike, array $arrFormData, Users $objUser, $arrEmailAddresses = array())
     {
         $parentId = null;
         if ( method_exists ($objMike, "getParentId") )
@@ -260,17 +260,28 @@ class WorkflowStep
 
     private function completeAuditObject (array $arrCompleteData = [])
     {
+
         if ( is_numeric ($this->parentId) && is_numeric ($this->elementId) )
         {
             $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['claimed'] = $arrCompleteData['claimed'];
             $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['dateCompleted'] = $arrCompleteData['dateCompleted'];
             $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['status'] = $arrCompleteData['status'];
+
+            if ( isset ($arrCompleteData['due_date']) )
+            {
+                $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['due_date'] = $arrCompleteData['due_date'];
+            }
         }
         else
         {
             $this->objAudit['claimed'] = $arrCompleteData['claimed'];
             $this->objAudit['dateCompleted'] = $arrCompleteData['dateCompleted'];
             $this->objAudit['status'] = $arrCompleteData['status'];
+
+            if ( isset ($arrCompleteData['due_date']) )
+            {
+                $this->objAudit['due_date'] = $arrCompleteData['due_date'];
+            }
         }
     }
 
@@ -291,8 +302,9 @@ class WorkflowStep
         $blHasTrigger = false;
         $arrWorkflow['request_id'] = $this->collectionId;
         $objTrigger = new \BusinessModel\StepTrigger ($this->_workflowStepId, $this->nextStep);
-        
-        if(!isset($arrCompleteData['status']) || trim($arrCompleteData['status']) !== "REJECT") {
+
+        if ( !isset ($arrCompleteData['status']) || trim ($arrCompleteData['status']) !== "REJECT" )
+        {
             $blHasTrigger = $objTrigger->checkTriggers ($objMike);
         }
 
@@ -302,6 +314,8 @@ class WorkflowStep
             $arrWorkflowData = $this->getWorkflowData ();
             $arrWorkflowObject = json_decode ($arrWorkflowData[0]['workflow_data'], true);
         }
+
+        $this->objAudit = json_decode ($arrWorkflowData[0]['audit_data'], true);
 
         if ( $complete === true && $this->nextStep !== 0 && $this->nextStep != "" )
         {
@@ -314,12 +328,14 @@ class WorkflowStep
             if ( $objTrigger->blMove === true || $blHasTrigger === false )
             {
                 $blHasTrigger = false;
+                $step = $this->nextStep;
                 $arrWorkflow['current_step'] = $this->nextStep;
             }
             $arrWorkflow['status'] = "STEP COMPLETED";
         }
         else
         {
+            $step = $this->_workflowStepId;
             $arrWorkflow['current_step'] = $this->_workflowStepId;
             if ( $this->nextStep == 0 || $this->nextStep == "" )
             {
@@ -328,15 +344,33 @@ class WorkflowStep
             else
             {
                 $arrWorkflow['status'] = "SAVED";
-                //$arrCompleteData['status'] = "SAVED";
             }
+        }
+
+        $objAppDelegation = new AppDelegation();
+        
+        try {
+            if ( !isset ($this->objAudit['elements'][$this->elementId]['steps'][$step]) )
+            {
+                $arrCompleteData['due_date'] = $objAppDelegation->calculateDueDate ((new Flow ($step))->retrieveByPk ($step));
+            }
+            else
+            {
+                if(isset($this->objAudit['elements'][$this->elementId]['steps'][$step]['due_date'])) {
+                    $arrCompleteData['due_date'] = $this->objAudit['elements'][$this->elementId]['steps'][$step]['due_date'];
+                } else {
+                     $arrCompleteData['due_date'] = "";
+                }
+                
+            }
+        } catch (Exception $ex) {
+            
         }
 
         $arrWorkflow['workflow_id'] = $this->workflowId;
         if ( !empty ($arrWorkflowData) )
         {
             $this->objWorkflow = $arrWorkflowObject;
-            $this->objAudit = json_decode ($arrWorkflowData[0]['audit_data'], true);
         }
         else
         {
