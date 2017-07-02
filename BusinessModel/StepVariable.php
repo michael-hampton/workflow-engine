@@ -40,7 +40,7 @@ class StepVariable
 
             $this->throwExceptionFieldDefinition ($arrayData);
 
-            if ( isset ($arrayData['VAR_SQL']) )
+            if ( isset ($arrayData['VAR_SQL']) && trim($arrayData['VAR_SQL']) !== "")
             {
                  $this->throwExceptionIfSomeRequiredVariableSqlIsMissingInVariables ($arrayData["VAR_NAME"], $arrayData["VAR_SQL"], array());
                 
@@ -218,7 +218,7 @@ class StepVariable
             {
                 if ( $variableName == $result[0]["variable_name"] )
                 {
-                    throw new Exception ("Field already exists");
+                    throw new \Exception ("Field already exists");
                 }
             }
         } catch (\Exception $e) {

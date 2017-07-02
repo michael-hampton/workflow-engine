@@ -307,7 +307,7 @@ class InputDocument
 
             //Step
             $result = $this->objMysql->_select ("workflow.step_document", array(), array("document_id" => $inputDocumentUid));
-
+            
             if ( isset ($result[0]) && !empty ($result[0]) )
             {
                 $flagAssigned = true;
