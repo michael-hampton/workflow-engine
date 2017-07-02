@@ -14,6 +14,11 @@ class Flow
     private $id;
     private $loc;
     private $stepName;
+    private $TasDuration;
+    private $TasTimeUnit;
+    private $TasTypeDay;
+    private $calendarUid;
+    private $sendLastEmail;
 
     /**
      * 
@@ -35,7 +40,17 @@ class Flow
         }
     }
 
-    /**
+    public function getId ()
+    {
+        return $this->id;
+    }
+
+    public function setId ($id)
+    {
+        $this->id = $id;
+    }
+
+        /**
      * 
      * @return type
      */
@@ -191,6 +206,56 @@ class Flow
         $this->stepName = $stepName;
     }
 
+    public function getTasDuration ()
+    {
+        return $this->TasDuration;
+    }
+
+    public function getTasTimeUnit ()
+    {
+        return $this->TasTimeUnit;
+    }
+
+    public function getTasTypeDay ()
+    {
+        return $this->TasTypeDay;
+    }
+
+    public function setTasDuration ($TasDuration)
+    {
+        $this->TasDuration = $TasDuration;
+    }
+
+    public function setTasTimeUnit ($TasTimeUnit)
+    {
+        $this->TasTimeUnit = $TasTimeUnit;
+    }
+
+    public function setTasTypeDay ($TasTypeDay)
+    {
+        $this->TasTypeDay = $TasTypeDay;
+    }
+
+    public function getCalendarUid ()
+    {
+        return $this->calendarUid;
+    }
+
+    public function setCalendarUid ($calendarUid)
+    {
+        $this->calendarUid = $calendarUid;
+    }
+
+    public function getSendLastEmail ()
+    {
+        return $this->sendLastEmail;
+    }
+
+    public function setSendLastEmail ($sendLastEmail)
+    {
+        $this->sendLastEmail = $sendLastEmail;
+    }
+
     /**
      * 
      * @return boolean
@@ -234,6 +299,32 @@ class Flow
         $objFlow = new Flow();
         $objFlow->setFirstStep ($result[0]['first_step']);
         $objFlow->setCondition ($result[0]['step_condition']);
+
+        if ( trim ($result[0]['step_condition']) !== "" )
+        {
+            $arrConditions = json_decode ($result[0]['step_condition'], true);
+            
+            if ( isset ($arrConditions['task_properties']['TAS_TIMEUNIT']) )
+            {
+                $objFlow->setTasTimeUnit ($arrConditions['task_properties']['TAS_TIMEUNIT']);
+            }
+            
+            if ( isset ($arrConditions['task_properties']['TAS_DURATION']) )
+            {
+                $objFlow->setTasDuration ($arrConditions['task_properties']['TAS_DURATION']);
+            }
+            
+             if ( isset ($arrConditions['task_properties']['TAS_CALENDAR']) )
+            {
+                $objFlow->setCalendarUid ($arrConditions['task_properties']['TAS_CALENDAR']);
+            }
+            
+            if ( isset ($arrConditions['task_properties']['TAS_TYPE_DAY']) )
+            {
+                $objFlow->setTasTypeDay ($arrConditions['task_properties']['TAS_TYPE_DAY']);
+            }
+        }
+
         $objFlow->setIsActive ($result[0]['is_active']);
         $objFlow->setOrderId ($result[0]['order_id']);
         $objFlow->setStepFrom ($result[0]['step_from']);
@@ -284,6 +375,78 @@ class Flow
 
             throw $e;
         }
+    }
+
+    public function updateTaskProperties ($fields)
+    {
+
+        try {
+
+            $objFlow = $this->retrieveByPk ($fields['TAS_UID']);
+
+            $conditions = $objFlow->getCondition ();
+            $conditions['task_properties'] = $fields;
+
+            if ( array_key_exists ("TAS_DESCRIPTION", $fields) )
+            {
+
+                $contentResult += $this->setTasDescription ($fields["TAS_DESCRIPTION"]);
+            }
+
+            if ( array_key_exists ("TAS_DEF_TITLE", $fields) )
+            {
+
+                $contentResult += $this->setTasDefTitle ($fields["TAS_DEF_TITLE"]);
+            }
+
+            if ( array_key_exists ("TAS_DEF_DESCRIPTION", $fields) )
+            {
+
+                $contentResult += $this->setTasDefDescription ($fields["TAS_DEF_DESCRIPTION"]);
+            }
+
+            if ( array_key_exists ("TAS_DEF_PROC_CODE", $fields) )
+            {
+
+                $contentResult += $this->setTasDefProcCode ($fields["TAS_DEF_PROC_CODE"]);
+            }
+
+            if ( array_key_exists ("TAS_DEF_MESSAGE", $fields) )
+            {
+                echo "1";
+
+                $contentResult += $this->setTasDefMessage (trim ($fields["TAS_DEF_MESSAGE"]));
+            }
+
+            if ( array_key_exists ("TAS_DEF_SUBJECT_MESSAGE", $fields) )
+            {
+                $contentResult += $this->setTasDefSubjectMessage (trim ($fields["TAS_DEF_SUBJECT_MESSAGE"]));
+            }
+
+            if ( array_key_exists ("TAS_CALENDAR", $fields) )
+            {
+                $this->setTasCalendar ($fields['TAS_UID'], $fields["TAS_CALENDAR"]);
+            }
+
+            if ( !isset ($fields['TAS_UID']) || trim ($fields['TAS_UID']) === "" || !is_numeric ($fields['TAS_UID']) )
+            {
+                return false;
+            }
+
+            $this->objMysql->_update ("workflow.status_mapping", ["step_condition" => json_encode ($conditions)], ["id" => $fields['TAS_UID']]);
+        } catch (Exception $ex) {
+            throw $ex;
+        }
+    }
+
+    public function setTasCalendar ($taskUid, $calendarUid)
+    {
+
+        //Save Calendar ID for this process
+
+        $calendarObj = new CalendarDefinition();
+
+        $calendarObj->assignCalendarTo ($taskUid, $calendarUid, 'TASK');
     }
 
 }

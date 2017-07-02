@@ -514,13 +514,13 @@ class ProcessSupervisor
      *
      * @return bool Return
      */
-    public function isUserProcessSupervisor ($workflowId, \Users $objUser)
+    public function isUserProcessSupervisor (\Workflow $objWorkflow, \Users $objUser)
     {
         try {
             $result = $this->objMysql->_query ("SELECT * FROM workflow.`process_supervisors` 
                                              WHERE `user_id` = ? 
                                              AND `workflow_id` = ? 
-                                             AND `pu_type` = 'SUPERVISOR'", [$objUser->getUserId (), $workflowId]);
+                                             AND `pu_type` = 'SUPERVISOR'", [$objUser->getUserId (), $objWorkflow->getWorkflowId ()]);
 
             if ( isset ($result[0]) && !empty ($result[0]) )
             {

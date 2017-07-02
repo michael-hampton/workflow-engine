@@ -1,4 +1,5 @@
 <?php
+
 namespace BusinessModel;
 
 class StepPermission
@@ -163,8 +164,8 @@ class StepPermission
         try {
 
             $this->validateStepUid ();
-            
-            $objTask = new \Task($this->stepId);
+
+            $objTask = new \Task ($this->stepId);
 
             $objPermissions = new \ObjectPermissions ($objTask);
 
@@ -316,6 +317,48 @@ class StepPermission
             throw (new \Exception ("STEP ID DOES NOT EXIST"));
         }
         return $this->stepId;
+    }
+
+    /**
+     * Check user to group assigned Task (Normal and/or Ad-Hoc Users)
+     *
+     * @param string $taskUid Unique uid of Task
+     * @param string $userUid Unique uid of User
+     *
+     * return bool
+     */
+    public function checkUserOrGroupAssignedTask (\Users $objUser)
+    {
+
+
+        $permissions = $this->getProcessPermissions ();
+
+        if ( !isset ($permissions['master']) || empty ($permissions['master']) )
+        {
+            return false;
+        }
+
+        if ( isset ($permissions['master']['user']) && !empty ($permissions['master']['user']) )
+        {
+            $userList = explode (",", $permissions['master']['user']);
+
+            if ( trim ($objUser->getUserId ()) !== "" && in_array (!empty ($objUser->getUserId ()), $userList) )
+            {
+                return true;
+            }
+        }
+
+        if ( isset ($permissions['master']['team']) && !empty ($permissions['master']['team']) )
+        {
+            $teamList = explode (",", $permissions['master']['team']);
+
+            if ( trim ($objUser->getTeam_id ()) !== "" && in_array (trim ($objUser->getTeam_id ()), $teamList) )
+            {
+                return TRUE;
+            }
+        }
+        
+        return false;
     }
 
 }

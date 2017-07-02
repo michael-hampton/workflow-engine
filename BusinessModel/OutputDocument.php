@@ -42,53 +42,58 @@ class OutputDocument
             }
 
             $results = $this->objMysql->_select ("workflow.output_document", [], $arrWhere);
-            
+
             $outputDocArray = array();
-            foreach ($results as $aRow) {
-                if ( ($aRow['OUT_DOC_TITLE'] == null) || ($aRow['OUT_DOC_TITLE'] == "") )
-                {
-                    // There is no transaltion for this Document name, try to get/regenerate the label
-                    $outputDocument = new \OutputDocument();
-                    $outputDocumentObj = $outputDocument->load ($aRow['OUT_DOC_UID']);
-                    $aRow['OUT_DOC_TITLE'] = $outputDocumentObj['OUT_DOC_TITLE'];
-                    $aRow['OUT_DOC_DESCRIPTION'] = $outputDocumentObj['OUT_DOC_DESCRIPTION'];
-                }
-                else
-                {
-                    if ( $blReturnArray === true )
+
+            if ( isset ($results[0]) && !empty ($results[0]) )
+            {
+                foreach ($results as $aRow) {
+                    if ( ($aRow['OUT_DOC_TITLE'] == null) || ($aRow['OUT_DOC_TITLE'] == "") )
                     {
-                        $outputDocArray[$aRow['id']] = array('out_doc_uid' => $aRow['OUT_DOC_UID'],
-                            'out_doc_title' => $aRow['OUT_DOC_TITLE'],
-                            'out_doc_description' => $aRow['OUT_DOC_DESCRIPTION'],
-                            'out_doc_filename' => $aRow['OUT_DOC_FILENAME'],
-                            'out_doc_template' => $aRow['OUT_DOC_TEMPLATE'],
-                            'out_doc_report_generator' => $aRow['OUT_DOC_REPORT_GENERATOR'],
-                            'out_doc_landscape' => $aRow['OUT_DOC_LANDSCAPE'],
-                            'out_doc_media' => $aRow['OUT_DOC_MEDIA'],
-                            'out_doc_left_margin' => $aRow['OUT_DOC_LEFT_MARGIN'],
-                            'out_doc_right_margin' => $aRow['OUT_DOC_RIGHT_MARGIN'],
-                            'out_doc_top_margin' => $aRow['OUT_DOC_TOP_MARGIN'],
-                            'out_doc_bottom_margin' => $aRow['OUT_DOC_BOTTOM_MARGIN'],
-                            'out_doc_generate' => $aRow['OUT_DOC_GENERATE'],
-                            'out_doc_type' => $aRow['OUT_DOC_TYPE'],
-                            'out_doc_current_revision' => $aRow['OUT_DOC_CURRENT_REVISION'],
-                            'out_doc_field_mapping' => $aRow['OUT_DOC_FIELD_MAPPING'],
-                            'out_doc_versioning' => $aRow['OUT_DOC_VERSIONING'],
-                            'out_doc_destination_path' => $aRow['OUT_DOC_DESTINATION_PATH'],
-                            'out_doc_tags' => $aRow['OUT_DOC_TAGS'],
-                            'out_doc_pdf_security_enabled' => $aRow['OUT_DOC_PDF_SECURITY_ENABLED'],
-                            'out_doc_pdf_security_permissions' => $aRow['OUT_DOC_PDF_SECURITY_PERMISSIONS'],
-                            "out_doc_open_type" => $aRow["OUT_DOC_OPEN_TYPE"]);
-
-                        return $outputDocArray;
+                        // There is no transaltion for this Document name, try to get/regenerate the label
+                        $outputDocument = new \OutputDocument();
+                        $outputDocumentObj = $outputDocument->load ($aRow['OUT_DOC_UID']);
+                        $aRow['OUT_DOC_TITLE'] = $outputDocumentObj['OUT_DOC_TITLE'];
+                        $aRow['OUT_DOC_DESCRIPTION'] = $outputDocumentObj['OUT_DOC_DESCRIPTION'];
                     }
+                    else
+                    {
+                        if ( $blReturnArray === true )
+                        {
+                            $outputDocArray[$aRow['id']] = array('out_doc_uid' => $aRow['OUT_DOC_UID'],
+                                'out_doc_title' => $aRow['OUT_DOC_TITLE'],
+                                'out_doc_description' => $aRow['OUT_DOC_DESCRIPTION'],
+                                'out_doc_filename' => $aRow['OUT_DOC_FILENAME'],
+                                'out_doc_template' => $aRow['OUT_DOC_TEMPLATE'],
+                                'out_doc_report_generator' => $aRow['OUT_DOC_REPORT_GENERATOR'],
+                                'out_doc_landscape' => $aRow['OUT_DOC_LANDSCAPE'],
+                                'out_doc_media' => $aRow['OUT_DOC_MEDIA'],
+                                'out_doc_left_margin' => $aRow['OUT_DOC_LEFT_MARGIN'],
+                                'out_doc_right_margin' => $aRow['OUT_DOC_RIGHT_MARGIN'],
+                                'out_doc_top_margin' => $aRow['OUT_DOC_TOP_MARGIN'],
+                                'out_doc_bottom_margin' => $aRow['OUT_DOC_BOTTOM_MARGIN'],
+                                'out_doc_generate' => $aRow['OUT_DOC_GENERATE'],
+                                'out_doc_type' => $aRow['OUT_DOC_TYPE'],
+                                'out_doc_current_revision' => $aRow['OUT_DOC_CURRENT_REVISION'],
+                                'out_doc_field_mapping' => $aRow['OUT_DOC_FIELD_MAPPING'],
+                                'out_doc_versioning' => $aRow['OUT_DOC_VERSIONING'],
+                                'out_doc_destination_path' => $aRow['OUT_DOC_DESTINATION_PATH'],
+                                'out_doc_tags' => $aRow['OUT_DOC_TAGS'],
+                                'out_doc_pdf_security_enabled' => $aRow['OUT_DOC_PDF_SECURITY_ENABLED'],
+                                'out_doc_pdf_security_permissions' => $aRow['OUT_DOC_PDF_SECURITY_PERMISSIONS'],
+                                "out_doc_open_type" => $aRow["OUT_DOC_OPEN_TYPE"]);
 
-                    $objOutputDocument = new \OutputDocument();
-                    $objOutputDocument->setOutDocUid ($aRow['id']);
-                    $objOutputDocument->loadObject ($aRow);
-                    $outputDocArray[] = $objOutputDocument;
+                            return $outputDocArray;
+                        }
+
+                        $objOutputDocument = new \OutputDocument();
+                        $objOutputDocument->setOutDocUid ($aRow['id']);
+                        $objOutputDocument->loadObject ($aRow);
+                        $outputDocArray[] = $objOutputDocument;
+                    }
                 }
             }
+
             return $outputDocArray;
         } catch (Exception $e) {
             throw $e;
@@ -139,7 +144,7 @@ class OutputDocument
             }
         }
         try {
-            
+
             $outputDocumentData['PRO_UID'] = $sProcessUID;
             //Verify data
             $objWorkflowStep = new \WorkflowStep();
@@ -183,7 +188,7 @@ class OutputDocument
             {
                 $oOutputDocument->setOutDocFieldMapping (null);
             }
-            
+
             $outDocUid = $oOutputDocument->create ($outputDocumentData);
 
             $this->updateOutputDocument ($sProcessUID, $outputDocumentData, 1, $outDocUid);
@@ -225,7 +230,7 @@ class OutputDocument
             $outputDocument = new \OutputDocument();
             $oOutputDocument = $outputDocument->retrieveByPK ($sOutputDocumentUID);
 
-            if ( !empty($oOutputDocument) && is_object ($oOutputDocument) )
+            if ( !empty ($oOutputDocument) && is_object ($oOutputDocument) )
             {
                 if ( isset ($outputDocumentData['out_doc_pdf_security_open_password']) && $outputDocumentData['out_doc_pdf_security_open_password'] != "" )
                 {

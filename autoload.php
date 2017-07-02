@@ -42,6 +42,9 @@ require_once HOME_DIR . '/core/app/library/Event/BaseWebEntryEvent.php';
 require_once HOME_DIR . '/core/app/library/Event/WebEntryEvent.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/WebEntryEvent.php';
 
+require_once HOME_DIR . '/core/app/library/Event/BaseAppDelegation.php';
+require_once HOME_DIR . '/core/app/library/Event/AppDelegation.php';
+
 /* * *********************** Documents ******************************************** */
 require_once HOME_DIR . '/core/app/library/Documents/StepDocument.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/StepDocument.php';
@@ -115,6 +118,7 @@ require_once HOME_DIR . '/core/app/library/BusinessModel/NotificationsFactory.ph
 require_once HOME_DIR . '/core/app/library/BPMN/BPMN.php';
 require_once HOME_DIR . '/core/app/library/BPMN/BPMNWorkflow.php';
 require_once HOME_DIR . '/core/app/library/BPMN/Task.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/Task.php';
 require_once HOME_DIR . '/core/app/library/BPMN/Participant.php';
 require_once HOME_DIR . '/core/app/library/BPMN/Message.php';
 require_once HOME_DIR . '/core/app/library/BPMN/Flow.php';
@@ -173,4 +177,17 @@ require_once HOME_DIR . '/core/app/library/Dashboard/DashboardFactory.php';
 
 require_once HOME_DIR . '/core/app/library/Audit/BaseAudit.php';
 require_once HOME_DIR . '/core/app/library/Audit/Audit.php';
+
+/**************** Calendar ************************/
+require_once HOME_DIR . '/core/app/library/Calendar/BaseCalendarBusinessHours.php';
+require_once HOME_DIR . '/core/app/library/Calendar/CalendarBusinessHours.php';
+
+require_once HOME_DIR . '/core/app/library/Calendar/BaseCalendarHolidays.php';
+require_once HOME_DIR . '/core/app/library/Calendar/CalendarHolidays.php';
+
+require_once HOME_DIR . '/core/app/library/Calendar/BaseCalendarAssignment.php';
+require_once HOME_DIR . '/core/app/library/Calendar/CalendarAssignment.php';
+require_once HOME_DIR . '/core/app/library/Calendar/BaseCalendarDefinition.php';
+require_once HOME_DIR . '/core/app/library/Calendar/CalendarDefinition.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/Calendar.php';
 
