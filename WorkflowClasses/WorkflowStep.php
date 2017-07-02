@@ -348,7 +348,7 @@ class WorkflowStep
         }
 
         $objAppDelegation = new AppDelegation();
-        
+
         try {
             if ( !isset ($this->objAudit['elements'][$this->elementId]['steps'][$step]) )
             {
@@ -356,12 +356,14 @@ class WorkflowStep
             }
             else
             {
-                if(isset($this->objAudit['elements'][$this->elementId]['steps'][$step]['due_date'])) {
+                if ( isset ($this->objAudit['elements'][$this->elementId]['steps'][$step]['due_date']) )
+                {
                     $arrCompleteData['due_date'] = $this->objAudit['elements'][$this->elementId]['steps'][$step]['due_date'];
-                } else {
-                     $arrCompleteData['due_date'] = "";
                 }
-                
+                else
+                {
+                    $arrCompleteData['due_date'] = "";
+                }
             }
         } catch (Exception $ex) {
             
@@ -401,7 +403,6 @@ class WorkflowStep
             $this->completeAuditObject ($arrCompleteData);
         }
 
-        $this->sendNotification ($objMike, $arrCompleteData, $arrEmailAddresses);
         // Update workflow and audit object
         $strAudit = json_encode ($this->objAudit);
 
@@ -429,6 +430,8 @@ class WorkflowStep
                 "object_id" => $objectId)
             );
         }
+
+        $this->sendNotification ($objMike, $arrCompleteData, $arrEmailAddresses);
     }
 
     public function complete ($objMike, $arrCompleteData, Users $objUser, $arrEmailAddresses = array())

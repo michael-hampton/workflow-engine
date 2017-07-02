@@ -66,7 +66,7 @@ class SendNotification extends Notification
 
             $this->subject = $this->message['message_subject'];
             $this->body = $this->message['message_body'];
- 
+
             if ( !empty ($this->arrEmailAddresses) )
             {
                 $this->recipient = implode (",", $this->arrEmailAddresses);
@@ -102,8 +102,10 @@ class SendNotification extends Notification
                         }
                     }
 
-
-                    $noteRecipientsList[] = $this->message['to'];
+                    if ( !in_array ($this->message['to'], $noteRecipientsList) )
+                    {
+                        $noteRecipientsList[] = $this->message['to'];
+                    }
 
                     $noteRecipients = implode (",", $noteRecipientsList);
 
@@ -114,6 +116,7 @@ class SendNotification extends Notification
                     $this->recipient = $this->message['to'];
                 }
             }
+        
 
             $objCases = new \BusinessModel\Cases();
 
@@ -141,7 +144,8 @@ class SendNotification extends Notification
         $this->objMysql->_query ("UPDATE workflow.notifications_sent
                                 SET status = 2
                                 WHERE case_id = ?
-                                AND status != 3", [$this->elementId]
+                                AND project_id = ?
+                                AND status != 3", [$this->elementId, $this->projectId]
         );
 
         $id = $this->objMysql->_insert (

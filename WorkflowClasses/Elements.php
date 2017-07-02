@@ -23,6 +23,7 @@ class Elements
     private $requestId;
     private $projectName;
     private $dateCompleted;
+    private $dueDate;
     public $objJobFields = array(
         "location" => array("required" => "true", "type" => "string", "accessor" => "getLocation", "mutator" => "setLocation"),
         "batch" => array("required" => "true", "type" => "string", "accessor" => "getBatch", "mutator" => "setBatch"),
@@ -607,5 +608,17 @@ class Elements
     {
         return $this->current_step;
     }
+    
+    public function getDueDate ()
+    {
+        return $this->dueDate;
+    }
+
+    public function setDueDate ($dueDate)
+    {
+        $this->dueDate = $dueDate;
+    }
+
+
 
 }

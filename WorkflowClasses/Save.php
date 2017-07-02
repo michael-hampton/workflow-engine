@@ -358,5 +358,10 @@ class Save
 
         return $objSteps->object;
     }
+    
+    public function getProjectVariables()
+    {
+        
+    }
 
 }

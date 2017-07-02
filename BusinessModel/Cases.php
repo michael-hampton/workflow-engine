@@ -409,6 +409,10 @@ class Cases
                         }
 
                         $objElements = new \Elements ($projectId, $elementId);
+                        
+                        if(isset($audit['due_date'])) {
+                            $objElements->setDueDate($audit['due_date']);
+                        }
 
                         if ( isset ($audit['dateCompleted']) )
                         {
@@ -428,6 +432,7 @@ class Cases
                         }
 
                         $objElements->setWorkflow_id ($element['workflow_id']);
+           
 
                         if ( isset ($audit['claimed']) )
                         {
@@ -435,7 +440,7 @@ class Cases
                         }
 
                         $stepName = $this->getStepName ($element['current_step']);
-
+                        
                         if ( $stepName !== false )
                         {
                             $objElements->setCurrent_step ($stepName);
