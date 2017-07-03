@@ -68,8 +68,6 @@ class Department
      * Get list for Departments
      *
      * @access public
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
      *
      * @return array
      */
