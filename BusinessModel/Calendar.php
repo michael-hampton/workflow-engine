@@ -179,15 +179,19 @@ class Calendar
             if ( isset ($arrayData["BUSINESS_DAY"]) )
             {
                 foreach ($arrayData["BUSINESS_DAY"] as $value) {
-                    if ( $value["CALENDAR_BUSINESS_DAY"] != 0 && !in_array ($value["CALENDAR_BUSINESS_DAY"], $arrayData["CALENDAR_WORK_DAYS"], true) )
+
+                    if ( isset ($value['CALENDAR_BUSINESS_DAY']) )
                     {
-                        throw new \Exception ("ID_VALUE_SPECIFIED_DOES_NOT_EXIST");
+                        if ( $value["CALENDAR_BUSINESS_DAY"] != 0 && !in_array ($value["CALENDAR_BUSINESS_DAY"], $arrayData["CALENDAR_WORK_DAYS"], true) )
+                        {
+                            throw new \Exception ("ID_VALUE_SPECIFIED_DOES_NOT_EXIST");
+                        }
+                        $arrayCalendarWorkHour[] = array(
+                            "CALENDAR_BUSINESS_DAY" => $this->workDaysTransformData ($value["CALENDAR_BUSINESS_DAY"]),
+                            "CALENDAR_BUSINESS_START" => $value["CALENDAR_BUSINESS_START"],
+                            "CALENDAR_BUSINESS_END" => $value["CALENDAR_BUSINESS_END"]
+                        );
                     }
-                    $arrayCalendarWorkHour[] = array(
-                        "CALENDAR_BUSINESS_DAY" => $this->workDaysTransformData ($value["CALENDAR_BUSINESS_DAY"]),
-                        "CALENDAR_BUSINESS_START" => $value["CALENDAR_BUSINESS_START"],
-                        "CALENDAR_BUSINESS_END" => $value["CALENDAR_BUSINESS_END"]
-                    );
                 }
             }
             $arrayCalendarHoliday = array();
@@ -208,7 +212,7 @@ class Calendar
             $arrayDataAux["CALENDAR_STATUS"] = (isset ($arrayData["CALENDAR_STATUS"])) ? $arrayData["CALENDAR_STATUS"] : "ACTIVE";
             $arrayDataAux["BUSINESS_DAY"] = $arrayCalendarWorkHour;
             $arrayDataAux["HOLIDAY"] = $arrayCalendarHoliday;
-            $arrayDataAux['CALENDAR_UID'] = rand (5, 15);
+            $arrayDataAux['CALENDAR_UID'] = '';
             //Create
             $calendarDefinition = new \CalendarDefinition();
             $calendarDefinition->saveCalendarInfo ($arrayDataAux);
@@ -246,46 +250,52 @@ class Calendar
             {
                 throw (new \Exception ("ID_MOST_AT_LEAST_3_DAY"));
             }
-           
-          
+
             //Set variables
-            $calendarWorkDays = (isset ($arrayData["CALENDAR_WORK_DAYS"])) ? $arrayData["CALENDAR_WORK_DAYS"] : array_keys ($arrayCalendarData["CALENDAR_WORK_DAYS"]);
+            $arrayCalendarData = $this->getCalendar ($calendarUid);
+            $calendarWorkDays = (isset ($arrayData["CALENDAR_WORK_DAYS"])) ? $arrayData["CALENDAR_WORK_DAYS"] : $arrayCalendarData["CALENDAR_WORK_DAYS"];
             $arrayCalendarWorkHour = array();
-            $arrayAux = (isset ($arrayData["CALENDAR_WORK_HOUR"])) ? $arrayData["CALENDAR_WORK_HOUR"] : $arrayCalendarData["CALENDAR_WORK_HOUR"];
-            
+
+            $arrayAux = (isset ($arrayData["BUSINESS_DAY"])) ? $arrayData["BUSINESS_DAY"] : $arrayData["BUSINESS_DAY"];
+
             foreach ($arrayAux as $value) {
-                if ( isset ($arrayData["CALENDAR_WORK_HOUR"]) && $value["DAY"] != 0 && !in_array ($value["DAY"], $calendarWorkDays, true) )
+                if ( isset ($arrayData["CALENDAR_WORK_HOUR"]) && $value["CALENDAR_BUSINESS_DAY"] != 0 && !in_array ($value["CALENDAR_BUSINESS_DAY"], $calendarWorkDays, true) )
                 {
                     throw new \Exception ("ID_VALUE_SPECIFIED_DOES_NOT_EXIST");
                 }
+
                 $arrayCalendarWorkHour[] = array(
-                    "CALENDAR_BUSINESS_DAY" => $this->workDaysTransformData ($value["DAY"]),
-                    "CALENDAR_BUSINESS_START" => $value["HOUR_START"],
-                    "CALENDAR_BUSINESS_END" => $value["HOUR_END"]
+                    "CALENDAR_BUSINESS_DAY" => $this->workDaysTransformData ($value["CALENDAR_BUSINESS_DAY"]),
+                    "CALENDAR_BUSINESS_START" => $value["CALENDAR_BUSINESS_START"],
+                    "CALENDAR_BUSINESS_END" => $value["CALENDAR_BUSINESS_END"]
                 );
             }
+
             $arrayCalendarHoliday = array();
             $arrayAux = (isset ($arrayData["HOLIDAY"])) ? $arrayData["HOLIDAY"] : $arrayCalendarData["HOLIDAY"];
+
             foreach ($arrayAux as $value) {
                 $arrayCalendarHoliday[] = array(
-                    "CALENDAR_HOLIDAY_NAME" => $value["NAME"],
-                    "CALENDAR_HOLIDAY_START" => $value["DATE_START"],
-                    "CALENDAR_HOLIDAY_END" => $value["DATE_END"]
+                    "CALENDAR_HOLIDAY_NAME" => $value["CALENDAR_HOLIDAY_NAME"],
+                    "CALENDAR_HOLIDAY_START" => $value["CALENDAR_HOLIDAY_START"],
+                    "CALENDAR_HOLIDAY_END" => $value["CALENDAR_HOLIDAY_END"]
                 );
             }
+
+
             $arrayDataAux = array();
             $arrayDataAux["CALENDAR_UID"] = $calendarUid;
-            $arrayDataAux["CALENDAR_NAME"] = (isset ($arrayData["CAL_NAME"])) ? $arrayData["CAL_NAME"] : $arrayCalendarData["CAL_NAME"];
-            $arrayDataAux["CALENDAR_DESCRIPTION"] = (isset ($arrayData["CAL_DESCRIPTION"])) ? $arrayData["CAL_DESCRIPTION"] : $arrayCalendarData["CAL_DESCRIPTION"];
+            $arrayDataAux["CALENDAR_NAME"] = (isset ($arrayData["CALENDAR_NAME"])) ? $arrayData["CALENDAR_NAME"] : $arrayCalendarData["CALENDAR_NAME"];
+            $arrayDataAux["CALENDAR_DESCRIPTION"] = (isset ($arrayData["CALENDAR_DESCRIPTION"])) ? $arrayData["CALENDAR_DESCRIPTION"] : $arrayCalendarData["CALENDAR_DESCRIPTION"];
             $arrayDataAux["CALENDAR_WORK_DAYS"] = $this->workDaysTransformData ($calendarWorkDays);
-            $arrayDataAux["CALENDAR_STATUS"] = (isset ($arrayData["CAL_STATUS"])) ? $arrayData["CAL_STATUS"] : $arrayCalendarData["CAL_STATUS"];
+            $arrayDataAux["CALENDAR_STATUS"] = (isset ($arrayData["CALENDAR_STATUS"])) ? $arrayData["CALENDAR_STATUS"] : $arrayCalendarData["CALENDAR_STATUS"];
             $arrayDataAux["BUSINESS_DAY"] = $arrayCalendarWorkHour;
             $arrayDataAux["HOLIDAY"] = $arrayCalendarHoliday;
             //Update
             $calendarDefinition = new \CalendarDefinition();
             $calendarDefinition->saveCalendarInfo ($arrayDataAux);
             //Return
-           
+
             return $arrayData;
         } catch (\Exception $e) {
             throw $e;
@@ -345,7 +355,7 @@ class Calendar
     public function dashCalculateDate ($iniDate, $duration, $formatDuration, $calendarData = array())
     {
         $calendarData['HOURS_FOR_DAY'] = 8;
-        
+
         if ( strtoupper ($formatDuration) == 'DAYS' )
         {
             $duration = $duration * $calendarData['HOURS_FOR_DAY'];
@@ -361,7 +371,7 @@ class Calendar
             $newDate = $this->dashGetIniDate ($newDate, $calendarData);
 
             $rangeWorkHour = $this->dashGetRangeWorkHours ($newDate, $calendarData['BUSINESS_DAY']);
-            
+
             $onlyDate = (date ('Y-m-d', strtotime ($newDate))) . ' ' . $rangeWorkHour['END'];
 
             if ( (((float) $hoursDuration) >= ((float) $rangeWorkHour['TOTAL'])) ||
@@ -453,7 +463,7 @@ class Calendar
                 $timeStart = $value['CALENDAR_BUSINESS_START'];
                 $timeEnd = $value['CALENDAR_BUSINESS_END'];
                 $rangeWorkHour['START'] = ((strlen ($timeStart) == 8) ? $timeStart : $timeStart . ':00');
-                
+
                 $rangeWorkHour['END'] = ((strlen ($timeEnd) == 8) ? $timeEnd : $timeEnd . ':00');
 
                 $workHoursDay[] = $rangeWorkHour;
@@ -563,7 +573,7 @@ class Calendar
             }
             else
             {
-             
+
                 $iniDate = $workHours['DATE'];
             }
             $flagIniDate = false;
@@ -597,7 +607,7 @@ class Calendar
                 $calendarBusinessHours->setCalendarBusinessStart ($value["CALENDAR_BUSINESS_START"] . "");
                 $calendarBusinessHours->setCalendarBusinessEnd ($value["CALENDAR_BUSINESS_END"] . "");
 
-                $arrayCalendarWorkHour[] = array($calendarBusinessHours);
+                $arrayCalendarWorkHour[] = $calendarBusinessHours;
             }
 
             $arrayCalendarHoliday = array();
@@ -611,9 +621,7 @@ class Calendar
                 $calendarHolidays->setCalendarHolidayStart ($value["CALENDAR_HOLIDAY_START"] . "");
                 $calendarHolidays->setCalendarHolidayEnd ($value["CALENDAR_HOLIDAY_END"] . "");
 
-                $arrayCalendarHoliday[] = array(
-                    $calendarHolidays
-                );
+                $arrayCalendarHoliday[] = $calendarHolidays;
             }
 
             $dateTime = new \DateTime ($record["CALENDAR_CREATE_DATE"]);
@@ -633,14 +641,14 @@ class Calendar
             $objCalendarDefinition->setCalendarDescription ($record["CALENDAR_DESCRIPTION"] . "");
             $objCalendarDefinition->setCalendarWorkDays ($arrayCalendarWorkDays);
             $objCalendarDefinition->setCalendarStatus ($record["CALENDAR_STATUS"]);
-            $objCalendarDefinition->setWorkHours ($arrayCalendarWorkHour);
-            $objCalendarDefinition->setHolidays ($arrayCalendarHoliday);
+            //$objCalendarDefinition->setWorkHours ($arrayCalendarWorkHour);
+            //$objCalendarDefinition->setHolidays ($arrayCalendarHoliday);
             $objCalendarDefinition->setCalendarCreateDate ($dateCreate);
             $objCalendarDefinition->setCalendarUpdateDate ($dateUpdate);
             $objCalendarDefinition->setTotalUsers ((int) ($record["CALENDAR_TOTAL_USERS"]));
             $objCalendarDefinition->setTotalProcesses ((int) ($record["CALENDAR_TOTAL_PROCESSES"]));
 
-            $arrTest = array($objCalendarDefinition);
+            $arrTest = array(array("definition" => $objCalendarDefinition, "holidays" => $arrayCalendarHoliday, "work_hours" => $arrayCalendarWorkHour));
 
             return $arrTest;
         } catch (\Exception $e) {
@@ -664,7 +672,6 @@ class Calendar
         try {
             $arrayCalendar = array();
             //Verify data
-           
             //Get data
             if ( !is_null ($limit) && $limit . "" == "0" )
             {
@@ -677,10 +684,10 @@ class Calendar
             $arrayTotalTasksByCalendar = $calendar->getAllCounterByCalendar ("TASK");
             //SQL
             $criteria = $this->getCalendarCriteria ();
-            
+
             if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"]) && trim ($arrayFilterData["filter"]) != "" )
             {
-                $criteria .=  " AND (CALENDAR_NAME LIKE '%". $arrayFilterData["filter"] ."%' OR CALENDAR_DESCRIPTION LIKE '%". $arrayFilterData["filter"] ."%') ";
+                $criteria .= " AND (CALENDAR_NAME LIKE '%" . $arrayFilterData["filter"] . "%' OR CALENDAR_DESCRIPTION LIKE '%" . $arrayFilterData["filter"] . "%') ";
             }
             //SQL
             if ( !is_null ($sortField) && trim ($sortField) != "" )
@@ -708,35 +715,35 @@ class Calendar
             }
             if ( !is_null ($sortDir) && trim ($sortDir) != "" && strtoupper ($sortDir) == "DESC" )
             {
-               $criteria .= " ORDER BY ". $sortField ." DESC";
+                $criteria .= " ORDER BY " . $sortField . " DESC";
             }
             else
             {
-                 $criteria .= " ORDER BY ". $sortField ." ASC";
+                $criteria .= " ORDER BY " . $sortField . " ASC";
             }
-            
+
             if ( !is_null ($limit) )
             {
                 $criteria .= " LIMIT " . (int) $limit;
             }
-            
+
             if ( !is_null ($start) )
             {
                 $criteria .= " OFFSET " . (int) $start;
             }
-            
-            $results = $this->objMysql->_query($criteria);
-            
+
+            $results = $this->objMysql->_query ($criteria);
+
             foreach ($results as $row) {
                 $row["CALENDAR_TOTAL_USERS"] = (isset ($arrayTotalUsersByCalendar[$row["CALENDAR_UID"]])) ? $arrayTotalUsersByCalendar[$row["CALENDAR_UID"]] : 0;
                 $row["CALENDAR_TOTAL_PROCESSES"] = (isset ($arrayTotalProcessesByCalendar[$row["CALENDAR_UID"]])) ? $arrayTotalProcessesByCalendar[$row["CALENDAR_UID"]] : 0;
                 $row["CALENDAR_TOTAL_TASKS"] = (isset ($arrayTotalTasksByCalendar[$row["CALENDAR_UID"]])) ? $arrayTotalTasksByCalendar[$row["CALENDAR_UID"]] : 0;
-                
+
                 $calendarObj = $this->getCalendarDataFromRecord ($row);
 
                 $arrayCalendar[] = $calendarObj[0];
             }
-            
+
             //Return
             return $arrayCalendar;
         } catch (\Exception $e) {
@@ -856,7 +863,7 @@ class Calendar
                 $keyModa = $key;
             }
         }
-        
+
         $fields ['HOURS_FOR_DAY'] = $keyModa;
         $fields ['BUSINESS_DAY'] = $CalendarBusinessHours;
 
@@ -971,44 +978,49 @@ class Calendar
         }
     }
 
-     //Calculate the duration betwen two dates with a calendar
+    //Calculate the duration betwen two dates with a calendar
     public function dashCalculateDurationWithCalendar ($iniDate, $finDate = null, $calendarData = array())
     {
-    	if ((is_null($finDate)) || ($finDate == '')) {
-    		$finDate = date('Y-m-d H:i:s');
-    	}
-    
+        if ( (is_null ($finDate)) || ($finDate == '') )
+        {
+            $finDate = date ('Y-m-d H:i:s');
+        }
 
-        if ((strtotime($finDate)) <= (strtotime($iniDate))) {
+
+        if ( (strtotime ($finDate)) <= (strtotime ($iniDate)) )
+        {
             return 0.00;
         }
-	
+
         $secondDuration = 0.00;
-    
-    	$finDate = $this->dashGetIniDate($finDate, $calendarData);
-    	$newDate = $iniDate;
 
-		$timeIniDate = strtotime($iniDate);
-		$timeFinDate = strtotime($finDate);
+        $finDate = $this->dashGetIniDate ($finDate, $calendarData);
+        $newDate = $iniDate;
 
-    	while ($timeIniDate < $timeFinDate) {
-    		$newDate = $this->dashGetIniDate($newDate, $calendarData);
-    
-    		$rangeWorkHour = $this->dashGetRangeWorkHours($newDate, $calendarData['BUSINESS_DAY']);
-    		$onlyDate = (date('Y-m-d',strtotime($newDate))) . ' ' . $rangeWorkHour['END'];
-    
-    		if ( (strtotime($finDate)) < (strtotime($onlyDate)) ) {
-    			$secondRes = ( ((float)strtotime($finDate)) - ((float)strtotime($newDate)) );
-    			$timeIniDate = strtotime($finDate);
-    			$secondDuration += (float)$secondRes;
-    		} else {
-    			$secondRes = ( ((float)strtotime($onlyDate)) - ((float)strtotime($newDate)) );
-    			$newDate = $onlyDate;
-    			$timeIniDate = strtotime($onlyDate);
-    			$secondDuration += (float)$secondRes;
-    		}
-    	}
-    	return $secondDuration;
+        $timeIniDate = strtotime ($iniDate);
+        $timeFinDate = strtotime ($finDate);
+
+        while ($timeIniDate < $timeFinDate) {
+            $newDate = $this->dashGetIniDate ($newDate, $calendarData);
+
+            $rangeWorkHour = $this->dashGetRangeWorkHours ($newDate, $calendarData['BUSINESS_DAY']);
+            $onlyDate = (date ('Y-m-d', strtotime ($newDate))) . ' ' . $rangeWorkHour['END'];
+
+            if ( (strtotime ($finDate)) < (strtotime ($onlyDate)) )
+            {
+                $secondRes = ( ((float) strtotime ($finDate)) - ((float) strtotime ($newDate)) );
+                $timeIniDate = strtotime ($finDate);
+                $secondDuration += (float) $secondRes;
+            }
+            else
+            {
+                $secondRes = ( ((float) strtotime ($onlyDate)) - ((float) strtotime ($newDate)) );
+                $newDate = $onlyDate;
+                $timeIniDate = strtotime ($onlyDate);
+                $secondDuration += (float) $secondRes;
+            }
+        }
+        return $secondDuration;
     }
 
 }

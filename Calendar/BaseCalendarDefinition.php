@@ -535,15 +535,35 @@ abstract class BaseCalendarDefinition implements Persistent
      */
     public function save ()
     {
-        $id = $this->objMysql->_insert ("calendar.calendar", [
-            "CALENDAR_NAME" => $this->calendar_name,
-            "CALENDAR_STATUS" => $this->calendar_status,
-            "CALENDAR_CREATE_DATE" => $this->calendar_create_date,
-            "CALENDAR_UPDATE_DATE" => $this->calendar_update_date,
-            "CALENDAR_WORK_DAYS" => $this->calendar_work_days,
-            "CALENDAR_DESCRIPTION" => $this->calendar_description
-                ]
-        );
+        if ( trim ($this->calendar_uid) !== "" )
+        {
+              $id = $this->objMysql->_update ("calendar.calendar", [
+                "CALENDAR_NAME" => $this->calendar_name,
+                "CALENDAR_STATUS" => $this->calendar_status,
+                "CALENDAR_CREATE_DATE" => $this->calendar_create_date,
+                "CALENDAR_UPDATE_DATE" => $this->calendar_update_date,
+                "CALENDAR_WORK_DAYS" => $this->calendar_work_days,
+                "CALENDAR_DESCRIPTION" => $this->calendar_description
+                    ],
+                      ["CALENDAR_UID" => $this->calendar_uid]
+            );
+              
+              return $this->calendar_uid;
+        }
+        else
+        {
+            $id = $this->objMysql->_insert ("calendar.calendar", [
+                "CALENDAR_NAME" => $this->calendar_name,
+                "CALENDAR_STATUS" => $this->calendar_status,
+                "CALENDAR_CREATE_DATE" => $this->calendar_create_date,
+                "CALENDAR_UPDATE_DATE" => $this->calendar_update_date,
+                "CALENDAR_WORK_DAYS" => $this->calendar_work_days,
+                "CALENDAR_DESCRIPTION" => $this->calendar_description
+                    ]
+            );
+        }
+
+
 
         return $id;
     }

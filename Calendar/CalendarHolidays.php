@@ -51,8 +51,8 @@ class CalendarHolidays extends BaseCalendarHolidays
 
     private function retrieveByPK ($CalendarUid, $CalendarHolidayName)
     {
-        $result = $this->objMysql->_select ("workflow.calendar_holidays", [], ["CALENDAR_UID" => $CalendarUid, "CALENDAR_HOLIDAY_NAME" => $CalendarHolidayName]);
-
+        $result = $this->objMysql->_select ("calendar.calendar_holidays", [], ["CALENDAR_UID" => $CalendarUid, "CALENDAR_HOLIDAY_NAME" => $CalendarHolidayName]);
+        
         if ( !isset ($result[0]) || empty ($result[0]) )
         {
             return false;
@@ -65,6 +65,7 @@ class CalendarHolidays extends BaseCalendarHolidays
     public function deleteAllCalendarHolidays ($CalendarUid)
     {
         $toDelete = $this->getCalendarHolidays ($CalendarUid);
+
         foreach ($toDelete as $key => $holidayInfo) {
             $CalendarUid = $holidayInfo['CALENDAR_UID'];
             $CalendarHolidayName = $holidayInfo['CALENDAR_HOLIDAY_NAME'];

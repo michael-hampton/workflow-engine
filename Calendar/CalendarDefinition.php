@@ -280,10 +280,12 @@ class CalendarDefinition extends BaseCalendarDefinition
             $CalendarStatus = 'ACTIVE';
             //$CalendarName = G::LoadTranslation ('ID_DEFAULT_CALENDAR');
         }
+        
         $CalendarWorkDays = isset ($aData['CALENDAR_WORK_DAYS']) ? implode ("|", $aData['CALENDAR_WORK_DAYS']) : "";
         $msgCalendarDescriptionStatus = ($aData["CALENDAR_DESCRIPTION"] != "") ? ", Description: " . $aData["CALENDAR_DESCRIPTION"] . ", Status: " . ucwords (strtolower ($aData["CALENDAR_STATUS"])) : ", Status: " . ucwords (strtolower ($aData["CALENDAR_STATUS"]));
         //if exists the row in the database propel will update it, otherwise will insert.
         $tr = $this->retrieveByPK ($CalendarUid);
+        
         if ( !(is_object ($tr) && get_class ($tr) == 'CalendarDefinition') )
         {
             $tr = new CalendarDefinition();
@@ -291,7 +293,6 @@ class CalendarDefinition extends BaseCalendarDefinition
         }
         else
         {
-            
         }
         $tr->setCalendarUid ($CalendarUid);
         $tr->setCalendarName ($CalendarName);
@@ -304,10 +305,13 @@ class CalendarDefinition extends BaseCalendarDefinition
         {
             // we save it, since we get no validation errors, or do whatever else you like.
             $CalendarUid = $tr->save ();
+
+            
             //Calendar Business Hours Save code.
             //First Delete all current records
             $CalendarBusinessHoursObj = new CalendarBusinessHours();
             $CalendarBusinessHoursObj->deleteAllCalendarBusinessHours ($CalendarUid);
+            
             //Save all the sent records
             foreach ($aData['BUSINESS_DAY'] as $key => $objData) {
                 $objData['CALENDAR_UID'] = $CalendarUid;
