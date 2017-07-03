@@ -10,27 +10,6 @@ class Calendar
 
     use Validator;
 
-    private $arrayFieldDefinition = array(
-        "CAL_UID" => array("fieldName" => "CALENDAR_UID", "type" => "string", "required" => false, "empty" => false, "defaultValues" => array(), "fieldNameAux" => "calendarUid"),
-        "CAL_NAME" => array("fieldName" => "CALENDAR_NAME", "type" => "string", "required" => true, "empty" => false, "defaultValues" => array(), "fieldNameAux" => "calendarName"),
-        "CAL_DESCRIPTION" => array("fieldName" => "CALENDAR_DESCRIPTION", "type" => "string", "required" => false, "empty" => true, "defaultValues" => array(), "fieldNameAux" => "calendarDescription"),
-        "CAL_WORK_DAYS" => array("fieldName" => "CALENDAR_WORK_DAYS", "type" => "array", "required" => true, "empty" => false, "defaultValues" => array(1, 2, 3, 4, 5, 6, 7), "fieldNameAux" => "calendarWorkDays"),
-        "CAL_STATUS" => array("fieldName" => "CALENDAR_STATUS", "type" => "string", "required" => false, "empty" => false, "defaultValues" => array("ACTIVE", "INACTIVE"), "fieldNameAux" => "calendarStatus"),
-        "CAL_WORK_HOUR" => array("fieldName" => "CALENDAR_WORK_HOUR", "type" => "array", "required" => false, "empty" => true, "defaultValues" => array(), "fieldNameAux" => "calendarWorkHour"),
-        "CAL_HOLIDAY" => array("fieldName" => "CALENDAR_HOLIDAY", "type" => "array", "required" => false, "empty" => true, "defaultValues" => array(), "fieldNameAux" => "calendarHoliday"),
-        "CAL_CREATE_DATE" => array("fieldName" => "CALENDAR_CREATE_DATE", "type" => "datetime", "required" => false, "empty" => false, "defaultValues" => array(), "fieldNameAux" => "calendarCreateDate"),
-        "CAL_UPDATE_DATE" => array("fieldName" => "CALENDAR_UPDATE_DATE", "type" => "datetime", "required" => false, "empty" => false, "defaultValues" => array(), "fieldNameAux" => "calendarUpdateDate")
-    );
-    private $arrayWorkHourFieldDefinition = array(
-        "DAY" => array("type" => "int", "required" => true, "empty" => false, "defaultValues" => array(0, 1, 2, 3, 4, 5, 6, 7), "fieldNameAux" => "day"),
-        'HOUR_START' => array('type' => 'hour', 'required' => true, 'empty' => false, 'defaultValues' => array(), 'fieldNameAux' => 'hourStart', 'regexp' => '/^(?:[0-1]\d|2[0-3])\:[0-5]\d$/'),
-        'HOUR_END' => array('type' => 'hour', 'required' => true, 'empty' => false, 'defaultValues' => array(), 'fieldNameAux' => 'hourEnd', 'regexp' => '/^(?:[0-1]\d|2[0-3])\:[0-5]\d$/')
-    );
-    private $arrayHolidayFieldDefinition = array(
-        "NAME" => array("type" => "string", "required" => true, "empty" => false, "defaultValues" => array(), "fieldNameAux" => "name"),
-        "DATE_START" => array("type" => "date", "required" => true, "empty" => false, "defaultValues" => array(), "fieldNameAux" => "dateStart"),
-        "DATE_END" => array("type" => "date", "required" => true, "empty" => false, "defaultValues" => array(), "fieldNameAux" => "dateEnd")
-    );
     private $objMysql;
 
     /**
