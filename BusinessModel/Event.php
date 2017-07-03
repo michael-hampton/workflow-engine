@@ -53,9 +53,6 @@ class Event
      * Validate Process Uid
      * @var string $pro_uid. Uid for process
      *
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
-     *
      * @return string
      */
     public function validateProUid ($taskId)
