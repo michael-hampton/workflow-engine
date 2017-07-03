@@ -18,12 +18,9 @@ class Task
 
     /**
      * Update properties of an Task
-     * @var string $prj_uid. Uid for Process
-     * @var string $act_uid. Uid for Activity
+     * @var string $prj_uid. Uid for Workflow
+     * @var string $act_uid. Uid for Task
      * @var array $arrayProperty. Data for properties of Activity
-     *
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
      *
      * return object
      */
