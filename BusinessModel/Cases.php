@@ -20,9 +20,6 @@ class Cases
      * @access public
      * @param array $dataList, Data for list
      * @return array
-     *
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
      */
     public function getList ($dataList = array())
     {
@@ -473,9 +470,6 @@ class Cases
      * @access public
      * @param string $app_uid, Uid for case
      * @return array
-     *
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
      */
     public function getCaseNotes ($app_uid, $usr_uid, $data_get = array())
     {
@@ -570,9 +564,6 @@ class Cases
      * @access public
      * @param string $app_uid, Uid for case
      * @param array $app_data, Data for case variables
-     *
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
      */
     public function saveCaseNote ($app_uid, $usr_uid, $note_content, $send_mail = false)
     {
