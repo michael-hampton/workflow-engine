@@ -408,7 +408,7 @@ class FormBuilder
                     $this->html .= '</div>';  //  Close the row
                 }
                 $counter++;    // Increase the counter
-                //$this->buildJavascript ();
+                $this->buildJavascript ();
             }
             $this->html .= '</div>';
 

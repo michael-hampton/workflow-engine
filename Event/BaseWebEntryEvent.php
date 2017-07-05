@@ -8,6 +8,7 @@ abstract class BaseWebEntryEvent implements Persistent
 
     private $objMysql;
     private $arrayFieldDefinition = array(
+         "PRO_UID" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getPrjUid", "mutator" => "setPrjUid"),
         "EVN_UID" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getEvnUid", "mutator" => "setEvnUid"),
         "DYN_UID" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getDynUid", "mutator" => "setDynUid"),
         "USR_UID" => array("type" => "string", "required" => true, "empty" => true, "accessor" => "getUsrUid", "mutator" => "setUsrUid"),
@@ -95,14 +96,13 @@ abstract class BaseWebEntryEvent implements Persistent
      * @var        boolean
      */
     protected $alreadyInValidation = false;
-    
     protected $weeUrl;
-    
+
     public function __construct ()
     {
         $this->objMysql = new Mysql2();
     }
-    
+
     public function getWeeUrl ()
     {
         return $this->weeUrl;
@@ -456,25 +456,6 @@ abstract class BaseWebEntryEvent implements Persistent
 // setWeeWeTasUid()
 
     /**
-     * Removes this object from datastore and sets delete attribute.
-     *
-     * @param      Connection $con
-     * @return     void
-     * @throws     PropelException
-     * @see        BaseObject::setDeleted()
-     * @see        BaseObject::isDeleted()
-     */
-    public function delete ($con = null)
-    {
-
-        try {
-            
-        } catch (PropelException $e) {
-            throw $e;
-        }
-    }
-
-    /**
      * Stores the object in the database.  If the object is new,
      * it inserts it; otherwise an update is performed.  This method
      *
@@ -482,20 +463,41 @@ abstract class BaseWebEntryEvent implements Persistent
      */
     public function save ()
     {
-        $id = $this->objMysql->_insert ("workflow.WEB_ENTRY_EVENT", [
-            "WEE_TITLE" => $this->wee_title,
-            "WEE_DESCRIPTION" => $this->wee_description,
-            "PRJ_UID" => $this->prj_uid,
-            "EVN_UID" => $this->evn_uid,
-            "ACT_UID" => $this->act_uid,
-            "DYN_UID" => $this->dyn_uid,
-            "USR_UID" => $this->usr_uid,
-            "WEE_STATUS" => $this->wee_status,
-            "WEE_WE_UID" => $this->wee_we_uid,
-            "WEE_WE_TAS_UID" => $this->wee_we_tas_uid
-                ]
-        );
-        
+        if ( trim ($this->wee_uid) === "" )
+        {
+            $id = $this->objMysql->_insert ("workflow.WEB_ENTRY_EVENT", [
+                "WEE_TITLE" => $this->wee_title,
+                "WEE_DESCRIPTION" => $this->wee_description,
+                "PRJ_UID" => $this->prj_uid,
+                "EVN_UID" => $this->evn_uid,
+                "ACT_UID" => $this->act_uid,
+                "DYN_UID" => $this->dyn_uid,
+                "USR_UID" => $this->usr_uid,
+                "WEE_STATUS" => $this->wee_status,
+                "WEE_WE_UID" => $this->wee_we_uid,
+                "WEE_WE_TAS_UID" => $this->wee_we_tas_uid
+                    ]
+            );
+        }
+        else
+        {
+            $id = $this->objMysql->_update ("workflow.WEB_ENTRY_EVENT", [
+                "WEE_TITLE" => $this->wee_title,
+                "WEE_DESCRIPTION" => $this->wee_description,
+                "PRJ_UID" => $this->prj_uid,
+                "EVN_UID" => $this->evn_uid,
+                "ACT_UID" => $this->act_uid,
+                "DYN_UID" => $this->dyn_uid,
+                "USR_UID" => $this->usr_uid,
+                "WEE_STATUS" => $this->wee_status,
+                "WEE_WE_UID" => $this->wee_we_uid,
+                "WEE_WE_TAS_UID" => $this->wee_we_tas_uid
+                    ],
+                    ["WEE_UID" => $this->wee_uid]
+            );
+        }
+
+
         return $id;
     }
 
@@ -566,6 +568,22 @@ abstract class BaseWebEntryEvent implements Persistent
         }
 
         return true;
+    }
+
+    /**
+     * Removes this object from datastore and sets delete attribute.
+     *
+     * @return     void
+     */
+    public function delete ()
+    {
+        try {
+            $result = $this->objMysql->_delete ("workflow.web_entry_event", ["WEE_UID" => $this->wee_uid]);
+
+            return $result;
+        } catch (Exception $ex) {
+            throw $ex;
+        }
     }
 
 }

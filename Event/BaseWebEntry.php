@@ -18,12 +18,13 @@ abstract class BaseWebEntry implements Persistent
 
     private $objMysql;
     private $arrayFieldDefinition = array(
+        "PRO_UID" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getProUid", "mutator" => "setProUid"),
         "TAS_UID" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getTasUid", "mutator" => "setTasUid"),
         "DYN_UID" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getDynUid", "mutator" => "setDynUid"),
         "USR_UID" => array("type" => "string", "required" => true, "empty" => true, "accessor" => "getUsrUid", "mutator" => "setUsrUid"),
         "WE_METHOD" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getWeMethod", "mutator" => "setWeMethod"),
         "WE_INPUT_DOCUMENT_ACCESS" => array("type" => "int", "required" => true, "empty" => false, "accessor" => "getWeInputDocumentAccess", "mutator" => "setWeInputDocumentAccess"),
-         "WE_TITLE" => array("type" => "int", "required" => true, "empty" => false, "accessor" => "getWeTitle", "mutator" => "setWeTitle"),
+        "WE_TITLE" => array("type" => "int", "required" => true, "empty" => false, "accessor" => "getWeTitle", "mutator" => "setWeTitle"),
     );
 
     /**
@@ -31,7 +32,6 @@ abstract class BaseWebEntry implements Persistent
      * @var        string
      */
     protected $we_uid;
-    
     protected $weTitle;
 
     /**
@@ -114,7 +114,7 @@ abstract class BaseWebEntry implements Persistent
      */
     protected $alreadyInValidation = false;
     protected $validationFailures = array();
-    
+
     public function __construct ()
     {
         $this->objMysql = new Mysql2();
@@ -575,10 +575,10 @@ abstract class BaseWebEntry implements Persistent
         }
         if ( $this->we_update_date !== $ts )
         {
-            $this->we_update_date = $ts;
+            $this->we_update_date = date("Y-m-d H:i:s", $ts);
         }
     }
-    
+
     public function getWeTitle ()
     {
         return $this->weTitle;
@@ -589,7 +589,6 @@ abstract class BaseWebEntry implements Persistent
         $this->weTitle = $weTitle;
     }
 
-    
     public function getValidationFailures ()
     {
         return $this->validationFailures;
@@ -620,7 +619,19 @@ abstract class BaseWebEntry implements Persistent
     {
         if ( trim ($this->we_uid) !== "" )
         {
-            
+            $this->objMysql->_update ("workflow.web_entry", [
+                "PRO_UID" => $this->pro_uid,
+                "TAS_UID" => $this->tas_uid,
+                "DYN_UID" => $this->dyn_uid,
+                "USR_UID" => $this->usr_uid,
+                "WE_METHOD" => $this->we_method,
+                "WE_INPUT_DOCUMENT_ACCESS" => $this->we_input_document_access,
+                "WE_DATA" => $this->we_data,
+                "WE_UPDATE_USR_UID" => $this->we_update_usr_uid,
+                "WE_UPDATE_DATE" => $this->we_update_date,
+                "WE_TITLE" => $this->weTitle
+                    ], ["WE_UID" => $this->we_uid]
+            );
         }
         else
         {
@@ -639,7 +650,7 @@ abstract class BaseWebEntry implements Persistent
                 "WE_TITLE" => $this->weTitle
                     ]
             );
-            
+
             return $id;
         }
     }
@@ -662,6 +673,17 @@ abstract class BaseWebEntry implements Persistent
         }
 
         return true;
+    }
+
+    public function delete ()
+    {
+        try {
+            $result = $this->objMysql->_delete ("workflow.web_entry", ["WE_UID" => $this->we_uid]);
+        } catch (Exception $ex) {
+            throw $ex;
+        }
+
+        return $result;
     }
 
 }

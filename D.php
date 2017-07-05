@@ -34,12 +34,13 @@ class D {
         $logger->log($message, \Phalcon\Logger::ERROR);
     }
     
-    public function setLog($e)
+    public function setLog($e, $userMessage = '')
     {
         $message = get_class($e) . ": " . $e->getMessage() . "\n";
         $message .= " File=" . $e->getFile() . "\n";
         $message .= " Line=" . $e->getLine() . "\n";
         $message .= $e->getTraceAsString();
+        $message .= $userMessage;
         
         $this->log($message);
     }

@@ -314,7 +314,7 @@ class Calendar
         try {
             //Verify data
             $calendarDefinition = new \CalendarDefinition();
-            $this->throwExceptionIfNotExistsCalendar ($calendarUid, $this->arrayFieldNameForException["calendarUid"]);
+            $this->throwExceptionIfNotExistsCalendar ($calendarUid);
             $arrayAux = $calendarDefinition->getAllCounterByCalendar ("USER");
             $nU = (isset ($arrayAux[$calendarUid])) ? $arrayAux[$calendarUid] : 0;
             $arrayAux = $calendarDefinition->getAllCounterByCalendar ("TASK");

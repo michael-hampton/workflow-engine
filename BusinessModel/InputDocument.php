@@ -145,8 +145,11 @@ class InputDocument
             $arrayData["INP_DOC_TAGS"] = ($flagDataTags == 1) ? $arrayData["INP_DOC_TAGS"] : "";
 
             $documentId = $inputDocument->create ($arrayData);
-
-            $inputDocument->saveStepDocument ($documentId);
+            $objStepDocument = new \StepDocument();
+            $objStepDocument->setDocumentId($documentId);
+            $objStepDocument->setDocumentType(2);
+            $objStepDocument->setStepId($this->stepId);
+            $objStepDocument->save();
 
             //Return
             unset ($arrayData["PRO_UID"]);
@@ -361,14 +364,22 @@ class InputDocument
             foreach ($arrAssigned as $docId) {
                 if ( !in_array ($docId, $assignArr) )
                 {
-                    $this->objMysql->_delete ("workflow.step_document", array("document_id" => $docId));
+                    $objSDtepDocument = new \StepDocument();
+                    $objSDtepDocument->setStepId($this->stepId);
+                    $objSDtepDocument->setDocumentType(2);
+                    $objSDtepDocument->setDocumentId($docId);
+                    $objSDtepDocument->delete();
                 }
             }
 
             foreach ($assignArr as $docId) {
                 if ( !in_array ($docId, $arrAssigned) )
                 {
-                    $inputDocument->saveStepDocument ($docId);
+                    $objStepDocument = new \StepDocument();
+                    $objStepDocument->setDocumentType(2);
+                    $objStepDocument->setDocumentId($docId);
+                    $objStepDocument->setStepId($this->stepId);
+                    $objStepDocument->save();
                 }
             }
         } catch (Exception $ex) {

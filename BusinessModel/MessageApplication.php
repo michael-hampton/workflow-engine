@@ -311,7 +311,7 @@ class MessageApplication
 
                     if ( isset ($eventCondition['receiveNotification']) )
                     {
-                        $eventCondition["evn_type"] = "INTERMEDIATE";
+                        $eventCondition["evn_type"] = "START";
 
                         switch ($eventCondition["evn_type"]) {
                             case "START":

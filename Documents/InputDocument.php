@@ -71,9 +71,4 @@ class InputDocument extends BaseInputDocument
         $this->remove();
     }
 
-    public function saveStepDocument ($documentId)
-    {
-        $this->objMysql->_insert ("workflow.step_document", array("step_id" => $this->stepId, "document_id" => $documentId));
-    }
-
 }

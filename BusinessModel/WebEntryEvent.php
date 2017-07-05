@@ -26,12 +26,10 @@ class WebEntryEvent
     public function retrieveByPK ($webEntryEventUid)
     {
         $result = $this->objMysql->_select ("workflow.WEB_ENTRY_EVENT", [], ["WEE_UID" => $webEntryEventUid]);
-
         if ( !isset ($result[0]) || empty ($result[0]) )
         {
             return false;
         }
-
         return $result;
     }
 
@@ -46,7 +44,6 @@ class WebEntryEvent
     {
         try {
             $obj = $this->retrieveByPK ($webEntryEventUid);
-
             return $obj !== false ? true : false;
         } catch (\Exception $e) {
             throw $e;
@@ -65,21 +62,16 @@ class WebEntryEvent
     public function existsEvent ($projectUid, $eventUid, $webEntryEventUidToExclude = "")
     {
         try {
-
-            $sql = "SELECT WEE_UID FROM WEB_ENTRY_EVENT WHERE PRJ_UID = ?";
+            $sql = "SELECT WEE_UID FROM workflow.WEB_ENTRY_EVENT WHERE PRJ_UID = ?";
             $arrParameters = array($projectUid);
-
             if ( $webEntryEventUidToExclude != "" )
             {
                 $sql .= " AND WEE_UID != ?";
                 $arrParameters[] = $webEntryEventUidToExclude;
             }
-
             $sql .= " AND EVN_UID = ?";
             $arrParameters[] = $eventUid;
-
             $result = $this->objMysql->_query ($sql, $arrParameters);
-
             return isset ($result[0]) && !empty ($result[0]) ? true : false;
         } catch (\Exception $e) {
             throw $e;
@@ -100,14 +92,11 @@ class WebEntryEvent
         try {
             $sql = "SELECT * FROM WEB_ENTRY_EVENT WHERE PRJ_UID = ?";
             $arrParameters = array($projectUid);
-
-
             if ( $webEntryEventUidToExclude != "" )
             {
                 $sql .= " AND WEE_UID != ?";
                 $arrParameters[] = $webEntryEventUidToExclude;
             }
-
             $result = $this->objMysql->_query ($sql, $arrParameters);
             return isset ($result[0]) && !empty ($result[0]) ? true : false;
         } catch (\Exception $e) {
@@ -150,7 +139,7 @@ class WebEntryEvent
         try {
             if ( $this->existsEvent ($projectUid, $eventUid, $webEntryEventUidToExclude) )
             {
-                throw new \Exception ("ID_WEB_ENTRY_EVENT_ALREADY_REGISTERED");
+               // throw new \Exception ("ID_WEB_ENTRY_EVENT_ALREADY_REGISTERED");
             }
         } catch (\Exception $e) {
             throw $e;
@@ -194,46 +183,36 @@ class WebEntryEvent
             //Set variables
             $arrayWebEntryEventData = ($webEntryEventUid == "") ? array() : $this->getWebEntryEvent ($webEntryEventUid, true);
             $flagInsert = ($webEntryEventUid == "") ? true : false;
-
             $arrayFinalData = array_merge ($arrayWebEntryEventData, $arrayData);
-
-
             //Verify data
             if ( isset ($arrayData["EVN_UID"]) )
             {
                 $this->throwExceptionIfEventIsRegistered ($projectUid, $arrayData["EVN_UID"], $webEntryEventUid);
             }
-
             if ( isset ($arrayData["EVN_UID"]) )
             {
                 $obj = (new \Flow())->retrieveByPk ($arrayData['EVN_UID']);
-
                 if ( $obj === FALSE )
                 {
                     throw new \Exception ("ID_EVENT_NOT_EXIST");
                 }
-
                 if ( ((int) $obj->getFirstStep () != 1) || ((int) $obj->getFirstStep () !== 1 && trim ($obj->getStepTo ()) === "") )
                 {
                     throw new \Exception ("ID_EVENT_NOT_IS_START_EVENT");
                 }
             }
-
             if ( isset ($arrayData["WEE_TITLE"]) )
             {
                 $this->throwExceptionIfExistsTitle ($projectUid, $arrayData["WEE_TITLE"], $webEntryEventUid);
             }
-
             if ( isset ($arrayData["ACT_UID"]) )
             {
                 $bpmn = new \ProcessMaker\Project\Bpmn();
-
                 if ( !$bpmn->activityExists ($arrayData["ACT_UID"]) )
                 {
                     throw new \Exception ("ID_ACTIVITY_DOES_NOT_EXIST");
                 }
             }
-
 //            if ( isset ($arrayData["EVN_UID"]) || isset ($arrayData["ACT_UID"]) )
 //            {
 //                
@@ -251,17 +230,14 @@ class WebEntryEvent
 //                    throw new \Exception (\G::LoadTranslation ("ID_WEB_ENTRY_EVENT_FLOW_EVENT_TO_ACTIVITY_DOES_NOT_EXIST"));
 //                }
 //            }
-
             if ( isset ($arrayData["DYN_UID"]) )
             {
                 $dynaForm = new \WorkflowStep();
-
                 if ( $dynaForm->stepExists ($arrayData['DYN_UID']) === false )
                 {
                     throw new Exception ("Step doesnt exist");
                 }
             }
-
             if ( isset ($arrayData["USR_UID"]) )
             {
                 (new \BusinessModel\UsersFactory())->throwExceptionIfNotExistsUser ($arrayData['USR_UID']);
@@ -285,36 +261,30 @@ class WebEntryEvent
      *
      * return void
      */
-    public function createWebEntry ($projectUid, $eventUid, $dynaFormUid, $userUid, $title, $description, $userUidCreator)
+    public function createWebEntry ($projectUid, $eventUid, $dynaFormUid, $userUid, $title, $description, \Users $objUser)
     {
         try {
             $bpmn = new Event();
-
             $arrayEventData = $bpmn->getEvent ($eventUid);
-
             //Task
             $task = new \Task();
-
             $prefix = "wee-";
-
             //Task - User
             $task = new StepPermission (new \Task ($dynaFormUid));
             $permissions = array(
                 "selectedPermissions" => array(
                     0 => array(
                         "objectType" => "user",
-                        "id" => $userUid,
+                        "id" => $objUser->getUserId (),
                         "permissionType" => "master"
                     )
                 )
             );
-
             $result = $task->saveProcessPermission ($permissions);
             $this->webEntryEventWebEntryTaskUid = $eventUid;
-
             //WebEntry
             $arrayWebEntryData = $this->webEntry->create (
-                    $projectUid, $userUidCreator, array(
+                    $projectUid, $objUser->getUserId (), array(
                 "TAS_UID" => $this->webEntryEventWebEntryTaskUid,
                 "DYN_UID" => $dynaFormUid,
                 "USR_UID" => $userUid,
@@ -324,7 +294,6 @@ class WebEntryEvent
                 "WE_INPUT_DOCUMENT_ACCESS" => 1
                     )
             );
-
             $this->webEntryEventWebEntryUid = $arrayWebEntryData->getWeUid ();
         } catch (\Exception $e) {
             throw $e;
@@ -339,26 +308,14 @@ class WebEntryEvent
      *
      * return void
      */
-    public function deleteWebEntry ($webEntryUid, $webEntryTaskUid)
+    public function deleteWebEntry ($webEntryUid)
     {
         try {
-            if ( $webEntryTaskUid != "" )
-            {
-                $obj = \TaskPeer::retrieveByPK ($webEntryTaskUid);
-
-                if ( !is_null ($obj) )
-                {
-                    $task = new \Tasks();
-
-                    $task->deleteTask ($webEntryTaskUid);
-                }
-            }
 
             if ( $webEntryUid != "" )
             {
-                $obj = \WebEntryPeer::retrieveByPK ($webEntryUid);
-
-                if ( !is_null ($obj) )
+                $obj = $this->webEntry->retrieveByPK ($webEntryUid);
+                if ( $obj !== false )
                 {
                     $this->webEntry->delete ($webEntryUid);
                 }
@@ -377,83 +334,62 @@ class WebEntryEvent
      *
      * return array Return data of the new WebEntry-Event created
      */
-    public function create ($projectUid, $userUidCreator, array $arrayData)
+    public function create ($projectUid, \Users $objUser, array $arrayData)
     {
         try {
             //Verify data
-
             $this->throwExceptionIfDataIsNotArray ($arrayData, "\$arrayData");
             $this->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
-
             //Set data
             unset ($arrayData["WEE_UID"]);
             unset ($arrayData["PRJ_UID"]);
             unset ($arrayData["WEE_WE_UID"]);
             unset ($arrayData["WEE_WE_TAS_UID"]);
-
             if ( !isset ($arrayData["WEE_DESCRIPTION"]) )
             {
                 $arrayData["WEE_DESCRIPTION"] = "";
             }
-
             if ( !isset ($arrayData["WEE_STATUS"]) )
             {
                 $arrayData["WEE_STATUS"] = "ENABLED";
             }
-
             //Verify data
             $process = new Process();
-
             $process->throwExceptionIfNotExistsProcess ($projectUid);
-
             $this->throwExceptionIfDataIsInvalid ("", $projectUid, $arrayData);
-
             //Create
-
             $this->webEntryEventWebEntryUid = "";
             $this->webEntryEventWebEntryTaskUid = "";
-
             try {
                 //WebEntry
                 if ( $arrayData["WEE_STATUS"] == "ENABLED" )
                 {
                     $this->createWebEntry (
-                            $projectUid, $arrayData["EVN_UID"], $arrayData["DYN_UID"], $arrayData["USR_UID"], $arrayData["WEE_TITLE"], $arrayData["WEE_DESCRIPTION"], $userUidCreator
+                            $projectUid, $arrayData["EVN_UID"], $arrayData["DYN_UID"], $arrayData["USR_UID"], $arrayData["WEE_TITLE"], $arrayData["WEE_DESCRIPTION"], $objUser
                     );
                 }
-
                 //WebEntry-Event
                 $webEntryEvent = new \WebEntryEvent();
-
                 $webEntryEvent->loadObject ($arrayData);
-
-
                 $webEntryEvent->setPrjUid ($projectUid);
                 $webEntryEvent->setWeeWeUid ($this->webEntryEventWebEntryUid);
                 $webEntryEvent->setWeeWeTasUid ($this->webEntryEventWebEntryTaskUid);
-
                 if ( $webEntryEvent->validate () )
                 {
-
                     $webEntryEventUid = $webEntryEvent->save ();
-
                     //Return
                     return $this->getWebEntryEvent ($webEntryEventUid);
                 }
                 else
                 {
                     $msg = "";
-
                     foreach ($webEntryEvent->getValidationFailures () as $message) {
                         $msg = $msg . (($msg != "") ? "\n" : "") . $message;
                     }
-
                     throw new \Exception ("ID_RECORD_CANNOT_BE_CREATED" . $msg != "" ? "\n" . $msg : "");
                 }
             } catch (\Exception $e) {
-
                 //$this->deleteWebEntry ($this->webEntryEventWebEntryUid, $this->webEntryEventWebEntryTaskUid);
-
                 throw $e;
             }
         } catch (\Exception $e) {
@@ -470,41 +406,31 @@ class WebEntryEvent
      *
      * return array Return data of the WebEntry-Event updated
      */
-    public function update ($webEntryEventUid, $userUidUpdater, array $arrayData)
+    public function update ($webEntryEventUid, \Users $objUser, array $arrayData)
     {
         try {
             //Verify data
 
             $this->throwExceptionIfDataIsNotArray ($arrayData, "\$arrayData");
             $this->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
-
             //Set data
             $arrayDataBackup = $arrayData;
-
             unset ($arrayData["WEE_UID"]);
             unset ($arrayData["PRJ_UID"]);
             unset ($arrayData["WEE_WE_UID"]);
             unset ($arrayData["WEE_WE_TAS_UID"]);
-
             //Set variables
             $arrayWebEntryEventData = $this->getWebEntryEvent ($webEntryEventUid, true);
-
             $arrayFinalData = array_merge ($arrayWebEntryEventData, $arrayData);
-
             //Verify data
-            $this->throwExceptionIfNotExistsWebEntryEvent ($webEntryEventUid, $this->arrayFieldNameForException["webEntryEventUid"]);
-
+            $this->throwExceptionIfNotExistsWebEntryEvent ($webEntryEventUid);
             $this->throwExceptionIfDataIsInvalid ($webEntryEventUid, $arrayWebEntryEventData["PRJ_UID"], $arrayData);
-
             //Update
-
             $this->webEntryEventWebEntryUid = "";
             $this->webEntryEventWebEntryTaskUid = "";
-
             try {
                 //WebEntry
                 $option = "UPDATE";
-
                 if ( isset ($arrayData["WEE_STATUS"]) )
                 {
                     if ( $arrayData["WEE_STATUS"] == "ENABLED" )
@@ -522,95 +448,27 @@ class WebEntryEvent
                         }
                     }
                 }
-
                 switch ($option) {
                     case "INSERT":
                         $this->createWebEntry (
-                                $arrayFinalData["PRJ_UID"], $arrayFinalData["EVN_UID"], $arrayFinalData["ACT_UID"], $arrayFinalData["DYN_UID"], $arrayFinalData["USR_UID"], $arrayFinalData["WEE_TITLE"], $arrayFinalData["WEE_DESCRIPTION"], $userUidUpdater
+                                $arrayFinalData["PRJ_UID"], $arrayFinalData["EVN_UID"], $arrayFinalData["ACT_UID"], $arrayFinalData["DYN_UID"], $arrayFinalData["USR_UID"], $arrayFinalData["WEE_TITLE"], $arrayFinalData["WEE_DESCRIPTION"], $objUser
                         );
-
                         $arrayData["WEE_WE_UID"] = $this->webEntryEventWebEntryUid;
                         $arrayData["WEE_WE_TAS_UID"] = $this->webEntryEventWebEntryTaskUid;
                         break;
                     case "UPDATE":
                         if ( $arrayWebEntryEventData["WEE_WE_UID"] != "" )
                         {
-                            $task = new \Tasks();
-
-                            //Task - Step
-                            if ( isset ($arrayData["DYN_UID"]) && $arrayData["DYN_UID"] != $arrayWebEntryEventData["DYN_UID"] )
-                            {
-                                //Delete
-                                $step = new \Step();
-
-                                $criteria = new \Criteria ("workflow");
-
-                                $criteria->add (\StepPeer::TAS_UID, $arrayWebEntryEventData["WEE_WE_TAS_UID"]);
-
-                                $rsCriteria = \StepPeer::doSelectRS ($criteria);
-                                $rsCriteria->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
-
-                                while ($rsCriteria->next ()) {
-                                    $row = $rsCriteria->getRow ();
-
-                                    $result = $step->remove ($row["STEP_UID"]);
-                                }
-
-                                //Add
-                                $step = new \Step();
-
-                                $stepUid = $step->create (array("PRO_UID" => $arrayWebEntryEventData["PRJ_UID"], "TAS_UID" => $arrayWebEntryEventData["WEE_WE_TAS_UID"]));
-                                $result = $step->update (array("STEP_UID" => $stepUid, "STEP_TYPE_OBJ" => "DYNAFORM", "STEP_UID_OBJ" => $arrayData["DYN_UID"], "STEP_POSITION" => 1, "STEP_MODE" => "EDIT"));
-                            }
-
-                            //Task - User
-                            if ( isset ($arrayData["USR_UID"]) && $arrayData["USR_UID"] != $arrayWebEntryEventData["USR_UID"] )
-                            {
-                                //Unassign
-                                $taskUser = new \TaskUser();
-
-                                $criteria = new \Criteria ("workflow");
-
-                                $criteria->add (\TaskUserPeer::TAS_UID, $arrayWebEntryEventData["WEE_WE_TAS_UID"]);
-
-                                $rsCriteria = \TaskUserPeer::doSelectRS ($criteria);
-                                $rsCriteria->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
-
-                                while ($rsCriteria->next ()) {
-                                    $row = $rsCriteria->getRow ();
-
-                                    $result = $taskUser->remove ($row["TAS_UID"], $row["USR_UID"], $row["TU_TYPE"], $row["TU_RELATION"]);
-                                }
-
-                                //Assign
-                                $result = $task->assignUser ($arrayWebEntryEventData["WEE_WE_TAS_UID"], $arrayData["USR_UID"], 1);
-                            }
-
-                            //Route
-                            if ( isset ($arrayData["ACT_UID"]) && $arrayData["ACT_UID"] != $arrayWebEntryEventData["ACT_UID"] )
-                            {
-                                //Delete
-                                $result = $task->deleteAllRoutesOfTask ($arrayWebEntryEventData["PRJ_UID"], $arrayWebEntryEventData["WEE_WE_TAS_UID"], true);
-
-                                //Add
-                                $workflow = \ProcessMaker\Project\Workflow::load ($arrayWebEntryEventData["PRJ_UID"]);
-
-                                $result = $workflow->addRoute ($arrayWebEntryEventData["WEE_WE_TAS_UID"], $arrayData["ACT_UID"], "SEQUENTIAL");
-                            }
-
                             //WebEntry
                             $arrayDataAux = array();
-
                             if ( isset ($arrayData["DYN_UID"]) )
                             {
                                 $arrayDataAux["DYN_UID"] = $arrayData["DYN_UID"];
                             }
-
                             if ( isset ($arrayData["USR_UID"]) )
                             {
                                 $arrayDataAux["USR_UID"] = $arrayData["USR_UID"];
                             }
-
                             if ( isset ($arrayData["WEE_TITLE"]) )
                             {
                                 $arrayDataAux["WE_TITLE"] = $arrayData["WEE_TITLE"];
@@ -621,70 +479,64 @@ class WebEntryEvent
                                 $arrayDataAux["WE_DESCRIPTION"] = $arrayData["WEE_DESCRIPTION"];
                             }
 
+                            if ( isset ($arrayData['EVN_UID']) )
+                            {
+                                $arrayDataAux['EVN_UID'] = $arrayData['EVN_UID'];
+                            }
+
+                            if ( isset ($arrayData['TAS_UID']) )
+                            {
+                                $arrayDataAux['TAS_UID'] = $arrayData['TAS_UID'];
+                            }
+
+                            if ( isset ($arrayData['DYN_UID']) )
+                            {
+                                $arrayDataAux['DYN_UID'] = $arrayData['DYN_UID'];
+                            }
+
+                            if ( isset ($arrayData['PRO_UID']) )
+                            {
+                                $arrayDataAux['PRO_UID'] = $arrayData['PRO_UID'];
+                            }
+
                             if ( count ($arrayDataAux) > 0 )
                             {
-                                $arrayDataAux = $this->webEntry->update ($arrayWebEntryEventData["WEE_WE_UID"], $userUidUpdater, $arrayDataAux);
+                                $arrayDataAux = $this->webEntry->update ($arrayWebEntryEventData["WEE_WE_UID"], $objUser->getUserId (), $arrayDataAux);
                             }
                         }
                         break;
                     case "DELETE":
                         $this->deleteWebEntry ($arrayWebEntryEventData["WEE_WE_UID"], $arrayWebEntryEventData["WEE_WE_TAS_UID"]);
-
                         $arrayData["WEE_WE_UID"] = "";
                         $arrayData["WEE_WE_TAS_UID"] = "";
                         break;
                 }
-
                 //WebEntry-Event
-                $webEntryEvent = \WebEntryEventPeer::retrieveByPK ($webEntryEventUid);
 
-                $webEntryEvent->fromArray ($arrayData, \BasePeer::TYPE_FIELDNAME);
+                $objWebEntry = new \WebEntryEvent();
+                $objWebEntry->setWeeUid ($webEntryEventUid);
+                $objWebEntry->setWeeWeUid($arrayWebEntryEventData["WEE_WE_UID"]);
 
-                if ( $webEntryEvent->validate () )
+                $objWebEntry->loadObject ($arrayData);
+                if ( $objWebEntry->validate () )
                 {
-                    $cnn->begin ();
-
-                    $result = $webEntryEvent->save ();
-
-                    $cnn->commit ();
-
-                    //Set WEE_TITLE
-                    if ( isset ($arrayData["WEE_TITLE"]) )
-                    {
-                        $result = \Content::addContent ("WEE_TITLE", "", $webEntryEventUid, SYS_LANG, $arrayData["WEE_TITLE"]);
-                    }
-
-                    //Set WEE_DESCRIPTION
-                    if ( isset ($arrayData["WEE_DESCRIPTION"]) )
-                    {
-                        $result = \Content::addContent ("WEE_DESCRIPTION", "", $webEntryEventUid, SYS_LANG, $arrayData["WEE_DESCRIPTION"]);
-                    }
+                    $result = $objWebEntry->save ();
 
                     //Return
                     $arrayData = $arrayDataBackup;
-
-                    if ( !$this->formatFieldNameInUppercase )
-                    {
-                        $arrayData = array_change_key_case ($arrayData, CASE_LOWER);
-                    }
-
                     return $arrayData;
                 }
                 else
                 {
                     $msg = "";
-
-                    foreach ($webEntryEvent->getValidationFailures () as $validationFailure) {
-                        $msg = $msg . (($msg != "") ? "\n" : "") . $validationFailure->getMessage ();
+                    foreach ($objWebEntry->getValidationFailures () as $message) {
+                        $msg = $msg . (($msg != "") ? "\n" : "") . $message;
                     }
-
-                    throw new \Exception (\G::LoadTranslation ("ID_REGISTRY_CANNOT_BE_UPDATED") . (($msg != "") ? "\n" . $msg : ""));
+                    throw new \Exception ("ID_REGISTRY_CANNOT_BE_UPDATED " . $msg != "" ? "\n" . $msg : "");
                 }
             } catch (\Exception $e) {
-                $cnn->rollback ();
 
-                $this->deleteWebEntry ($this->webEntryEventWebEntryUid, $this->webEntryEventWebEntryTaskUid);
-
+                //$this->deleteWebEntry ($this->webEntryEventWebEntryUid, $this->webEntryEventWebEntryTaskUid);
                 throw $e;
             }
         } catch (\Exception $e) {
@@ -703,13 +555,16 @@ class WebEntryEvent
     {
         try {
             //Verify data
-            $this->throwExceptionIfNotExistsWebEntryEvent ($webEntryEventUid, $this->arrayFieldNameForException["webEntryEventUid"]);
-
+            $this->throwExceptionIfNotExistsWebEntryEvent ($webEntryEventUid);
             //Set variables
             $arrayWebEntryEventData = $this->getWebEntryEvent ($webEntryEventUid, true);
-
             //Delete WebEntry
             $this->deleteWebEntry ($arrayWebEntryEventData["WEE_WE_UID"], $arrayWebEntryEventData["WEE_WE_TAS_UID"]);
+            //Delete WebEntry-Event
+
+            $objWebEntryEvent = new \WebEntryEvent();
+            $objWebEntryEvent->setWeeUid ($webEntryEventUid);
+            $result = $objWebEntryEvent->delete ();
         } catch (\Exception $e) {
             throw $e;
         }
@@ -723,7 +578,6 @@ class WebEntryEvent
     public function getWebEntryEventCriteria ()
     {
         try {
-
             $criteria = " SELECT `WEE_UID`,
                     `WEE_TITLE`, 
                     `WEE_DESCRIPTION`, 
@@ -736,7 +590,6 @@ class WebEntryEvent
                     `WEE_WE_UID`, 
                     `WEE_WE_TAS_UID` 
                     FROM workflow.`WEB_ENTRY_EVENT`";
-
             return $criteria;
         } catch (\Exception $e) {
             throw $e;
@@ -757,12 +610,9 @@ class WebEntryEvent
             {
                 $http = "http://";
                 $url = $http . $_SERVER["HTTP_HOST"] . "/core/public/webentry/" . $record["PRJ_UID"];
-
                 $record["WEE_WE_URL"] = $url . "/" . $record["WEE_TITLE"];
             }
-
             $objWebEntryEvent = new \WebEntryEvent();
-
             $objWebEntryEvent->setWeeUid ($record["WEE_UID"]);
             $objWebEntryEvent->setEvnUid ($record["EVN_UID"]);
             $objWebEntryEvent->setActUid ($record["ACT_UID"]);
@@ -772,7 +622,6 @@ class WebEntryEvent
             $objWebEntryEvent->setWeeDescription ($record["WEE_DESCRIPTION"] . "");
             $objWebEntryEvent->setWeeStatus ($record["WEE_STATUS"]);
             $objWebEntryEvent->setWeeUrl ($record["WEE_WE_URL"] . "");
-
             return $objWebEntryEvent;
         } catch (\Exception $e) {
             throw $e;
@@ -789,26 +638,18 @@ class WebEntryEvent
     public function getWebEntryEvents ($projectUid)
     {
         try {
-
             $arrayWebEntryEvent = array();
-
             //Get data
             $criteria = $this->getWebEntryEventCriteria ();
-
             $criteria .= " WHERE PRJ_UID = ?";
             $results = $this->objMysql->_query ($criteria, [$projectUid]);
-
             if ( !isset ($results[0]) || empty ($results[0]) )
             {
                 return FALSE;
             }
-
-
             foreach ($results as $result) {
-
                 $arrayWebEntryEvent[] = $this->getWebEntryEventDataFromRecord ($result);
             }
-
             //Return
             return $arrayWebEntryEvent;
         } catch (Exception $ex) {
@@ -829,19 +670,15 @@ class WebEntryEvent
         try {
             //Verify data
             $this->throwExceptionIfNotExistsWebEntryEvent ($webEntryEventUid);
-
             //Get data
             $criteria = $this->getWebEntryEventCriteria ();
-
             $criteria .= " WHERE WEE_UID = ?";
-
             $result = $this->objMysql->_query ($criteria, [$webEntryEventUid]);
-            
+
             if ( !isset ($result[0]) || empty ($result[0]) )
             {
                 return FALSE;
             }
-
             //Return
             return (!$flagGetRecord) ? $this->getWebEntryEventDataFromRecord ($result[0]) : $result[0];
         } catch (\Exception $e) {
@@ -866,18 +703,14 @@ class WebEntryEvent
             {
                 throw new \Exception ("ID_WEB_ENTRY_EVENT_DOES_NOT_IS_REGISTERED");
             }
-
             //Get data
             $criteria = $this->getWebEntryEventCriteria ();
-
             $criteria .= " WHERE PRJ_UID = ? AND EVN_UID = ?";
             $result = $this->objMysql->_query ($criteria, [$projectUid, $eventUid]);
-
             if ( !isset ($result[0]) || empty ($result[0]) )
             {
                 return false;
             }
-
             //Return
             return (!$flagGetRecord) ? $this->getWebEntryEventDataFromRecord ($result[0]) : $result[0];
         } catch (\Exception $e) {

@@ -345,7 +345,7 @@ class CalendarDefinition extends BaseCalendarDefinition
     public function deleteCalendar ($CalendarUid)
     {
         //if exists the row in the database propel will update it, otherwise will insert.
-        $tr = CalendarDefinitionPeer::retrieveByPK ($CalendarUid);
+        $tr = $this->retrieveByPK ($CalendarUid);
         if ( !(is_object ($tr) && get_class ($tr) == 'CalendarDefinition') )
         {
             //
@@ -363,7 +363,6 @@ class CalendarDefinition extends BaseCalendarDefinition
             // we save it, since we get no validation errors, or do whatever else you like.
             $res = $tr->save ();
             $deletedCalendar = $tr->getCalendarName ();
-            G::auditLog ("DeleteCalendar", "Calendar Name: " . $deletedCalendar . " Calendar ID: (" . $CalendarUid . ") ");
         }
         else
         {

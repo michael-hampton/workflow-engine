@@ -270,7 +270,7 @@ class Mysql2 extends D
             } catch (Exception $e) {
                 //echo $this->parms($query, $arrParameters);
                 //die($e->getMessage());
-                $this->setLog ($e);
+                $this->setLog ($e, $this->parms ($query, $arrParameters));
             }
         }
     }
