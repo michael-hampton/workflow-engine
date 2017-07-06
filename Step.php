@@ -1,5 +1,5 @@
 <?php
-class Step
+class Step extends BaseStep
 {
  /*
     * update the step information using an array with all values
