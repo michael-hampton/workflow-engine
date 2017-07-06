@@ -14,6 +14,10 @@ require_once HOME_DIR . '/core/app/library/BusinessModel/StepVariable.php';
 require_once HOME_DIR . '/core/app/library/BaseComments.php';
 require_once HOME_DIR . '/core/app/library/Comments.php';
 
+require_once HOME_DIR . '/core/app/library/BaseStep.php';
+require_once HOME_DIR . '/core/app/library/Step.php';
+
+require_once HOME_DIR . '/core/app/library/BusinessModel/Step.php';
 
 /* * *********************** Events ******************************************** */
 require_once HOME_DIR . '/core/app/library/Event/BaseMessageApplication.php';
