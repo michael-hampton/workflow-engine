@@ -1,5 +1,5 @@
 <?php
-abstract class BaseStep
+abstract class BaseStep implements Persistent
 {
 /************************* BASE MODEL ******************************************/
  protected $arrFieldMapping = array(
