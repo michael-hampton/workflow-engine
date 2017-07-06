@@ -1,0 +1,319 @@
+<?php
+abstract class BaseStep
+{
+/************************* BASE MODEL ******************************************/
+ protected $arrFieldMapping = array(
+        'STEP_UID' => array('accessor' => 'getStepUid', 'mutator' => 'setStepUid', 'type' => 'int', 'required' => 'true'),
+        'PRO_UID' => array('accessor' => 'getProUid', 'mutator' => 'setProUid', 'type' => 'string', 'required' => 'true'),
+        'TAS_UID' => array('accessor' => 'getTasUid', 'mutator' => 'setTasUid', 'type' => 'string', 'required' => 'false'),
+        'STEP_TYPE_OBJ' => array('accessor' => 'getStepTypeObj', 'mutator' => 'setStepTypeObj', 'type' => 'string', 'required' => 'true'),
+	'STEP_UID_OBJ' => array('accessor' => 'getStepUidObj', 'mutator' => 'setStepUidObj', 'type' => 'string', 'required' => 'true'),
+	'STEP_CONDITION' => array('accessor' => 'getStepCondition', 'mutator' => 'setStepCondition', 'type' => 'string', 'required' => 'true'),
+	'STEP_MODE' => array('accessor' => 'getStepMode', 'mutator' => 'setStepMode', 'type' => 'string', 'required' => 'true')
+    );
+    
+    private $objMysql;
+    
+    public function __construct()
+    {
+    $this->objMysql = new Mysql2();
+    }
+ /**
+     * The value for the step_uid field.
+     * @var        string
+     */
+    protected $step_uid = '';
+    
+    /**
+     * The value for the pro_uid field.
+     * @var        string
+     */
+    protected $pro_uid = '0';
+    
+    /**
+     * The value for the tas_uid field.
+     * @var        string
+     */
+    protected $tas_uid = '0';
+    
+    /**
+     * The value for the step_type_obj field.
+     * @var        string
+     */
+    protected $step_type_obj = 'DYNAFORM';
+    
+    /**
+     * The value for the step_uid_obj field.
+     * @var        string
+     */
+    protected $step_uid_obj = '0';
+    
+    /**
+     * The value for the step_condition field.
+     * @var        string
+     */
+    protected $step_condition;
+    
+    /**
+     * The value for the step_position field.
+     * @var        int
+     */
+    protected $step_position = 0;
+    
+    /**
+     * The value for the step_mode field.
+     * @var        string
+     */
+    protected $step_mode = 'EDIT';
+    
+    /**
+     * Flag to prevent endless save loop, if this object is referenced
+     * by another object which falls in this transaction.
+     * @var        boolean
+     */
+    protected $alreadyInSave = false;
+    
+    /**
+     * Flag to prevent endless validation loop, if this object is referenced
+     * by another object which falls in this transaction.
+     * @var        boolean
+     */
+    protected $alreadyInValidation = false;
+    
+    /**
+     * Get the [step_uid] column value.
+     * 
+     * @return     string
+     */
+    public function getStepUid()
+    {
+        return $this->step_uid;
+    }
+    
+    /**
+     * Get the [pro_uid] column value.
+     * 
+     * @return     string
+     */
+    public function getProUid()
+    {
+        return $this->pro_uid;
+    }
+    
+    /**
+     * Get the [tas_uid] column value.
+     * 
+     * @return     string
+     */
+    public function getTasUid()
+    {
+        return $this->tas_uid;
+    }
+    
+    /**
+     * Get the [step_type_obj] column value.
+     * 
+     * @return     string
+     */
+    public function getStepTypeObj()
+    {
+        return $this->step_type_obj;
+    }
+    
+    /**
+     * Get the [step_uid_obj] column value.
+     * 
+     * @return     string
+     */
+    public function getStepUidObj()
+    {
+        return $this->step_uid_obj;
+    }
+    
+    /**
+     * Get the [step_condition] column value.
+     * 
+     * @return     string
+     */
+    public function getStepCondition()
+    {
+        return $this->step_condition;
+    }
+    
+    /**
+     * Get the [step_position] column value.
+     * 
+     * @return     int
+     */
+    public function getStepPosition()
+    {
+        return $this->step_position;
+    }
+    
+    /**
+     * Get the [step_mode] column value.
+     * 
+     * @return     string
+     */
+    public function getStepMode()
+    {
+        return $this->step_mode;
+    }
+    
+    /**
+     * Set the value of [step_uid] column.
+     * 
+     * @param      string $v new value
+     * @return     void
+     */
+    public function setStepUid($v)
+    {
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ($v !== null && !is_string($v)) {
+            $v = (string) $v;
+        }
+        if ($this->step_uid !== $v || $v === '') {
+            $this->step_uid = $v;
+        }
+    } 
+    
+    /**
+     * Set the value of [pro_uid] column.
+     * 
+     * @param      string $v new value
+     * @return     void
+     */
+    public function setProUid($v)
+    {
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ($v !== null && !is_string($v)) {
+            $v = (string) $v;
+        }
+        if ($this->pro_uid !== $v || $v === '0') {
+            $this->pro_uid = $v;
+        }
+    } 
+    
+    /**
+     * Set the value of [tas_uid] column.
+     * 
+     * @param      string $v new value
+     * @return     void
+     */
+    public function setTasUid($v)
+    {
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ($v !== null && !is_string($v)) {
+            $v = (string) $v;
+        }
+        if ($this->tas_uid !== $v || $v === '0') {
+            $this->tas_uid = $v;
+        }
+    } 
+    
+    /**
+     * Set the value of [step_type_obj] column.
+     * 
+     * @param      string $v new value
+     * @return     void
+     */
+    public function setStepTypeObj($v)
+    {
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ($v !== null && !is_string($v)) {
+            $v = (string) $v;
+        }
+        if ($this->step_type_obj !== $v || $v === 'DYNAFORM') {
+            $this->step_type_obj = $v;
+        }
+    } 
+    
+    /**
+     * Set the value of [step_uid_obj] column.
+     * 
+     * @param      string $v new value
+     * @return     void
+     */
+    public function setStepUidObj($v)
+    {
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ($v !== null && !is_string($v)) {
+            $v = (string) $v;
+        }
+        if ($this->step_uid_obj !== $v || $v === '0') {
+            $this->step_uid_obj = $v;
+        }
+    }
+    
+    /**
+     * Set the value of [step_condition] column.
+     * 
+     * @param      string $v new value
+     * @return     void
+     */
+    public function setStepCondition($v)
+    {
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ($v !== null && !is_string($v)) {
+            $v = (string) $v;
+        }
+        if ($this->step_condition !== $v) {
+            $this->step_condition = $v;
+        }
+    } 
+    
+    /**
+     * Set the value of [step_position] column.
+     * 
+     * @param      int $v new value
+     * @return     void
+     */
+    public function setStepPosition($v)
+    {
+        // Since the native PHP type for this column is integer,
+        // we will cast the input value to an int (if it is not).
+        if ($v !== null && !is_int($v) && is_numeric($v)) {
+            $v = (int) $v;
+        }
+        if ($this->step_position !== $v || $v === 0) {
+            $this->step_position = $v;
+        }
+    }
+    
+    /**
+     * Set the value of [step_mode] column.
+     * 
+     * @param      string $v new value
+     * @return     void
+     */
+    public function setStepMode($v)
+    {
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ($v !== null && !is_string($v)) {
+            $v = (string) $v;
+        }
+        if ($this->step_mode !== $v || $v === 'EDIT') {
+            $this->step_mode = $v;
+        }
+    } 
+    
+    public function save()
+    {
+	if(trim($id) === "") {
+	     $result = $this-objMysql_insert("workflow.step_object", ['STEP_UID', 'PRO_UID', 'TAS_UID', 'STEP_TYPE_OBJ', 'STEP_CONDITION', 'STEP_MODE']);
+        } else {
+             $result = $this-objMysql_update("workflow.step_object", ['STEP_UID', 'PRO_UID', 'TAS_UID', 'STEP_TYPE_OBJ', 'STEP_CONDITION', 'STEP_MODE'], ['id' => $id]);
+        }
+       
+    }
+    public function loadObject(array $arrData)
+    {
+    }
+    }
