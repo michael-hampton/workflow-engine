@@ -1,6 +1,16 @@
+<?php
 class Step
 {
 
+	public $objMysql;
+	
+	
+	public function __construct()
+	{
+		$this->objMyql = new Mysql2();
+	}
+	
+	
     /**
      * Verify if exists the record in table STEP
      *
@@ -102,7 +112,6 @@ class Step
         $arrayDefaultValues = array("DYNAFORM", "INPUT_DOCUMENT", "OUTPUT_DOCUMENT", "EXTERNAL");
 
         if (!in_array($stepTypeObj, $arrayDefaultValues)) {
-
 
             throw new \Exception("ID_INVALID_VALUE_ONLY_ACCEPTS_VALUES");
         }
