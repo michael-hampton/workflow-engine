@@ -245,32 +245,6 @@ class Flow
         $objFlow = new Flow();
         $objFlow->setFirstStep ($result[0]['first_step']);
         $objFlow->setCondition ($result[0]['step_condition']);
-
-        if ( trim ($result[0]['step_condition']) !== "" )
-        {
-            $arrConditions = json_decode ($result[0]['step_condition'], true);
-            
-            if ( isset ($arrConditions['task_properties']['TAS_TIMEUNIT']) )
-            {
-                $objFlow->setTasTimeUnit ($arrConditions['task_properties']['TAS_TIMEUNIT']);
-            }
-            
-            if ( isset ($arrConditions['task_properties']['TAS_DURATION']) )
-            {
-                $objFlow->setTasDuration ($arrConditions['task_properties']['TAS_DURATION']);
-            }
-            
-             if ( isset ($arrConditions['task_properties']['TAS_CALENDAR']) )
-            {
-                $objFlow->setCalendarUid ($arrConditions['task_properties']['TAS_CALENDAR']);
-            }
-            
-            if ( isset ($arrConditions['task_properties']['TAS_TYPE_DAY']) )
-            {
-                $objFlow->setTasTypeDay ($arrConditions['task_properties']['TAS_TYPE_DAY']);
-            }
-        }
-
         $objFlow->setIsActive ($result[0]['is_active']);
         $objFlow->setOrderId ($result[0]['order_id']);
         $objFlow->setStepFrom ($result[0]['step_from']);

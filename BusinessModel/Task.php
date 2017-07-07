@@ -16,6 +16,13 @@ namespace BusinessModel;
 class Task
 {
 
+    private $objMsql;
+
+    public function __construct ()
+    {
+        $this->objMsql = new \Mysql2();
+    }
+
     /**
      * Update properties of an Task
      * @var string $prj_uid. Uid for Workflow
@@ -38,7 +45,7 @@ class Task
 
             $arrayResult = array();
 
-            if (isset($arrayProperty["TAS_SELFSERVICE_TIMEOUT"]) && $arrayProperty["TAS_SELFSERVICE_TIMEOUT"] == "1" )
+            if ( isset ($arrayProperty["TAS_SELFSERVICE_TIMEOUT"]) && $arrayProperty["TAS_SELFSERVICE_TIMEOUT"] == "1" )
             {
                 if ( !is_numeric ($arrayProperty["TAS_SELFSERVICE_TIME"]) || $arrayProperty["TAS_SELFSERVICE_TIME"] == '' )
                 {
@@ -62,7 +69,7 @@ class Task
                 }
                 else
                 {
-                    $arrayProperty["TAS_SEND_LAST_EMAIL"] = trim ($aTaskInfo->getSendLastEmail ()) !== "" ? $aTaskInfo["TAS_SEND_LAST_EMAIL"] : "FALSE";
+                    //$arrayProperty["TAS_SEND_LAST_EMAIL"] = trim ($aTaskInfo->getTasSendLastEmail ()) !== "" ? $arrayProperty["TAS_SEND_LAST_EMAIL"] : "FALSE";
                 }
             }
 
@@ -90,8 +97,8 @@ class Task
             //Validating TAS_ASSIGN_VARIABLE value
             if ( !isset ($arrayProperty["TAS_ASSIGN_TYPE"]) )
             {
-               
-                if ( trim($assignType) === "" )
+
+                if ( trim ($assignType) === "" )
                 {
                     $arrayProperty["TAS_ASSIGN_TYPE"] = "BALANCED";
                 }
@@ -100,7 +107,7 @@ class Task
                     $arrayProperty["TAS_ASSIGN_TYPE"] = $assignType;
                 }
             }
-           
+
             switch ($arrayProperty["TAS_ASSIGN_TYPE"]) {
                 case 'BALANCED':
                 case 'MANUAL':
@@ -177,9 +184,9 @@ class Task
                     }
                     break;
             }
-            
-            $arrayProperty["TAS_TRANSFER_FLY"] = isset($arrayProperty["TAS_TIMEUNIT"]) && trim($arrayProperty["TAS_TIMEUNIT"]) !== "" ? "FALSE" : "TRUE";
-            
+
+            $arrayProperty["TAS_TRANSFER_FLY"] = isset ($arrayProperty["TAS_TIMEUNIT"]) && trim ($arrayProperty["TAS_TIMEUNIT"]) !== "" ? "FALSE" : "TRUE";
+
             //Validating TAS_TRANSFER_FLY value
             if ( $arrayProperty["TAS_TRANSFER_FLY"] == "FALSE" )
             {
@@ -211,7 +218,7 @@ class Task
                 $this->unsetVar ($arrayProperty, "TAS_TYPE_DAY");
                 $this->unsetVar ($arrayProperty, "TAS_CALENDAR");
             }
-            if ( $arrayProperty["TAS_SEND_LAST_EMAIL"] == "TRUE" )
+            if (isset($arrayProperty["TAS_SEND_LAST_EMAIL"]) && $arrayProperty["TAS_SEND_LAST_EMAIL"] == "TRUE" )
             {
                 if ( empty ($arrayProperty["TAS_DEF_SUBJECT_MESSAGE"]) )
                 {
@@ -259,7 +266,7 @@ class Task
                 $this->unsetVar ($arrayProperty, "TAS_DEF_MESSAGE");
                 $this->unsetVar ($arrayProperty, "TAS_DEF_MESSAGE_TEMPLATE");
             }
-            if (isset($arrayProperty["TAS_RECEIVE_LAST_EMAIL"]) && $arrayProperty["TAS_RECEIVE_LAST_EMAIL"] == "TRUE" )
+            if ( isset ($arrayProperty["TAS_RECEIVE_LAST_EMAIL"]) && $arrayProperty["TAS_RECEIVE_LAST_EMAIL"] == "TRUE" )
             {
                 if ( empty ($arrayProperty["TAS_RECEIVE_SUBJECT_MESSAGE"]) )
                 {
@@ -303,8 +310,9 @@ class Task
                 $this->unsetVar ($arrayProperty, "TAS_RECEIVE_MESSAGE_TYPE");
                 $this->unsetVar ($arrayProperty, "TAS_RECEIVE_MESSAGE_TEMPLATE");
             }
+            
             $result = $task->updateTaskProperties ($arrayProperty);
-            if (isset($arrayProperty['CONSOLIDATE_DATA']) && !empty ($arrayProperty['CONSOLIDATE_DATA']) )
+            if ( isset ($arrayProperty['CONSOLIDATE_DATA']) && !empty ($arrayProperty['CONSOLIDATE_DATA']) )
             {
                 if ( !empty ($arrayProperty['CONSOLIDATE_DATA']['consolidated_dynaform']) )
                 {
@@ -332,8 +340,7 @@ class Task
             throw $e;
         }
     }
-    
-    
+
     /**
      * Unset variable for array
      * @var array $array. Array base
@@ -342,10 +349,11 @@ class Task
      *
      * @return string
      */
-    public function unsetVar(&$array, $variable)
+    public function unsetVar (&$array, $variable)
     {
-        if (isset($array[$variable])) {
-            unset($array[$variable]);
+        if ( isset ($array[$variable]) )
+        {
+            unset ($array[$variable]);
         }
     }
 
@@ -409,6 +417,40 @@ class Task
         $oTask = new \Flow();
         $oTask->throwExceptionIfNotExistsTask ($act_uid);
         return $act_uid;
+    }
+
+    /**
+     * Verify if doesn't exists the Task
+     *
+     * @param string $processUid            Unique id of Process
+     * @param string $taskUid               Unique id of Task
+     * @param string $fieldNameForException Field name for the exception
+     *
+     * return void Throw exception if doesn't exists the Task
+     */
+    public function throwExceptionIfNotExistsTask ($processUid, $taskUid)
+    {
+        try {
+          
+            $sql = "SELECT TAS_UID FROM workflow.steps WHERE TAS_UID = ?";
+            $arrParameters = array($taskUid);
+
+
+            if ( $processUid != "" )
+            {
+                $sql .= " AND PRO_UID = ?";
+                $arrParameters[] = $processUid;
+            }
+
+            $result = $this->objMsql->_query ($sql, $arrParameters);
+
+            if ( !isset ($result[0]) || empty ($result[0]) )
+            {
+                throw new \Exception ("ID_ACTIVITY_DOES_NOT_EXIST");
+            }
+        } catch (\Exception $e) {
+            throw $e;
+        }
     }
 
 }

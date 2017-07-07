@@ -4,12 +4,12 @@ abstract class BaseStep implements Persistent
 {
     /************************* BASE MODEL ******************************************/
     protected $arrFieldMapping = array(
-        'STEP_UID' => array('accessor' => 'getStepUid', 'mutator' => 'setStepUid', 'type' => 'int', 'required' => 'true'),
+        'STEP_UID' => array('accessor' => 'getStepUid', 'mutator' => 'setStepUid', 'type' => 'int', 'required' => 'false'),
         'PRO_UID' => array('accessor' => 'getProUid', 'mutator' => 'setProUid', 'type' => 'string', 'required' => 'true'),
         'TAS_UID' => array('accessor' => 'getTasUid', 'mutator' => 'setTasUid', 'type' => 'string', 'required' => 'false'),
         'STEP_TYPE_OBJ' => array('accessor' => 'getStepTypeObj', 'mutator' => 'setStepTypeObj', 'type' => 'string', 'required' => 'true'),
         'STEP_UID_OBJ' => array('accessor' => 'getStepUidObj', 'mutator' => 'setStepUidObj', 'type' => 'string', 'required' => 'true'),
-        'STEP_CONDITION' => array('accessor' => 'getStepCondition', 'mutator' => 'setStepCondition', 'type' => 'string', 'required' => 'true'),
+        'STEP_CONDITION' => array('accessor' => 'getStepCondition', 'mutator' => 'setStepCondition', 'type' => 'string', 'required' => 'false'),
         'STEP_MODE' => array('accessor' => 'getStepMode', 'mutator' => 'setStepMode', 'type' => 'string', 'required' => 'true')
     );
 
@@ -319,8 +319,8 @@ abstract class BaseStep implements Persistent
     public function save()
     {
         if (trim($this->step_uid) === "") {
-            $result = $this - objMysql_insert("workflow.step_object",
-                    ['PRO_UID' => $this->pro_uid, 'TAS_UID' => $this->step_uid, 'STEP_TYPE_OBJ' => $this->step_type_obj, 'STEP_CONDITION' => $this->step_condition, 'STEP_MODE' => $this->step_mode]);
+            $result = $this->objMysql->_insert("workflow.step_object",
+                    ['PRO_UID' => $this->pro_uid, 'TAS_UID' => $this->tas_uid, 'STEP_UID_OBJ' => $this->step_uid_obj, 'STEP_TYPE_OBJ' => $this->step_type_obj, 'STEP_CONDITION' => $this->step_condition, 'STEP_MODE' => $this->step_mode]);
         } else {
             $result = $this - objMysql_update("workflow.step_object",
                     ['PRO_UID' => $this->pro_uid, 'TAS_UID' => $this->step_uid, 'STEP_TYPE_OBJ' => $this->step_type_obj, 'STEP_CONDITION' => $this->step_condition, 'STEP_MODE' => $this->step_mode],
@@ -362,5 +362,10 @@ abstract class BaseStep implements Persistent
         }
 
         return false;
+    }
+    
+    public function doDelete()
+    {
+        $this->objMysql->_delete("workflow.step_object", ["TAS_UID" => $this->tas_uid, "STEP_TYPE_OBJ" => $this->step_type_obj, "STEP_UID_OBJ" => $this->step_uid_obj]);
     }
 }

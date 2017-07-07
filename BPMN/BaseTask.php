@@ -1,30 +1,32 @@
+<?php
+
 abstract class BaseTask implements Persistent
 {
 
-	private $objMysql;
+    private $objMysql;
 
-	public function __construct()
-	{
-		$this->objMysql = new Mysql2();
-	}
+    public function __construct ()
+    {
+        $this->objMysql = new Mysql2();
+    }
 
-	 protected $arrFieldMapping = array(
+    protected $arrFieldMapping = array(
         'TAS_TRANSFER_FLY' => array('accessor' => 'getTasTransferFly', 'mutator' => 'setTasTransferFly', 'type' => 'string', 'required' => 'true'),
-	'TAS_ASSIGN_TYPE' => array('accessor' => 'getTasTransferFly', 'mutator' => 'setTasTransferFly', 'type' => 'string', 'required' => 'true'),
-        'name' => array('accessor' => 'getTasSelfService', 'mutator' => 'setTasSelfService', 'type' => 'string', 'required' => 'true'),
-        'TAS_SELFSERVICE_TIMEOUT' => array('accessor' => 'getTasSelfserviceTimeout', 'mutator' => 'setTasSelfserviceTimeout', 'type' => 'string', 'required' => 'true'),
-        'TAS_SELFSERVICE_TIME' => array('accessor' => 'getTasSelfserviceTime', 'mutator' => 'setTasSelfserviceTime', 'type' => 'string', 'required' => 'true'),
-        'TAS_SELFSERVICE_TIME_UNIT' => array('accessor' => 'getTasSelfserviceTimeUnit', 'mutator' => 'setTasSelfserviceTimeUnit', 'type' => 'string', 'required' => 'true'),
-        'TAS_SELFSERVICE_TRIGGER_UID' => array('accessor' => 'getTasSelfserviceTriggerUid', 'mutator' => 'setTasSelfserviceTriggerUid', 'type' => 'string', 'required' => 'true'),
+        'TAS_ASSIGN_TYPE' => array('accessor' => 'getTasAssignType', 'mutator' => 'setTasAssignType', 'type' => 'string', 'required' => 'true'),
+        'name' => array('accessor' => 'getTasSelfService', 'mutator' => 'setTasSelfService', 'type' => 'string', 'required' => 'false'),
+        'TAS_SELFSERVICE_TIMEOUT' => array('accessor' => 'getTasSelfserviceTimeout', 'mutator' => 'setTasSelfserviceTimeout', 'type' => 'string', 'required' => 'false'),
+        'TAS_SELFSERVICE_TIME' => array('accessor' => 'getTasSelfserviceTime', 'mutator' => 'setTasSelfserviceTime', 'type' => 'string', 'required' => 'false'),
+        'TAS_SELFSERVICE_TIME_UNIT' => array('accessor' => 'getTasSelfserviceTimeUnit', 'mutator' => 'setTasSelfserviceTimeUnit', 'type' => 'string', 'required' => 'false'),
+        'TAS_SELFSERVICE_TRIGGER_UID' => array('accessor' => 'getTasSelfserviceTriggerUid', 'mutator' => 'setTasSelfserviceTriggerUid', 'type' => 'string', 'required' => 'false'),
         'TAS_SELFSERVICE_EXECUTION' => array('accessor' => 'getTasSelfserviceExecution', 'mutator' => 'setTasSelfserviceExecution', 'type' => 'string', 'required' => 'true'),
-        'name' => array('accessor' => 'getTasTitle', 'mutator' => 'setTasTitle', 'type' => 'string', 'required' => 'true'),
-        'TAS_DEF_MESSAGE' => array('accessor' => 'getTasDefMessage', 'mutator' => 'setTasDefMessage', 'type' => 'string', 'required' => 'true'),
-        'TAS_DEF_SUBJECT_MESSAGE' => array('accessor' => 'getTasDefSubjectMessage', 'mutator' => 'setTasDefSubjectMessage', 'type' => 'string', 'required' => 'true'),
-        'name' => array('accessor' => 'getTasType', 'mutator' => 'setTasType', 'type' => 'string', 'required' => 'true'),
+        'name' => array('accessor' => 'getTasTitle', 'mutator' => 'setTasTitle', 'type' => 'string', 'required' => 'false'),
+        'TAS_DEF_MESSAGE' => array('accessor' => 'getTasDefMessage', 'mutator' => 'setTasDefMessage', 'type' => 'string', 'required' => 'false'),
+        'TAS_DEF_SUBJECT_MESSAGE' => array('accessor' => 'getTasDefSubjectMessage', 'mutator' => 'setTasDefSubjectMessage', 'type' => 'string', 'required' => 'false'),
+        'name' => array('accessor' => 'getTasType', 'mutator' => 'setTasType', 'type' => 'string', 'required' => 'false'),
         'TAS_DURATION' => array('accessor' => 'getTasDuration', 'mutator' => 'setTasDuration', 'type' => 'string', 'required' => 'true'),
-        'name' => array('accessor' => 'getTasDelayType', 'mutator' => 'setTasDelayType', 'type' => 'string', 'required' => 'true'),
-        'TAS_TIMEUNIT' => array('accessor' => 'getTasTimeunit', 'mutator' => 'setTasTimeunit', 'type' => 'string', 'required' => 'true'),
-        'TAS_TYPE_DAY' => array('accessor' => 'getTasTypeDay', 'mutator' => 'setTasTypeDay', 'type' => 'string', 'required' => 'true'),
+        'name' => array('accessor' => 'getTasDelayType', 'mutator' => 'setTasDelayType', 'type' => 'string', 'required' => 'false'),
+        'TAS_TIMEUNIT' => array('accessor' => 'getTasTimeunit', 'mutator' => 'setTasTimeunit', 'type' => 'string', 'required' => 'false'),
+        'TAS_TYPE_DAY' => array('accessor' => 'getTasTypeDay', 'mutator' => 'setTasTypeDay', 'type' => 'string', 'required' => 'false'),
         'TAS_UID' => array('accessor' => 'getTasUid', 'mutator' => 'setTasUid', 'type' => 'string', 'required' => 'true'),
         'PRO_UID' => array('accessor' => 'getProUid', 'mutator' => 'setProUid', 'type' => 'string', 'required' => 'true'),
         'TAS_SELFSERVICE_TIMEOUT' => array('accessor' => 'getTasSelfserviceTimeout', 'mutator' => 'setTasSelfserviceTimeout', 'type' => 'string', 'required' => 'true'),
@@ -35,18 +37,33 @@ abstract class BaseTask implements Persistent
      * @var        string
      */
     protected $pro_uid = '';
+    protected $calendarUid;
+    protected $firstStep;
+
+    /**
+     * The value for the tas_send_last_email field.
+     * @var        string
+     */
+    protected $tas_send_last_email = 'TRUE';
 
     /**
      * The value for the tas_uid field.
      * @var        string
      */
-    protected $tas_uid = '';
+    protected $tas_uid;
+
+    /**
+     * The value for the tas_def_message field.
+     * @var        string
+     */
+    protected $tas_def_message;
 
     /**
      * The value for the tas_id field.
      * @var        int
      */
     protected $tas_id;
+    protected $condition;
 
     /**
      * The value for the tas_title field.
@@ -59,7 +76,6 @@ abstract class BaseTask implements Persistent
      * @var        string
      */
     protected $tas_description;
-
 
     /**
      * The value for the tas_type field.
@@ -78,7 +94,6 @@ abstract class BaseTask implements Persistent
      * @var        string
      */
     protected $tas_delay_type = '';
-
 
     /**
      * The value for the tas_type_day field.
@@ -116,13 +131,17 @@ abstract class BaseTask implements Persistent
      */
     protected $tas_assign_variable = '@@SYS_NEXT_USER_TO_BE_ASSIGNED';
 
-
-
     /**
      * The value for the tas_assign_location field.
      * @var        string
      */
     protected $tas_assign_location = 'FALSE';
+
+    /**
+     * The value for the tas_def_subject_message field.
+     * @var        string
+     */
+    protected $tas_def_subject_message;
 
     /**
      * The value for the tas_assign_location_adhoc field.
@@ -178,7 +197,6 @@ abstract class BaseTask implements Persistent
      */
     protected $tas_owner_app = '';
 
-
     /**
      * The value for the tas_can_pause field.
      * @var        string
@@ -216,13 +234,6 @@ abstract class BaseTask implements Persistent
     protected $tas_to_last_user = 'FALSE';
 
     /**
-     * The value for the tas_send_last_email field.
-     * @var        string
-     */
-    protected $tas_send_last_email = 'TRUE';
-
-
-    /**
      * The value for the tas_selfservice_timeout field.
      * @var        int
      */
@@ -252,7 +263,6 @@ abstract class BaseTask implements Persistent
      */
     protected $tas_selfservice_execution = 'EVERY_TIME';
 
-
     /**
      * Flag to prevent endless save loop, if this object is referenced
      * by another object which falls in this transaction.
@@ -272,7 +282,7 @@ abstract class BaseTask implements Persistent
      * 
      * @return     string
      */
-    public function getProUid()
+    public function getProUid ()
     {
 
         return $this->pro_uid;
@@ -283,7 +293,7 @@ abstract class BaseTask implements Persistent
      * 
      * @return     string
      */
-    public function getTasUid()
+    public function getTasUid ()
     {
 
         return $this->tas_uid;
@@ -294,7 +304,7 @@ abstract class BaseTask implements Persistent
      * 
      * @return     int
      */
-    public function getTasId()
+    public function getTasId ()
     {
 
         return $this->tas_id;
@@ -305,7 +315,7 @@ abstract class BaseTask implements Persistent
      * 
      * @return     string
      */
-    public function getTasTitle()
+    public function getTasTitle ()
     {
 
         return $this->tas_title;
@@ -316,22 +326,41 @@ abstract class BaseTask implements Persistent
      * 
      * @return     string
      */
-    public function getTasDescription()
+    public function getTasDescription ()
     {
 
         return $this->tas_description;
     }
 
+    /**
+     * Get the [tas_def_subject_message] column value.
+     * 
+     * @return     string
+     */
+    public function getTasDefSubjectMessage ()
+    {
+        return $this->tas_def_subject_message;
+    }
 
     /**
      * Get the [tas_type] column value.
      * 
      * @return     string
      */
-    public function getTasType()
+    public function getTasType ()
     {
 
         return $this->tas_type;
+    }
+
+    /**
+     * Get the [tas_def_message] column value.
+     * 
+     * @return     string
+     */
+    public function getTasDefMessage ()
+    {
+        return $this->tas_def_message;
     }
 
     /**
@@ -339,10 +368,20 @@ abstract class BaseTask implements Persistent
      * 
      * @return     double
      */
-    public function getTasDuration()
+    public function getTasDuration ()
     {
 
         return $this->tas_duration;
+    }
+
+    public function getCondition ()
+    {
+        return $this->condition;
+    }
+
+    public function setCondition ($condition)
+    {
+        $this->condition = $condition;
     }
 
     /**
@@ -350,20 +389,18 @@ abstract class BaseTask implements Persistent
      * 
      * @return     string
      */
-    public function getTasDelayType()
+    public function getTasDelayType ()
     {
 
         return $this->tas_delay_type;
     }
-
-
 
     /**
      * Get the [tas_type_day] column value.
      * 
      * @return     string
      */
-    public function getTasTypeDay()
+    public function getTasTypeDay ()
     {
 
         return $this->tas_type_day;
@@ -374,7 +411,7 @@ abstract class BaseTask implements Persistent
      * 
      * @return     string
      */
-    public function getTasTimeunit()
+    public function getTasTimeunit ()
     {
 
         return $this->tas_timeunit;
@@ -385,7 +422,7 @@ abstract class BaseTask implements Persistent
      * 
      * @return     string
      */
-    public function getTasAlert()
+    public function getTasAlert ()
     {
 
         return $this->tas_alert;
@@ -396,7 +433,7 @@ abstract class BaseTask implements Persistent
      * 
      * @return     string
      */
-    public function getTasPriorityVariable()
+    public function getTasPriorityVariable ()
     {
 
         return $this->tas_priority_variable;
@@ -407,7 +444,7 @@ abstract class BaseTask implements Persistent
      * 
      * @return     string
      */
-    public function getTasAssignType()
+    public function getTasAssignType ()
     {
 
         return $this->tas_assign_type;
@@ -418,20 +455,18 @@ abstract class BaseTask implements Persistent
      * 
      * @return     string
      */
-    public function getTasAssignVariable()
+    public function getTasAssignVariable ()
     {
 
         return $this->tas_assign_variable;
     }
-
-   
 
     /**
      * Get the [tas_assign_location] column value.
      * 
      * @return     string
      */
-    public function getTasAssignLocation()
+    public function getTasAssignLocation ()
     {
 
         return $this->tas_assign_location;
@@ -442,7 +477,7 @@ abstract class BaseTask implements Persistent
      * 
      * @return     string
      */
-    public function getTasAssignLocationAdhoc()
+    public function getTasAssignLocationAdhoc ()
     {
 
         return $this->tas_assign_location_adhoc;
@@ -453,7 +488,7 @@ abstract class BaseTask implements Persistent
      * 
      * @return     string
      */
-    public function getTasTransferFly()
+    public function getTasTransferFly ()
     {
 
         return $this->tas_transfer_fly;
@@ -464,7 +499,7 @@ abstract class BaseTask implements Persistent
      * 
      * @return     string
      */
-    public function getTasLastAssigned()
+    public function getTasLastAssigned ()
     {
 
         return $this->tas_last_assigned;
@@ -475,7 +510,7 @@ abstract class BaseTask implements Persistent
      * 
      * @return     string
      */
-    public function getTasUser()
+    public function getTasUser ()
     {
 
         return $this->tas_user;
@@ -486,7 +521,7 @@ abstract class BaseTask implements Persistent
      * 
      * @return     string
      */
-    public function getTasCanUpload()
+    public function getTasCanUpload ()
     {
 
         return $this->tas_can_upload;
@@ -497,7 +532,7 @@ abstract class BaseTask implements Persistent
      * 
      * @return     string
      */
-    public function getTasViewUpload()
+    public function getTasViewUpload ()
     {
 
         return $this->tas_view_upload;
@@ -508,7 +543,7 @@ abstract class BaseTask implements Persistent
      * 
      * @return     string
      */
-    public function getTasViewAdditionalDocumentation()
+    public function getTasViewAdditionalDocumentation ()
     {
 
         return $this->tas_view_additional_documentation;
@@ -519,7 +554,7 @@ abstract class BaseTask implements Persistent
      * 
      * @return     string
      */
-    public function getTasCanCancel()
+    public function getTasCanCancel ()
     {
 
         return $this->tas_can_cancel;
@@ -530,20 +565,18 @@ abstract class BaseTask implements Persistent
      * 
      * @return     string
      */
-    public function getTasOwnerApp()
+    public function getTasOwnerApp ()
     {
 
         return $this->tas_owner_app;
     }
-
-
 
     /**
      * Get the [tas_can_pause] column value.
      * 
      * @return     string
      */
-    public function getTasCanPause()
+    public function getTasCanPause ()
     {
 
         return $this->tas_can_pause;
@@ -554,7 +587,7 @@ abstract class BaseTask implements Persistent
      * 
      * @return     string
      */
-    public function getTasCanSendMessage()
+    public function getTasCanSendMessage ()
     {
 
         return $this->tas_can_send_message;
@@ -565,7 +598,7 @@ abstract class BaseTask implements Persistent
      * 
      * @return     string
      */
-    public function getTasCanDeleteDocs()
+    public function getTasCanDeleteDocs ()
     {
 
         return $this->tas_can_delete_docs;
@@ -576,7 +609,7 @@ abstract class BaseTask implements Persistent
      * 
      * @return     string
      */
-    public function getTasSelfService()
+    public function getTasSelfService ()
     {
 
         return $this->tas_self_service;
@@ -587,33 +620,39 @@ abstract class BaseTask implements Persistent
      * 
      * @return     string
      */
-    public function getTasStart()
+    public function getTasStart ()
     {
 
         return $this->tas_start;
     }
 
-  
+    public function getFirstStep ()
+    {
+        return $this->firstStep;
+    }
+
+    public function setFirstStep ($firstStep)
+    {
+        $this->firstStep = $firstStep;
+    }
 
     /**
      * Get the [tas_send_last_email] column value.
      * 
      * @return     string
      */
-    public function getTasSendLastEmail()
+    public function getTasSendLastEmail ()
     {
 
         return $this->tas_send_last_email;
     }
-
-
 
     /**
      * Get the [tas_selfservice_timeout] column value.
      * 
      * @return     int
      */
-    public function getTasSelfserviceTimeout()
+    public function getTasSelfserviceTimeout ()
     {
 
         return $this->tas_selfservice_timeout;
@@ -624,7 +663,7 @@ abstract class BaseTask implements Persistent
      * 
      * @return     int
      */
-    public function getTasSelfserviceTime()
+    public function getTasSelfserviceTime ()
     {
 
         return $this->tas_selfservice_time;
@@ -635,7 +674,7 @@ abstract class BaseTask implements Persistent
      * 
      * @return     string
      */
-    public function getTasSelfserviceTimeUnit()
+    public function getTasSelfserviceTimeUnit ()
     {
 
         return $this->tas_selfservice_time_unit;
@@ -646,7 +685,7 @@ abstract class BaseTask implements Persistent
      * 
      * @return     string
      */
-    public function getTasSelfserviceTriggerUid()
+    public function getTasSelfserviceTriggerUid ()
     {
 
         return $this->tas_selfservice_trigger_uid;
@@ -657,12 +696,32 @@ abstract class BaseTask implements Persistent
      * 
      * @return     string
      */
-    public function getTasSelfserviceExecution()
+    public function getTasSelfserviceExecution ()
     {
 
         return $this->tas_selfservice_execution;
     }
 
+    /* Set the value of [tas_send_last_email] column.
+     * 
+     * @param      string $v new value
+     * @return     void
+     */
+
+    public function setTasSendLastEmail ($v)
+    {
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ( $v !== null && !is_string ($v) )
+        {
+            $v = (string) $v;
+        }
+        if ( $this->tas_send_last_email !== $v || $v === 'TRUE' )
+        {
+            $this->tas_send_last_email = $v;
+            $this->modifiedColumns[] = TaskPeer::TAS_SEND_LAST_EMAIL;
+        }
+    }
 
     /**
      * Set the value of [pro_uid] column.
@@ -670,21 +729,23 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setProUid($v)
+    public function setProUid ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->pro_uid !== $v || $v === '') {
+        if ( $this->pro_uid !== $v || $v === '' )
+        {
             $this->pro_uid = $v;
-            $this->modifiedColumns[] = TaskPeer::PRO_UID;
         }
+    }
 
-    } // setProUid()
+// setProUid()
 
     /**
      * Set the value of [tas_uid] column.
@@ -692,20 +753,23 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasUid($v)
+    public function setTasUid ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_uid !== $v || $v === '') {
+
+
+        if ( $this->tas_uid !== $v || $v === '' )
+        {
             $this->tas_uid = $v;
         }
-
-    } // setTasUid()
+    }
 
     /**
      * Set the value of [tas_id] column.
@@ -713,19 +777,20 @@ abstract class BaseTask implements Persistent
      * @param      int $v new value
      * @return     void
      */
-    public function setTasId($v)
+    public function setTasId ($v)
     {
 
         // Since the native PHP type for this column is integer,
         // we will cast the input value to an int (if it is not).
-        if ($v !== null && !is_int($v) && is_numeric($v)) {
+        if ( $v !== null && !is_int ($v) && is_numeric ($v) )
+        {
             $v = (int) $v;
         }
 
-        if ($this->tas_id !== $v) {
+        if ( $this->tas_id !== $v )
+        {
             $this->tas_id = $v;
         }
-
     }
 
     /**
@@ -734,19 +799,20 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasTitle($v)
+    public function setTasTitle ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_title !== $v) {
+        if ( $this->tas_title !== $v )
+        {
             $this->tas_title = $v;
         }
-
     }
 
     /**
@@ -755,19 +821,20 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasDescription($v)
+    public function setTasDescription ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_description !== $v) {
+        if ( $this->tas_description !== $v )
+        {
             $this->tas_description = $v;
         }
-
     }
 
     /**
@@ -776,19 +843,20 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasDefTitle($v)
+    public function setTasDefTitle ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_def_title !== $v) {
+        if ( $this->tas_def_title !== $v )
+        {
             $this->tas_def_title = $v;
         }
-
     }
 
     /**
@@ -797,21 +865,21 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasDefSubjectMessage($v)
+    public function setTasDefSubjectMessage ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_def_subject_message !== $v) {
+        if ( $this->tas_def_subject_message !== $v )
+        {
             $this->tas_def_subject_message = $v;
         }
-
-    } 
-
+    }
 
     /**
      * Set the value of [tas_def_message] column.
@@ -819,41 +887,42 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasDefMessage($v)
+    public function setTasDefMessage ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_def_message !== $v) {
+        if ( $this->tas_def_message !== $v )
+        {
             $this->tas_def_message = $v;
         }
-
     }
 
-  
     /**
      * Set the value of [tas_type] column.
      * 
      * @param      string $v new value
      * @return     void
      */
-    public function setTasType($v)
+    public function setTasType ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_type !== $v || $v === 'NORMAL') {
+        if ( $this->tas_type !== $v || $v === 'NORMAL' )
+        {
             $this->tas_type = $v;
         }
-
     }
 
     /**
@@ -862,13 +931,13 @@ abstract class BaseTask implements Persistent
      * @param      double $v new value
      * @return     void
      */
-    public function setTasDuration($v)
+    public function setTasDuration ($v)
     {
 
-        if ($this->tas_duration !== $v || $v === 0) {
+        if ( $this->tas_duration !== $v || $v === 0 )
+        {
             $this->tas_duration = $v;
         }
-
     }
 
     /**
@@ -877,41 +946,42 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasDelayType($v)
+    public function setTasDelayType ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_delay_type !== $v || $v === '') {
+        if ( $this->tas_delay_type !== $v || $v === '' )
+        {
             $this->tas_delay_type = $v;
         }
-
     }
 
-  
     /**
      * Set the value of [tas_type_day] column.
      * 
      * @param      string $v new value
      * @return     void
      */
-    public function setTasTypeDay($v)
+    public function setTasTypeDay ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_type_day !== $v || $v === '1') {
+        if ( $this->tas_type_day !== $v || $v === '1' )
+        {
             $this->tas_type_day = $v;
         }
-
     }
 
     /**
@@ -920,22 +990,21 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasTimeunit($v)
+    public function setTasTimeunit ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_timeunit !== $v || $v === 'DAYS') {
+        if ( $this->tas_timeunit !== $v || $v === 'DAYS' )
+        {
             $this->tas_timeunit = $v;
         }
-
     }
-
-   
 
     /**
      * Set the value of [tas_priority_variable] column.
@@ -943,19 +1012,20 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasPriorityVariable($v)
+    public function setTasPriorityVariable ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_priority_variable !== $v || $v === '') {
+        if ( $this->tas_priority_variable !== $v || $v === '' )
+        {
             $this->tas_priority_variable = $v;
         }
-
     }
 
     /**
@@ -964,19 +1034,20 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasAssignType($v)
+    public function setTasAssignType ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_assign_type !== $v || $v === 'BALANCED') {
+        if ( $this->tas_assign_type !== $v || $v === 'BALANCED' )
+        {
             $this->tas_assign_type = $v;
         }
-
     }
 
     /**
@@ -985,22 +1056,21 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasAssignVariable($v)
+    public function setTasAssignVariable ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_assign_variable !== $v || $v === '@@SYS_NEXT_USER_TO_BE_ASSIGNED') {
+        if ( $this->tas_assign_variable !== $v || $v === '@@SYS_NEXT_USER_TO_BE_ASSIGNED' )
+        {
             $this->tas_assign_variable = $v;
         }
-
     }
-
-  
 
     /**
      * Set the value of [tas_assign_location] column.
@@ -1008,19 +1078,20 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasAssignLocation($v)
+    public function setTasAssignLocation ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_assign_location !== $v || $v === 'FALSE') {
+        if ( $this->tas_assign_location !== $v || $v === 'FALSE' )
+        {
             $this->tas_assign_location = $v;
         }
-
     }
 
     /**
@@ -1029,19 +1100,20 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasAssignLocationAdhoc($v)
+    public function setTasAssignLocationAdhoc ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_assign_location_adhoc !== $v || $v === 'FALSE') {
+        if ( $this->tas_assign_location_adhoc !== $v || $v === 'FALSE' )
+        {
             $this->tas_assign_location_adhoc = $v;
         }
-
     }
 
     /**
@@ -1050,21 +1122,21 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasTransferFly($v)
+    public function setTasTransferFly ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_transfer_fly !== $v || $v === 'FALSE') {
+        if ( $this->tas_transfer_fly !== $v || $v === 'FALSE' )
+        {
             $this->tas_transfer_fly = $v;
         }
-
     }
-
 
     /**
      * Set the value of [tas_last_assigned] column.
@@ -1072,21 +1144,21 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasLastAssigned($v)
+    public function setTasLastAssigned ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_last_assigned !== $v || $v === '0') {
+        if ( $this->tas_last_assigned !== $v || $v === '0' )
+        {
             $this->tas_last_assigned = $v;
         }
-
     }
-
 
     /**
      * Set the value of [tas_user] column.
@@ -1094,20 +1166,21 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasUser($v)
+    public function setTasUser ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_user !== $v || $v === '0') {
+        if ( $this->tas_user !== $v || $v === '0' )
+        {
             $this->tas_user = $v;
         }
-
-    } 
+    }
 
     /**
      * Set the value of [tas_can_upload] column.
@@ -1115,21 +1188,21 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasCanUpload($v)
+    public function setTasCanUpload ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_can_upload !== $v || $v === 'FALSE') {
+        if ( $this->tas_can_upload !== $v || $v === 'FALSE' )
+        {
             $this->tas_can_upload = $v;
         }
-
-    } 
-
+    }
 
     /**
      * Set the value of [tas_view_upload] column.
@@ -1137,21 +1210,21 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasViewUpload($v)
+    public function setTasViewUpload ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_view_upload !== $v || $v === 'FALSE') {
+        if ( $this->tas_view_upload !== $v || $v === 'FALSE' )
+        {
             $this->tas_view_upload = $v;
         }
-
-    } 
-
+    }
 
     /**
      * Set the value of [tas_view_additional_documentation] column.
@@ -1159,21 +1232,21 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasViewAdditionalDocumentation($v)
+    public function setTasViewAdditionalDocumentation ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_view_additional_documentation !== $v || $v === 'FALSE') {
+        if ( $this->tas_view_additional_documentation !== $v || $v === 'FALSE' )
+        {
             $this->tas_view_additional_documentation = $v;
         }
-
-    } 
-
+    }
 
     /**
      * Set the value of [tas_can_cancel] column.
@@ -1181,21 +1254,31 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasCanCancel($v)
+    public function setTasCanCancel ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_can_cancel !== $v || $v === 'FALSE') {
+        if ( $this->tas_can_cancel !== $v || $v === 'FALSE' )
+        {
             $this->tas_can_cancel = $v;
         }
+    }
 
-    } 
+    public function getCalendarUid ()
+    {
+        return $this->calendarUid;
+    }
 
+    public function setCalendarUid ($calendarUid)
+    {
+        $this->calendarUid = $calendarUid;
+    }
 
     /**
      * Set the value of [tas_owner_app] column.
@@ -1203,22 +1286,21 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasOwnerApp($v)
+    public function setTasOwnerApp ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_owner_app !== $v || $v === '') {
+        if ( $this->tas_owner_app !== $v || $v === '' )
+        {
             $this->tas_owner_app = $v;
         }
-
     }
-
-   
 
     /**
      * Set the value of [tas_can_pause] column.
@@ -1226,21 +1308,21 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasCanPause($v)
+    public function setTasCanPause ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_can_pause !== $v || $v === 'FALSE') {
+        if ( $this->tas_can_pause !== $v || $v === 'FALSE' )
+        {
             $this->tas_can_pause = $v;
         }
-
     }
-
 
     /**
      * Set the value of [tas_can_send_message] column.
@@ -1248,20 +1330,21 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasCanSendMessage($v)
+    public function setTasCanSendMessage ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_can_send_message !== $v || $v === 'TRUE') {
+        if ( $this->tas_can_send_message !== $v || $v === 'TRUE' )
+        {
             $this->tas_can_send_message = $v;
         }
-
-    } 
+    }
 
     /**
      * Set the value of [tas_can_delete_docs] column.
@@ -1269,21 +1352,21 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasCanDeleteDocs($v)
+    public function setTasCanDeleteDocs ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_can_delete_docs !== $v || $v === 'FALSE') {
+        if ( $this->tas_can_delete_docs !== $v || $v === 'FALSE' )
+        {
             $this->tas_can_delete_docs = $v;
         }
-
-    } 
-
+    }
 
     /**
      * Set the value of [tas_self_service] column.
@@ -1291,21 +1374,21 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasSelfService($v)
+    public function setTasSelfService ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_self_service !== $v || $v === 'FALSE') {
+        if ( $this->tas_self_service !== $v || $v === 'FALSE' )
+        {
             $this->tas_self_service = $v;
         }
-
-    } 
-
+    }
 
     /**
      * Set the value of [tas_selfservice_timeout] column.
@@ -1313,20 +1396,21 @@ abstract class BaseTask implements Persistent
      * @param      int $v new value
      * @return     void
      */
-    public function setTasSelfserviceTimeout($v)
+    public function setTasSelfserviceTimeout ($v)
     {
 
         // Since the native PHP type for this column is integer,
         // we will cast the input value to an int (if it is not).
-        if ($v !== null && !is_int($v) && is_numeric($v)) {
+        if ( $v !== null && !is_int ($v) && is_numeric ($v) )
+        {
             $v = (int) $v;
         }
 
-        if ($this->tas_selfservice_timeout !== $v || $v === 0) {
+        if ( $this->tas_selfservice_timeout !== $v || $v === 0 )
+        {
             $this->tas_selfservice_timeout = $v;
         }
-
-    } 
+    }
 
     /**
      * Set the value of [tas_selfservice_time] column.
@@ -1334,21 +1418,21 @@ abstract class BaseTask implements Persistent
      * @param      int $v new value
      * @return     void
      */
-    public function setTasSelfserviceTime($v)
+    public function setTasSelfserviceTime ($v)
     {
 
         // Since the native PHP type for this column is integer,
         // we will cast the input value to an int (if it is not).
-        if ($v !== null && !is_int($v) && is_numeric($v)) {
+        if ( $v !== null && !is_int ($v) && is_numeric ($v) )
+        {
             $v = (int) $v;
         }
 
-        if ($this->tas_selfservice_time !== $v || $v === 0) {
+        if ( $this->tas_selfservice_time !== $v || $v === 0 )
+        {
             $this->tas_selfservice_time = $v;
         }
-
-    } 
-
+    }
 
     /**
      * Set the value of [tas_selfservice_time_unit] column.
@@ -1356,21 +1440,21 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasSelfserviceTimeUnit($v)
+    public function setTasSelfserviceTimeUnit ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_selfservice_time_unit !== $v || $v === '') {
+        if ( $this->tas_selfservice_time_unit !== $v || $v === '' )
+        {
             $this->tas_selfservice_time_unit = $v;
         }
-
-    } 
-
+    }
 
     /**
      * Set the value of [tas_selfservice_trigger_uid] column.
@@ -1378,21 +1462,21 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasSelfserviceTriggerUid($v)
+    public function setTasSelfserviceTriggerUid ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_selfservice_trigger_uid !== $v || $v === '') {
+        if ( $this->tas_selfservice_trigger_uid !== $v || $v === '' )
+        {
             $this->tas_selfservice_trigger_uid = $v;
         }
-
-    } 
-
+    }
 
     /**
      * Set the value of [tas_selfservice_execution] column.
@@ -1400,83 +1484,122 @@ abstract class BaseTask implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasSelfserviceExecution($v)
+    public function setTasSelfserviceExecution ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
 
-        if ($this->tas_selfservice_execution !== $v || $v === 'EVERY_TIME') {
+        if ( $this->tas_selfservice_execution !== $v || $v === 'EVERY_TIME' )
+        {
             $this->tas_selfservice_execution = $v;
         }
+    }
 
-    } 
+    public function getConnection ()
+    {
+        $this->objMysql = new Mysql2();
+    }
 
-	public function save()
-	{
+    public function save ()
+    {
+        if ( $this->objMysql === NULL )
+        {
+            $this->getConnection ();
+        }
 
-		 if(trim($this->tas_uid) === "") {
-            		$this->objMysql->_insert("workflow.task", ['PRO_UID' => $this->pro_uid,
-                		'TAS_DESCRIPTION' => $this->tas_description,
-                		'TAS_TYPE' => $this->tas_type,
-                		'TAS_DURATION' => $this->tas_duration,
-                		'TAS_SELFSERVICE_EXECUTION' => $this->tas_selfservice_execution,
-                		'TAS_TYPE_DAY' => $this->tas_type_day,
-                		'TAS_TIMEUNIT' => $this->tas_timeunit,
-                		'TAS_DELAY_TYPE' => $this->tas_delay_type,
-                		'TAS_ASSIGN_TYPE' => $this->tas_assign_type,
-                		'TAS_SELF_SERVICE' => $this->tas_self_service,
-                		'TAS_SELFSERVICE_TIMEOUT' => $this->tas_selfservice_timeout,
-                		'TAS_SELFSERVICE_TIME' => $this->tas_selfservice_time,
-                		'TAS_SELFSERVICE_TIME_UNIT' => $this->tas_selfservice_time_unit,
-                		'TAS_SELFSERVICE_TRIGGER_UID' => $this->tas_selfservice_trigger_uid]);
-        	} else {
-`				$this->objMysql->_update("workflow.task", ['PRO_UID' => $this->pro_uid,
-                		'TAS_DESCRIPTION' => $this->tas_description,
-                		'TAS_TYPE' => $this->tas_type,
-                		'TAS_DURATION' => $this->tas_duration,
-                		'TAS_SELFSERVICE_EXECUTION' => $this->tas_selfservice_execution,
-                		'TAS_TYPE_DAY' => $this->tas_type_day,
-                		'TAS_TIMEUNIT' => $this->tas_timeunit,
-                		'TAS_DELAY_TYPE' => $this->tas_delay_type,
-                		'TAS_ASSIGN_TYPE' => $this->tas_assign_type,
-                		'TAS_SELF_SERVICE' => $this->tas_self_service,
-                		'TAS_SELFSERVICE_TIMEOUT' => $this->tas_selfservice_timeout,
-                		'TAS_SELFSERVICE_TIME' => $this->tas_selfservice_time,
-                		'TAS_SELFSERVICE_TIME_UNIT' => $this->tas_selfservice_time_unit,
-                		'TAS_SELFSERVICE_TRIGGER_UID' => $this->tas_selfservice_trigger_uid], ["TAS_UID" => $this->tas_uid]);
-            
-        	}
+        if ( trim ($this->tas_uid) === "" )
+        {
+            $this->objMysql->_insert ("workflow.steps", ['PRO_UID' => $this->pro_uid,
+                'TAS_DESCRIPTION' => $this->tas_description,
+                'TAS_TYPE' => $this->tas_type,
+                'TAS_DURATION' => $this->tas_duration,
+                'TAS_SELFSERVICE_EXECUTION' => $this->tas_selfservice_execution,
+                'TAS_TYPE_DAY' => $this->tas_type_day,
+                'TAS_TIMEUNIT' => $this->tas_timeunit,
+                'TAS_DELAY_TYPE' => $this->tas_delay_type,
+                'TAS_ASSIGN_TYPE' => $this->tas_assign_type,
+                'TAS_SELF_SERVICE' => $this->tas_self_service,
+                'TAS_SELFSERVICE_TIMEOUT' => $this->tas_selfservice_timeout,
+                'TAS_SELFSERVICE_TIME' => $this->tas_selfservice_time,
+                'TAS_SELFSERVICE_TIME_UNIT' => $this->tas_selfservice_time_unit,
+                'TAS_TRANSFER_FLY' => $this->tas_transfer_fly,
+                'TAS_SELFSERVICE_TRIGGER_UID' => $this->tas_selfservice_trigger_uid]);
+        }
+        else
+        {
+            $this->objMysql->_update ("workflow.steps", ['PRO_UID' => $this->pro_uid,
+                'TAS_DESCRIPTION' => $this->tas_description,
+                'TAS_TYPE' => $this->tas_type,
+                'TAS_DURATION' => $this->tas_duration,
+                'TAS_SELFSERVICE_EXECUTION' => $this->tas_selfservice_execution,
+                'TAS_TYPE_DAY' => $this->tas_type_day,
+                'TAS_TIMEUNIT' => $this->tas_timeunit,
+                'TAS_DELAY_TYPE' => $this->tas_delay_type,
+                'TAS_ASSIGN_TYPE' => $this->tas_assign_type,
+                'TAS_SELF_SERVICE' => $this->tas_self_service,
+                'TAS_SELFSERVICE_TIMEOUT' => $this->tas_selfservice_timeout,
+                'TAS_SELFSERVICE_TIME' => $this->tas_selfservice_time,
+                'TAS_SELFSERVICE_TIME_UNIT' => $this->tas_selfservice_time_unit,
+                'TAS_TRANSFER_FLY' => $this->tas_transfer_fly,
+                'TAS_SELFSERVICE_TRIGGER_UID' => $this->tas_selfservice_trigger_uid], ["TAS_UID" => $this->tas_uid]
+            );
+        }
+    }
 
-	}
+    /**
+     * Array of ValidationFailed objects.
+     * @var        array ValidationFailed[]
+     */
+    protected $validationFailures = array();
 
-	  public function validate()
+    /**
+     * Gets any ValidationFailed objects that resulted from last call to validate().
+     *
+     *
+     * @return     array ValidationFailed[]
+     * @see        validate()
+     */
+    public function getValidationFailures ()
+    {
+        return $this->validationFailures;
+    }
+
+    public function validate ()
     {
         foreach ($this->arrFieldMapping as $strColumnName => $arrFieldMap) {
 
-            if ($arrFieldMap['required'] === 'true') {
+            if ( $arrFieldMap['required'] === 'true' )
+            {
 
-                if (trim($this->{$arrFieldMap['accessor']}()) === "") {
+                if ( trim ($this->{$arrFieldMap['accessor']} ()) === "" )
+                {
                     $this->validationFailures[] = $strColumnName . " Is missing";
                 }
             }
         }
 
-        return count($this->validationFailures) > 0 ? false : true;
+        return count ($this->validationFailures) > 0 ? false : true;
     }
 
-    public function loadObject(array $arrData)
+    public function loadObject (array $arrData)
     {
-        if (!empty($arrData) && is_array($arrData)) {
+
+        if ( !empty ($arrData) && is_array ($arrData) )
+        {
             foreach ($this->arrFieldMapping as $strFieldKey => $arrFields) {
-                if (isset($arrData[$strFieldKey])) {
+                if ( isset ($arrData[$strFieldKey]) )
+                {
+
                     $strMutatorMethod = $arrFields['mutator'];
 
-                    if (is_callable(array($this, $strMutatorMethod))) {
-                        call_user_func(array($this, $strMutatorMethod), $arrData[$strFieldKey]);
+                    if ( is_callable (array($this, $strMutatorMethod)) )
+                    {
+                        call_user_func (array($this, $strMutatorMethod), $arrData[$strFieldKey]);
                     }
                 }
             }
@@ -1487,40 +1610,4 @@ abstract class BaseTask implements Persistent
         return false;
     }
 
-
-/*
-ALTER TABLE `step`
-ADD COLUMN `TAS_UID`  int(11) NULL AFTER `id`,
-ADD COLUMN `PRO_UID`  int(11) NULL AFTER `TAS_UID`,
-ADD COLUMN `TAS_DESCRIPTION`  text NULL AFTER `PRO_UID`,
-ADD COLUMN `TAS_TYPE`  enum('NORMAL','SUBPROCESS','WEBENTRYEVENT','SERVICE-TASK','INTERMEDIATE-CATCH-TIMER-EVENT','INTERMEDIATE-THROW-EMAIL-EVENT','START-TIMER-EVENT','START-MESSAGE-EVENT','END-MESSAGE-EVENT','INTERMEDIATE-THROW-MESSAGE-EVENT','INTERMEDIATE-CATCH-MESSAGE-EVENT') NULL AFTER `TAS_DESCRIPTION`,
-ADD COLUMN `TAS_DURATION`  double NULL AFTER `TAS_TYPE`,
-ADD COLUMN `TAS_DELAY_TYPE`  varchar(30) NULL AFTER `TAS_DURATION`,
-ADD COLUMN `TAS_TYPE_DAY`  char(1) NULL AFTER `TAS_DELAY_TYPE`,
-ADD COLUMN `TAS_TIMEUNIT`  enum('MINUTES','HOURS','DAYS','WEEKS','MONTHS') NULL AFTER `TAS_TYPE_DAY`,
-ADD COLUMN `TAS_PRIORITY_VARIABLE`  varchar(100) NULL AFTER `TAS_TIMEUNIT`,
-ADD COLUMN `TAS_ASSIGN_TYPE`  enum('BALANCED','MANUAL','EVALUATE','REPORT_TO','SELF_SERVICE','MULTIPLE_INSTANCE_VALUE_BASED','MULTIPLE_INSTANCE') NULL AFTER `TAS_PRIORITY_VARIABLE`,
-ADD COLUMN `TAS_CAN_UPLOAD`  varchar(20) NULL AFTER `TAS_ASSIGN_TYPE`,
-ADD COLUMN `TAS_USER`  varchar(32) NULL AFTER `TAS_CAN_UPLOAD`,
-ADD COLUMN `TAS_VIEW_UPLOAD`  varchar(20) NULL AFTER `TAS_USER`,
-ADD COLUMN `TAS_CAN_CANCEL`  varchar(20) NULL AFTER `TAS_VIEW_UPLOAD`,
-ADD COLUMN `TAS_CAN_PAUSE`  varchar(20) NULL AFTER `TAS_CAN_CANCEL`,
-ADD COLUMN `TAS_CAN_SEND_MESSAGE`  varchar(20) NULL AFTER `TAS_CAN_PAUSE`,
-ADD COLUMN `TAS_CAN_DELETE_DOCS`  varchar(20) NULL AFTER `TAS_CAN_SEND_MESSAGE`,
-ADD COLUMN `TAS_SELF_SERVICE`  varchar(20) NULL AFTER `TAS_CAN_DELETE_DOCS`,
-ADD COLUMN `TAS_START`  varchar(20) NULL AFTER `TAS_SELF_SERVICE`,
-ADD COLUMN `TAS_SELFSERVICE_TIMEOUT`  int(11) NULL AFTER `TAS_START`,
-ADD COLUMN `TAS_SELFSERVICE_TIME`  int(11) NULL AFTER `TAS_SELFSERVICE_TIMEOUT`,
-ADD COLUMN `TAS_SELFSERVICE_TIME_UNIT`  varchar(15) NULL AFTER `TAS_SELFSERVICE_TIME`,
-ADD COLUMN `TAS_SELFSERVICE_TRIGGER_UID`  varchar(32) NULL AFTER `TAS_SELFSERVICE_TIME_UNIT`,
-ADD COLUMN `TAS_SELFSERVICE_EXECUTION`  varchar(15) NULL AFTER `TAS_SELFSERVICE_TRIGGER_UID`;
-
-*/
-
-UPDATE step
-INNER JOIN
-status_mapping
-ON status_mapping.status_from = step.step_id
-SET step.TAS_UID = status_mapping.id
-	
 }

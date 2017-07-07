@@ -67,8 +67,44 @@ class InputDocument extends BaseInputDocument
 
     public function delete ($inputDocumentUid)
     {
-        $this->setId($inputDocumentUid);
-        $this->remove();
+        $this->setId ($inputDocumentUid);
+        $this->remove ();
+    }
+    
+    public function retrieveByPk($pk)
+    {
+        $result = $this->objMysql->_select("workflow.documents", [], ["id" => $pk]);
+        
+        if(isset($result[0]) && !empty($result[0])) {
+            $objDoc = new InputDocument();
+            $objDoc->setId($pk);
+            
+            return $objDoc;
+        }
+        
+        return FALSE;
+    }
+
+    /**
+     * verify if Input row specified in [DynUid] exists.
+     *
+     * @param string $sUid the uid of the Prolication
+     */
+    public function InputExists ($sUid)
+    {
+        try {
+            $oObj = $this->retrieveByPk ($sUid);
+            if ( is_object ($oObj) && get_class ($oObj) == 'InputDocument' )
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        } catch (Exception $oError) {
+            throw ($oError);
+        }
     }
 
 }

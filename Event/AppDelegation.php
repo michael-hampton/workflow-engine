@@ -144,15 +144,15 @@ class AppDelegation
         }
     }
 
-    public function calculateDueDate (Flow $objFlow)
+    public function calculateDueDate (Task $objTask)
     {
         
-        $aData['TAS_DURATION'] = $objFlow->getTasDuration ();
-        $aData['TAS_TIMEUNIT'] = $objFlow->getTasTimeUnit ();
-        $aData['TAS_TYPE_DAY'] = $objFlow->getTasTypeDay ();
-        if ( trim ($objFlow->getCalendarUid ()) !== "" )
+        $aData['TAS_DURATION'] = $objTask->getTasDuration ();
+        $aData['TAS_TIMEUNIT'] = $objTask->getTasTimeunit ();
+        $aData['TAS_TYPE_DAY'] = $objTask->getTasTypeDay ();
+        if ( trim ($objTask->getCalendarUid ()) !== "" )
         {
-            $aCalendarUID = $objFlow->getCalendarUid ();
+            $aCalendarUID = $objTask->getCalendarUid ();
         }
         else
         {
@@ -181,11 +181,11 @@ class AppDelegation
 
     public function test ()
     {
-        $objFlow = new Flow();
-        $objFlow->setTasDuration (5);
-        $objFlow->setTasTimeUnit ("DAYS");
-        $objFlow->setTasTypeDay ("CALENDAR DAYS");
-        $objFlow->setCalendarUid (15);
+        $objTask = new Task();
+        $objTask->setTasDuration(5);
+        $objTask->setTasTimeunit ("DAYS");
+        $objTask->setTasTypeDay ("CALENDAR DAYS");
+        $objTask->setCalendarUid (15);
 
         $delTaskDueDate = $this->calculateDueDate ($objFlow);
         $delRiskDate = $this->calculateRiskDate ($objFlow, date ("Y-m-d H:i:s"), $this->getRisk ());

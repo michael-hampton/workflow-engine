@@ -307,7 +307,7 @@ class BPMNWorkflow extends BPMN
                     $objTask->removeTask ($steps['key']);
 
                     $objTask->setStepName ($steps['text']);
-                    $id = $objTask->save ();
+                    $id = $objTask->saveNewStep ();
 
                     $arrStepFields[$steps['key']]['step_id'] = $id;
 

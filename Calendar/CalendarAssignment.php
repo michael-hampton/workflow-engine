@@ -36,6 +36,7 @@ class CalendarAssignment extends BaseCalendarAssignment
         }
         
         $objCalendarAssignment = new CalendarAssignment();
+        $objCalendarAssignment->setCalendarUid($result[0]['CALENDAR_UID']);
         
         return $objCalendarAssignment;
     }

@@ -355,7 +355,8 @@ class WorkflowStep
         try {
             if ( !isset ($this->objAudit['elements'][$this->elementId]['steps'][$step]) )
             {
-                $arrCompleteData['due_date'] = $objAppDelegation->calculateDueDate ((new Flow ($step))->retrieveByPk ($step));
+                $objTask = new Task();
+                $arrCompleteData['due_date'] = $objAppDelegation->calculateDueDate ((new Task ($step))->retrieveByPk ($step));
             }
             else
             {
@@ -501,18 +502,6 @@ class WorkflowStep
         }
         return [];
     }
-
-    public function stepExistsNew ($stepId)
-    {
-        $result = $this->objMysql->_select ("workflow.task", [], ["TAS_UID" => $stepId]);
-        if ( isset ($result[0]) && !empty ($result[0]) )
-        {
-            return true;
-        }
-        return false;
-    }
-
-
 
     public function stepExists ($stepId)
     {

@@ -89,7 +89,7 @@ class BPMN
     public function createTask ($stepName)
     {
         $this->objTask->setStepName ($stepName);
-        $this->objTask->save ();
+        $this->objTask->saveNewStep ();
     }
 
     public function addParticipant ()

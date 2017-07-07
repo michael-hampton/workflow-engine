@@ -1,25 +1,64 @@
 <?php
+
 class Step extends BaseStep
 {
- /*
-    * update the step information using an array with all values
-    * @param array $fields
-    * @return variant
-    */
+    private $objMysql;
+
+    public function __construct ()
+    {
+        parent::__construct ();
+        $this->objMysql = new Mysql2();
+    }
+
+    /*
+     * update the step information using an array with all values
+     * @param array $fields
+     * @return variant
+     */
+
     public function update ($fields)
     {
         try {
-            $this->load( $fields['STEP_UID'] );
-            $this->loadObject( $fields );
-            if ($this->validate()) {
-                $result = $this->save();
+            
+            $this->loadObject ($fields);
+            if ( $this->validate () )
+            {
+                $result = $this->save ();
                 return $result;
-            } else {
-                throw (new Exception( "Failed Validation in class " . get_class( $this ) . "." ));
+            }
+            else
+            {
+                $messages = $this->getValidationFailures();
+                $strMessage = '';
+                
+                foreach ($messages as $message) {
+                    $strMessage .= $message . "</br>";
+                }
+                
+                throw (new Exception ("Could not save step " . $strMessage));
             }
         } catch (Exception $e) {
             throw ($e);
         }
+    }
+    
+    public function delete($type, $documentId, $task)
+    {
+        $this->setTasUid($task);
+        $this->setStepTypeObj($type);
+        $this->setStepUidObj($documentId);
+        $this->doDelete();
+    }
+
+    public function stepExists ($stepId)
+    {
+        
+        $result = $this->objMysql->_select ("workflow.steps", [], ["TAS_UID" => $stepId]);
+        if ( isset ($result[0]) && !empty ($result[0]) )
+        {
+            return true;
+        }
+        return false;
     }
 
 }

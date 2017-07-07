@@ -50,8 +50,8 @@ require_once HOME_DIR . '/core/app/library/Event/BaseAppDelegation.php';
 require_once HOME_DIR . '/core/app/library/Event/AppDelegation.php';
 
 /* * *********************** Documents ******************************************** */
-require_once HOME_DIR . '/core/app/library/Documents/StepDocument.php';
-require_once HOME_DIR . '/core/app/library/BusinessModel/StepDocument.php';
+//require_once HOME_DIR . '/core/app/library/Documents/StepDocument.php';
+//require_once HOME_DIR . '/core/app/library/BusinessModel/StepDocument.php';
 require_once HOME_DIR . '/core/app/library/Documents/BaseProcessFile.php';
 require_once HOME_DIR . '/core/app/library/Documents/ProcessFile.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/FileUpload.php';
@@ -121,6 +121,7 @@ require_once HOME_DIR . '/core/app/library/BusinessModel/NotificationsFactory.ph
 /* * ********************* BPMN Classes ***************************************************** */
 require_once HOME_DIR . '/core/app/library/BPMN/BPMN.php';
 require_once HOME_DIR . '/core/app/library/BPMN/BPMNWorkflow.php';
+require_once HOME_DIR . '/core/app/library/BPMN/BaseTask.php';
 require_once HOME_DIR . '/core/app/library/BPMN/Task.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/Task.php';
 require_once HOME_DIR . '/core/app/library/BPMN/Participant.php';

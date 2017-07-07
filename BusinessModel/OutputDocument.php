@@ -195,12 +195,11 @@ class OutputDocument
             //Return
 
             $objStepDocument = new \BusinessModel\Step();
-           $objStepDocument->create($objStep->getTasUid(), $sProcessUID, array('STEP_UID_OBJ' => $outDocUid,
-                                                                                'STEP_TYPE_OBJ' => "OUTPUT_DOCUMENT",
-                                                                                'STEP_MODE' => "EDIT"));
-            unset ($outputDocumentData["PRO_UID"]);
 
-            $objStepDocument->save ();
+            $objStepDocument->create ($objStep->getTasUid (), $objStep->getProUid (), array('STEP_UID_OBJ' => $outDocUid,
+                'STEP_TYPE_OBJ' => "OUTPUT_DOCUMENT",
+                'STEP_MODE' => "EDIT"));
+            unset ($outputDocumentData["PRO_UID"]);
 
             $outputDocumentData["out_doc_uid"] = $outDocUid;
             return $outputDocumentData;
@@ -438,18 +437,56 @@ class OutputDocument
     {
 
         try {
-            $results = $this->objMysql->_query ("SELECT * FROM workflow.output_document d INNER JOIN workflow.step_object sd ON sd.STEP_UID_OBJ = d.id WHERE sd.TAS_UID = ? AND sd.STEP_TYPE_OBJ = 'OUTPUT_DOCUMENT'", [$objStep->getTasUid()]);
+            $results = $this->objMysql->_query ("SELECT * FROM workflow.output_document d INNER JOIN workflow.step_object sd ON sd.STEP_UID_OBJ = d.id WHERE sd.TAS_UID = ? AND sd.STEP_TYPE_OBJ = 'OUTPUT_DOCUMENT'", [$objStep->getTasUid ()]);
 
             $arrDocuments = [];
 
             foreach ($results as $key => $result) {
                 $oDocument = new \OutputDocument ();
-                $arrDocuments[] = $oDocument->retrieveByPk ($result['document_id']);
+                $arrDocuments[] = $oDocument->retrieveByPk ($result['id']);
             }
 
             return $arrDocuments;
         } catch (\Exception $e) {
             throw $e;
+        }
+    }
+
+    public function assignToStep ($assignArr, \Step $objStep)
+    {
+        try {
+            $arrAssignedDocs = $this->getOutputDocumentsForStep ($objStep);
+            
+            $arrAssigned = [];
+
+            foreach ($arrAssignedDocs as $arrAssignedDoc) {
+                $arrAssigned[] = $arrAssignedDoc->getOutDocUid ();
+            }
+
+            foreach ($arrAssigned as $docId) {
+                if ( !in_array ($docId, $assignArr) )
+                {
+                    $objSDtepDocument = new \Step();
+                    $objSDtepDocument->delete ("OUTPUT_DOCUMENT", $docId, $objStep->getTasUid ());
+                }
+            }
+
+            if ( isset ($assignArr['selectedDocs']) && !empty ($assignArr['selectedDocs']) )
+            {
+                foreach ($assignArr['selectedDocs'] as $docId) {
+                    if ( !in_array ($docId, $arrAssigned) )
+                    {
+                        $objStepDocument = new \BusinessModel\Step();
+
+                        $objStepDocument->create ($objStep->getTasUid (), $objStep->getProUid (), array('STEP_UID_OBJ' => $docId,
+                            'STEP_TYPE_OBJ' => "OUTPUT_DOCUMENT",
+                            'STEP_MODE' => "EDIT"));
+                    }
+                }
+            }
+        } catch (Exception $ex) {
+            echo $ex->getMessage ();
+            die;
         }
     }
 

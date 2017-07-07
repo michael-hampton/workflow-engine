@@ -1,4 +1,5 @@
 <?php
+
 namespace BusinessModel;
 
 class InputDocument
@@ -84,7 +85,7 @@ class InputDocument
     public function getInputDocumentForStep (\Step $objStep)
     {
         try {
-            $results = $this->objMysql->_query ("SELECT * FROM workflow.documents d INNER JOIN workflow.step_object sd ON sd.STEP_UID_OBJ = d.id WHERE sd.TAS_UID = ? AND STEP_TYPE_OBJ = 'INPUT_DOCUMENT'", [$objStep->getTasUid()]);
+            $results = $this->objMysql->_query ("SELECT * FROM workflow.documents d INNER JOIN workflow.step_object sd ON sd.STEP_UID_OBJ = d.id WHERE sd.TAS_UID = ? AND STEP_TYPE_OBJ = 'INPUT_DOCUMENT'", [$objStep->getTasUid ()]);
 
             $arrDocuments = [];
 
@@ -94,7 +95,7 @@ class InputDocument
                 $arrDocuments[$key]->setDestinationPath ($result['destination_path']);
                 $arrDocuments[$key]->setFileType ($result['filetype']);
                 $arrDocuments[$key]->setFilesizeUnit ($result['filesize_unit']);
-                $arrDocuments[$key]->setId ($result['document_id']);
+                $arrDocuments[$key]->setId ($result['id']);
                 $arrDocuments[$key]->setMaxFileSize ($result['max_filesize']);
                 $arrDocuments[$key]->setTitle ($result['name']);
                 $arrDocuments[$key]->setVersioning ($result['allow_versioning']);
@@ -121,12 +122,11 @@ class InputDocument
             //$process->throwExceptionIfNotExistsProcess ($processUid, $this->arrayFieldNameForException["processUid"]);
             //$process->throwExceptionIfDataNotMetFieldDefinition ($arrayData, $this->arrayFieldDefinition, $this->arrayFieldNameForException, true);
 
-            $objStep = new \WorkflowStep();
-            if ( !$objStep->stepExistsNew ($objStep->getTasUid()) )
+            if ( !$objStep->stepExists ($objStep->getTasUid ()) )
             {
                 throw new \Exception ("Step does not exist");
             }
-            $this->throwExceptionIfExistsTitle ($objStep->getTasUid(), $arrayData["INP_DOC_TITLE"]);
+            $this->throwExceptionIfExistsTitle ($objStep->getTasUid (), $arrayData["INP_DOC_TITLE"]);
 
             //Flags
             $flagDataDestinationPath = (isset ($arrayData["INP_DOC_DESTINATION_PATH"])) ? 1 : 0;
@@ -134,15 +134,14 @@ class InputDocument
 
             //Create
             $inputDocument = new \InputDocument ();
-            $arrayData["PRO_UID"] = $objStep->getProUid();
+            $arrayData["PRO_UID"] = $objStep->getProUid ();
             $arrayData["INP_DOC_DESTINATION_PATH"] = ($flagDataDestinationPath == 1) ? $arrayData["INP_DOC_DESTINATION_PATH"] : "";
             $arrayData["INP_DOC_TAGS"] = ($flagDataTags == 1) ? $arrayData["INP_DOC_TAGS"] : "";
 
             $documentId = $inputDocument->create ($arrayData);
-            $objStepDocument = new \Step();
-            $objStepDocument->create($objStep->getTasUid(), $objStep->getProUid(), array('STEP_UID_OBJ' => $documentId,
-                                                                                'STEP_TYPE_OBJ' => "INPUT_DOCUMENT",
-                                                                                'STEP_MODE' => "EDIT"));
+            (new \BusinessModel\Step())->create ($objStep->getTasUid (), $objStep->getProUid (), array('STEP_UID_OBJ' => $documentId,
+                'STEP_TYPE_OBJ' => "INPUT_DOCUMENT",
+                'STEP_MODE' => "EDIT"));
 
 
             //Return
@@ -201,7 +200,7 @@ class InputDocument
         try {
             if ( $this->existsTitle ($processUid, $inputDocumentTitle) )
             {
-                throw new \Exception ("ID_INPUT_DOCUMENT_TITLE_ALREADY_EXISTS");
+                //throw new \Exception ("ID_INPUT_DOCUMENT_TITLE_ALREADY_EXISTS");
             }
         } catch (\Exception $e) {
             throw $e;
@@ -299,7 +298,7 @@ class InputDocument
 
             //Step
             $result = $this->objMysql->_select ("workflow.step_object", array(), array("STEP_UID_OBJ" => $inputDocumentUid));
-            
+
             if ( isset ($result[0]) && !empty ($result[0]) )
             {
                 $flagAssigned = true;
@@ -351,22 +350,22 @@ class InputDocument
             foreach ($arrAssigned as $docId) {
                 if ( !in_array ($docId, $assignArr) )
                 {
-//                    $objSDtepDocument = new \StepDocument();
-//                    $objSDtepDocument->setStepId($this->stepId);
-//                    $objSDtepDocument->setDocumentType(2);
-//                    $objSDtepDocument->setDocumentId($docId);
-//                    $objSDtepDocument->delete();
+                    $objSDtepDocument = new \Step();
+                    $objSDtepDocument->delete ("INPUT_DOCUMENT", $docId, $objStep->getTasUid ());
                 }
             }
 
-            foreach ($assignArr as $docId) {
-                if ( !in_array ($docId, $arrAssigned) )
-                {
-                    $objStepDocument = new \Step();
-                    
-                    $objStepDocument->create($objStep->getTasUid(), $objStep->getProUid(), array('STEP_UID_OBJ' => $docId,
-                                                                                        'STEP_TYPE_OBJ' => "INPUT_DOCUMENT",
-                                                                '                       STEP_MODE' => "EDIT"));
+            if ( isset ($assignArr['selectedDocs']) && !empty ($assignArr['selectedDocs']) )
+            {
+                foreach ($assignArr['selectedDocs'] as $docId) {
+                    if ( !in_array ($docId, $arrAssigned) )
+                    {
+                        $objStepDocument = new \BusinessModel\Step();
+
+                        $objStepDocument->create ($objStep->getTasUid (), $objStep->getProUid (), array('STEP_UID_OBJ' => $docId,
+                            'STEP_TYPE_OBJ' => "INPUT_DOCUMENT",
+                            'STEP_MODE' => "EDIT"));
+                    }
                 }
             }
         } catch (Exception $ex) {

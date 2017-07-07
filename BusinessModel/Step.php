@@ -1,17 +1,22 @@
 <?php
+
 namespace BusinessModel;
 
 class Step
 {
-	public $objMysql;
-	
-	
-	public function __construct()
-	{
-		$this->objMyql = new Mysql2();
-	}
-	
-	
+
+    public $objMysql;
+
+    public function __construct ()
+    {
+        $this->objMyql = new \Mysql2();
+    }
+
+    public function getConnection ()
+    {
+        $this->objMysql = new \Mysql2();
+    }
+
     /**
      * Verify if exists the record in table STEP
      *
@@ -23,33 +28,44 @@ class Step
      *
      * return bool Return true if exists the record in table STEP, false otherwise
      */
-    public function existsRecord($taskUid, $type, $objectUid, $position = 0, $stepUidExclude = "")
+    public function existsRecord ($taskUid, $type, $objectUid, $position = 0, $stepUidExclude = "")
     {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
         try {
-            
+
             $sql = "SELECT STEP_UID FROM step_object WHERE TAS_UID = ?";
             $arrParameters = array($taskUid);
-            
-            if ($stepUidExclude != "") {
+
+            if ( $stepUidExclude != "" )
+            {
                 $sql .= " AND STEP_UID != ?";
                 $arrParameters[] = $stepUidExclude;
             }
 
-            if ($type != "") {
+            if ( $type != "" )
+            {
                 $sql .= " AND STEP_TYPE_OBJ = ?";
                 $arrParameters[] = $type;
             }
 
-            if ($objectUid != "") {
+            if ( $objectUid != "" )
+            {
                 $sql .= " AND STEP_UID_OBJ = ?";
                 $arrParameters[] = $objectUid;
             }
 
-           $result = $this->objMysql->_query($sql, $arrParameters);
+            $result = $this->objMysql->_query ($sql, $arrParameters);
 
-            if(isset($result[0]) && !empty($result[0])) {
+            if ( isset ($result[0]) && !empty ($result[0]) )
+            {
                 return true;
-            } else {
+            }
+            else
+            {
                 return false;
             }
         } catch (\Exception $e) {
@@ -66,7 +82,7 @@ class Step
      *
      * return strin Return empty string if $objectUid exists in the corresponding table, return string with data if $objectUid doesn't exist
      */
-    public function existsObjectUid($type, $objectUid)
+    public function existsObjectUid ($type, $objectUid)
     {
         try {
             $msg = "";
@@ -75,21 +91,24 @@ class Step
                 case "DYNAFORM":
                     $dynaform = new \Dynaform();
 
-                    if (!$dynaform->dynaformExists($objectUid)) {
+                    if ( !$dynaform->dynaformExists ($objectUid) )
+                    {
                         $msg = "ID_DYNAFORM_DOES_NOT_EXIST";
                     }
                     break;
                 case "INPUT_DOCUMENT":
                     $inputdoc = new \InputDocument();
 
-                    if (!$inputdoc->InputExists($objectUid)) {
+                    if ( !$inputdoc->InputExists ($objectUid) )
+                    {
                         $msg = "ID_INPUT_DOCUMENT_DOES_NOT_EXIST";
                     }
                     break;
                 case "OUTPUT_DOCUMENT":
                     $outputdoc = new \OutputDocument();
 
-                    if (!$outputdoc->OutputExists($objectUid)) {
+                    if ( !$outputdoc->OutputExists ($objectUid) )
+                    {
                         $msg = "ID_OUTPUT_DOCUMENT_DOES_NOT_EXIST";
                     }
                     break;
@@ -108,13 +127,14 @@ class Step
      *
      * return void Throw exception if Type Object has invalid value
      */
-    public function throwExceptionIfHaveInvalidValueInTypeObj($stepTypeObj)
+    public function throwExceptionIfHaveInvalidValueInTypeObj ($stepTypeObj)
     {
         $arrayDefaultValues = array("DYNAFORM", "INPUT_DOCUMENT", "OUTPUT_DOCUMENT", "EXTERNAL");
 
-        if (!in_array($stepTypeObj, $arrayDefaultValues)) {
+        if ( !in_array ($stepTypeObj, $arrayDefaultValues) )
+        {
 
-            throw new \Exception("ID_INVALID_VALUE_ONLY_ACCEPTS_VALUES");
+            throw new \Exception ("ID_INVALID_VALUE_ONLY_ACCEPTS_VALUES");
         }
     }
 
@@ -125,13 +145,14 @@ class Step
      *
      * return void Throw exception if Mode has invalid value
      */
-    public function throwExceptionIfHaveInvalidValueInMode($stepMode)
+    public function throwExceptionIfHaveInvalidValueInMode ($stepMode)
     {
         $arrayDefaultValues = array("EDIT", "VIEW");
 
-        if (!in_array($stepMode, $arrayDefaultValues)) {
+        if ( !in_array ($stepMode, $arrayDefaultValues) )
+        {
 
-            throw new \Exception("ID_INVALID_VALUE_ONLY_ACCEPTS_VALUES");
+            throw new \Exception ("ID_INVALID_VALUE_ONLY_ACCEPTS_VALUES");
         }
     }
 
@@ -142,12 +163,13 @@ class Step
      *
      * return void Throw exception if doesn't exist the Step in table STEP
      */
-    public function throwExceptionIfNotExistsStep($stepUid)
+    public function throwExceptionIfNotExistsStep ($stepUid)
     {
         $step = new \Step();
 
-        if (!$step->StepExists($stepUid)) {
-            throw new \Exception("ID_STEP_DOES_NOT_EXIST");
+        if ( !$step->StepExists ($stepUid) )
+        {
+            throw new \Exception ("ID_STEP_DOES_NOT_EXIST");
         }
     }
 
@@ -158,12 +180,13 @@ class Step
      *
      * return void Throw exception if doesn't exist the Process in table PROCESS
      */
-    public function throwExceptionIfNotExistsProcess($processUid)
+    public function throwExceptionIfNotExistsProcess ($processUid)
     {
         $process = new \BusinessModel\Process();
 
-        if (!$process->processExists($processUid)) {
-            throw new \Exception("ID_PROJECT_DOES_NOT_EXIST");
+        if ( !$process->processExists ($processUid) )
+        {
+            throw new \Exception ("ID_PROJECT_DOES_NOT_EXIST");
         }
     }
 
@@ -176,75 +199,82 @@ class Step
      *
      * return array Return data of the new Step created
      */
-    public function create($taskUid, $processUid, $arrayData)
+    public function create ($taskUid, $processUid, $arrayData)
     {
         try {
 
-            unset($arrayData["STEP_UID"]);
+            unset ($arrayData["STEP_UID"]);
 
             //Verify data
             $task = new \BusinessModel\Task();
 
-            $this->throwExceptionIfNotExistsProcess($processUid);
+            $this->throwExceptionIfNotExistsProcess ($processUid);
 
-            $task->throwExceptionIfNotExistsTask($processUid, $taskUid);
+            $task->throwExceptionIfNotExistsTask ($processUid, $taskUid);
 
-            if (!isset($arrayData["STEP_TYPE_OBJ"])) {
-                throw new \Exception("ID_UNDEFINED_VALUE_IS_REQUIRED");
+            if ( !isset ($arrayData["STEP_TYPE_OBJ"]) )
+            {
+                throw new \Exception ("ID_UNDEFINED_VALUE_IS_REQUIRED");
             }
 
-            $arrayData["STEP_TYPE_OBJ"] = trim($arrayData["STEP_TYPE_OBJ"]);
+            $arrayData["STEP_TYPE_OBJ"] = trim ($arrayData["STEP_TYPE_OBJ"]);
 
-            if ($arrayData["STEP_TYPE_OBJ"] == "") {
-                throw new \Exception("ID_INVALID_VALUE_CAN_NOT_BE_EMPTY");
+            if ( $arrayData["STEP_TYPE_OBJ"] == "" )
+            {
+                throw new \Exception ("ID_INVALID_VALUE_CAN_NOT_BE_EMPTY");
             }
 
-            if (!isset($arrayData["STEP_UID_OBJ"])) {
-                throw new \Exception("ID_UNDEFINED_VALUE_IS_REQUIRED");
+            if ( !isset ($arrayData["STEP_UID_OBJ"]) )
+            {
+                throw new \Exception ("ID_UNDEFINED_VALUE_IS_REQUIRED");
+            }
+            
+            $arrayData["STEP_UID_OBJ"] = trim ($arrayData["STEP_UID_OBJ"]);
+
+            if ( $arrayData["STEP_UID_OBJ"] == "" )
+            {
+                throw new \Exception ("ID_INVALID_VALUE_CAN_NOT_BE_EMPTY");
             }
 
-            $arrayData["STEP_UID_OBJ"] = trim($arrayData["STEP_UID_OBJ"]);
+            if ( !isset ($arrayData["STEP_MODE"]) )
+            {
+                throw new \Exception ("ID_UNDEFINED_VALUE_IS_REQUIRED");
+            }
+            
+            $arrayData["STEP_MODE"] = trim ($arrayData["STEP_MODE"]);
 
-            if ($arrayData["STEP_UID_OBJ"] == "") {
-                throw new \Exception("ID_INVALID_VALUE_CAN_NOT_BE_EMPTY");
+            if ( $arrayData["STEP_MODE"] == "" )
+            {
+                throw new \Exception ("ID_INVALID_VALUE_CAN_NOT_BE_EMPTY");
             }
 
-            if (!isset($arrayData["STEP_MODE"])) {
-                throw new \Exception("ID_UNDEFINED_VALUE_IS_REQUIRED");
+            $this->throwExceptionIfHaveInvalidValueInTypeObj ($arrayData["STEP_TYPE_OBJ"]);
+
+            $this->throwExceptionIfHaveInvalidValueInMode ($arrayData["STEP_MODE"]);
+
+            $msg = $this->existsObjectUid ($arrayData["STEP_TYPE_OBJ"], $arrayData["STEP_UID_OBJ"]);
+
+            if ( $msg != "" )
+            {
+                throw new \Exception ($msg);
             }
 
-            $arrayData["STEP_MODE"] = trim($arrayData["STEP_MODE"]);
-
-            if ($arrayData["STEP_MODE"] == "") {
-                throw new \Exception("ID_INVALID_VALUE_CAN_NOT_BE_EMPTY");
+            if ( $this->existsRecord ($taskUid, $arrayData["STEP_TYPE_OBJ"], $arrayData["STEP_UID_OBJ"]) )
+            {
+                throw new \Exception ("ID_RECORD_EXISTS_IN_TABLE");
             }
+            
+            $arrayData['PRO_UID'] = $processUid;
+            $arrayData['TAS_UID'] = $taskUid;
 
-            $this->throwExceptionIfHaveInvalidValueInTypeObj($arrayData["STEP_TYPE_OBJ"]);
-
-            $this->throwExceptionIfHaveInvalidValueInMode($arrayData["STEP_MODE"]);
-
-            $msg = $this->existsObjectUid($arrayData["STEP_TYPE_OBJ"], $arrayData["STEP_UID_OBJ"]);
-
-            if ($msg != "") {
-                throw new \Exception($msg);
-            }
-
-            if ($this->existsRecord($taskUid, $arrayData["STEP_TYPE_OBJ"], $arrayData["STEP_UID_OBJ"])) {
-                throw new \Exception("ID_RECORD_EXISTS_IN_TABLE");
-            }
-
-
-            $stepUid = 20;
-
-            $this->throwExceptionIfNotExistsStep($stepUid);
+            $this->throwExceptionIfNotExistsStep ($taskUid);
             $step = new \Step();
-
-            $result = $step->update($arrayData);
+            $stepUid = $step->update ($arrayData);
 
             //Return
-            unset($arrayData["STEP_UID"]);
+            unset ($arrayData["STEP_UID"]);
 
-            $arrayData = array_merge(array("STEP_UID" => $stepUid), $arrayData);
+            $arrayData = array_merge (array("STEP_UID" => $stepUid), $arrayData);
 
             return $arrayData;
         } catch (\Exception $e) {
@@ -252,53 +282,54 @@ class Step
         }
     }
 
-
-/**
+    /**
      * Get data of a Step
      *
      * @param string $stepUid Unique id of Step
      *
      * return array Return an array with data of a Step
      */
-    public function getStep($stepUid)
+    public function getStep ($stepUid)
     {
         try {
             $arrayStep = array();
 
             //Verify data
-            $this->throwExceptionIfNotExistsStep($stepUid);
+            $this->throwExceptionIfNotExistsStep ($stepUid);
 
             //Get data
             $sql = "SELECT * FROM step_object WHERE STEP_UID = ?";
             $arrParameters = array($stepUid);
 
-            $results = $this->objMysql->_query($sql, $arrParameters);
+            $results = $this->objMysql->_query ($sql, $arrParameters);
 
             $arrayStep = array();
-            
-            foreach($results as $row) {
+
+            foreach ($results as $row) {
                 switch ($row["STEP_TYPE_OBJ"]) {
                     case "DYNAFORM":
                         $dynaform = new \Dynaform();
-                        $arrayData = $dynaform->load($row["STEP_UID_OBJ"]);
+                        $arrayData = $dynaform->load ($row["STEP_UID_OBJ"]);
 
                         $titleObj = $arrayData["DYN_TITLE"];
                         $descriptionObj = $arrayData["DYN_DESCRIPTION"];
                         break;
                     case "INPUT_DOCUMENT":
                         $inputDocument = new \InputDocument();
-                        $arrayData = $inputDocument->getByUid($row["STEP_UID_OBJ"]);
+                        $arrayData = $inputDocument->getByUid ($row["STEP_UID_OBJ"]);
 
-                        if ($arrayData === false) {
+                        if ( $arrayData === false )
+                        {
                             return $arrayStep;
                         }
 
                         break;
                     case "OUTPUT_DOCUMENT":
                         $outputDocument = new \OutputDocument();
-                        $arrayData = $outputDocument->getByUid($row["STEP_UID_OBJ"]);
+                        $arrayData = $outputDocument->getByUid ($row["STEP_UID_OBJ"]);
 
-                        if ($arrayData === false) {
+                        if ( $arrayData === false )
+                        {
                             return $arrayStep;
                         }
 
@@ -306,9 +337,11 @@ class Step
                     case "EXTERNAL":
                         $titleObj = "unknown " . $row["STEP_UID"];
 
-                        if (isset($externalSteps) && is_array($externalSteps) && count($externalSteps) > 0) {
+                        if ( isset ($externalSteps) && is_array ($externalSteps) && count ($externalSteps) > 0 )
+                        {
                             foreach ($externalSteps as $key => $value) {
-                                if ($value->sStepId == $row["STEP_UID_OBJ"]) {
+                                if ( $value->sStepId == $row["STEP_UID_OBJ"] )
+                                {
                                     $titleObj = $value->sStepTitle;
                                 }
                             }
@@ -317,12 +350,12 @@ class Step
                 }
 
                 $objStep = new \Step();
-                $objStep->setStepUid($stepUid);
-                $objStep->setStepTypeObj($row["STEP_TYPE_OBJ"]);
-                $objStep->setStepMode($row["STEP_MODE"]);
-                $objStep->setStepCondition($row["STEP_CONDITION"]);
-                $objStep->setStepPosition((int)($row["STEP_POSITION"]));
-                $objStep->setStepUidObj($row["STEP_UID_OBJ"]);
+                $objStep->setStepUid ($stepUid);
+                $objStep->setStepTypeObj ($row["STEP_TYPE_OBJ"]);
+                $objStep->setStepMode ($row["STEP_MODE"]);
+                $objStep->setStepCondition ($row["STEP_CONDITION"]);
+                $objStep->setStepPosition ((int) ($row["STEP_POSITION"]));
+                $objStep->setStepUidObj ($row["STEP_UID_OBJ"]);
 
                 //Return
                 $arrayStep[] = $objStep;
@@ -333,42 +366,5 @@ class Step
             throw $e;
         }
     }
+
 }
-
-
-
-/*
-Navicat MySQL Data Transfer
-
-Source Server         : dms-sql-001.kondor.dev
-Source Server Version : 50715
-Source Host           : dms-sql-001.kondor.dev:3306
-Source Database       : central_workflow
-
-Target Server Type    : MYSQL
-Target Server Version : 50715
-File Encoding         : 65001
-
-Date: 2017-07-06 09:24:15
-*/
-
-//SET FOREIGN_KEY_CHECKS=0;
-//
-//-- ----------------------------
-//-- Table structure for step_object
-//-- ----------------------------
-//DROP TABLE IF EXISTS `step_object`;
-//CREATE TABLE `step_object` (
-//  `STEP_UID` int(11) NOT NULL,
-//  `id` int(11) NOT NULL AUTO_INCREMENT,
-//  `PRO_UID` int(11) NOT NULL,
-//  `TAS_UID` int(11) DEFAULT NULL,
-//  `STEP_TYPE_OBJ` enum('DYNAFORM','INPUT_DOCUMENT','OUTPUT_DOCUMENT','EXTERNAL') DEFAULT 'DYNAFORM',
-//  `STEP_UID_OBJ` int(11) DEFAULT NULL,
-//  `STEP_CONDITION` text,
-//  `STEP_MODE` varchar(10) DEFAULT NULL,
-//  PRIMARY KEY (`id`),
-//  KEY `STEP_UID` (`STEP_UID`),
-//  CONSTRAINT `step_object_ibfk_1` FOREIGN KEY (`STEP_UID`) REFERENCES `step` (`step_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
-//) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4;
-//SET FOREIGN_KEY_CHECKS=1;
