@@ -126,7 +126,7 @@ class OutputDocument
      *
      * @access public
      */
-    public function addOutputDocument ($sProcessUID, $outputDocumentData)
+    public function addOutputDocument ($sProcessUID, $outputDocumentData, \Step $objStep)
     {
         $outputDocumentData['out_doc_pdf_security_permissions'] = "print|modify|copy";
 
@@ -193,12 +193,13 @@ class OutputDocument
 
             $this->updateOutputDocument ($sProcessUID, $outputDocumentData, 1, $outDocUid);
             //Return
+
+            $objStepDocument = new \BusinessModel\Step();
+           $objStepDocument->create($objStep->getTasUid(), $sProcessUID, array('STEP_UID_OBJ' => $outDocUid,
+                                                                                'STEP_TYPE_OBJ' => "OUTPUT_DOCUMENT",
+                                                                                'STEP_MODE' => "EDIT"));
             unset ($outputDocumentData["PRO_UID"]);
 
-            $objStepDocument = new \Step();
-           $objStepDocument->create($this->stepId, $arrayData["PRO_UID"], array(STEP_UID_OBJ => $outDocUid,
-                                                                STEP_TYPE_OBJ => "OUTPUT_DOCUMENT",
-                                                                STEP_MODE => "EDIT"));
             $objStepDocument->save ();
 
             $outputDocumentData["out_doc_uid"] = $outDocUid;
@@ -433,11 +434,11 @@ class OutputDocument
         }
     }
 
-    public function getOutputDocumentsForStep ($stepId)
+    public function getOutputDocumentsForStep (\Step $objStep)
     {
 
         try {
-            $results = $this->objMysql->_query ("SELECT * FROM workflow.output_document d INNER JOIN workflow.step_object sd ON sd.STEP_UID_OBJ = d.id WHERE sd.STEP_UID = ? AND sd.STEP_TYPE_OBJ = 'OUTPUT_DOCUMENT'", [$stepId]);
+            $results = $this->objMysql->_query ("SELECT * FROM workflow.output_document d INNER JOIN workflow.step_object sd ON sd.STEP_UID_OBJ = d.id WHERE sd.TAS_UID = ? AND sd.STEP_TYPE_OBJ = 'OUTPUT_DOCUMENT'", [$objStep->getTasUid()]);
 
             $arrDocuments = [];
 
