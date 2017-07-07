@@ -12,14 +12,8 @@ class InputDocument
      * 
      * @param type $stepId
      */
-    public function __construct (\Task $objTask)
+    public function __construct ()
     {
-
-        if ( $objTask !== null )
-        {
-            $this->stepId = $objTask->getStepId ();
-        }
-
         $this->objMysql = new \Mysql2();
     }
 
@@ -60,7 +54,7 @@ class InputDocument
             if ( $blReturnArray === false )
             {
                 foreach ($results as $result) {
-                    $arrDocuments[$result['id']] = new \InputDocument ($this->stepId);
+                    $arrDocuments[$result['id']] = new \InputDocument ();
                     $arrDocuments[$result['id']]->setDescription ($result['description']);
                     $arrDocuments[$result['id']]->setDestinationPath ($result['destination_path']);
                     $arrDocuments[$result['id']]->setFileType ($result['filetype']);
@@ -87,15 +81,15 @@ class InputDocument
      *
      * return array Return InputDocument object
      */
-    public function getInputDocumentForStep ()
+    public function getInputDocumentForStep (\Step $objStep)
     {
         try {
-            $results = $this->objMysql->_query ("SELECT * FROM workflow.documents d INNER JOIN workflow.step_object sd ON sd.STEP_UID_OBJ = d.id WHERE sd.STEP_UID = ? AND STEP_TYPE_OBJ = 2", [$this->stepId]);
+            $results = $this->objMysql->_query ("SELECT * FROM workflow.documents d INNER JOIN workflow.step_object sd ON sd.STEP_UID_OBJ = d.id WHERE sd.TAS_UID = ? AND STEP_TYPE_OBJ = 'INPUT_DOCUMENT'", [$objStep->getTasUid()]);
 
             $arrDocuments = [];
 
             foreach ($results as $key => $result) {
-                $arrDocuments[$key] = new \InputDocument ($this->stepId);
+                $arrDocuments[$key] = new \InputDocument ();
                 $arrDocuments[$key]->setDescription ($result['description']);
                 $arrDocuments[$key]->setDestinationPath ($result['destination_path']);
                 $arrDocuments[$key]->setFileType ($result['filetype']);
@@ -119,7 +113,7 @@ class InputDocument
      *
      * return array Return data of the new InputDocument created
      */
-    public function create ($arrayData)
+    public function create ($arrayData, \Step $objStep)
     {
         try {
             //Verify data
@@ -128,27 +122,27 @@ class InputDocument
             //$process->throwExceptionIfDataNotMetFieldDefinition ($arrayData, $this->arrayFieldDefinition, $this->arrayFieldNameForException, true);
 
             $objStep = new \WorkflowStep();
-            if ( !$objStep->stepExists ($this->stepId) )
+            if ( !$objStep->stepExistsNew ($objStep->getTasUid()) )
             {
                 throw new \Exception ("Step does not exist");
             }
-            $this->throwExceptionIfExistsTitle ($this->stepId, $arrayData["INP_DOC_TITLE"]);
+            $this->throwExceptionIfExistsTitle ($objStep->getTasUid(), $arrayData["INP_DOC_TITLE"]);
 
             //Flags
             $flagDataDestinationPath = (isset ($arrayData["INP_DOC_DESTINATION_PATH"])) ? 1 : 0;
             $flagDataTags = (isset ($arrayData["INP_DOC_TAGS"])) ? 1 : 0;
 
             //Create
-            $inputDocument = new \InputDocument ($this->stepId);
-            $arrayData["PRO_UID"] = $this->stepId;
+            $inputDocument = new \InputDocument ();
+            $arrayData["PRO_UID"] = $objStep->getProUid();
             $arrayData["INP_DOC_DESTINATION_PATH"] = ($flagDataDestinationPath == 1) ? $arrayData["INP_DOC_DESTINATION_PATH"] : "";
             $arrayData["INP_DOC_TAGS"] = ($flagDataTags == 1) ? $arrayData["INP_DOC_TAGS"] : "";
 
             $documentId = $inputDocument->create ($arrayData);
             $objStepDocument = new \Step();
-            $objStepDocument->create($this->stepId, $arrayData["PRO_UID"], array(STEP_UID_OBJ => $documentId,
-                                                                STEP_TYPE_OBJ => "INPUT_DOCUMENT",
-                                                                STEP_MODE => "EDIT"));
+            $objStepDocument->create($objStep->getTasUid(), $objStep->getProUid(), array('STEP_UID_OBJ' => $documentId,
+                                                                                'STEP_TYPE_OBJ' => "INPUT_DOCUMENT",
+                                                                                'STEP_MODE' => "EDIT"));
 
 
             //Return
@@ -164,7 +158,7 @@ class InputDocument
                 unset ($arrayData["INP_DOC_TAGS"]);
             }
 
-            $arrayData = array_merge (array("INP_DOC_UID" => $this->documentId), $arrayData);
+            $arrayData = array_merge (array("INP_DOC_UID" => $documentId), $arrayData);
 
             return $arrayData;
         } catch (\Exception $e) {
@@ -248,7 +242,7 @@ class InputDocument
             //Verify data
             $this->throwExceptionIfNotExistsInputDocument ($inputDocumentUid);
             //Load InputDocument
-            $inputDocument = new \InputDocument ($this->stepId);
+            $inputDocument = new \InputDocument ();
 
             //Verify data
 
@@ -280,15 +274,10 @@ class InputDocument
 
             $objWorkflowStep = new \WorkflowStep();
 
-            if ( !$objWorkflowStep->stepExists ($this->stepId) )
-            {
-                throw new \Exception ("Step doews not exist");
-            }
-
             $this->throwExceptionIfNotExistsInputDocument ($inputDocumentUid);
             $this->throwExceptionIfItsAssignedInOtherObjects ($inputDocumentUid);
 
-            $inputDocument = new \InputDocument ($this->stepId);
+            $inputDocument = new \InputDocument ();
             $inputDocument->delete ($inputDocumentUid);
         } catch (Exception $e) {
             throw $e;
@@ -309,7 +298,7 @@ class InputDocument
             $arrayData = array();
 
             //Step
-            $result = $this->objMysql->_select ("workflow.step_document", array(), array("document_id" => $inputDocumentUid));
+            $result = $this->objMysql->_select ("workflow.step_object", array(), array("STEP_UID_OBJ" => $inputDocumentUid));
             
             if ( isset ($result[0]) && !empty ($result[0]) )
             {
@@ -349,11 +338,9 @@ class InputDocument
         }
     }
 
-    public function assignToStep ($assignArr)
+    public function assignToStep ($assignArr, \Step $objStep)
     {
-        $inputDocument = new \InputDocument ($this->stepId);
         try {
-            $inputDocument = new \InputDocument ($this->stepId);
             $arrAssignedDocs = $this->getInputDocumentForStep ();
             $arrAssigned = [];
 
@@ -364,11 +351,11 @@ class InputDocument
             foreach ($arrAssigned as $docId) {
                 if ( !in_array ($docId, $assignArr) )
                 {
-                    $objSDtepDocument = new \StepDocument();
-                    $objSDtepDocument->setStepId($this->stepId);
-                    $objSDtepDocument->setDocumentType(2);
-                    $objSDtepDocument->setDocumentId($docId);
-                    $objSDtepDocument->delete();
+//                    $objSDtepDocument = new \StepDocument();
+//                    $objSDtepDocument->setStepId($this->stepId);
+//                    $objSDtepDocument->setDocumentType(2);
+//                    $objSDtepDocument->setDocumentId($docId);
+//                    $objSDtepDocument->delete();
                 }
             }
 
@@ -377,9 +364,9 @@ class InputDocument
                 {
                     $objStepDocument = new \Step();
                     
-                    $objStepDocument->create($this->stepId, $arrayData["PRO_UID"], array(STEP_UID_OBJ => $docId,
-                                                                STEP_TYPE_OBJ => "INPUT_DOCUMENT",
-                                                                STEP_MODE => "EDIT"));
+                    $objStepDocument->create($objStep->getTasUid(), $objStep->getProUid(), array('STEP_UID_OBJ' => $docId,
+                                                                                        'STEP_TYPE_OBJ' => "INPUT_DOCUMENT",
+                                                                '                       STEP_MODE' => "EDIT"));
                 }
             }
         } catch (Exception $ex) {
