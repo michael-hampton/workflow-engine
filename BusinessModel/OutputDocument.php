@@ -195,10 +195,10 @@ class OutputDocument
             //Return
             unset ($outputDocumentData["PRO_UID"]);
 
-            $objStepDocument = new \StepDocument();
-            $objStepDocument->setDocumentType (1);
-            $objStepDocument->setDocumentId ($outDocUid);
-            $objStepDocument->setStepId ($sProcessUID);
+            $objStepDocument = new \Step();
+           $objStepDocument->create($this->stepId, $arrayData["PRO_UID"], array(STEP_UID_OBJ => $outDocUid,
+                                                                STEP_TYPE_OBJ => "OUTPUT_DOCUMENT",
+                                                                STEP_MODE => "EDIT"));
             $objStepDocument->save ();
 
             $outputDocumentData["out_doc_uid"] = $outDocUid;
@@ -437,7 +437,7 @@ class OutputDocument
     {
 
         try {
-            $results = $this->objMysql->_query ("SELECT * FROM workflow.output_document d INNER JOIN workflow.step_document sd ON sd.document_id = d.id WHERE sd.step_id = ? AND sd.document_type = 1", [$stepId]);
+            $results = $this->objMysql->_query ("SELECT * FROM workflow.output_document d INNER JOIN workflow.step_object sd ON sd.STEP_UID_OBJ = d.id WHERE sd.STEP_UID = ? AND sd.STEP_TYPE_OBJ = 'OUTPUT_DOCUMENT'", [$stepId]);
 
             $arrDocuments = [];
 
