@@ -90,7 +90,7 @@ class InputDocument
     public function getInputDocumentForStep ()
     {
         try {
-            $results = $this->objMysql->_query ("SELECT * FROM workflow.documents d INNER JOIN workflow.step_document sd ON sd.document_id = d.id WHERE sd.step_id = ? AND sd.document_type = 2", [$this->stepId]);
+            $results = $this->objMysql->_query ("SELECT * FROM workflow.documents d INNER JOIN workflow.step_object sd ON sd.STEP_UID_OBJ = d.id WHERE sd.STEP_UID = ? AND STEP_TYPE_OBJ = 2", [$this->stepId]);
 
             $arrDocuments = [];
 
@@ -145,11 +145,11 @@ class InputDocument
             $arrayData["INP_DOC_TAGS"] = ($flagDataTags == 1) ? $arrayData["INP_DOC_TAGS"] : "";
 
             $documentId = $inputDocument->create ($arrayData);
-            $objStepDocument = new \StepDocument();
-            $objStepDocument->setDocumentId($documentId);
-            $objStepDocument->setDocumentType(2);
-            $objStepDocument->setStepId($this->stepId);
-            $objStepDocument->save();
+            $objStepDocument = new \Step();
+            $objStepDocument->create($this->stepId, $arrayData["PRO_UID"], array(STEP_UID_OBJ => $documentId,
+                                                                STEP_TYPE_OBJ => "INPUT_DOCUMENT",
+                                                                STEP_MODE => "EDIT"));
+
 
             //Return
             unset ($arrayData["PRO_UID"]);
@@ -375,11 +375,11 @@ class InputDocument
             foreach ($assignArr as $docId) {
                 if ( !in_array ($docId, $arrAssigned) )
                 {
-                    $objStepDocument = new \StepDocument();
-                    $objStepDocument->setDocumentType(2);
-                    $objStepDocument->setDocumentId($docId);
-                    $objStepDocument->setStepId($this->stepId);
-                    $objStepDocument->save();
+                    $objStepDocument = new \Step();
+                    
+                    $objStepDocument->create($this->stepId, $arrayData["PRO_UID"], array(STEP_UID_OBJ => $docId,
+                                                                STEP_TYPE_OBJ => "INPUT_DOCUMENT",
+                                                                STEP_MODE => "EDIT"));
                 }
             }
         } catch (Exception $ex) {
