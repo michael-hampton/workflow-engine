@@ -341,7 +341,7 @@ class InputDocument
     public function assignToStep ($assignArr, \Step $objStep)
     {
         try {
-            $arrAssignedDocs = $this->getInputDocumentForStep ();
+            $arrAssignedDocs = $this->getInputDocumentForStep ($objStep);
             $arrAssigned = [];
 
             foreach ($arrAssignedDocs as $arrAssignedDoc) {
