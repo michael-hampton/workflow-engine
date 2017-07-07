@@ -33,7 +33,7 @@ class Task
             $act_uid = $this->validateActUid ($act_uid);
             $arrayProperty["TAS_UID"] = $act_uid;
             $arrayProperty["PRO_UID"] = $prj_uid;
-            $task = new \Flow();
+            $task = new \Task();
             $aTaskInfo = $task->retrieveByPk ($arrayProperty["TAS_UID"]);
 
             $arrayResult = array();
