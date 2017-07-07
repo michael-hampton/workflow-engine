@@ -1,7 +1,8 @@
 <?php
+namespace BusinessModel;
+
 class Step
 {
-
 	public $objMysql;
 	
 	
@@ -182,7 +183,7 @@ class Step
             unset($arrayData["STEP_UID"]);
 
             //Verify data
-            $task = new \ProcessMaker\BusinessModel\Task();
+            $task = new \BusinessModel\Task();
 
             $this->throwExceptionIfNotExistsProcess($processUid);
 
@@ -686,12 +687,14 @@ class Step
     public function save()
     {
 
-	if(trim($id) === "") {
+	if(trim($this->step_uid) === "") {
 	     $result = $this-objMysql_insert("workflow.step_object", ['STEP_UID', 'PRO_UID', 'TAS_UID', 'STEP_TYPE_OBJ', 'STEP_CONDITION', 'STEP_MODE']);
 
         } else {
              $result = $this-objMysql_update("workflow.step_object", ['STEP_UID', 'PRO_UID', 'TAS_UID', 'STEP_TYPE_OBJ', 'STEP_CONDITION', 'STEP_MODE'], ['id' => $id]);
         }
+
+        return $result;
        
     }
 
@@ -720,23 +723,23 @@ File Encoding         : 65001
 Date: 2017-07-06 09:24:15
 */
 
-SET FOREIGN_KEY_CHECKS=0;
-
--- ----------------------------
--- Table structure for step_object
--- ----------------------------
-DROP TABLE IF EXISTS `step_object`;
-CREATE TABLE `step_object` (
-  `STEP_UID` int(11) NOT NULL,
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `PRO_UID` int(11) NOT NULL,
-  `TAS_UID` int(11) DEFAULT NULL,
-  `STEP_TYPE_OBJ` enum('DYNAFORM','INPUT_DOCUMENT','OUTPUT_DOCUMENT','EXTERNAL') DEFAULT 'DYNAFORM',
-  `STEP_UID_OBJ` int(11) DEFAULT NULL,
-  `STEP_CONDITION` text,
-  `STEP_MODE` varchar(10) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `STEP_UID` (`STEP_UID`),
-  CONSTRAINT `step_object_ibfk_1` FOREIGN KEY (`STEP_UID`) REFERENCES `step` (`step_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4;
-SET FOREIGN_KEY_CHECKS=1;
+//SET FOREIGN_KEY_CHECKS=0;
+//
+//-- ----------------------------
+//-- Table structure for step_object
+//-- ----------------------------
+//DROP TABLE IF EXISTS `step_object`;
+//CREATE TABLE `step_object` (
+//  `STEP_UID` int(11) NOT NULL,
+//  `id` int(11) NOT NULL AUTO_INCREMENT,
+//  `PRO_UID` int(11) NOT NULL,
+//  `TAS_UID` int(11) DEFAULT NULL,
+//  `STEP_TYPE_OBJ` enum('DYNAFORM','INPUT_DOCUMENT','OUTPUT_DOCUMENT','EXTERNAL') DEFAULT 'DYNAFORM',
+//  `STEP_UID_OBJ` int(11) DEFAULT NULL,
+//  `STEP_CONDITION` text,
+//  `STEP_MODE` varchar(10) DEFAULT NULL,
+//  PRIMARY KEY (`id`),
+//  KEY `STEP_UID` (`STEP_UID`),
+//  CONSTRAINT `step_object_ibfk_1` FOREIGN KEY (`STEP_UID`) REFERENCES `step` (`step_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+//) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4;
+//SET FOREIGN_KEY_CHECKS=1;
