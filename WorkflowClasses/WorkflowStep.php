@@ -247,7 +247,7 @@ class WorkflowStep
     private function sendNotification ($objMike, array $arrCompleteData = [], $arrEmailAddresses = [])
     {
         $objNotifications = new SendNotification();
-        $objNotifications->setVariables ($this->_stepId, $this->_systemName);
+        $objNotifications->setVariables ($this->workflowStepId, $this->_systemName);
         $objNotifications->setProjectId ($this->parentId);
         $objNotifications->setElementId ($this->elementId);
         if ( !empty ($arrEmailAddresses) )
@@ -255,7 +255,7 @@ class WorkflowStep
             $objNotifications->setArrEmailAddresses ($arrEmailAddresses);
         }
 
-        $objNotifications->buildEmail ($this->_stepId, $this);
+        $objNotifications->buildEmail ($this->_workflowStepId, $this);
     }
 
     private function completeAuditObject (Users $objUser, array $arrCompleteData = [])
