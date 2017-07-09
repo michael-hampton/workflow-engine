@@ -1514,7 +1514,7 @@ abstract class BaseTask implements Persistent
 
         if ( trim ($this->tas_uid) === "" )
         {
-            $this->objMysql->_insert ("workflow.steps", ['PRO_UID' => $this->pro_uid,
+            $this->objMysql->_insert ("workflow.task", ['PRO_UID' => $this->pro_uid,
                 'TAS_DESCRIPTION' => $this->tas_description,
                 'TAS_TYPE' => $this->tas_type,
                 'TAS_DURATION' => $this->tas_duration,
@@ -1532,7 +1532,7 @@ abstract class BaseTask implements Persistent
         }
         else
         {
-            $this->objMysql->_update ("workflow.steps", ['PRO_UID' => $this->pro_uid,
+            $this->objMysql->_update ("workflow.task", ['PRO_UID' => $this->pro_uid,
                 'TAS_DESCRIPTION' => $this->tas_description,
                 'TAS_TYPE' => $this->tas_type,
                 'TAS_DURATION' => $this->tas_duration,

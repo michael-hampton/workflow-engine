@@ -24,7 +24,7 @@ class NotificationsFactory
         $arrWhere = array();
 
         $query = "SELECT ns.*, s.step_name FROM workflow.`notifications_sent` ns
-                    LEFT JOIN workflow.steps s ON s.step_id = ns.`step_id`
+                    LEFT JOIN workflow.task s ON s.step_id = ns.`step_id`
                     WHERE 1=1
                     ";
 
@@ -95,7 +95,7 @@ class NotificationsFactory
         $arrWhere = array();
 
         $query = "SELECT ns.*, s.step_name FROM workflow.`notifications_sent` ns
-                    LEFT JOIN workflow.steps s ON s.step_id = ns.`step_id`
+                    LEFT JOIN workflow.task s ON s.step_id = ns.`step_id`
                     WHERE 1=1
                     ";
 

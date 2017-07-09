@@ -54,10 +54,10 @@ class SendNotification extends Notification
      * @param type $system
      * @return boolean
      */
-    public function buildEmail ($status, $objStep, $system = "task_manager", $blSendToAllParticipants = true)
+    public function buildEmail (Task $objTask, $system = "task_manager", $blSendToAllParticipants = true)
     {
         try {
-            $this->setVariables ($status, $system);
+            $this->setVariables ($objTask->getTasUid (), $system);
 
             if ( empty ($this->message) )
             {
@@ -116,20 +116,19 @@ class SendNotification extends Notification
                     $this->recipient = $this->message['to'];
                 }
             }
-        
 
             $objCases = new \BusinessModel\Cases();
 
-            $Fields = $objCases->getCaseVariables ($this->elementId, $_SESSION['user']['usrid'], $this->projectId, $status);
+            $Fields = $objCases->getCaseVariables ($this->elementId, $_SESSION['user']['usrid'], $this->projectId, $objTask->getStepId ());
             
             $this->subject = $objCases->replaceDataField ($this->subject, $Fields);
             $this->body = $objCases->replaceDataField ($this->body, $Fields);
-
+                        
             $this->save ();
-
+            
             //	sending email notification
             $this->notificationEmail ($this->recipient, $this->subject, $this->body);
-
+            
             return true;
         } catch (Exception $ex) {
             throw $ex;

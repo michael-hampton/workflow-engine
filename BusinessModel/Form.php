@@ -238,7 +238,7 @@ class Form extends FieldFactory
         $buildSummary = false;
         $html = '';
 
-        $userPermissions = $objCases->getAllObjectsFrom ($projectId, $elementId, $stepId, $objUser);
+        $userPermissions = $objCases->getAllObjectsFrom ($projectId, $elementId, $objWorkflowStep->getCurrentTask (), $objUser);
         
         $objProcessSupervisor = new \BusinessModel\ProcessSupervisor();
         $blProcessSupervisor = $objProcessSupervisor->isUserProcessSupervisor (new \Workflow ($workflowId), $objUser);
@@ -320,9 +320,12 @@ class Form extends FieldFactory
             $buildSummary = true;
             $objFormBuilder->buildForm ($arrFields);
         }
+        
+        $objStep = new \Step();
+        $objStep->setTasUid($objWorkflowStep->getCurrentTask());
 
         $objStepDocument = new \BusinessModel\InputDocument (new \Task ($taskId));
-        $arrDocuments = $objStepDocument->getInputDocumentForStep ();
+        $arrDocuments = $objStepDocument->getInputDocumentForStep ($objStep);
 
         if ( !empty ($arrDocuments) )
         {
@@ -367,7 +370,7 @@ class Form extends FieldFactory
     public function throwExceptionIfNotExistsDynaForm($dynaFormUid, $fieldNameForException = '')
     {
         try {
-            $sql = "SELECT * FROM workflow.steps s
+            $sql = "SELECT * FROM workflow.task s
                     INNER JOIN workflow.step_fields sf ON sf.step_id = s.step_id
                     WHERE s.step_id = ? ";
             $arrParameters = array($dynaFormUid);

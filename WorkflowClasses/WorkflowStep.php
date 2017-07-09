@@ -20,6 +20,8 @@ class WorkflowStep
     private $objMysql;
     private $objectId;
     private $currentStep;
+    private $nextTask;
+    private $currentTask;
 
     public function __construct ($intWorkflowStepId = null, $objMike = null)
     {
@@ -70,7 +72,18 @@ class WorkflowStep
     {
         return $this->fieldValidation;
     }
+    
+    public function getNextTask ()
+    {
+        return $this->nextTask;
+    }
 
+    public function getCurrentTask ()
+    {
+        return $this->currentTask;
+    }
+
+    
     public function setStepInformation ()
     {
         $sql = "SELECT
@@ -79,22 +92,29 @@ class WorkflowStep
                     m.workflow_id,
                     m.step_from AS current_step_id,
                     m.id AS current_step,
+                    m.TAS_UID AS current_task,
                     s.step_name AS current_step_name,
                     m2.id AS next_step_id,
                     s2.step_name AS  next_step_name,
+                    s2.TAS_UID,
                     w.workflow_name
                    FROM workflow.status_mapping m
                     INNER JOIN workflow.workflows w ON w.workflow_id = m.workflow_id
-                    INNER JOIN workflow.steps s ON s.step_id = m.step_from
+                    INNER JOIN workflow.task s ON s.step_id = m.step_from
                     INNER JOIN workflow.request_types r ON r.request_id = w.request_id
                     INNER JOIN workflow.workflow_systems sy ON sy.system_id = r.system_id
                     LEFT JOIN workflow.status_mapping m2 ON m2.step_from = m.step_to AND m2.workflow_id = m.workflow_id
-                    LEFT JOIN workflow.steps s2 ON s2.step_id = m2.step_from
+                    LEFT JOIN workflow.task s2 ON s2.step_id = m2.step_from
                    WHERE m.id = ?";
+        
+//        echo $sql;
+//        echo $this->_workflowStepId;
+//        die;
+        
         $arrResult = $this->objMysql->_query ($sql, array($this->_workflowStepId));
         if ( empty ($arrResult) )
         {
-            die ("Here");
+            die ("Here 5");
             return false;
         }
         $this->_stepId = $arrResult[0]['current_step_id'];
@@ -105,6 +125,8 @@ class WorkflowStep
         $this->_stepName = $arrResult[0]['current_step_name'];
         $this->workflowName = $arrResult[0]['workflow_name'];
         $this->currentStep = $arrResult[0]['current_step'];
+        $this->currentTask = $arrResult[0]['current_task'];
+        $this->nextTask = $arrResult[0]['TAS_UID'];
         return true;
     }
 
@@ -204,10 +226,12 @@ class WorkflowStep
         {
             throw new Exception ("You do not have permission to do this");
         }
+                
         if ( !$this->validateWorkflowStep ($arrFormData) )
         {
             return false;
         }
+                        
         if ( !$objMike->loadObject ($arrFormData) )
         {
             return false;
@@ -216,7 +240,7 @@ class WorkflowStep
         {
             return false;
         }
-        if ( isset ($arrFormData['status']) )
+                if ( isset ($arrFormData['status']) )
         {
             if ( $this->completeWorkflowObject ($objMike, $objUser, $arrFormData, false, $arrEmailAddresses) === false )
             {
@@ -247,7 +271,7 @@ class WorkflowStep
     private function sendNotification ($objMike, array $arrCompleteData = [], $arrEmailAddresses = [])
     {
         $objNotifications = new SendNotification();
-        $objNotifications->setVariables ($this->_stepId, $this->_systemName);
+        $objNotifications->setVariables ($this->currentTask, $this->_systemName);
         $objNotifications->setProjectId ($this->parentId);
         $objNotifications->setElementId ($this->elementId);
         if ( !empty ($arrEmailAddresses) )
@@ -255,7 +279,9 @@ class WorkflowStep
             $objNotifications->setArrEmailAddresses ($arrEmailAddresses);
         }
 
-        $objNotifications->buildEmail ($this->_stepId, $this);
+        $objStep = new Task($this->_stepId);
+        $objStep->setTasUid($this->currentTask);
+        $objNotifications->buildEmail ( $objStep);
     }
 
     private function completeAuditObject (Users $objUser, array $arrCompleteData = [])
@@ -330,14 +356,16 @@ class WorkflowStep
             if ( $objTrigger->blMove === true || $blHasTrigger === false )
             {
                 $blHasTrigger = false;
-                $step = $this->nextStep;
+                $step = $this->nextTask;
+                $step2 = $this->nextStep;
                 $arrWorkflow['current_step'] = $this->nextStep;
             }
             $arrWorkflow['status'] = "STEP COMPLETED";
         }
         else
         {
-            $step = $this->_workflowStepId;
+            $step = $this->currentTask;
+            $step2 = $this->_workflowStepId;
             $arrWorkflow['current_step'] = $this->_workflowStepId;
             if ( $this->nextStep == 0 || $this->nextStep == "" )
             {
@@ -348,14 +376,17 @@ class WorkflowStep
                 $arrWorkflow['status'] = "SAVED";
             }
         }
-
+        
         /*         * ******************** Get due date for Task ********************** */
         $objAppDelegation = new AppDelegation();
+        $objTask = new Task();
+        $objTask->setTasUid($step);
+        $objTask->setStepId($step2);
 
         try {
             if ( !isset ($this->objAudit['elements'][$this->elementId]['steps'][$step]) )
             {
-                $objTask = new Task();
+                
                 $arrCompleteData['due_date'] = $objAppDelegation->calculateDueDate ((new Task ($step))->retrieveByPk ($step));
             }
             else
@@ -372,7 +403,7 @@ class WorkflowStep
         } catch (Exception $ex) {
             
         }
-
+        
         $arrWorkflow['workflow_id'] = $this->workflowId;
         if ( !empty ($arrWorkflowData) )
         {
@@ -414,11 +445,11 @@ class WorkflowStep
         {
             $claimFlag = false;
         }
-
+                
         // check permissions
         $objCase = new \BusinessModel\Cases();
         $isValidUser = $objCase->doPostReassign (
-                new Flow ($step), array(
+                $objTask, array(
             "cases" => array(
                 0 => array(
                     "elementId" => $this->elementId,
@@ -438,15 +469,14 @@ class WorkflowStep
         {
             $this->completeAuditObject ($objUser, $arrCompleteData);
         }
-
+        
         // Update workflow and audit object
         $strAudit = json_encode ($this->objAudit);
 
         $objectId = isset ($this->parentId) && is_numeric ($this->parentId) ? $this->parentId : $this->elementId;
 
         $strWorkflow = json_encode ($this->objWorkflow);
-
-
+        
         if ( !empty ($arrWorkflowData) )
         {
             $this->objMysql->_update ("workflow.workflow_data", array(
@@ -468,7 +498,8 @@ class WorkflowStep
         }
 
         $this->sendNotification ($objMike, $arrCompleteData, $arrEmailAddresses);
-    }
+        
+   }
 
     public function complete ($objMike, $arrCompleteData, Users $objUser, $arrEmailAddresses = array())
     {
@@ -483,11 +514,14 @@ class WorkflowStep
         {
             throw new Exception ("You do not have permission to do this");
         }
+        
         $this->completeWorkflowObject ($objMike, $objUser, $arrCompleteData, true, $arrEmailAddresses);
+        
         if ( isset ($this->nextStep) && $this->nextStep !== 0 )
         {
             $this->checkEvents ();
             $this->_workflowStepId = $this->nextStep;
+            $this->currentTask = $this->nextTask;
             return new WorkflowStep ($this->_workflowStepId, $objMike);
         }
         return true;
@@ -505,7 +539,8 @@ class WorkflowStep
 
     public function stepExists ($stepId)
     {
-        $result = $this->objMysql->_select ("workflow.steps", [], ["step_id" => $stepId]);
+        
+        $result = $this->objMysql->_select ("workflow.task", [], ["TAS_UID" => $stepId]);
         if ( isset ($result[0]) && !empty ($result[0]) )
         {
             return true;

@@ -39,12 +39,12 @@ class Task extends BaseTask
 
     public function removeTask ()
     {
-        $this->objMysql->_delete ("workflow.steps", array("step_id" => $this->stepId));
+        $this->objMysql->_delete ("workflow.task", array("step_id" => $this->stepId));
     }
 
     public function getTask ($step)
     {
-        $check = $this->objMysql->_select ("workflow.steps", array(), array("step_id" => $step));
+        $check = $this->objMysql->_select ("workflow.task", array(), array("step_id" => $step));
 
         return $check;
     }
@@ -294,7 +294,7 @@ class Task extends BaseTask
     public function retrieveByPk ($pk)
     {
 
-        $result = $this->objMysql->_select ("workflow.steps", [], ["TAS_UID" => $pk]);
+        $result = $this->objMysql->_select ("workflow.task", [], ["TAS_UID" => $pk]);
         if ( !isset ($result[0]) || empty ($result[0]) )
         {
             return false;
@@ -306,7 +306,11 @@ class Task extends BaseTask
 
         $objCalendar = new CalendarAssignment();
         $objAssignment = $objCalendar->retrieveByPk ($result[0]['TAS_UID'], "TASK");
-        $objFlow->setCalendarUid ($objAssignment->getCalendarUid ());
+        
+        if(  is_object ($objAssignment)) {
+            $objFlow->setCalendarUid ($objAssignment->getCalendarUid ());
+        }
+        
         $objFlow->setTasTypeDay ($result[0]['TAS_TYPE_DAY']);
         $objFlow->setTasUid($pk);
         $objFlow->setTasAssignType($result[0]['TAS_ASSIGN_TYPE']);

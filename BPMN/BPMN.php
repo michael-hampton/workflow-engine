@@ -139,7 +139,7 @@ class BPMN
     public function getAllTasks ($workflowId)
     {
         $arrStepMapping = $this->objMysql->_query ("SELECT sm.*, s.step_name FROM workflow.status_mapping sm
-                                                    INNER JOIN workflow.steps s ON s.step_id = sm.step_from
+                                                    INNER JOIN workflow.task s ON s.step_id = sm.step_from
                                                     WHERE workflow_id = ?
                                                     ORDER By sm.order_id", [$workflowId]);
         $arrAllMaps = [];

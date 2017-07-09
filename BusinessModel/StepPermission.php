@@ -25,9 +25,10 @@ class StepPermission
      */
     public function __construct (\Task $objStep = null)
     {
+        
         if ( $objStep !== null )
         {
-            $this->stepId = $objStep->getStepId ();
+            $this->stepId = $objStep->getTasUid ();
         }
 
         $this->objMysql = new \Mysql2();
@@ -44,7 +45,7 @@ class StepPermission
      * @return array
      */
     public function getProcessPermissions ()
-    {
+    {        
         $arrPermissions = [];
         $this->validateStepUid ();
 
@@ -305,12 +306,14 @@ class StepPermission
     public function validateStepUid ()
     {
         $this->stepId = trim ($this->stepId);
+        
         if ( $this->stepId == '' )
         {
             throw (new \Exception ("STEP ID HAS NOT BEEN SET"));
         }
 
         $objWorkflowStep = new \WorkflowStep();
+        
 
         if ( !($objWorkflowStep->stepExists ($this->stepId)) )
         {
@@ -329,8 +332,6 @@ class StepPermission
      */
     public function checkUserOrGroupAssignedTask (\Users $objUser)
     {
-
-
         $permissions = $this->getProcessPermissions ();
 
         if ( !isset ($permissions['master']) || empty ($permissions['master']) )

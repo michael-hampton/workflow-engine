@@ -432,7 +432,7 @@ class Task
     {
         try {
           
-            $sql = "SELECT TAS_UID FROM workflow.steps WHERE TAS_UID = ?";
+            $sql = "SELECT TAS_UID FROM workflow.task WHERE TAS_UID = ?";
             $arrParameters = array($taskUid);
 
 

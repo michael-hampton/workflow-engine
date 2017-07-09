@@ -53,7 +53,7 @@ class Step extends BaseStep
     public function stepExists ($stepId)
     {
         
-        $result = $this->objMysql->_select ("workflow.steps", [], ["TAS_UID" => $stepId]);
+        $result = $this->objMysql->_select ("workflow.task", [], ["TAS_UID" => $stepId]);
         if ( isset ($result[0]) && !empty ($result[0]) )
         {
             return true;

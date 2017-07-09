@@ -839,7 +839,7 @@ class Cases
     private function getStepName ($stepName)
     {
         $step = $this->objMysql->_query ("SELECT s.step_name FROM workflow.status_mapping m
-                                                    INNER JOIN workflow.steps s ON s.step_id = m.step_from
+                                                    INNER JOIN workflow.task s ON s.step_id = m.step_from
                                                     WHERE m.id = ?", [$stepName]);
 
         if ( isset ($step[0]['step_name']) && trim ($step[0]['step_name']) !== "" )
@@ -911,7 +911,7 @@ class Cases
     public function assignUsers (\Elements $objElements)
     {
         $objUser = (new \BusinessModel\UsersFactory())->getUser ($_SESSION['user']['usrid']);
-        
+
         $arrStepData = array(
             'claimed' => $_SESSION["user"]["username"],
             "dateCompleted" => date ("Y-m-d H:i;s"),
@@ -1382,7 +1382,10 @@ class Cases
                 /* ----------------------------------********--------------------------------- */
         );
 
-        $objPermissions = new \BusinessModel\StepPermission (new \Task ($TAS_UID));
+        $objTask = new \Task();
+        $objTask->setTasUid ($TAS_UID);
+
+        $objPermissions = new \BusinessModel\StepPermission ($objTask);
         $arrPermissions = $objPermissions->getProcessPermissions ();
 
         if ( !empty ($arrPermissions) )
@@ -1474,10 +1477,13 @@ class Cases
 
                             $oDataset = $this->objMysql->_select ("workflow.step_document", [], ["step_id" => $TAS_UID, "document_type" => $obj_type]);
 
-                            foreach ($oDataset as $aRow) {
-                                if ( !in_array ($aRow['document_id'], $RESULT[$ACTION]) )
-                                {
-                                    array_push ($RESULT[$ACTION], $aRow['document_id']);
+                            if ( !empty ($oDataset) )
+                            {
+                                foreach ($oDataset as $aRow) {
+                                    if ( !in_array ($aRow['document_id'], $RESULT[$ACTION]) )
+                                    {
+                                        array_push ($RESULT[$ACTION], $aRow['document_id']);
+                                    }
                                 }
                             }
 
@@ -1519,6 +1525,7 @@ class Cases
         }
 
         $objCase = $this->getCaseInfo ($proUid, $appUid);
+
         $arrayAccess = array();
 
         //User has participated
@@ -1529,17 +1536,17 @@ class Cases
             $arrayAccess['participated'] = in_array ($objUser->getUsername (), $aParticipated) ? true : false;
         }
 
-
         //User is supervisor
         if ( !empty ($objCase) && is_object ($objCase) )
         {
             $workflowId = $objCase->getWorkflow_id ();
             $supervisor = new \BusinessModel\ProcessSupervisor();
             $isSupervisor = $supervisor->isUserProcessSupervisor (new \Workflow ($workflowId), $objUser);
+
             $arrayAccess['supervisor'] = ($isSupervisor) ? true : false;
 
             $query = $this->objMysql->_select ("workflow.status_mapping", [], ["id" => $objCase->getCurrentStepId ()]);
-            $stepId = $query[0]['step_from'];
+            $stepId = $query[0]['TAS_UID'];
 
             $objectPermissions = $this->getAllObjectsFrom ($proUid, $appUid, $stepId, $objUser);
 
@@ -1551,14 +1558,14 @@ class Cases
                 }
             }
         }
-
+        
         return $arrayAccess;
     }
 
     public function hasPermission (\Users $objUser, $proUid, $appUid)
     {
         $userPermission = $this->userAuthorization ($objUser, $proUid, $appUid);
-
+        
         if ( isset ($userPermission['objectPermissions']['DYNAFORMS']) && !empty ($userPermission['objectPermissions']['DYNAFORMS']) )
         {
             return true;
@@ -1573,7 +1580,6 @@ class Cases
         {
             return true;
         }
-
         return true;
     }
 
@@ -1761,7 +1767,7 @@ class Cases
             {
                 foreach ($obj['elements'] as $elementId => $element) {
 
-                    if (isset($element['current_step']) && $element['current_step'] === $objFlow->getId () )
+                    if ( isset ($element['current_step']) && $element['current_step'] === $objFlow->getId () )
                     {
                         $lastStep = end ($objAudit['elements'][$elementId]['steps']);
 
@@ -1784,7 +1790,7 @@ class Cases
         }
     }
 
-    public function doPostReassign (\Flow $objFlow, $data, $doReassign = true)
+    public function doPostReassign (\Task $objTask, $data, $doReassign = true)
     {
         if ( $this->objMysql === null )
         {
@@ -1811,13 +1817,13 @@ class Cases
             if ( $doReassign === true )
             {
                 $appDelegation = $this->objMysql->_select ("workflow.workflow_data", [], ["object_id" => $val['parentId']]);
-                $existDelegation = $this->validateReassignData ($objFlow, $appDelegation, $val, $data, 'DELEGATION_NOT_EXISTS');
+                $existDelegation = $this->validateReassignData ($objTask, $appDelegation, $val, $data, 'DELEGATION_NOT_EXISTS');
 
                 //Will be not able reassign a case when is paused
-                $flagPaused = $this->validateReassignData ($objFlow, $appDelegation, $val, $data, 'ID_REASSIGNMENT_PAUSED_ERROR');
+                $flagPaused = $this->validateReassignData ($objTask, $appDelegation, $val, $data, 'ID_REASSIGNMENT_PAUSED_ERROR');
 
                 //Current users of OPEN DEL_INDEX thread
-                $flagSameUser = $this->validateReassignData ($objFlow, $appDelegation, $val, $data, 'REASSIGNMENT_TO_THE_SAME_USER');
+                $flagSameUser = $this->validateReassignData ($objTask, $appDelegation, $val, $data, 'REASSIGNMENT_TO_THE_SAME_USER');
 
 
                 if ( $flagPaused && $flagSameUser )
@@ -1838,7 +1844,7 @@ class Cases
             $usrUid = $val['user']->getUserId ();
 
             //USER_NOT_ASSIGNED_TO_TASK
-            $flagHasPermission = $this->validateReassignData ($objFlow, array(), $val, $data, 'USER_NOT_ASSIGNED_TO_TASK');
+            $flagHasPermission = $this->validateReassignData ($objTask, array(), $val, $data, 'USER_NOT_ASSIGNED_TO_TASK');
 
             return $flagHasPermission;
         }
@@ -1851,7 +1857,7 @@ class Cases
      * @param string $type
      * @return bool
      */
-    private function validateReassignData (\Flow $objFlow, $appDelegation = array(), $value, $data, $type = 'DELEGATION_NOT_EXISTS')
+    private function validateReassignData (\Task $objTask, $appDelegation = array(), $value, $data, $type = 'DELEGATION_NOT_EXISTS')
     {
         $return = true;
         switch ($type) {
@@ -1876,7 +1882,7 @@ class Cases
 
             case 'USER_NOT_ASSIGNED_TO_TASK':
 
-                $stepResult = $this->objMysql->_select ("workflow.status_mapping", [], ["id" => $objFlow->getId ()]);
+                $stepResult = $this->objMysql->_select ("workflow.status_mapping", [], ["TAS_UID" => $objTask->getTasUid ()]);
 
                 if ( !isset ($stepResult[0]) || empty ($stepResult[0]) )
                 {
@@ -1892,12 +1898,11 @@ class Cases
                 {
                     return false;
                 }
-                
-                $oTask = new \Task ($stepResult[0]['step_from']);
 
-                $permission = new StepPermission ($oTask);
+                $permission = new StepPermission ($objTask);
                 $supervisor = new ProcessSupervisor();
                 $objUser = (new UsersFactory())->getUser ($value['user']->getUserId ());
+
                 //$taskUid = $objFlow->getId ();
                 $flagBoolean = $permission->checkUserOrGroupAssignedTask ($objUser);
                 $flagps = $supervisor->isUserProcessSupervisor (new \Workflow ($stepResult[0]['workflow_id']), $objUser);
@@ -1938,9 +1943,9 @@ class Cases
                 $audit = json_decode ($appDelegation[0]['audit_data'], true);
                 $objUser = (new UsersFactory())->getUser ($value['user']->getUserId ());
 
-                if ( isset ($audit['elements'][$value['elementId']]['steps'][$objFlow->getId ()]) && isset ($audit['elements'][$value['elementId']]['steps'][$objFlow->getId ()]['claimed']) )
+                if ( isset ($audit['elements'][$value['elementId']]['steps'][$objTask->getStepId ()]) && isset ($audit['elements'][$value['elementId']]['steps'][$objTask->getStepId ()]['claimed']) )
                 {
-                    if ( trim ($objUser->getUsername ()) === trim ($audit['elements'][$value['elementId']]['steps'][$objFlow->getId ()]['claimed']) )
+                    if ( trim ($objUser->getUsername ()) === trim ($audit['elements'][$value['elementId']]['steps'][$objTask->getStepId ()]['claimed']) )
                     {
                         $this->messageResponse = [
                             'APP_UID' => $value['elementId'],
