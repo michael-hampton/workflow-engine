@@ -57,7 +57,7 @@ class SendNotification extends Notification
     public function buildEmail (Task $objTask, $system = "task_manager", $blSendToAllParticipants = true)
     {
         try {
-            $this->setVariables ($objTask->getTasUid (), $system);
+            $this->setVariables ($objTask->getStepId (), $system);
 
             if ( empty ($this->message) )
             {

@@ -60,7 +60,7 @@ class OutputDocument
                     {
                         if ( $blReturnArray === true )
                         {
-                            $outputDocArray[$aRow['id']] = array('out_doc_uid' => $aRow['OUT_DOC_UID'],
+                            $outputDocArray[$aRow['id']] = array('out_doc_uid' => $aRow['id'],
                                 'out_doc_title' => $aRow['OUT_DOC_TITLE'],
                                 'out_doc_description' => $aRow['OUT_DOC_DESCRIPTION'],
                                 'out_doc_filename' => $aRow['OUT_DOC_FILENAME'],
@@ -329,9 +329,9 @@ class OutputDocument
     public function existsTitle ($processUid, $title)
     {
         try {
-            $sql = "SELECT ot.OUT_DOC_TITLE FROM workflow.`step_document` sd
-                    INNER JOIN workflow.output_document ot ON ot.id = sd.`document_id`
-                    WHERE sd.`step_id` = ? AND ot.OUT_DOC_TITLE = ?";
+            $sql = "SELECT ot.OUT_DOC_TITLE FROM workflow.`step_object` sd
+                    INNER JOIN workflow.output_document ot ON ot.id = sd.`STEP_UID_OBJ`
+                    WHERE sd.`STEP_UID` = ? AND ot.OUT_DOC_TITLE = ?";
 
             $arrParameters = array($processUid, $title);
 

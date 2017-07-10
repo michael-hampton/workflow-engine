@@ -13,6 +13,7 @@ class Task extends BaseTask
 
         if ( $stepId !== null )
         {
+            $this->setTasUid($stepId);
             $this->stepId = $stepId;
         }
     }
@@ -39,12 +40,12 @@ class Task extends BaseTask
 
     public function removeTask ()
     {
-        $this->objMysql->_delete ("workflow.task", array("step_id" => $this->stepId));
+        $this->objMysql->_delete ("workflow.task", array("TAS_UID" => $this->stepId));
     }
 
     public function getTask ($step)
     {
-        $check = $this->objMysql->_select ("workflow.task", array(), array("step_id" => $step));
+        $check = $this->objMysql->_select ("workflow.task", array(), array("TAS_UID" => $step));
 
         return $check;
     }

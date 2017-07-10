@@ -229,6 +229,7 @@ class Form extends FieldFactory
     {
         $objCases = new \BusinessModel\Cases();
         $objCase = $objCases->getCaseInfo ($projectId, $elementId);
+        
 
         $currentStepId = $objCase->getCurrentStepId ();
         $workflowId = $objWorkflowStep->getWorkflowId ();
@@ -238,7 +239,7 @@ class Form extends FieldFactory
         $buildSummary = false;
         $html = '';
 
-        $userPermissions = $objCases->getAllObjectsFrom ($projectId, $elementId, $objWorkflowStep->getCurrentTask (), $objUser);
+        $userPermissions = $objCases->getAllObjectsFrom ($projectId, $elementId, $objWorkflowStep->getNextTask (), $objUser);
         
         $objProcessSupervisor = new \BusinessModel\ProcessSupervisor();
         $blProcessSupervisor = $objProcessSupervisor->isUserProcessSupervisor (new \Workflow ($workflowId), $objUser);
@@ -370,9 +371,9 @@ class Form extends FieldFactory
     public function throwExceptionIfNotExistsDynaForm($dynaFormUid, $fieldNameForException = '')
     {
         try {
-            $sql = "SELECT * FROM workflow.task s
-                    INNER JOIN workflow.step_fields sf ON sf.step_id = s.step_id
-                    WHERE s.step_id = ? ";
+            $sql = "SELECT * FROM workflow.task t
+                    INNER JOIN workflow.step_fields sf ON sf.step_id = s.TAS_UID
+                    WHERE s.TAS_UID = ? ";
             $arrParameters = array($dynaFormUid);
 
            $result = $this->objMysql->_query($sql, $arrParameters);

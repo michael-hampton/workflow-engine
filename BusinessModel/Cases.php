@@ -727,7 +727,6 @@ class Cases
             foreach ($arrFilesUploaded['fileUpload']['name'] as $key => $value) {
 
                 $fileContent = file_get_contents ($arrFilesUploaded['fileUpload']['tmp_name'][$key]);
-
                 $arrData = array(
                     "source_id" => $projectId,
                     "filename" => $value,
@@ -838,8 +837,9 @@ class Cases
      */
     private function getStepName ($stepName)
     {
-        $step = $this->objMysql->_query ("SELECT s.step_name FROM workflow.status_mapping m
-                                                    INNER JOIN workflow.task s ON s.step_id = m.step_from
+        
+        $step = $this->objMysql->_query ("SELECT t.step_name FROM workflow.status_mapping m
+                                                    INNER JOIN workflow.task t ON t.TAS_UID = m.TAS_UID
                                                     WHERE m.id = ?", [$stepName]);
 
         if ( isset ($step[0]['step_name']) && trim ($step[0]['step_name']) !== "" )
@@ -1544,8 +1544,10 @@ class Cases
             $isSupervisor = $supervisor->isUserProcessSupervisor (new \Workflow ($workflowId), $objUser);
 
             $arrayAccess['supervisor'] = ($isSupervisor) ? true : false;
+            
 
             $query = $this->objMysql->_select ("workflow.status_mapping", [], ["id" => $objCase->getCurrentStepId ()]);
+            
             $stepId = $query[0]['TAS_UID'];
 
             $objectPermissions = $this->getAllObjectsFrom ($proUid, $appUid, $stepId, $objUser);

@@ -48,6 +48,7 @@ class Attachment
                 $this->documentId = $arrData['file_type'];
                 $this->stepId = $arrData['step']->getStepId ();
                 $this->projectId = $arrData['source_id'];
+                
                 $result = $this->uploadDocument ($arrData['files'], $arrData);
                 
                 return $result;
@@ -134,17 +135,20 @@ class Attachment
 
             if ( !file_exists ($sCheckDirectory) )
             {
-                $oProcessFiles = new \ProcessFile();
-                $sDate = date ('Y-m-d H:i:s');
-                $oProcessFiles->setProUid ($sProcessUID);
-                $oProcessFiles->setUsrUid ($userUID);
-                $oProcessFiles->setPrfUpdateUsrUid ('');
-                $oProcessFiles->setPrfPath ($sCheckDirectory);
-                $oProcessFiles->setPrfType ('folder');
-                $oProcessFiles->setPrfEditable ('');
-                $oProcessFiles->setPrfCreateDate ($sDate);
-                $oProcessFiles->save ();
+//                $oProcessFiles = new \ProcessFile();
+//                $sDate = date ('Y-m-d H:i:s');
+//                $oProcessFiles->setProUid ($sProcessUID);
+//                $oProcessFiles->setUsrUid ($userUID);
+//                $oProcessFiles->setPrfUpdateUsrUid ('');
+//                $oProcessFiles->setPrfPath ($sCheckDirectory);
+//                $oProcessFiles->setPrfType ('folder');
+//                $oProcessFiles->setPrfEditable ('');
+//                $oProcessFiles->setPrfCreateDate ($sDate);
+//                $oProcessFiles->save ();
+//                $oProcessFiles->setPrfFielname ('test');
             }
+            
+          
 
             $oProcessFiles = new \ProcessFile();
             $sDate = date ('Y-m-d H:i:s');

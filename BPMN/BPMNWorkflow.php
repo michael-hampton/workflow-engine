@@ -95,7 +95,7 @@ class BPMNWorkflow extends BPMN
 
         $dimension = 50;
 
-        $max = $this->objMysql->_query ("SELECT MAX(step_id) + 1 AS `MAX` FROM workflow.task");
+        $max = $this->objMysql->_query ("SELECT MAX(TAS_UID) + 1 AS `MAX` FROM workflow.task");
         $lastKey = $max[0]['MAX'] + $intNoOfSteps;
 
         foreach ($arrStepMapping as $key => $arrStep) {

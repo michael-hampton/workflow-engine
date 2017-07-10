@@ -93,18 +93,18 @@ class WorkflowStep
                     m.step_from AS current_step_id,
                     m.id AS current_step,
                     m.TAS_UID AS current_task,
-                    s.step_name AS current_step_name,
+                    t.step_name AS current_step_name,
                     m2.id AS next_step_id,
                     s2.step_name AS  next_step_name,
                     s2.TAS_UID,
                     w.workflow_name
                    FROM workflow.status_mapping m
                     INNER JOIN workflow.workflows w ON w.workflow_id = m.workflow_id
-                    INNER JOIN workflow.task s ON s.step_id = m.step_from
+                    INNER JOIN workflow.task t ON t.TAS_UID = m.step_from
                     INNER JOIN workflow.request_types r ON r.request_id = w.request_id
                     INNER JOIN workflow.workflow_systems sy ON sy.system_id = r.system_id
                     LEFT JOIN workflow.status_mapping m2 ON m2.step_from = m.step_to AND m2.workflow_id = m.workflow_id
-                    LEFT JOIN workflow.task s2 ON s2.step_id = m2.step_from
+                    LEFT JOIN workflow.task s2 ON s2.TAS_UID = m2.TAS_UID
                    WHERE m.id = ?";
         
 //        echo $sql;
@@ -271,7 +271,7 @@ class WorkflowStep
     private function sendNotification ($objMike, array $arrCompleteData = [], $arrEmailAddresses = [])
     {
         $objNotifications = new SendNotification();
-        $objNotifications->setVariables ($this->currentTask, $this->_systemName);
+        $objNotifications->setVariables ($this->_stepId, $this->_systemName);
         $objNotifications->setProjectId ($this->parentId);
         $objNotifications->setElementId ($this->elementId);
         if ( !empty ($arrEmailAddresses) )
@@ -280,7 +280,7 @@ class WorkflowStep
         }
 
         $objStep = new Task($this->_stepId);
-        $objStep->setTasUid($this->currentTask);
+        $objStep->setStepId($this->_stepId);
         $objNotifications->buildEmail ( $objStep);
     }
 

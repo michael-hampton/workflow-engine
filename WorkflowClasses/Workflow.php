@@ -89,8 +89,8 @@ class Workflow extends BaseProcess
 
     public function getStepsForWorkflow ()
     {
-        $arrResult = $this->objMysql->_query ("SELECT s.*, m.step_condition, m.first_step, m.step_from, m.order_id, m.step_to, m.id FROM workflow.status_mapping m
-                                                INNER JOIN workflow.task s ON s.step_id = m.step_from
+        $arrResult = $this->objMysql->_query ("SELECT t.*, t.TAS_UID AS step_id, m.step_condition, m.first_step, m.step_from, m.order_id, m.step_to, m.id FROM workflow.status_mapping m
+                                                INNER JOIN workflow.task t ON t.TAS_UID = m.TAS_UID
                                                 WHERE m.workflow_id = ?
                                                 ORDER BY m.order_id ASC", [0 => $this->intWorkflowId]);
 
