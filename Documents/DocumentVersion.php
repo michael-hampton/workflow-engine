@@ -133,7 +133,9 @@ class DocumentVersion extends BaseDocumentVersion
             {
                 $o = new \BusinessModel\InputDocument(null);
                 $oInputDocument = $o->getInputDocument ($aData['document_id']);
-                if ( !$oInputDocument->getVersioning () )
+                
+                
+                if ( !$oInputDocument[$aData['document_id']]->getVersioning () )
                 {
                     throw (new Exception ('This Input document does not have the versioning enabled, for this reason this operation cannot be completed'));
                 }

@@ -27,7 +27,7 @@ abstract class BaseTask implements Persistent
         'name' => array('accessor' => 'getTasDelayType', 'mutator' => 'setTasDelayType', 'type' => 'string', 'required' => 'false'),
         'TAS_TIMEUNIT' => array('accessor' => 'getTasTimeunit', 'mutator' => 'setTasTimeunit', 'type' => 'string', 'required' => 'false'),
         'TAS_TYPE_DAY' => array('accessor' => 'getTasTypeDay', 'mutator' => 'setTasTypeDay', 'type' => 'string', 'required' => 'false'),
-        'TAS_UID' => array('accessor' => 'getTasUid', 'mutator' => 'setTasUid', 'type' => 'string', 'required' => 'true'),
+        'TAS_UID' => array('accessor' => 'getTasUid', 'mutator' => 'setTasUid', 'type' => 'string', 'required' => 'false'),
         'PRO_UID' => array('accessor' => 'getProUid', 'mutator' => 'setProUid', 'type' => 'string', 'required' => 'true'),
         'TAS_SELFSERVICE_TIMEOUT' => array('accessor' => 'getTasSelfserviceTimeout', 'mutator' => 'setTasSelfserviceTimeout', 'type' => 'string', 'required' => 'true'),
     );
@@ -150,6 +150,12 @@ abstract class BaseTask implements Persistent
     protected $tas_assign_location_adhoc = 'FALSE';
 
     /**
+     * The value for the tas_def_title field.
+     * @var        string
+     */
+    protected $tas_def_title;
+
+    /**
      * The value for the tas_transfer_fly field.
      * @var        string
      */
@@ -178,6 +184,12 @@ abstract class BaseTask implements Persistent
      * @var        string
      */
     protected $tas_view_upload = 'FALSE';
+
+    /**
+     * The value for the tas_group_variable field.
+     * @var        string
+     */
+    protected $tas_group_variable;
 
     /**
      * The value for the tas_view_additional_documentation field.
@@ -719,7 +731,6 @@ abstract class BaseTask implements Persistent
         if ( $this->tas_send_last_email !== $v || $v === 'TRUE' )
         {
             $this->tas_send_last_email = $v;
-            $this->modifiedColumns[] = TaskPeer::TAS_SEND_LAST_EMAIL;
         }
     }
 
@@ -755,7 +766,6 @@ abstract class BaseTask implements Persistent
      */
     public function setTasUid ($v)
     {
-
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
         if ( $v !== null && !is_string ($v) )
@@ -1479,6 +1489,28 @@ abstract class BaseTask implements Persistent
     }
 
     /**
+     * Set the value of [tas_group_variable] column.
+     * 
+     * @param      string $v new value
+     * @return     void
+     */
+    public function setTasGroupVariable ($v)
+    {
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ( $v !== null && !is_string ($v) )
+        {
+            $v = (string) $v;
+        }
+        if ( $this->tas_group_variable !== $v )
+        {
+            $this->tas_group_variable = $v;
+        }
+    }
+
+// setTasGroupVariable()
+
+    /**
      * Set the value of [tas_selfservice_execution] column.
      * 
      * @param      string $v new value
@@ -1514,7 +1546,7 @@ abstract class BaseTask implements Persistent
 
         if ( trim ($this->tas_uid) === "" )
         {
-            $this->objMysql->_insert ("workflow.task", ['PRO_UID' => $this->pro_uid,
+            $id = $this->objMysql->_insert ("workflow.task", ['PRO_UID' => $this->pro_uid,
                 'TAS_DESCRIPTION' => $this->tas_description,
                 'TAS_TYPE' => $this->tas_type,
                 'TAS_DURATION' => $this->tas_duration,
@@ -1528,8 +1560,10 @@ abstract class BaseTask implements Persistent
                 'TAS_SELFSERVICE_TIME' => $this->tas_selfservice_time,
                 'TAS_SELFSERVICE_TIME_UNIT' => $this->tas_selfservice_time_unit,
                 'TAS_TRANSFER_FLY' => $this->tas_transfer_fly,
-                "step_name" => $this->tas_title,                                        
+                "step_name" => $this->tas_title,
                 'TAS_SELFSERVICE_TRIGGER_UID' => $this->tas_selfservice_trigger_uid]);
+            
+            return $id;
         }
         else
         {

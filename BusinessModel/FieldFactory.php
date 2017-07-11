@@ -74,22 +74,24 @@ class FieldFactory
             $this->createConnection ();
         }
         
-        if(trim($objTask->getStepId ()) === "") {
+        if(trim($objTask->getTasUid ()) === "") {
             return false;
         }
-        
+   
         $query = "SELECT sf.*, f.*, ft.field_type, dt.options, dt.data_object_type,
                 IF(rf.field_id IS NOT NULL, 1, 0) as required_field, sf.field_conditions,
                 IFNULL(v.variable_name, f.field_identifier) AS field_identifier
-                FROM workflow.step_fields sf 
+                FROM workflow.step st
+                INNER JOIN workflow.step_fields sf ON sf.step_id = st.STEP_UID
                 INNER JOIN workflow.fields f ON f.field_id = sf.field_id 
                 INNER JOIN workflow.field_types ft ON ft.field_type_id = f.field_type 
                 LEFT JOIN workflow.data_types dt ON dt.id = f.data_type 
                 LEFT JOIN workflow.required_fields rf on rf.field_id = f.field_id
                 LEFT JOIN workflow.workflow_variables v ON v.field_id = f.field_id
-                WHERE sf.step_id = ? 
+                WHERE st.TAS_UID = ?
                 GROUP BY f.field_id
                 ORDER BY sf.order_id";
+        
         $arrParameters = array($objTask->getStepId ());
         $arrResult = $this->objMysql->_query ($query, $arrParameters);
         foreach ($arrResult as $intKey => $arrField) {

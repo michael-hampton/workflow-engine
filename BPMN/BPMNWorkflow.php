@@ -305,9 +305,8 @@ class BPMNWorkflow extends BPMN
                     $objFlow->removeFlow ();
 
                     $objTask->removeTask ($steps['key']);
-
-                    $objTask->setStepName ($steps['text']);
-                    $id = $objTask->saveNewStep ();
+                    
+                    $id = (new Task())->create(array("TAS_TITLE" => $steps['text'], "PRO_UID" => $this->workflow));
 
                     $arrStepFields[$steps['key']]['step_id'] = $id;
 
@@ -467,7 +466,7 @@ class BPMNWorkflow extends BPMN
 
                     $stepId = $arrSteps['step_id'];
                     
-                    (new \BusinessModel\Step())->create ($objStep->getTasUid (), $this->workflow, array('STEP_UID_OBJ' => $stepId,
+                    (new \BusinessModel\Step())->create ($stepId, $this->workflow, array('STEP_UID_OBJ' => $stepId,
                                                                                                         'STEP_TYPE_OBJ' => "DYNAFORM",
                                                                                                          'STEP_MODE' => "EDIT"));
 

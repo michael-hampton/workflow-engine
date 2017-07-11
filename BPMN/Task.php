@@ -61,16 +61,18 @@ class Task extends BaseTask
 
         try {
 
-            $sTaskUID = $aData['TAS_UID'];
+            if(isset($aData['TAS_UID'])) {
+                 $sTaskUID = $aData['TAS_UID'];
+                  $this->setTasUid ($sTaskUID);
+            }
+           
 
 
             $this->setProUid ($aData['PRO_UID']);
-            $this->setTasUid ($sTaskUID);
+           
             $this->setTasTitle ((isset ($aData['TAS_TITLE']) ? $aData['TAS_TITLE'] : ''));
             $this->setTasDescription ((isset ($aData['TAS_DESCRIPTION']) ? $aData['TAS_DESCRIPTION'] : ''));
             $this->setTasDefTitle ("");
-            $this->setTasDefDescription ("");
-            $this->setTasDefProcCode ("");
             $this->setTasDefMessage ("");
             $this->setTasDefSubjectMessage ("");
             $this->setTasType ("NORMAL");
@@ -90,33 +92,31 @@ class Task extends BaseTask
             $this->setTasViewAdditionalDocumentation ("FALSE");
             $this->setTasCanCancel ("FALSE");
             $this->setTasOwnerApp ("FALSE");
-            $this->setStgUid ("");
             $this->setTasCanPause ("FALSE");
             $this->setTasCanSendMessage ("TRUE");
             $this->setTasCanDeleteDocs ("FALSE");
             $this->setTasSelfService ("FALSE");
-            $this->setTasStart ("FALSE");
-            $this->setTasToLastUser ("FALSE");
             $this->setTasSendLastEmail ("FALSE");
 
             $this->setTasGroupVariable ("");
 
-            $this->setTasId ($aData['TAS_ID']);
-
+            if(isset($aData['TAS_ID'])) {
+                  $this->setTasId ($aData['TAS_ID']);
+            }
+            
             $this->loadObject ($aData);
-
+ 
             if ( $this->validate () )
             {
-                $this->setTasTitleContent ((isset ($aData['TAS_TITLE']) ? $aData['TAS_TITLE'] : ''));
-                $this->setTasDescriptionContent ((isset ($aData['TAS_DESCRIPTION']) ? $aData['TAS_DESCRIPTION'] : ''));
+                //$this->setTasTitleContent ((isset ($aData['TAS_TITLE']) ? $aData['TAS_TITLE'] : ''));
+                //$this->setTasDescriptionContent ((isset ($aData['TAS_DESCRIPTION']) ? $aData['TAS_DESCRIPTION'] : ''));
 
-                $this->save ();
+                $sTaskUID = $this->save ();
 
                 return $sTaskUID;
             }
             else
             {
-
                 $e = new Exception ("Failed Validation in class " . get_class ($this) . ".");
                 $e->aValidationFailures = $this->getValidationFailures ();
 

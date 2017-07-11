@@ -239,7 +239,7 @@ class Form extends FieldFactory
         $buildSummary = false;
         $html = '';
 
-        $userPermissions = $objCases->getAllObjectsFrom ($projectId, $elementId, $objWorkflowStep->getNextTask (), $objUser);
+        $userPermissions = $objCases->getAllObjectsFrom ($projectId, $elementId, $objWorkflowStep->getStepId (), $objUser);
         
         $objProcessSupervisor = new \BusinessModel\ProcessSupervisor();
         $blProcessSupervisor = $objProcessSupervisor->isUserProcessSupervisor (new \Workflow ($workflowId), $objUser);
@@ -247,7 +247,7 @@ class Form extends FieldFactory
         $objAttachments = new \BusinessModel\Attachment();
         $arrAttachments = $objAttachments->getAllAttachments ($projectId);
         $attachmentHTML = $objFormBuilder->buildAttachments ($arrAttachments);
-
+        
         /*         * ************** Fields ************************* */
         $arrFields = $objWorkflowStep->getFields ();
 

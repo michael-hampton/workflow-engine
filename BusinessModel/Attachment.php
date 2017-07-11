@@ -237,6 +237,7 @@ class Attachment
         }
 
         $objStepDocument = $stepDocument->getInputDocument ($this->documentId);
+     
 
         if ( !empty ($objStepDocument) )
         {
@@ -258,7 +259,7 @@ class Attachment
         }
 
         $arrUploadedFiles = array();
-
+        
         foreach ($_FILES['fileUpload']['name'] as $key => $name) {
             $size = $_FILES['fileUpload']['size'][$key];
             $file_tmp = $_FILES['fileUpload']['tmp_name'][$key];
@@ -284,8 +285,8 @@ class Attachment
                 {
                     $this->arrayValidation[] = "TOO BIG";
                 }
-
-                if ( in_array ($file_ext, $arrExtensions) === false )
+                
+                if ( !in_array ($file_ext, $arrExtensions) === false )
                 {
                     $this->arrayValidation[] = "extension not allowed, please choose a JPEG or PNG file.";
                 }
@@ -341,7 +342,7 @@ class Attachment
             $arrResponse = $this->addProcessFilesManager ($arrData['source_id'], $arrData['uploaded_by'], $aData);
 
             // update version
-            $objVersioning->create (array("filename" => $originalFilename, "document_id" => $arrResponse['prf_uid']));
+            $objVersioning->create (array("filename" => $originalFilename, "document_id" => $this->documentId));
             $arrUploadedFiles[] = $arrResponse['prf_uid'];
 
             $intCount++;

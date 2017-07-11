@@ -89,12 +89,12 @@ class Step
 
             switch ($type) {
                 case "DYNAFORM":
-                    $dynaform = new \Dynaform();
-
-                    if ( !$dynaform->dynaformExists ($objectUid) )
-                    {
-                        $msg = "ID_DYNAFORM_DOES_NOT_EXIST";
-                    }
+//                    $dynaform = new \Dynaform();
+//
+//                    if ( !$dynaform->dynaformExists ($objectUid) )
+//                    {
+//                        $msg = "ID_DYNAFORM_DOES_NOT_EXIST";
+//                    }
                     break;
                 case "INPUT_DOCUMENT":
                     $inputdoc = new \InputDocument();

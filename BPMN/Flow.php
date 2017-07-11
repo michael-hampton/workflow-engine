@@ -15,7 +15,6 @@ class Flow
     private $loc;
     private $stepName;
 
-
     /**
      * 
      * @param type $id
@@ -46,7 +45,7 @@ class Flow
         $this->id = $id;
     }
 
-        /**
+    /**
      * 
      * @return type
      */
@@ -210,7 +209,7 @@ class Flow
     {
         $this->objMysql->_insert ("workflow.status_mapping", array(
             "workflow_id" => $this->workflowId,
-             "TAS_UID" => $this->stepFrom,
+            "TAS_UID" => $this->stepFrom,
             "step_from" => $this->stepFrom,
             "step_to" => $this->stepTo,
             "step_condition" => $this->condition,

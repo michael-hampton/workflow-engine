@@ -360,7 +360,7 @@ class OutputDocument
     {
         try {
             $sql = "SELECT d.OUT_DOC_TITLE, d.id from workflow.output_document d
-                    LEFT JOIN workflow.step_document sd ON sd.id = d.id
+                    LEFT JOIN workflow.step sd ON sd.STEP_UID_OBJ = d.id
                     WHERE d.OUT_DOC_TITLE = ?";
 
             $arrParameters = array($title);
@@ -394,9 +394,9 @@ class OutputDocument
             $arrayData = array();
             //Step
             $result = $this->objMysql->_query ("SELECT d.* FROM `output_document` d 
-                                            INNER JOIN step_document sd ON sd.document_id = d.id
-                                            WHERE sd.document_type = 1
-                                            AND sd.document_id = ?", [$outputDocumentUid]);
+                                            INNER JOIN step sd ON sd.STEP_UID_OBJ = d.id
+                                            WHERE sd.STEP_TYPE_OBJ = 'OUTPUT_DOCUMENT'
+                                            AND sd.STEP_UID_OBJ = ?", [$outputDocumentUid]);
 
 
             if ( isset ($result[0]) && !empty ($result[0]) )

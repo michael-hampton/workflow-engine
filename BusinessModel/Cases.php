@@ -1211,7 +1211,7 @@ class Cases
             }
         }
 
-        $results = $this->objMysql->_select ("workflow.step_document", [], ["step_id" => $sTasKUID]);
+        $results = $this->objMysql->_select ("workflow.step", [], ["TAS_UID" => $sTasKUID]);
 
         $aOutputDocuments = array();
 
@@ -1220,14 +1220,14 @@ class Cases
 
             $oAppDocument = new \DocumentVersion();
 
-            $lastVersion = $oAppDocument->getLastDocVersion ($aRow['document_id']);
+            $lastVersion = $oAppDocument->getLastDocVersion ($aRow['STEP_UID_OBJ']);
 
-            if ( $aRow['document_type'] == 1 )
+            if ( $aRow['document_type'] == "OUTPUT_DOCUMENT" )
             {
-                $aAux = $oAppDocument->load ($aRow['document_id'], $lastVersion);
+                $aAux = $oAppDocument->load ($aRow['STEP_UID_OBJ'], $lastVersion);
 
                 $oOutputDocument = new \OutputDocument();
-                $aGields = $oOutputDocument->retrieveByPk ($aRow['document_id']);
+                $aGields = $oOutputDocument->retrieveByPk ($aRow['STEP_UID_OBJ']);
                 //OUTPUTDOCUMENT
                 $outDocTitle = $aGields->getOutDocTitle ();
                 switch ($aGields->getOutDocGenerate ()) {
@@ -1467,22 +1467,22 @@ class Cases
                             if ( $ACTION == 'Input' )
                             {
 
-                                $obj_type = 2;
+                                $obj_type = "INPUT_DOCUMENT";
                             }
                             else
                             {
 
-                                $obj_type = 1;
+                                $obj_type = "OUTPUT_DOCUMENT";
                             }
 
-                            $oDataset = $this->objMysql->_select ("workflow.step_document", [], ["step_id" => $TAS_UID, "document_type" => $obj_type]);
+                            $oDataset = $this->objMysql->_select ("workflow.step", [], ["TAS_UID" => $TAS_UID, "STEP_TYPE_OBJ" => $obj_type]);
 
                             if ( !empty ($oDataset) )
                             {
                                 foreach ($oDataset as $aRow) {
-                                    if ( !in_array ($aRow['document_id'], $RESULT[$ACTION]) )
+                                    if ( !in_array ($aRow['STEP_UID_OBJ'], $RESULT[$ACTION]) )
                                     {
-                                        array_push ($RESULT[$ACTION], $aRow['document_id']);
+                                        array_push ($RESULT[$ACTION], $aRow['STEP_UID_OBJ']);
                                     }
                                 }
                             }

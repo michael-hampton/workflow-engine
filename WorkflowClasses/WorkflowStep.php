@@ -72,7 +72,7 @@ class WorkflowStep
     {
         return $this->fieldValidation;
     }
-    
+
     public function getNextTask ()
     {
         return $this->nextTask;
@@ -83,7 +83,6 @@ class WorkflowStep
         return $this->currentTask;
     }
 
-    
     public function setStepInformation ()
     {
         $sql = "SELECT
@@ -106,11 +105,11 @@ class WorkflowStep
                     LEFT JOIN workflow.status_mapping m2 ON m2.step_from = m.step_to AND m2.workflow_id = m.workflow_id
                     LEFT JOIN workflow.task s2 ON s2.TAS_UID = m2.TAS_UID
                    WHERE m.id = ?";
-        
+
 //        echo $sql;
 //        echo $this->_workflowStepId;
 //        die;
-        
+
         $arrResult = $this->objMysql->_query ($sql, array($this->_workflowStepId));
         if ( empty ($arrResult) )
         {
@@ -226,12 +225,12 @@ class WorkflowStep
         {
             throw new Exception ("You do not have permission to do this");
         }
-                
+
         if ( !$this->validateWorkflowStep ($arrFormData) )
         {
             return false;
         }
-                        
+
         if ( !$objMike->loadObject ($arrFormData) )
         {
             return false;
@@ -240,7 +239,7 @@ class WorkflowStep
         {
             return false;
         }
-                if ( isset ($arrFormData['status']) )
+        if ( isset ($arrFormData['status']) )
         {
             if ( $this->completeWorkflowObject ($objMike, $objUser, $arrFormData, false, $arrEmailAddresses) === false )
             {
@@ -279,9 +278,9 @@ class WorkflowStep
             $objNotifications->setArrEmailAddresses ($arrEmailAddresses);
         }
 
-        $objStep = new Task($this->_stepId);
-        $objStep->setStepId($this->_stepId);
-        $objNotifications->buildEmail ( $objStep);
+        $objStep = new Task ($this->_stepId);
+        $objStep->setStepId ($this->_stepId);
+        $objNotifications->buildEmail ($objStep);
     }
 
     private function completeAuditObject (Users $objUser, array $arrCompleteData = [])
@@ -376,34 +375,41 @@ class WorkflowStep
                 $arrWorkflow['status'] = "SAVED";
             }
         }
-        
-        /*         * ******************** Get due date for Task ********************** */
-        $objAppDelegation = new AppDelegation();
-        $objTask = new Task();
-        $objTask->setTasUid($step);
-        $objTask->setStepId($step2);
 
-        try {
-            if ( !isset ($this->objAudit['elements'][$this->elementId]['steps'][$step]) )
-            {
-                
-                $arrCompleteData['due_date'] = $objAppDelegation->calculateDueDate ((new Task ($step))->retrieveByPk ($step));
-            }
-            else
-            {
-                if ( isset ($this->objAudit['elements'][$this->elementId]['steps'][$step]['due_date']) )
+        if ( !isset ($step) || !isset ($step2) )
+        {
+           $step = $this->currentTask;
+           $step2 = $this->_stepId;
+        }
+        
+         /*             * ******************** Get due date for Task ********************** */
+            $objAppDelegation = new AppDelegation();
+            $objTask = new Task();
+            $objTask->setTasUid ($step);
+            $objTask->setStepId ($step2);
+
+            try {
+                if ( !isset ($this->objAudit['elements'][$this->elementId]['steps'][$step]) )
                 {
-                    $arrCompleteData['due_date'] = $this->objAudit['elements'][$this->elementId]['steps'][$step]['due_date'];
+
+                    $arrCompleteData['due_date'] = $objAppDelegation->calculateDueDate ((new Task ($step))->retrieveByPk ($step));
                 }
                 else
                 {
-                    $arrCompleteData['due_date'] = "";
+                    if ( isset ($this->objAudit['elements'][$this->elementId]['steps'][$step]['due_date']) )
+                    {
+                        $arrCompleteData['due_date'] = $this->objAudit['elements'][$this->elementId]['steps'][$step]['due_date'];
+                    }
+                    else
+                    {
+                        $arrCompleteData['due_date'] = "";
+                    }
                 }
+            } catch (Exception $ex) {
+                
             }
-        } catch (Exception $ex) {
-            
-        }
-        
+
+
         $arrWorkflow['workflow_id'] = $this->workflowId;
         if ( !empty ($arrWorkflowData) )
         {
@@ -445,7 +451,7 @@ class WorkflowStep
         {
             $claimFlag = false;
         }
-                
+
         // check permissions
         $objCase = new \BusinessModel\Cases();
         $isValidUser = $objCase->doPostReassign (
@@ -469,14 +475,14 @@ class WorkflowStep
         {
             $this->completeAuditObject ($objUser, $arrCompleteData);
         }
-        
+
         // Update workflow and audit object
         $strAudit = json_encode ($this->objAudit);
 
         $objectId = isset ($this->parentId) && is_numeric ($this->parentId) ? $this->parentId : $this->elementId;
 
         $strWorkflow = json_encode ($this->objWorkflow);
-        
+
         if ( !empty ($arrWorkflowData) )
         {
             $this->objMysql->_update ("workflow.workflow_data", array(
@@ -498,8 +504,7 @@ class WorkflowStep
         }
 
         $this->sendNotification ($objMike, $arrCompleteData, $arrEmailAddresses);
-        
-   }
+    }
 
     public function complete ($objMike, $arrCompleteData, Users $objUser, $arrEmailAddresses = array())
     {
@@ -514,9 +519,9 @@ class WorkflowStep
         {
             throw new Exception ("You do not have permission to do this");
         }
-        
+
         $this->completeWorkflowObject ($objMike, $objUser, $arrCompleteData, true, $arrEmailAddresses);
-        
+
         if ( isset ($this->nextStep) && $this->nextStep !== 0 )
         {
             $this->checkEvents ();
@@ -539,7 +544,7 @@ class WorkflowStep
 
     public function stepExists ($stepId)
     {
-        
+
         $result = $this->objMysql->_select ("workflow.task", [], ["TAS_UID" => $stepId]);
         if ( isset ($result[0]) && !empty ($result[0]) )
         {

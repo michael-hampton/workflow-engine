@@ -227,8 +227,6 @@ class StepPermission
         $teamId = $objUser->getTeam_id ();
         $userId = $objUser->getUserId ();
         
-        echo $this->stepId;
-
         // 1 for master 2 for RO
 
         if ( empty ($permissions) )
@@ -311,6 +309,7 @@ class StepPermission
         
         if ( $this->stepId == '' )
         {
+            echo "Mike";
             echo debug_backtrace()[1]['function'];
             throw (new \Exception ("STEP ID HAS NOT BEEN SET"));
         }
