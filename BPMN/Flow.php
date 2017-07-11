@@ -210,6 +210,7 @@ class Flow
     {
         $this->objMysql->_insert ("workflow.status_mapping", array(
             "workflow_id" => $this->workflowId,
+             "TAS_UID" => $this->stepFrom,
             "step_from" => $this->stepFrom,
             "step_to" => $this->stepTo,
             "step_condition" => $this->condition,
@@ -228,7 +229,7 @@ class Flow
      */
     public function removeFlow ()
     {
-        $this->objMysql->_delete ("workflow.status_mapping", array("step_from" => $this->id, "workflow_id" => $this->workflowId));
+        $this->objMysql->_delete ("workflow.status_mapping", array("TAS_UID" => $this->id, "workflow_id" => $this->workflowId));
 
         return true;
     }
