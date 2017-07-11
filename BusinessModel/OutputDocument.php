@@ -329,7 +329,7 @@ class OutputDocument
     public function existsTitle ($processUid, $title)
     {
         try {
-            $sql = "SELECT ot.OUT_DOC_TITLE FROM workflow.`step_object` sd
+            $sql = "SELECT ot.OUT_DOC_TITLE FROM workflow.`step` sd
                     INNER JOIN workflow.output_document ot ON ot.id = sd.`STEP_UID_OBJ`
                     WHERE sd.`STEP_UID` = ? AND ot.OUT_DOC_TITLE = ?";
 
@@ -437,7 +437,7 @@ class OutputDocument
     {
 
         try {
-            $results = $this->objMysql->_query ("SELECT * FROM workflow.output_document d INNER JOIN workflow.step_object sd ON sd.STEP_UID_OBJ = d.id WHERE sd.TAS_UID = ? AND sd.STEP_TYPE_OBJ = 'OUTPUT_DOCUMENT'", [$objStep->getTasUid ()]);
+            $results = $this->objMysql->_query ("SELECT * FROM workflow.output_document d INNER JOIN workflow.step sd ON sd.STEP_UID_OBJ = d.id WHERE sd.TAS_UID = ? AND sd.STEP_TYPE_OBJ = 'OUTPUT_DOCUMENT'", [$objStep->getTasUid ()]);
 
             $arrDocuments = [];
 
