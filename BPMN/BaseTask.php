@@ -1528,6 +1528,7 @@ abstract class BaseTask implements Persistent
                 'TAS_SELFSERVICE_TIME' => $this->tas_selfservice_time,
                 'TAS_SELFSERVICE_TIME_UNIT' => $this->tas_selfservice_time_unit,
                 'TAS_TRANSFER_FLY' => $this->tas_transfer_fly,
+                "step_name" => $this->tas_title,                                        
                 'TAS_SELFSERVICE_TRIGGER_UID' => $this->tas_selfservice_trigger_uid]);
         }
         else
