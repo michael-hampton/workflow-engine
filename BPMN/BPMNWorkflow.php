@@ -466,6 +466,10 @@ class BPMNWorkflow extends BPMN
                     $this->objMysql->_delete ("workflow.step_fields", array("step_id" => $key));
 
                     $stepId = $arrSteps['step_id'];
+                    
+                    (new \BusinessModel\Step())->create ($objStep->getTasUid (), $this->workflow, array('STEP_UID_OBJ' => $stepId,
+                                                                                                        'STEP_TYPE_OBJ' => "DYNAFORM",
+                                                                                                         'STEP_MODE' => "EDIT"));
 
                     foreach ($arrSteps as $arrStepField) {
                         if ( isset ($arrStepField['field_id']) && isset ($arrStepField['order_id']) )
