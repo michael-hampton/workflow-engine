@@ -37,7 +37,7 @@ class Step
 
         try {
 
-            $sql = "SELECT STEP_UID FROM step_object WHERE TAS_UID = ?";
+            $sql = "SELECT STEP_UID FROM step WHERE TAS_UID = ?";
             $arrParameters = array($taskUid);
 
             if ( $stepUidExclude != "" )
@@ -298,7 +298,7 @@ class Step
             $this->throwExceptionIfNotExistsStep ($stepUid);
 
             //Get data
-            $sql = "SELECT * FROM step_object WHERE STEP_UID = ?";
+            $sql = "SELECT * FROM step WHERE STEP_UID = ?";
             $arrParameters = array($stepUid);
 
             $results = $this->objMysql->_query ($sql, $arrParameters);
