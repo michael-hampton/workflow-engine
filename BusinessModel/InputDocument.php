@@ -85,7 +85,7 @@ class InputDocument
     public function getInputDocumentForStep (\Step $objStep)
     {
         try {
-            $results = $this->objMysql->_query ("SELECT * FROM workflow.documents d INNER JOIN workflow.step_object sd ON sd.STEP_UID_OBJ = d.id WHERE sd.TAS_UID = ? AND STEP_TYPE_OBJ = 'INPUT_DOCUMENT'", [$objStep->getTasUid ()]);
+            $results = $this->objMysql->_query ("SELECT * FROM workflow.documents d INNER JOIN workflow.step sd ON sd.STEP_UID_OBJ = d.id WHERE sd.TAS_UID = ? AND STEP_TYPE_OBJ = 'INPUT_DOCUMENT'", [$objStep->getTasUid ()]);
 
             $arrDocuments = [];
 
@@ -297,7 +297,7 @@ class InputDocument
             $arrayData = array();
 
             //Step
-            $result = $this->objMysql->_select ("workflow.step_object", array(), array("STEP_UID_OBJ" => $inputDocumentUid));
+            $result = $this->objMysql->_select ("workflow.step", array(), array("STEP_UID_OBJ" => $inputDocumentUid));
 
             if ( isset ($result[0]) && !empty ($result[0]) )
             {
