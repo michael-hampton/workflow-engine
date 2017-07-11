@@ -319,10 +319,10 @@ abstract class BaseStep implements Persistent
     public function save()
     {
         if (trim($this->step_uid) === "") {
-            $result = $this->objMysql->_insert("workflow.step_object",
+            $result = $this->objMysql->_insert("workflow.step",
                     ['PRO_UID' => $this->pro_uid, 'TAS_UID' => $this->tas_uid, 'STEP_UID_OBJ' => $this->step_uid_obj, 'STEP_TYPE_OBJ' => $this->step_type_obj, 'STEP_CONDITION' => $this->step_condition, 'STEP_MODE' => $this->step_mode]);
         } else {
-            $result = $this - objMysql_update("workflow.step_object",
+            $result = $this - objMysql_update("workflow.step",
                     ['PRO_UID' => $this->pro_uid, 'TAS_UID' => $this->step_uid, 'STEP_TYPE_OBJ' => $this->step_type_obj, 'STEP_CONDITION' => $this->step_condition, 'STEP_MODE' => $this->step_mode],
                     ['STEP_UID' => $this->step_uid]);
         }
@@ -366,6 +366,6 @@ abstract class BaseStep implements Persistent
     
     public function doDelete()
     {
-        $this->objMysql->_delete("workflow.step_object", ["TAS_UID" => $this->tas_uid, "STEP_TYPE_OBJ" => $this->step_type_obj, "STEP_UID_OBJ" => $this->step_uid_obj]);
+        $this->objMysql->_delete("workflow.step", ["TAS_UID" => $this->tas_uid, "STEP_TYPE_OBJ" => $this->step_type_obj, "STEP_UID_OBJ" => $this->step_uid_obj]);
     }
 }
