@@ -1,4 +1,3 @@
-
 <?php
 /**
  * Created by PhpStorm.
@@ -31,12 +30,24 @@ class InputDocument {
      *
      * return void Throw exception the user does not have permission to delete
      */
-    public function throwExceptionIfHaventPermissionToDelete($projectUid, $applicationUid, \Task $objTask, \Users $objUser)
+    public function throwExceptionIfHaventPermissionToDelete($projectUid, $applicationUid, \Users $objUser, $arrAttachment)
     {
         try {
             //Verify data inbox
             $case = new \BusinessModel\Cases();
             $application = $case->getCaseInfo($projectUid, $applicationUid);
+
+            $documentId = $arrAttachment['file_type'];
+            $inputDocument = new \BusinessModel\InputDocument();
+            $inputDocument->throwExceptionIfNotExistsInputDocument($documentId);
+
+            $result = $this->objMysql->_select("workflow.step", [], ["PROCESS_UID" => $application->getWorkflow_id(), "STEP_TYPE_OBJ" => "INPUT_DOCUMENT" ]);
+
+            if(!isset($result[0]) || empty($result[0])) {
+                return false;
+            }
+
+            $stepId = $result[0]['TAS_UID'];
 
             $flagSupervisor = 0;
 
@@ -57,7 +68,7 @@ class InputDocument {
             //check user
 
             $sql = "SELECT * from workflow.step_permission WHERE permission = ? AND permission_type = ? AND access_level = ? and  step_id = ?";
-            $arrParameters = array($objUser->getUserId(), "user", "INPUT", $objTask->getTasUid());
+            $arrParameters = array($objUser->getUserId(), "user", "INPUT", $stepId);
 
             $result = $this->objMysql->_query($sql, $arrParameters);
 
@@ -73,7 +84,7 @@ class InputDocument {
                 $teamId = $objUser->getTeam_id();
 
                 $sql = "SELECT * from workflow.step_permission WHERE permission = ? AND permission_type = ? AND access_level = ? and  step_id = ?";
-                $arrParameters = array($teamId, "team", "INPUT", $objTask->getTasUid());
+                $arrParameters = array($teamId, "team", "INPUT", $stepId);
 
                 $result = $this->objMysql->_query($sql, $arrParameters);
 
