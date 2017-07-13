@@ -13,6 +13,8 @@ class Attachment
     private $documentId;
     private $objMysql;
     private $arrayValidation;
+    
+    private $table = "task_manager.attachments";
 
     public function __construct ()
     {

@@ -196,3 +196,5 @@ require_once HOME_DIR . '/core/app/library/Calendar/BaseCalendarDefinition.php';
 require_once HOME_DIR . '/core/app/library/Calendar/CalendarDefinition.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/Calendar.php';
 
+require_once HOME_DIR . 'core/app/library/Step/InputDocument.php';
+

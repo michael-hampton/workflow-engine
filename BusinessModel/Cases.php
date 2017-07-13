@@ -661,6 +661,10 @@ class Cases
             if ( $blSaveProject === true )
             {
                 $projectId = $this->saveProject ($arrData, $objWorkflow, $objUser);
+                
+                if(!$projectId) {
+                    return false;
+                }
 
                 $this->projectUid ($projectId);
             }
@@ -785,7 +789,9 @@ class Cases
 
         if ( $validation === false )
         {
-            print_r ($objStep->getFieldValidation ());
+            $validate['validation'] = $objStep->getFieldValidation ();
+            echo json_encode ($validate);
+            return false;
         }
 
         $projectId = $objSave->getId ();
@@ -837,7 +843,7 @@ class Cases
      */
     private function getStepName ($stepName)
     {
-        
+
         $step = $this->objMysql->_query ("SELECT t.step_name FROM workflow.status_mapping m
                                                     INNER JOIN workflow.task t ON t.TAS_UID = m.TAS_UID
                                                     WHERE m.id = ?", [$stepName]);
@@ -1544,10 +1550,10 @@ class Cases
             $isSupervisor = $supervisor->isUserProcessSupervisor (new \Workflow ($workflowId), $objUser);
 
             $arrayAccess['supervisor'] = ($isSupervisor) ? true : false;
-            
+
 
             $query = $this->objMysql->_select ("workflow.status_mapping", [], ["id" => $objCase->getCurrentStepId ()]);
-            
+
             $stepId = $query[0]['TAS_UID'];
 
             $objectPermissions = $this->getAllObjectsFrom ($proUid, $appUid, $stepId, $objUser);
@@ -1560,14 +1566,14 @@ class Cases
                 }
             }
         }
-        
+
         return $arrayAccess;
     }
 
     public function hasPermission (\Users $objUser, $proUid, $appUid)
     {
         $userPermission = $this->userAuthorization ($objUser, $proUid, $appUid);
-        
+
         if ( isset ($userPermission['objectPermissions']['DYNAFORMS']) && !empty ($userPermission['objectPermissions']['DYNAFORMS']) )
         {
             return true;
