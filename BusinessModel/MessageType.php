@@ -48,10 +48,19 @@ class MessageType
                 
                 if ( $messageType->validate () )
                 {
-                    if ( isset ($arrayData["MSGT_VARIABLES"]) && count ($arrayData["MSGT_VARIABLES"]) > 0 )
-                    {
-                        $messageType->setVariables (json_encode ($arrayData['MSGT_VARIABLES']));
+
+                    $variable = new \BusinessModel\MessageType\Variable();
+                    $variable->deleteAll($messageTypeUid);
+
+                    if (isset($arrayData["MSGT_VARIABLES"]) && count($arrayData["MSGT_VARIABLES"]) > 0) {
+
+                        foreach ($arrayData["MSGT_VARIABLES"] as $key => $value) {
+                            $arrayVariable = $value;
+
+                            $variable->create($messageTypeUid, $arrayVariable);
+                        }
                     }
+
                     $messageType->save ();
                     //Return
                     $arrayData = $arrayDataBackup;
@@ -63,7 +72,7 @@ class MessageType
                     foreach ($messageType->getValidationFailures () as $message) {
                         $msg = $msg . (($msg != "") ? "\n" : "") . $message;
                     }
-                    throw new \Exception ("ID_REGISTRY_CANNOT_BE_UPDATED") . $msg != "" ? "\n" . $msg : "";
+                    throw new \Exception ("ID_REGISTRY_CANNOT_BE_UPDATED" . $msg != "" ? "\n" . $msg : "");
                 }
             } catch (\Exception $e) {
                 throw $e;
@@ -88,6 +97,9 @@ class MessageType
             $messageTypes = new \MessageType();
             $messageTypes->setId($messageTypeUid);
             $messageTypes->delete();
+
+            $variable = new \BusinessModel\MessageType\Variable();
+            $variable->deleteAll($messageTypeUid);
            
         } catch (\Exception $e) {
             throw $e;
@@ -118,11 +130,18 @@ class MessageType
                 $messageType->setDescription ($arrayData['description']);
                 if ( $messageType->validate () )
                 {
-                    if ( isset ($arrayData["MSGT_VARIABLES"]) && count ($arrayData["MSGT_VARIABLES"]) > 0 )
-                    {
-                        $messageType->setVariables (json_encode ($arrayData['MSGT_VARIABLES']));
-                    }
                     $messageTypeUid = $messageType->save ();
+
+                    if (isset($arrayData["MSGT_VARIABLES"]) && count($arrayData["MSGT_VARIABLES"]) > 0) {
+                        $variable = new \BusinessModel\MessageType\Variable();
+
+                        foreach ($arrayData["MSGT_VARIABLES"] as $key => $value) {
+                            $arrayVariable = $value;
+
+                            $arrayResult = $variable->create($messageTypeUid, $arrayVariable);
+                        }
+                    }
+
                     //Return
                     return $this->getMessageType ($messageTypeUid);
                 }
@@ -197,9 +216,38 @@ class MessageType
         }
     }
 
-    public function getMessageType ($id)
+    public function getMessageType ($id, $flagGetRecord = false)
     {
         $result = $this->objMysql->_select ("workflow.message_type", [], ["id" => $id]);
+
+        if(!isset($result[0]) || empty($result[0])) {
+            return false;
+        }
+
+        //Variable
+        $arrayVariable = array();
+
+        $variable = new \BusinessModel\MessageType\Variable();
+
+        $criteriaMessageTypeVariable = $variable->getMessageTypeVariableCriteria();
+
+        $criteriaMessageTypeVariable .= " WHERE MSGT_UID = ?";
+        $arrParameters = array($id);
+
+       $variableResults = $this->objMysql->_query($criteriaMessageTypeVariable, $arrParameters);
+
+        foreach($variableResults as $variableResult) {
+
+            if (!$flagGetRecord) {
+                $arrayVariable[] = $variable->getMessageTypeVariableDataFromRecord($variableResult, false);
+            } else {
+                unset($variableResult["MSGTV_UID"]);
+
+                $arrayVariable[] = $variableResult;
+            }
+        }
+
+        $row["MSGT_VARIABLES"] = $arrayVariable;
 
         return $result;
     }
@@ -285,9 +333,35 @@ class MessageType
 
     public function getMessageTypesByProcess ($processUid)
     {
-        $result = $this->objMysql->_select ("workflow.message_type", [], ["workflow_id" => $processUid]);
+        $results = $this->objMysql->_select ("workflow.message_type", [], ["workflow_id" => $processUid]);
 
-        return $result;
+        if(!isset($result[0]) || empty($result[0])) {
+            return false;
+        }
+
+       foreach($results as $key => $result) {
+
+            $arrayVariable = array();
+
+            $variable = new \BusinessModel\MessageType\Variable();
+
+            $criteriaMessageTypeVariable = $variable->getMessageTypeVariableCriteria();
+
+            $criteriaMessageTypeVariable .= " WHERE MSGT_UID = ?";
+            $arrParameters = array($result["MSGT_UID"]);
+
+            $rsCriteriaMessageTypeVariable = $this->objMysql->_query($criteriaMessageTypeVariable, $arrParameters);
+
+           foreach($rsCriteriaMessageTypeVariable as $row2) {
+                $arrayVariable[] = $variable->getMessageTypeVariableDataFromRecord($row2, false);
+            }
+
+            $results[$key]["MSGT_VARIABLES"] = $arrayVariable;
+
+        }
+
+
+        return $results;
     }
 
 }
