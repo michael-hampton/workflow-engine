@@ -1,4 +1,3 @@
-
 <?php
 /**
  * Created by PhpStorm.
@@ -278,10 +277,37 @@ class Variable
      *
      * return void
      */
+    public function deleteAll($messageTypeUid)
+    {
+        try {
+
+            (new MessageType())->throwExceptionIfNotExistsMessageType($messageTypeUid);
+
+            $messageTypeVariable = new \MessageTypeVariable();
+            $messageTypeVariable->setMsgtUid($messageTypeUid);
+            $messageTypeVariable->delete();
+
+
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * Delete Message-Type-Variable
+     *
+     * @param string $messageTypeVariable Uid Unique id of Message-Type
+     *
+     * return void
+     */
     public function delete($messageTypeVariableUid)
     {
         try {
             $this->throwExceptionIfNotExistsMessageTypeVariable($messageTypeVariableUid);
+
+            $messageTypeVariable = new \MessageTypeVariable();
+            $messageTypeVariable->setMsgtvUid($messageTypeVariableUid);
+            $messageTypeVariable->delete();
 
 
         } catch (\Exception $e) {
