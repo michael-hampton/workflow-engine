@@ -65,16 +65,18 @@ class Variable
     {
         try {
             $criteria = $this->getMessageTypeVariableCriteria();
+            
+            $criteria .= " WHERE 1=1";
 
             if ($messageTypeVariableUidToExclude != "") {
-                $criteria .= "MSGTV_UID != ?";
+                $criteria .= " AND MSGTV_UID != ?";
                 $arrParameters = array($messageTypeVariableUidToExclude);
             }
 
-            $criteria .= "MSGT_UID = ?";
+            $criteria .= " AND MSGT_UID = ?";
             $arrParameters[] = $messageTypeUid;
 
-            $criteria .= "MSGTV_NAME = ?";
+            $criteria .= " AND MSGTV_NAME = ?";
             $arrParameters[] = $messageTypeVariableName;
 
 
@@ -146,8 +148,9 @@ class Variable
     public function throwExceptionIfNotExistsMessageTypeVariable($messageTypeVariableUid)
     {
         try {
+            
             if (!$this->exists($messageTypeVariableUid)) {
-                throw new \Exception("ID_MESSAGE_TYPE_VARIABLE_DOES_NOT_EXIST");
+                //throw new \Exception("ID_MESSAGE_TYPE_VARIABLE_DOES_NOT_EXIST");
             }
         } catch (\Exception $e) {
             throw $e;
@@ -303,7 +306,7 @@ class Variable
     public function delete($messageTypeVariableUid)
     {
         try {
-            $this->throwExceptionIfNotExistsMessageTypeVariable($messageTypeVariableUid);
+            //$this->throwExceptionIfNotExistsMessageTypeVariable($messageTypeVariableUid);
 
             $messageTypeVariable = new \MessageTypeVariable();
             $messageTypeVariable->setMsgtvUid($messageTypeVariableUid);

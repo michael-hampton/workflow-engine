@@ -49,6 +49,10 @@ require_once HOME_DIR . '/core/app/library/BusinessModel/WebEntryEvent.php';
 require_once HOME_DIR . '/core/app/library/Event/BaseAppDelegation.php';
 require_once HOME_DIR . '/core/app/library/Event/AppDelegation.php';
 
+require_once HOME_DIR . '/core/app/library/Event/BaseMessageTypeVariable.php';
+require_once HOME_DIR . '/core/app/library/Event/MessageTypeVariable.php';
+
+
 /* * *********************** Documents ******************************************** */
 //require_once HOME_DIR . '/core/app/library/Documents/StepDocument.php';
 //require_once HOME_DIR . '/core/app/library/BusinessModel/StepDocument.php';
@@ -196,5 +200,7 @@ require_once HOME_DIR . '/core/app/library/Calendar/BaseCalendarDefinition.php';
 require_once HOME_DIR . '/core/app/library/Calendar/CalendarDefinition.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/Calendar.php';
 
+
 require_once HOME_DIR . 'core/app/library/Step/InputDocument.php';
+require_once HOME_DIR . 'core/app/library/MessageType/Variable.php';
 

@@ -247,7 +247,7 @@ class MessageType
             }
         }
 
-        $row["MSGT_VARIABLES"] = $arrayVariable;
+        $result[0]["MSGT_VARIABLES"] = $arrayVariable;
 
         return $result;
     }
@@ -334,13 +334,13 @@ class MessageType
     public function getMessageTypesByProcess ($processUid)
     {
         $results = $this->objMysql->_select ("workflow.message_type", [], ["workflow_id" => $processUid]);
-
-        if(!isset($result[0]) || empty($result[0])) {
+    
+        if(!isset($results[0]) || empty($results[0])) {
             return false;
         }
 
        foreach($results as $key => $result) {
-
+           
             $arrayVariable = array();
 
             $variable = new \BusinessModel\MessageType\Variable();
@@ -348,7 +348,7 @@ class MessageType
             $criteriaMessageTypeVariable = $variable->getMessageTypeVariableCriteria();
 
             $criteriaMessageTypeVariable .= " WHERE MSGT_UID = ?";
-            $arrParameters = array($result["MSGT_UID"]);
+            $arrParameters = array($result["id"]);
 
             $rsCriteriaMessageTypeVariable = $this->objMysql->_query($criteriaMessageTypeVariable, $arrParameters);
 
@@ -359,7 +359,6 @@ class MessageType
             $results[$key]["MSGT_VARIABLES"] = $arrayVariable;
 
         }
-
 
         return $results;
     }
