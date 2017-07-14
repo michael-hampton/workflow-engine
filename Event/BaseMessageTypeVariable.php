@@ -292,4 +292,9 @@ abstract class BaseMessageTypeVariable implements Persistent
 
         return false;
     }
+    
+    public function deleteAll()
+    {
+        $this->objMysql->_delete("workflow.MESSAGE_TYPE_VARIABLE", ["MSGT_UID" => $this->msgt_uid]);
+    }
 }

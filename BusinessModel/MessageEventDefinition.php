@@ -1,5 +1,7 @@
 <?php
+
 namespace BusinessModel;
+
 class MessageEventDefinition
 {
 
@@ -28,7 +30,7 @@ class MessageEventDefinition
     {
         try {
             $obj = $this->objMysql->_select ("workflow.message_definition", [], ["id" => $messageEventDefinitionUid]);
-            return (isset ($obj[0]) && !empty($obj[0])) ? true : false;
+            return (isset ($obj[0]) && !empty ($obj[0])) ? true : false;
         } catch (\Exception $e) {
             throw $e;
         }
@@ -172,13 +174,7 @@ class MessageEventDefinition
 
             if ( isset ($arrayFinalData["MSGT_UID"]) && $arrayFinalData["MSGT_UID"] . "" != "" && $flagCheckData )
             {
-                $arrayMessageTypeVariable = array();
                 $arrayMessageTypeData = $messageType->getMessageType ($arrayFinalData["MSGT_UID"], true);
-                $variables = json_decode ($arrayMessageTypeData[0]['variables'], true);
-
-                foreach ($variables as $value) {
-                    $arrayMessageTypeVariable[$value["MSGTV_NAME"]] = "test";
-                }
 
                 $newVariables = [];
                 $count = 0;
@@ -186,19 +182,17 @@ class MessageEventDefinition
                 foreach ($arrayFinalData['MSGT_VARIABLES']['MSGTV_NAME'] as $key => $value) {
                     $newVariables['MSGT_VARIABLES'][$key]['MSGTV_NAME'] = $value;
                     $newVariables['MSGT_VARIABLES'][$key]['FIELD'] = $arrayFinalData['MSGT_VARIABLES']['FIELD'][$key];
-
                     $count++;
                 }
-
                 $checkVariables = [];
                 $count2 = 0;
-                foreach ($arrayMessageTypeVariable as $key => $value) {
-                    $checkVariables['MSGT_VARIABLES'][$count2]['MSGTV_NAME'] = $key;
-                    $checkVariables['MSGT_VARIABLES'][$count2]['FIELD'] = $value;
+
+                foreach ($arrayMessageTypeData[0]["MSGT_VARIABLES"] as $value) {
+                    $checkVariables['MSGT_VARIABLES'][$count2]['MSGTV_NAME'] = $value["MSGTV_NAME"];
+                    $checkVariables['MSGT_VARIABLES'][$count2]['FIELD'] = $value["MSGTV_DEFAULT_VALUE"];
                     $count2++;
                 }
 
-                unset ($arrayMessageTypeVariable);
                 unset ($arrayFinalData['MSGT_VARIABLES']);
                 $arrayFinalData['MSGT_VARIABLES'] = $newVariables;
 
@@ -316,10 +310,12 @@ class MessageEventDefinition
                 {
                     $arrayData["MSGED_VARIABLES"] = array();
                 }
+
                 if ( isset ($arrayData["MSGT_VARIABLES"]) )
                 {
                     $arrayData["MSGT_VARIABLES"] = serialize ($arrayData["MSGT_VARIABLES"]);
                 }
+
                 //$messageEventDefinition->setMsgedUid ($messageEventDefinitionUid);
                 $messageEventDefinition->setPrjUid ($projectUid);
                 $messageEventDefinition->setMessageType ($arrayData['messageType']);

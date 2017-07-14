@@ -520,10 +520,9 @@ class BPMNWorkflow extends BPMN
     {
         try {
             
-            $messageEventRelation = new MessageEventRelation();
+            $messageEventRelation = new BusinessModel\MessageEventRelation();
             
             $messageEventRelationUid = "";
-      
 
             if ( (strtolower($bpmnFlow->getCondition()['sendNotification']) === "yes" || strtolower($bpmnFlow->getCondition()['receiveNotification']) === "yes") &&
                     (int)$bpmnFlow->getIsActive () === 1 && trim($bpmnFlow->getStepTo ()) !== "" &&

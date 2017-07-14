@@ -253,8 +253,11 @@ class MessageType
     }
 
     public function throwExceptionCheckIfThereIsRepeatedVariableName (array $arrayDataVariables)
-    {
+    {   
         try {
+            
+            $arrayDataVariables = array_values($arrayDataVariables);
+            
             $i = 0;
             $arrayDataVarAux = $arrayDataVariables;
             while ($i <= count ($arrayDataVariables) - 1) {

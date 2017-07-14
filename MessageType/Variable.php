@@ -283,12 +283,12 @@ class Variable
     public function deleteAll($messageTypeUid)
     {
         try {
-
+            
             (new MessageType())->throwExceptionIfNotExistsMessageType($messageTypeUid);
 
             $messageTypeVariable = new \MessageTypeVariable();
             $messageTypeVariable->setMsgtUid($messageTypeUid);
-            $messageTypeVariable->delete();
+            $messageTypeVariable->deleteAll();
 
 
         } catch (\Exception $e) {
