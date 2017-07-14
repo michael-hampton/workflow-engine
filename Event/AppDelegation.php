@@ -150,6 +150,7 @@ class AppDelegation
         $aData['TAS_DURATION'] = $objTask->getTasDuration ();
         $aData['TAS_TIMEUNIT'] = $objTask->getTasTimeunit ();
         $aData['TAS_TYPE_DAY'] = $objTask->getTasTypeDay ();
+        
         if ( trim ($objTask->getCalendarUid ()) !== "" )
         {
             $aCalendarUID = $objTask->getCalendarUid ();
@@ -175,7 +176,7 @@ class AppDelegation
         $timezone = $date->format ('Y-m-d H:i:s');
         
         $dueDate = $calendar->dashCalculateDate ($initDate, $aData["TAS_DURATION"], $aData["TAS_TIMEUNIT"], $arrayCalendarData);
-        
+
         return $dueDate;
     }
 

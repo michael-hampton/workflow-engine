@@ -22,6 +22,7 @@ class WorkflowStep
     private $currentStep;
     private $nextTask;
     private $currentTask;
+    private $blReview = false;
 
     public function __construct ($intWorkflowStepId = null, $objMike = null)
     {
@@ -226,7 +227,7 @@ class WorkflowStep
             throw new Exception ("You do not have permission to do this");
         }
 
-        if ( !$this->validateWorkflowStep ($arrFormData) )
+        if ( !$this->validateWorkflowStep ($arrFormData, $objUser, $objMike) )
         {
             return false;
         }
@@ -239,6 +240,13 @@ class WorkflowStep
         {
             return false;
         }
+
+        // cannot move step if the task has been put in review;
+        if ( $this->blReview === true )
+        {
+            return false;
+        }
+
         if ( isset ($arrFormData['status']) )
         {
             if ( $this->completeWorkflowObject ($objMike, $objUser, $arrFormData, false, $arrEmailAddresses) === false )
@@ -255,12 +263,59 @@ class WorkflowStep
         }
     }
 
-    private function validateWorkflowStep ($arrFormData)
+    private function searchArray ($products, $field, $value)
+    {
+        foreach ($products as $key => $product) {
+            if ( $product[$field] === $value )
+                return $key;
+        }
+        return false;
+    }
+
+    //completeAuditObject (Users $objUser, array $arrCompleteData = [])
+
+    private function validateWorkflowStep ($arrFormData, Users $objUser, $objMike)
     {
         $objValidate = new FieldValidator ($this->_stepId);
         $arrErrorsCodes = $objValidate->validate ($arrFormData);
+
         if ( !empty ($arrErrorsCodes) )
         {
+            // put into review if incorrect data
+
+            if ( $this->searchArray ($arrErrorsCodes, "message", "incorrect_data") !== false )
+            {
+
+                $this->elementId = $objMike->getId ();
+                $arrWorkflow = array();
+                if ( method_exists ($objMike, "getParentId") )
+                {
+                    $this->parentId = $objMike->getParentId ();
+                }
+                else
+                {
+                    $this->parentId = $objMike->getId ();
+                }
+
+                /*                 * ************** Determine next step if there is one else stay at current step ********************** */
+                $arrWorkflowData = $this->getWorkflowData ();
+                $arrWorkflowObject = json_decode ($arrWorkflowData[0]['workflow_data'], true);
+                $this->objAudit = json_decode ($arrWorkflowData[0]['audit_data'], true);
+
+                $this->completeAuditObject ($objUser, array("dateCompleted" => date ("Y-m-d H:i:s"), "status" => "IN REVIEW"));
+
+                $strAudit = json_encode ($this->objAudit);
+
+                if ( !empty ($arrWorkflowData) )
+                {
+                    $this->objMysql->_update ("workflow.workflow_data", ["audit_data" => $strAudit], ["id" => $this->objectId]);
+
+                    $this->blReview = true;
+                    $this->fieldValidation = $arrErrorsCodes;
+                    return true;
+                }
+            }
+
             $this->fieldValidation = $arrErrorsCodes;
             return false;
         }
@@ -285,10 +340,11 @@ class WorkflowStep
 
     private function completeAuditObject (Users $objUser, array $arrCompleteData = [])
     {
+        $claimed = trim ($objUser->getUsername ()) !== "" ? $objUser->getUsername () : $arrCompleteData['claimed'];
 
         if ( is_numeric ($this->parentId) && is_numeric ($this->elementId) )
         {
-            $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['claimed'] = $arrCompleteData['claimed'];
+            $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['claimed'] = $claimed;
             $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['dateCompleted'] = $arrCompleteData['dateCompleted'];
             $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['status'] = $arrCompleteData['status'];
 
@@ -299,7 +355,7 @@ class WorkflowStep
         }
         else
         {
-            $this->objAudit['claimed'] = $arrCompleteData['claimed'];
+            $this->objAudit['claimed'] = $claimed;
             $this->objAudit['dateCompleted'] = $arrCompleteData['dateCompleted'];
             $this->objAudit['status'] = $arrCompleteData['status'];
 
@@ -378,36 +434,35 @@ class WorkflowStep
 
         if ( !isset ($step) || !isset ($step2) )
         {
-           $step = $this->currentTask;
-           $step2 = $this->_stepId;
+            $step = $this->currentTask;
+            $step2 = $this->_stepId;
         }
-        
-         /*             * ******************** Get due date for Task ********************** */
-            $objAppDelegation = new AppDelegation();
-            $objTask = new Task();
-            $objTask->setTasUid ($step);
-            $objTask->setStepId ($step2);
 
-            try {
-                if ( !isset ($this->objAudit['elements'][$this->elementId]['steps'][$step]) )
+        /*         * ******************** Get due date for Task ********************** */
+        $objAppDelegation = new AppDelegation();
+        $objTask = new Task();
+        $objTask->setTasUid ($step);
+        $objTask->setStepId ($step2);
+
+        try {
+            if ( !isset ($this->objAudit['elements'][$this->elementId]['steps'][$step]) )
+            {
+                $arrCompleteData['due_date'] = $objAppDelegation->calculateDueDate ((new Task ($this->_stepId))->retrieveByPk ($step));
+            }
+            else
+            {
+                if ( isset ($this->objAudit['elements'][$this->elementId]['steps'][$step]['due_date']) )
                 {
-
-                    $arrCompleteData['due_date'] = $objAppDelegation->calculateDueDate ((new Task ($step))->retrieveByPk ($step));
+                    $arrCompleteData['due_date'] = $this->objAudit['elements'][$this->elementId]['steps'][$step]['due_date'];
                 }
                 else
                 {
-                    if ( isset ($this->objAudit['elements'][$this->elementId]['steps'][$step]['due_date']) )
-                    {
-                        $arrCompleteData['due_date'] = $this->objAudit['elements'][$this->elementId]['steps'][$step]['due_date'];
-                    }
-                    else
-                    {
-                        $arrCompleteData['due_date'] = "";
-                    }
+                    $arrCompleteData['due_date'] = "";
                 }
-            } catch (Exception $ex) {
-                
             }
+        } catch (Exception $ex) {
+            
+        }
 
 
         $arrWorkflow['workflow_id'] = $this->workflowId;
