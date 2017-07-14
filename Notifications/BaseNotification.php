@@ -7,18 +7,18 @@ abstract class BaseNotification implements Persistent
     protected $system;
     protected $message;
     protected $subject;
-    private $body;
+    protected $body;
     protected $objMysql;
-    private $recipient;
-    private $hasRead;
-    private $dateSent;
-    private $triggeringStatus;
-    private $projectId;
-    private $id;
-    private $sentByUser;
-    private $parentId;
-    private $stepData;
-    private $stepName;
+    protected $recipient;
+    protected $hasRead;
+    protected $dateSent;
+    protected $triggeringStatus;
+    protected $projectId;
+    protected $id;
+    protected $sentByUser;
+    protected $parentId;
+    protected $stepData;
+    protected $stepName;
     
     private $arrFieldMapping = array(
         "notificationId" => array("accessor" => "getId", "mutator" => "setId"),
