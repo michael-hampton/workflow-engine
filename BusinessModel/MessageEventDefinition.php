@@ -271,7 +271,7 @@ class MessageEventDefinition
                     foreach ($messageEventDefinition->getValidationFailures () as $message) {
                         $msg = $msg . (($msg != "") ? "\n" : "") . $message;
                     }
-                    throw new \Exception ("ID_REGISTRY_CANNOT_BE_UPDATED") . (($msg != "") ? "\n" . $msg : "");
+                    throw new \Exception ("ID_REGISTRY_CANNOT_BE_UPDATED" . $msg != "" ? "\n" . $msg : "");
                 }
             } catch (\Exception $e) {
                 throw $e;
@@ -342,9 +342,9 @@ class MessageEventDefinition
                 {
                     $msg = "";
                     foreach ($messageEventDefinition->getValidationFailures () as $message) {
-                        $msg = $msg . (($msg != "") ? "\n" : "") . $message;
+                        $msg = $msg . ($msg != "" ? "\n" : "") . $message;
                     }
-                    throw new \Exception ("ID_RECORD_CANNOT_BE_CREATED") . (($msg != "") ? "\n" . $msg : "");
+                    throw new \Exception ("ID_RECORD_CANNOT_BE_CREATED" . $msg != "" ? "\n" . $msg : "");
                 }
             } catch (\Exception $e) {
 
