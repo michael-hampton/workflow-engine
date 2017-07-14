@@ -28,7 +28,7 @@ class MessageEventDefinition
     {
         try {
             $obj = $this->objMysql->_select ("workflow.message_definition", [], ["id" => $messageEventDefinitionUid]);
-            return (!is_null ($obj)) ? true : false;
+            return (isset ($obj[0]) && !empty($obj[0])) ? true : false;
         } catch (\Exception $e) {
             throw $e;
         }
