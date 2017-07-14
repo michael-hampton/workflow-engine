@@ -9,6 +9,7 @@ class WebEntryEvent
 
     private $webEntryEventWebEntryUid = "";
     private $webEntryEventWebEntryTaskUid = "";
+    private $webEntryMethod = "WS";
     private $webEntry;
     private $objMysql;
 
@@ -290,7 +291,7 @@ class WebEntryEvent
                 "USR_UID" => $userUid,
                 "WE_TITLE" => $title,
                 "WE_DESCRIPTION" => $description,
-                "WE_METHOD" => "WS",
+                "WE_METHOD" => $this->webEntryMethod,
                 "WE_INPUT_DOCUMENT_ACCESS" => 1
                     )
             );
@@ -353,6 +354,11 @@ class WebEntryEvent
             {
                 $arrayData["WEE_STATUS"] = "ENABLED";
             }
+
+            if(isset($arrayData['WEB_ENTRY_METHOD'])) {
+                $this->webEntryMethod = $arrayData['WEB_ENTRY_METHOD'];
+            }
+
             //Verify data
             $process = new Process();
             $process->throwExceptionIfNotExistsProcess ($projectUid);
