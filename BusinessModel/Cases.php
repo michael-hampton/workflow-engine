@@ -50,7 +50,7 @@ class Cases
         $valuesCorrect = array('todo', 'draft', 'paused', 'sent', 'selfservice', 'unassigned', 'search');
         if ( !in_array ($action, $valuesCorrect) )
         {
-            throw (new \Exception (\G::LoadTranslation ("ID_INCORRECT_VALUE_ACTION")));
+            throw (new \Exception ("ID_INCORRECT_VALUE_ACTION"));
         }
         $start = (int) $start;
         $start = abs ($start);
