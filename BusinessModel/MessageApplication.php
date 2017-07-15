@@ -130,7 +130,7 @@ class MessageApplication
 
                 if ( $messageApplication->validate () )
                 {
-                    $result = $messageApplication->save ();
+                    $messageApplication->save ();
                     //Return
                     return true;
                 }
