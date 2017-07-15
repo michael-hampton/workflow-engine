@@ -114,8 +114,7 @@ class Mysql2 extends D
 
             return $string;
         } catch (Exception $ex) {
-            print_r($data);
-            die($string);
+            throw $ex;
         }
     }
 
