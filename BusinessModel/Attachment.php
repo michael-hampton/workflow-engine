@@ -524,7 +524,7 @@ class Attachment
             $processFiles->setId ($prfUid);
             $processFiles->delete ();
         } catch (Exception $ex) {
-            throw $e;
+            throw $ex;
         }
     }
 
