@@ -574,7 +574,7 @@ class WorkflowStep
 
         if ( isset ($this->nextStep) && $this->nextStep !== 0 )
         {
-            $this->checkEvents ();
+            $this->checkEvents ($objUser);
             $this->_workflowStepId = $this->nextStep;
             $this->currentTask = $this->nextTask;
             return new WorkflowStep ($this->_workflowStepId, $objMike);
