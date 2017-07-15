@@ -125,7 +125,7 @@ class Form extends FieldFactory
             {
                 $optionCount = 0;
                 $arrOptions = array();
-                foreach ($arrField['values'] as $intKey => $arrValue) {
+                foreach ($arrField['values'] as $arrValue) {
 
                     $value = $arrValue['label'];
 
