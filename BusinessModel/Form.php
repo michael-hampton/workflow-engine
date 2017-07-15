@@ -89,7 +89,7 @@ class Form extends FieldFactory
     public function save ($arrData, $arrFormData, $checked)
     {
         $arrFields = json_decode ($arrData, true);
-        $arrErrors = array();
+        
 
         $objFieldFactory = new \BusinessModel\FieldFactory();
 
