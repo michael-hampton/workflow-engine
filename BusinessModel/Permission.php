@@ -76,7 +76,7 @@ class Permission
         {
             return true;
         }
-
+        
         throw new \Exception ("Permission doesnt exist");
     }
 

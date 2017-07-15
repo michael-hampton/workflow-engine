@@ -286,6 +286,17 @@ class FormBuilder
         $this->html .= '<div id="' . $this->_elements[$this->key]['id'] . 'Warning" class="formValidation">
             ' . $this->_elements[$this->key]['id'] . ' cannot be blank.
         </div>';
+        
+        $this->html .= '<script>
+                        $("#'.$this->_elements[$this->key]['id'].'").datepicker({
+                            todayBtn: "linked",
+                            keyboardNavigation: false,
+                            forceParse: false,
+                            calendarWeeks: true,
+                            autoclose: true,
+                            format: "dd/mm/yyyy"
+                        });
+                        </script>';
     }
 
     private function buildParagraph ()

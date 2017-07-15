@@ -271,7 +271,7 @@ class Flow
      * return void Throw exception if doesn't exists the Task
 
      */
-    public function throwExceptionIfNotExistsTask ($taskUid, $processUid = '', $fieldNameForException = '')
+    public function throwExceptionIfNotExistsTask ($taskUid, $processUid = '')
     {
         try {
 

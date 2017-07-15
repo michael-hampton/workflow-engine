@@ -176,7 +176,7 @@ class Team extends BaseTeam
     {
         try {
             $oPro = $this->retrieveByPk ($objTeam->getId ());
-            if ( is_object ($oPro) && get_class ($oPro) === "Teams" )
+            if ( is_object ($oPro) && get_class ($oPro) === "Team" )
             {
                 return $oPro->deleteTeam ();
             }

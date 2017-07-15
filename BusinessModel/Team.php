@@ -57,7 +57,7 @@ class Team
     private function groupExists ($groupUid)
     {
         $result = $this->objMysql->_select ("user_management.teams", array(), array("team_id" => $groupUid));
-
+       
         if ( isset ($result[0]) && !empty ($result[0]) )
         {
             return true;
@@ -79,9 +79,9 @@ class Team
         try {
             if ( !$this->groupExists ($groupUid) )
             {
-                throw new Exception ("GROUP DOES NOT EXIST");
+                throw new \Exception ("GROUP DOES NOT EXIST");
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }

@@ -90,7 +90,7 @@ class FieldFactory
                 LEFT JOIN workflow.data_types dt ON dt.id = f.data_type 
                 LEFT JOIN workflow.required_fields rf on rf.field_id = f.field_id
                 LEFT JOIN workflow.workflow_variables v ON v.field_id = f.field_id
-                WHERE st.TAS_UID = ?
+                WHERE st.STEP_UID_OBJ = ?
                 GROUP BY f.field_id
                 ORDER BY sf.order_id";
 
