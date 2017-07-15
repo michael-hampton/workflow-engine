@@ -143,10 +143,10 @@ class Cases
                 foreach ($workflowData['elements'] as $elementId => $element) {
                     //if ( $elementId == $caseId )
                     //{
-                    if ( isset ($element['current_step']) && isset ($element['workflow_id']) )
-                    {
-                        $previousStep = $this->getPreviousStep ($element['current_step'], $element['workflow_id']);
-                    }
+                   // if ( isset ($element['current_step']) && isset ($element['workflow_id']) )
+                   // {
+                        //$previousStep = $this->getPreviousStep ($element['current_step'], $element['workflow_id']);
+                  //  }
 
                     if ( isset ($auditData['elements'][$elementId]['steps']) )
                     {
