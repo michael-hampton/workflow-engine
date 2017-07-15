@@ -485,8 +485,7 @@ class OutputDocument
                 }
             }
         } catch (Exception $ex) {
-            echo $ex->getMessage ();
-            die;
+             throw $ex;
         }
     }
 
