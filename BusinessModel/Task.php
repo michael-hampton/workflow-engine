@@ -180,7 +180,7 @@ class Task
                 case "MULTIPLE_INSTANCE_VALUE_BASED":
                     if ( trim ($arrayProperty["TAS_ASSIGN_VARIABLE"]) == "" )
                     {
-                        throw new \Exception (\G::LoadTranslation ("ID_INVALID_VALUE_CAN_NOT_BE_EMPTY", array(strtolower ("TAS_ASSIGN_VARIABLE"))));
+                        throw new \Exception ("ID_INVALID_VALUE_CAN_NOT_BE_EMPTY");
                     }
                     break;
             }
@@ -249,14 +249,14 @@ class Task
                 //Additional configuration
                 if ( isset ($arrayProperty["TAS_DEF_MESSAGE_TYPE"]) )
                 {
-                    \G::LoadClass ("configuration");
+                    
                     $oConf = new \Configurations();
                     if ( !isset ($arrayProperty["TAS_DEF_MESSAGE_TEMPLATE"]) )
                     {
                         $arrayProperty["TAS_DEF_MESSAGE_TEMPLATE"] = "alert_message.html";
                     }
-                    $oConf->aConfig = array("TAS_DEF_MESSAGE_TYPE" => $arrayProperty["TAS_DEF_MESSAGE_TYPE"], "TAS_DEF_MESSAGE_TEMPLATE" => $arrayProperty["TAS_DEF_MESSAGE_TEMPLATE"]);
-                    $oConf->saveConfig ("TAS_EXTRA_PROPERTIES", $arrayProperty["TAS_UID"], "", "");
+                  //  $oConf->aConfig = array("TAS_DEF_MESSAGE_TYPE" => $arrayProperty["TAS_DEF_MESSAGE_TYPE"], "TAS_DEF_MESSAGE_TEMPLATE" => $arrayProperty["TAS_DEF_MESSAGE_TEMPLATE"]);
+                  //  $oConf->saveConfig ("TAS_EXTRA_PROPERTIES", $arrayProperty["TAS_UID"], "", "");
                 }
             }
             else
@@ -312,12 +312,12 @@ class Task
             }
             
             $result = $task->updateTaskProperties ($arrayProperty);
-            if ( isset ($arrayProperty['CONSOLIDATE_DATA']) && !empty ($arrayProperty['CONSOLIDATE_DATA']) )
+          /*  if ( isset ($arrayProperty['CONSOLIDATE_DATA']) && !empty ($arrayProperty['CONSOLIDATE_DATA']) )
             {
                 if ( !empty ($arrayProperty['CONSOLIDATE_DATA']['consolidated_dynaform']) )
                 {
-                    G::LoadClass ("consolidatedCases");
-                    $consolidated = new \ConsolidatedCases();
+                   
+                    
                     $dataConso = array(
                         'con_status' => $arrayProperty['CONSOLIDATE_DATA']['consolidated_enable'],
                         'tas_uid' => $arrayProperty['TAS_UID'],
@@ -327,9 +327,9 @@ class Task
                         'table_name' => $arrayProperty['CONSOLIDATE_DATA']['consolidated_table'],
                         'title' => $arrayProperty['CONSOLIDATE_DATA']['consolidated_title']
                     );
-                    $consolidated->processConsolidated ($dataConso);
+                    
                 }
-            }
+            }*/
             $arrayResult["status"] = "OK";
             if ( $result == 3 )
             {
