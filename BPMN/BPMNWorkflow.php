@@ -2,6 +2,8 @@
 
 class BPMNWorkflow extends BPMN
 {
+    
+    use Validator;
 
     private $objMysql;
     private $workflow;
@@ -297,16 +299,15 @@ class BPMNWorkflow extends BPMN
 
                 if ( $steps['category'] != "event" || $steps['item'] == "start" )
                 {
-
-                    echo "DELETING STEP " . $steps['text'] . " ";
+                    $this->writeLog ("DELETING STEP " . $steps['text'] . " ", 'stepDesigner.log');
 
                     $objFlow->removeFlow ();
                     $objTask->removeTask ($steps['key']);
                     $id = (new Task())->create(array("TAS_TITLE" => $steps['text'], "PRO_UID" => $this->workflow));
 
                     $arrStepFields[$steps['key']]['step_id'] = $id;
-
-                    echo "CREATED STEP " . $steps['text'] . " ";
+                    
+                    $this->writeLog ("CREATED STEP " . $steps['text'] . " ", 'stepDesigner.log');
 
                     $arrNewMappings[$steps['key']] = $id;
 
@@ -440,7 +441,7 @@ class BPMNWorkflow extends BPMN
                     $objBPMN->saveFlow ($from, $to, $this->workflow, $key, json_encode ($arrConditions), $arrSteps[$mapping['from']]['loc']);
                 }
 
-                echo "CREATED MAPPING " . $from . " ";
+                $this->writeLog ("CREATED MAPPING " . $from . " ", 'stepDesigner.log');
 
                 $objTrigger = new Trigger ($from);
 

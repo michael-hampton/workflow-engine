@@ -17,8 +17,6 @@ class DashboardBuilder
 
         $html .= '<div class="ibox-content">';
 
-        echo $objDashboard->getChartType ();
-
         switch (trim ($objDashboard->getChartType ())) {
 
             case "table":
