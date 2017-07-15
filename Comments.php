@@ -111,7 +111,7 @@ class Comments extends BaseComments
         }
     }
 
-    public function doCount ($appUid, $usrUid = '', $start = '', $limit = 25, $sort = 'datetime', $dir = 'DESC', $dateFrom = '', $dateTo = '', $search = '')
+    public function doCount ($appUid, $usrUid = '', $sort = 'datetime', $dir = 'DESC', $dateFrom = '', $dateTo = '', $search = '')
     {
         if ( $this->objMysql === null )
         {
@@ -203,7 +203,7 @@ class Comments extends BaseComments
         }
 
         $response = array();
-        $totalCount = $this->doCount ($appUid, $usrUid, $start, $limit, $sort, $dir, $dateFrom, $dateTo, $search);
+        $totalCount = $this->doCount ($appUid, $usrUid, $sort, $dir, $dateFrom, $dateTo, $search);
 
         $response['totalCount'] = $totalCount;
 
