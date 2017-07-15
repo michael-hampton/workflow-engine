@@ -390,8 +390,7 @@ class Role
         try {
             //Verify data
             $this->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
-            //Set data
-            $arrayRoleData = $this->getRole ($roleUid);
+            
             //Verify data
             $this->throwExceptionIfNotExistsRole ($roleUid);
 
