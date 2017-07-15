@@ -109,7 +109,7 @@ class CalendarDefinition extends BaseCalendarDefinition
         $defaultCalendar['CALENDAR_NAME'] = G::LoadTranslation ('ID_DEFAULT_CALENDAR');
         $defaultCalendar['CALENDAR_CREATE_DATE'] = date ("Y-m-d");
         $defaultCalendar['CALENDAR_UPDATE_DATE'] = date ("Y-m-d");
-        $defaultCalendar['CALENDAR_DESCRIPTION'] = G::LoadTranslation ('ID_DEFAULT_CALENDAR');
+        $defaultCalendar['CALENDAR_DESCRIPTION'] = "DEFAULT"
         $defaultCalendar['CALENDAR_STATUS'] = "ACTIVE";
         $defaultCalendar['CALENDAR_WORK_DAYS'] = "1|2|3|4|5";
         $defaultCalendar['CALENDAR_WORK_DAYS'] = explode ("|", "1|2|3|4|5");
@@ -278,12 +278,11 @@ class CalendarDefinition extends BaseCalendarDefinition
         if ( in_array ($aData['CALENDAR_UID'], $defaultCalendars) )
         {
             $CalendarStatus = 'ACTIVE';
-            //$CalendarName = G::LoadTranslation ('ID_DEFAULT_CALENDAR');
         }
         
         $CalendarWorkDays = isset ($aData['CALENDAR_WORK_DAYS']) ? implode ("|", $aData['CALENDAR_WORK_DAYS']) : "";
-        $msgCalendarDescriptionStatus = ($aData["CALENDAR_DESCRIPTION"] != "") ? ", Description: " . $aData["CALENDAR_DESCRIPTION"] . ", Status: " . ucwords (strtolower ($aData["CALENDAR_STATUS"])) : ", Status: " . ucwords (strtolower ($aData["CALENDAR_STATUS"]));
-        //if exists the row in the database propel will update it, otherwise will insert.
+       
+        //if exists the row in the database will update it, otherwise will insert.
         $tr = $this->retrieveByPK ($CalendarUid);
         
         if ( !(is_object ($tr) && get_class ($tr) == 'CalendarDefinition') )
@@ -379,7 +378,7 @@ class CalendarDefinition extends BaseCalendarDefinition
 
     public function getCalendarFor ($userUid, $proUid, $tasUid, $sw_validate = true)
     {
-        $Criteria = new Criteria ('workflow');
+       /* $Criteria = new Criteria ('workflow');
         //Default Calendar
         $calendarUid = "00000000000000000000000000000001";
         $calendarOwner = "DEFAULT";
@@ -433,7 +432,7 @@ class CalendarDefinition extends BaseCalendarDefinition
         }
         $calendarDefinition['CALENDAR_APPLIED'] = $calendarOwner;
         $this->addCalendarLog ("--=== Calendar Applied: " . $calendarDefinition['CALENDAR_NAME'] . " -> $calendarOwner");
-        return $calendarDefinition;
+        return $calendarDefinition;*/
     }
 
     public function assignCalendarTo ($objectUid, $calendarUid, $objectType)
