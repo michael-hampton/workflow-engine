@@ -793,7 +793,7 @@ class Calendar
 
         $calendarUid = (is_null ($calendarUid)) ? $this->pmCalendarUid : $calendarUid;
         $this->pmCalendarUid = $calendarUid;
-        //if exists the row in the database propel will update it, otherwise will insert.
+        //if exists the row in the database will update it, otherwise will insert.
 
         $tr = (new \CalendarDefinition())->retrieveByPK ($calendarUid);
         $defaultCalendar ['CALENDAR_UID'] = '00000000000000000000000000000001';

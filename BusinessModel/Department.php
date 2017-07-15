@@ -440,7 +440,7 @@ class Department
             $department = new \Department();
             $department->addUserToDepartment ($objDepartment, $objUser);
             //Return
-            $arrayData = array("DEP_UID" => $objDepartment->getId (), "userId" => $objUser->getUserId ());
+            $arrayData = array("DEP_UID" => $departmentUid, "userId" => $objUser->getUserId ());
             return $arrayData;
         } catch (\Exception $e) {
             throw $e;

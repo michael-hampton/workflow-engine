@@ -107,14 +107,10 @@ class WorkflowStep
                     LEFT JOIN workflow.task s2 ON s2.TAS_UID = m2.TAS_UID
                    WHERE m.id = ?";
 
-//        echo $sql;
-//        echo $this->_workflowStepId;
-//        die;
-
         $arrResult = $this->objMysql->_query ($sql, array($this->_workflowStepId));
         if ( empty ($arrResult) )
         {
-            die ("Here 5");
+            throw new Exception ("Fsiled to get workflow data");
             return false;
         }
         $this->_stepId = $arrResult[0]['current_step_id'];
@@ -287,7 +283,7 @@ class WorkflowStep
             {
 
                 $this->elementId = $objMike->getId ();
-                $arrWorkflow = array();
+
                 if ( method_exists ($objMike, "getParentId") )
                 {
                     $this->parentId = $objMike->getParentId ();
@@ -299,7 +295,6 @@ class WorkflowStep
 
                 /*                 * ************** Determine next step if there is one else stay at current step ********************** */
                 $arrWorkflowData = $this->getWorkflowData ();
-                $arrWorkflowObject = json_decode ($arrWorkflowData[0]['workflow_data'], true);
                 $this->objAudit = json_decode ($arrWorkflowData[0]['audit_data'], true);
 
                 $this->completeAuditObject ($objUser, array("dateCompleted" => date ("Y-m-d H:i:s"), "status" => "IN REVIEW"));
@@ -388,7 +383,7 @@ class WorkflowStep
 
         if ( !isset ($arrCompleteData['status']) || trim ($arrCompleteData['status']) !== "REJECT" )
         {
-            $blHasTrigger = $objTrigger->checkTriggers ($objMike);
+            $blHasTrigger = $objTrigger->checkTriggers ($objMike, $objUser);
         }
 
         // reload

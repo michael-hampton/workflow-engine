@@ -251,7 +251,6 @@ class MessageEventRelation
         try {
             //Set variables
             $arrayMessageEventRelationData = ($messageEventRelationUid == "") ? array() : $this->getMessageEventRelation ($messageEventRelationUid, true);
-            $flagInsert = ($messageEventRelationUid == "") ? true : false;
             $arrayFinalData = array_merge ($arrayMessageEventRelationData, $arrayData);
             //Verify data - Field definition
             //Verify data

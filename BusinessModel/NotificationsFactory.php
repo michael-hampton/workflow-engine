@@ -157,9 +157,7 @@ class NotificationsFactory
         $_SESSION["pagination"]["current_page"] = $current_page;
 
         // calculating displaying pages
-        $_SESSION["pagination"]["total_pages"] = (int) ($totalRows / $pageLimit);
-        if ( fmod ($totalRows, $pageLimit) > 0 )
-            $_SESSION["pagination"]["total_pages"] ++;
+        $_SESSION["pagination"]["total_pages"] = ceil((int) $total_pages);
 
         $query .= " LIMIT " . $page . ", " . $pageLimit;
 

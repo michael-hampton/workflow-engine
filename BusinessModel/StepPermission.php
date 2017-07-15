@@ -294,8 +294,6 @@ class StepPermission
         {
             return false;
         }
-
-        return $permissionFlag;
     }
 
     /**

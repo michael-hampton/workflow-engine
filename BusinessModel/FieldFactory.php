@@ -1,4 +1,5 @@
 <?php
+
 namespace BusinessModel;
 
 class FieldFactory
@@ -41,7 +42,7 @@ class FieldFactory
                                                         FROM workflow.fields f
                                                         INNER JOIN workflow.field_types ft ON ft.field_type_id = f.field_type
                                                        ");
-        foreach ($arrResult as $intKey => $arrField) {
+        foreach ($arrResult as $arrField) {
             $arrFields[$arrField['field_id']] = new \Field ($arrField['field_id']);
             $arrFields[$arrField['field_id']]->setFieldType ($arrField['field_type']);
             $arrFields[$arrField['field_id']]->setLabel ($arrField['label']);
@@ -73,11 +74,12 @@ class FieldFactory
         {
             $this->createConnection ();
         }
-        
-        if(trim($objTask->getTasUid ()) === "") {
+
+        if ( trim ($objTask->getTasUid ()) === "" )
+        {
             return false;
         }
-   
+
         $query = "SELECT sf.*, f.*, ft.field_type, dt.options, dt.data_object_type,
                 IF(rf.field_id IS NOT NULL, 1, 0) as required_field, sf.field_conditions,
                 IFNULL(v.variable_name, f.field_identifier) AS field_identifier
@@ -91,7 +93,7 @@ class FieldFactory
                 WHERE st.TAS_UID = ?
                 GROUP BY f.field_id
                 ORDER BY sf.order_id";
-        
+
         $arrParameters = array($objTask->getStepId ());
         $arrResult = $this->objMysql->_query ($query, $arrParameters);
         foreach ($arrResult as $intKey => $arrField) {
@@ -169,10 +171,11 @@ class FieldFactory
      */
     public function getRequiredFields (\Task $objTask)
     {
-        if(trim($objTask->getStepId ()) === "") {
+        if ( trim ($objTask->getStepId ()) === "" )
+        {
             return false;
         }
-        
+
         if ( $this->objMysql == null )
         {
             $this->createConnection ();

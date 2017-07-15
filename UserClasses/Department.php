@@ -77,7 +77,7 @@ class Department extends BaseDepartment
      * @param      Connection $con the connection to use
      * @return     Department
      */
-    public function retrieveByPK ($pk, $con = null)
+    public function retrieveByPK ($pk)
     {
 
         $result = $this->objMysql->_select ("user_management.departments", [], ["id" => $pk]);
@@ -135,7 +135,6 @@ class Department extends BaseDepartment
             }
             else
             {
-                $con->rollback ();
                 throw (new Exception ("The row '" . $aData['DEP_UID'] . "' in table Department doesn't exist!"));
             }
         } catch (Exception $oError) {
@@ -301,7 +300,7 @@ class Department extends BaseDepartment
     {
         try {
             $objUser = new Users();
-            $objUser->setDept_id (0);
+            $objUser->setDept_id ($depUid);
             $objUser->setUserId ($userUid);
         } catch (Exception $ex) {
             throw $ex;

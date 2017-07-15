@@ -394,7 +394,7 @@ class Form extends FieldFactory
      *
      * @return void
      */
-    private function throwExceptionDynaFormDoesNotExist($dynaFormUid, $fieldNameForException)
+    private function throwExceptionDynaFormDoesNotExist($dynaFormUid)
     {
         throw new \Exception('ID_DYNAFORM_DOES_NOT_EXIST');
     }

@@ -214,8 +214,6 @@ class AppDelegation
             $objCases = new BusinessModel\Cases();
             $arrCases = $objCases->getCasesForTask (new Flow ($result['USER_UID']));
 
-
-            $i = 0;
             $now = new DateTime();
             $calendar = new \BusinessModel\Calendar();
 

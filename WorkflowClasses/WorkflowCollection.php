@@ -5,9 +5,7 @@ class WorkflowCollection extends BaseWorkflowCollection
 
   
     private $objMysql;
-  
-    private $processCout = 0;
- 
+   
     public $arrCollection = array();
 
     public function __construct ($intWorkflowCollectionId = null, $objMike = null)
@@ -32,23 +30,16 @@ class WorkflowCollection extends BaseWorkflowCollection
     protected function getWorkflowCollectionData ($objMike)
     {
 
-        if ( method_exists ($objMike, "getParentId") )
+        if ( !method_exists ($objMike, "getParentId") )
         {
-            die ("No");
-        }
-        else
-        {
-            die ("Yes");
+            throw new Exception("Cant find parent id");
         }
 
         if ( method_exists ($objMike, "getSource_id") && $objMike->getSource_id () != "" )
         {
             $parentId = $objMike->getSource_id ();
         }
-        else
-        {
-            $id = $objMike->getId ();
-        }
+        
 
         $result = $this->objMysql->_select ("workflow.workflow_data", array("workflow_data"), array("object_id" => $parentId));
 
@@ -66,7 +57,7 @@ class WorkflowCollection extends BaseWorkflowCollection
 
         $this->setWorkflow ($workflowData['request_id']);
 
-        $result2 = $objMysql->_select ("workflow.workflows", array(), array("workflow_id" => $this->workflow));
+        $result2 = $this->objMysql->_select ("workflow.workflows", array(), array("workflow_id" => $this->workflow));
         $this->setRequestType ($result2[0]['request_id']);
 
         //$this->setWorkflow ($workflowData['workflow_id']);

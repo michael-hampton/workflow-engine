@@ -117,7 +117,7 @@ class Workflow extends BaseProcess
         }
         else
         {
-            $arrResult2 = $this->objMysql->_select ("workflow.status_mapping", array(), array("step_to" => $this->status));
+            $this->objMysql->_select ("workflow.status_mapping", array(), array("step_to" => $this->status));
         }
     }
 
@@ -134,12 +134,11 @@ class Workflow extends BaseProcess
         }
     }
 
-    public function getAllProcesses ($start = 0, $limit = 25, $sort = 'request_id', $dir = 'ASC', $category = null, $processName = null, $counters = true, $reviewSubProcess = false, $userLogged = "")
+    public function getAllProcesses ($start = 0, $limit = 25, $sort = 'request_id', $dir = 'ASC', $category = null, $processName = null, $counters = true, $userLogged = "")
     {
         $this->sort = $sort;
         $this->dir = $dir;
         $aProcesses = Array();
-        $categories = Array();
         $arrParameters = array();
 
         $sql = "SELECT w.workflow_id,
@@ -201,9 +200,6 @@ class Workflow extends BaseProcess
             $processes[] = $row;
             $uids[] = $processes[sizeof ($processes) - 1]['workflow_id'];
         }
-
-        //process details will have the info about the processes
-        $processesDetails = Array();
 
         foreach ($processes as $process) {
 
@@ -365,14 +361,14 @@ class Workflow extends BaseProcess
 
     public function getCasesCountForProcess ($pro_uid)
     {
-        $oCriteria = new Criteria ('workflow');
-        $oCriteria->addSelectColumn ('COUNT(*) AS TOTAL_CASES');
-        $oCriteria->add (ApplicationPeer::PRO_UID, $pro_uid);
-        $oDataset = ApplicationPeer::doSelectRS ($oCriteria, Propel::getDbConnection ('workflow_ro'));
-        $oDataset->setFetchmode (ResultSet::FETCHMODE_ASSOC);
-        $oDataset->next ();
-        $cases = $oDataset->getRow ();
-        return (int) $cases['TOTAL_CASES'];
+//        $oCriteria = new Criteria ('workflow');
+//        $oCriteria->addSelectColumn ('COUNT(*) AS TOTAL_CASES');
+//        $oCriteria->add (ApplicationPeer::PRO_UID, $pro_uid);
+//        $oDataset = ApplicationPeer::doSelectRS ($oCriteria, Propel::getDbConnection ('workflow_ro'));
+//        $oDataset->setFetchmode (ResultSet::FETCHMODE_ASSOC);
+//        $oDataset->next ();
+//        $cases = $oDataset->getRow ();
+//        return (int) $cases['TOTAL_CASES'];
     }
 
     public function getAllProcessesByCategory ()

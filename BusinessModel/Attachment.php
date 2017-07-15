@@ -9,11 +9,9 @@ class Attachment
     private $projectId;
     public $id;
     public $object = array();
-    private $filename;
     private $documentId;
     private $objMysql;
     private $arrayValidation;
-    
     private $table = "task_manager.attachments";
 
     public function __construct ()
@@ -50,9 +48,9 @@ class Attachment
                 $this->documentId = $arrData['file_type'];
                 $this->stepId = $arrData['step']->getStepId ();
                 $this->projectId = $arrData['source_id'];
-                
+
                 $result = $this->uploadDocument ($arrData['files'], $arrData);
-                
+
                 return $result;
             }
             else
@@ -149,8 +147,8 @@ class Attachment
 //                $oProcessFiles->save ();
 //                $oProcessFiles->setPrfFielname ('test');
             }
-            
-          
+
+
 
             $oProcessFiles = new \ProcessFile();
             $sDate = date ('Y-m-d H:i:s');
@@ -239,7 +237,7 @@ class Attachment
         }
 
         $objStepDocument = $stepDocument->getInputDocument ($this->documentId);
-     
+
 
         if ( !empty ($objStepDocument) )
         {
@@ -261,7 +259,7 @@ class Attachment
         }
 
         $arrUploadedFiles = array();
-        
+
         foreach ($_FILES['fileUpload']['name'] as $key => $name) {
             $size = $_FILES['fileUpload']['size'][$key];
             $file_tmp = $_FILES['fileUpload']['tmp_name'][$key];
@@ -287,7 +285,7 @@ class Attachment
                 {
                     $this->arrayValidation[] = "TOO BIG";
                 }
-                
+
                 if ( !in_array ($file_ext, $arrExtensions) === false )
                 {
                     $this->arrayValidation[] = "extension not allowed, please choose a JPEG or PNG file.";
@@ -321,9 +319,9 @@ class Attachment
                 {
                     return false;
                 }
-                
+
                 $objFile = new \BusinessModel\FileUpload();
-                $objFile->verifyPath($dir, TRUE);
+                $objFile->verifyPath ($dir, TRUE);
             }
 
             if ( !move_uploaded_file ($file_tmp, $destination) )
@@ -352,7 +350,7 @@ class Attachment
 
         return $arrUploadedFiles;
     }
-    
+
     public function getArrayValidation ()
     {
         return $this->arrayValidation;
@@ -397,7 +395,7 @@ class Attachment
             $objProcessFiles->setPrfFielname ($arrAttachment['filename']);
             $objProcessFiles->setUsrUid ($arrAttachment['uploaded_by']);
             $objProcessFiles->setPrfPath ($arrAttachment['file_destination']);
-            $objProcessFiles->setDownloadPath($filePath);
+            $objProcessFiles->setDownloadPath ($filePath);
 
             $aFields[] = $objProcessFiles;
         }

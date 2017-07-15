@@ -1,4 +1,5 @@
 <?php
+
 namespace BusinessModel;
 
 class UsersFactory
@@ -306,7 +307,7 @@ class UsersFactory
                 if ( isset ($_FILES['upload']) && !empty ($_FILES['upload']['name']) )
                 {
 
-                    $objUsers->uploadImage ($userUid);
+                    $this->uploadImage($userUid);
                 }
 
                 //Create in workflow
@@ -598,7 +599,7 @@ class UsersFactory
 
                     $aAux = explode ('.', $_FILES['upload']['name']);
                     $objFile->uploadFile ($_FILES['upload']['tmp_name'], PATH_IMAGES_ENVIRONMENT_USERS, $userUid . '.' . $aAux[1]);
-               //     \G::resizeImage (PATH_IMAGES_ENVIRONMENT_USERS . $userUid . '.' . $aAux[1], 96, 96, PATH_IMAGES_ENVIRONMENT_USERS . $userUid . '.gif');
+                    $objFile->resizeImage (PATH_IMAGES_ENVIRONMENT_USERS . $userUid . '.' . $aAux[1], 96, 96, PATH_IMAGES_ENVIRONMENT_USERS . $userUid . '.gif');
                 }
             }
             else
@@ -657,7 +658,7 @@ class UsersFactory
      */
     public function loadUserRolePermission ($sUser)
     {
-        $objUser = (new UsersFactory())->getUser($sUser);
+        $objUser = (new UsersFactory())->getUser ($sUser);
         $objUserRole = new \BusinessModel\RoleUser();
         $fieldsRoles = $objUserRole->getRolesForUser ($objUser);
 
@@ -666,7 +667,7 @@ class UsersFactory
         foreach ($fieldsRoles as $fieldsRole) {
             $fieldsPermissions[] = $objUserRole->getAllPermissions (new \Role ($fieldsRole['role_id']));
         }
-        
+
         $permissions = [];
 
         foreach ($fieldsPermissions as $fieldsPermission) {

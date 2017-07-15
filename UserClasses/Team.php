@@ -67,7 +67,7 @@ class Team extends BaseTeam
 
             if ( $this->validate () )
             {
-                $res = $this->save ();
+                $this->save ();
                 return $this->getId ();
             }
             else
@@ -137,7 +137,6 @@ class Team extends BaseTeam
             }
             else
             {
-                $con->rollback ();
                 throw (new Exception ("The row '" . $aData['GRP_UID'] . "' in table Group doesn't exist!"));
             }
         } catch (Exception $oError) {
@@ -161,12 +160,9 @@ class Team extends BaseTeam
         $this->addUserOfGroup ($objTeam->getId (), $objUser->getUserId ());
     }
 
-    public function removeUsersFromGroup ($userUid, $groupUid = null)
+    public function removeUsersFromGroup (Users $objUser, Team $objTeam)
     {
-        if ( $groupUid === null )
-        {
-            $this->removeUserOfGroup ($userUid);
-        }
+        $this->removeUserOfGroup ($objUser);
     }
 
     /**
@@ -176,17 +172,17 @@ class Team extends BaseTeam
      * @return string
      *
      */
-    public function remove ($groupUid)
+    public function remove (Team $objTeam)
     {
         try {
-            $oPro = $this->retrieveByPk ($groupUid);
+            $oPro = $this->retrieveByPk ($objTeam->getId ());
             if ( is_object ($oPro) && get_class ($oPro) === "Teams" )
             {
                 return $oPro->deleteTeam ();
             }
             else
             {
-                throw (new Exception ("The row '$ProUid' in table Group doesn't exist!"));
+                throw (new Exception ("The Group doesn't exist!"));
             }
         } catch (Exception $oError) {
             throw ($oError);

@@ -79,11 +79,9 @@ class StepTrigger
      * @param type $objMike
      * @return boolean
      */
-    public function checkTriggers ($objMike)
+    public function checkTriggers ($objMike, \Users $objUser)
     {
         $this->elementId = $objMike->getId ();
-
-        $arrWorkflow = array();
 
         if ( method_exists ($objMike, "getParentId") )
         {
@@ -123,7 +121,6 @@ class StepTrigger
                     $workflowTo = $arrTrigger['workflow_to'];
                     $objCase = new Cases();
                     $objWorkflow = new \Workflow ($workflowTo);
-                    $objUser = (new \BusinessModel\UsersFactory())->getUser ($_SESSION['user']['usrid']);
                     $objCase->addCase ($objWorkflow, $objUser, array(), array(), false, $projectId);
                     $this->blAddedCase = true;
                     break;
@@ -370,7 +367,6 @@ class StepTrigger
                 throw (new \Exception ("The row '$StepUid, $TasUid, $TriUid, $StType' in table StepTrigger doesn't exist!"));
             }
         } catch (Exception $oError) {
-            $oConnection->rollback ();
             throw ($oError);
         }
     }
@@ -386,7 +382,7 @@ class StepTrigger
         try {
 
             $oObj = $this->retrieveByPK ($StepUid);
-            if ( isset ($oStepTrigger[0]) && !empty ($oStepTrigger[0]) )
+            if ( isset ($oObj[0]) && !empty ($oObj[0]) )
             {
                 return true;
             }

@@ -13,7 +13,7 @@ class Task extends BaseTask
 
         if ( $stepId !== null )
         {
-            $this->setTasUid($stepId);
+            $this->setTasUid ($stepId);
             $this->stepId = $stepId;
         }
     }
@@ -61,15 +61,16 @@ class Task extends BaseTask
 
         try {
 
-            if(isset($aData['TAS_UID'])) {
-                 $sTaskUID = $aData['TAS_UID'];
-                  $this->setTasUid ($sTaskUID);
+            if ( isset ($aData['TAS_UID']) )
+            {
+                $sTaskUID = $aData['TAS_UID'];
+                $this->setTasUid ($sTaskUID);
             }
-           
+
 
 
             $this->setProUid ($aData['PRO_UID']);
-           
+
             $this->setTasTitle ((isset ($aData['TAS_TITLE']) ? $aData['TAS_TITLE'] : ''));
             $this->setTasDescription ((isset ($aData['TAS_DESCRIPTION']) ? $aData['TAS_DESCRIPTION'] : ''));
             $this->setTasDefTitle ("");
@@ -100,12 +101,13 @@ class Task extends BaseTask
 
             $this->setTasGroupVariable ("");
 
-            if(isset($aData['TAS_ID'])) {
-                  $this->setTasId ($aData['TAS_ID']);
+            if ( isset ($aData['TAS_ID']) )
+            {
+                $this->setTasId ($aData['TAS_ID']);
             }
-            
+
             $this->loadObject ($aData);
- 
+
             if ( $this->validate () )
             {
                 //$this->setTasTitleContent ((isset ($aData['TAS_TITLE']) ? $aData['TAS_TITLE'] : ''));
@@ -261,7 +263,7 @@ class Task extends BaseTask
             }
 
 
-            $objFlow->loadObject($fields);
+            $objFlow->loadObject ($fields);
 
             if ( $objFlow->validate () )
             {
@@ -307,18 +309,19 @@ class Task extends BaseTask
 
         $objCalendar = new CalendarAssignment();
         $objAssignment = $objCalendar->retrieveByPk ($result[0]['TAS_UID'], "TASK");
-        
-        if(  is_object ($objAssignment)) {
+
+        if ( is_object ($objAssignment) )
+        {
             $objFlow->setCalendarUid ($objAssignment->getCalendarUid ());
         }
-        
+
         $objFlow->setTasTypeDay ($result[0]['TAS_TYPE_DAY']);
-        $objFlow->setTasUid($pk);
-        $objFlow->setTasAssignType($result[0]['TAS_ASSIGN_TYPE']);
-        $objFlow->setTasSelfserviceTime($result[0]['TAS_SELFSERVICE_TIME']);
-        $objFlow->setTasSelfserviceTimeUnit($result[0]['TAS_SELFSERVICE_TIME_UNIT']);
-        $objFlow->setTasSelfserviceTriggerUid($result[0]['TAS_SELFSERVICE_TRIGGER_UID']);
-        $objFlow->setTasSelfserviceExecution($result[0]['TAS_SELFSERVICE_EXECUTION']);
+        $objFlow->setTasUid ($pk);
+        $objFlow->setTasAssignType ($result[0]['TAS_ASSIGN_TYPE']);
+        $objFlow->setTasSelfserviceTime ($result[0]['TAS_SELFSERVICE_TIME']);
+        $objFlow->setTasSelfserviceTimeUnit ($result[0]['TAS_SELFSERVICE_TIME_UNIT']);
+        $objFlow->setTasSelfserviceTriggerUid ($result[0]['TAS_SELFSERVICE_TRIGGER_UID']);
+        $objFlow->setTasSelfserviceExecution ($result[0]['TAS_SELFSERVICE_EXECUTION']);
 
         return $objFlow;
     }

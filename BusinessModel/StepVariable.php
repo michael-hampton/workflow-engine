@@ -40,10 +40,10 @@ class StepVariable
 
             $this->throwExceptionFieldDefinition ($arrayData);
 
-            if ( isset ($arrayData['VAR_SQL']) && trim($arrayData['VAR_SQL']) !== "")
+            if ( isset ($arrayData['VAR_SQL']) && trim ($arrayData['VAR_SQL']) !== "" )
             {
-                 $this->throwExceptionIfSomeRequiredVariableSqlIsMissingInVariables ($arrayData["VAR_NAME"], $arrayData["VAR_SQL"], array());
-                
+                $this->throwExceptionIfSomeRequiredVariableSqlIsMissingInVariables ($arrayData["VAR_NAME"], $arrayData["VAR_SQL"], array());
+
                 $arrSql = $this->buildSql ($arrayData["VAR_SQL"]);
 
                 if ( !empty ($arrSql) )
@@ -65,8 +65,13 @@ class StepVariable
                     }
                     else
                     {
-                        print_r ($objDatabase->getValidationFailures ());
-                        die;
+                        $msg = '';
+
+                        foreach ($objDatabase->getValidationFailures () as $message) {
+                            $msg .= $message . "</br>";
+                        }
+
+                        throw new Exception ("Failed to save database options " . $msg);
                     }
                 }
             }
@@ -266,7 +271,7 @@ class StepVariable
             $result = $this->objMysql->_query ("SELECT var.* FROM workflow.workflow_variables var
                                                 INNER JOIN workflow.fields f ON f.field_id = var.field_id
                                                 WHERE f.field_identifier = ?", [$fieldId]);
-            
+
 
             if ( !empty ($result) )
             {
@@ -332,7 +337,7 @@ class StepVariable
 
             $arrVariables = [];
 
-            foreach ($results as $key => $result) {
+            foreach ($results as $result) {
                 $arrVariables[$result['field_id']] = new \Variable ($result['field_id']);
                 $arrVariables[$result['field_id']]->setValidationType ($result['validation_type']);
                 $arrVariables[$result['field_id']]->setVariableName ($result['variable_name']);
@@ -426,7 +431,7 @@ class StepVariable
      */
     public function throwExceptionFieldDefinition ($aData)
     {
-        
+
         try {
             if ( isset ($aData["VAR_NAME"]) )
             {

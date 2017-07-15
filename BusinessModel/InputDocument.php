@@ -6,8 +6,6 @@ class InputDocument
 {
 
     private $objMysql;
-    private $stepId;
-    private $documentId;
 
     /**
      * 
@@ -127,7 +125,7 @@ class InputDocument
             {
                 throw new \Exception ("Step does not exist");
             }
-            $this->throwExceptionIfExistsTitle ($objStep->getTasUid (), $arrayData["INP_DOC_TITLE"]);
+            $this->throwExceptionIfExistsTitle ($arrayData["INP_DOC_TITLE"]);
 
             //Flags
             $flagDataDestinationPath = (isset ($arrayData["INP_DOC_DESTINATION_PATH"])) ? 1 : 0;
@@ -196,10 +194,10 @@ class InputDocument
      *
      * return void Throw exception if exists the title of a InputDocument
      */
-    public function throwExceptionIfExistsTitle ($processUid, $inputDocumentTitle)
+    public function throwExceptionIfExistsTitle ($inputDocumentTitle)
     {
         try {
-            if ( $this->existsTitle ($processUid, $inputDocumentTitle) )
+            if ( $this->existsTitle ($inputDocumentTitle) )
             {
                 //throw new \Exception ("ID_INPUT_DOCUMENT_TITLE_ALREADY_EXISTS");
             }
@@ -271,9 +269,6 @@ class InputDocument
     {
         try {
             //Verify data
-
-            $objWorkflowStep = new \WorkflowStep();
-
             $this->throwExceptionIfNotExistsInputDocument ($inputDocumentUid);
             $this->throwExceptionIfItsAssignedInOtherObjects ($inputDocumentUid);
 
@@ -322,7 +317,7 @@ class InputDocument
      *
      * return bool Return true if exists the title of a InputDocument, false otherwise
      */
-    public function existsTitle ($processUid, $inputDocumentTitle, $inputDocumentUidExclude = "")
+    public function existsTitle ($inputDocumentTitle)
     {
         try {
             $result = $this->objMysql->_select ("workflow.documents", array(), array("name" => $inputDocumentTitle));
@@ -370,8 +365,7 @@ class InputDocument
                 }
             }
         } catch (Exception $ex) {
-            echo $ex->getMessage ();
-            die;
+            throw $ex;
         }
     }
 

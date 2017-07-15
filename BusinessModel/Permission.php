@@ -246,7 +246,6 @@ class Permission
         try {
             $arrayPermission = array();
             //Verify data
-            $role = new Role();
             $this->throwExceptionIfNotExistsRole ($roleUid);
 
             //Get data
@@ -254,8 +253,6 @@ class Permission
             {
                 return $arrayPermission;
             }
-            //Set variables
-            $rolePermission = new RolePermission();
             //SQL
             switch ($option) {
                 case "PERMISSIONS":
@@ -270,10 +267,8 @@ class Permission
                     //Get Uids
                     $arrayUid = array();
                     $criteria = $this->getPermissionCriteria ($roleUid);
-                    $rsCriteria = \PermissionsPeer::doSelectRS ($criteria);
-                    $rsCriteria->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
-                    while ($rsCriteria->next ()) {
-                        $row = $rsCriteria->getRow ();
+                    $result = $this->objMysql->_query ($criteria);
+                    foreach ($result as $row) {
                         $arrayUid[] = $row["PER_UID"];
                     }
                     //Criteria

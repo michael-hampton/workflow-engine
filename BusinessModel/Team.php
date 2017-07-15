@@ -151,7 +151,7 @@ class Team
             //Update
             $group = new \Team();
             $arrayData["team_id"] = $groupUid;
-            $result = $group->update ($arrayData);
+            $group->update ($arrayData);
             //Return
             unset ($arrayData["GRP_UID"]);
 
@@ -168,24 +168,24 @@ class Team
      *
      * return void
      */
-    public function delete ($groupUid)
+    public function delete (\Team $objTeam)
     {
         try {
             //Verify data
-            $this->throwExceptionIfNotExistsGroup ($groupUid);
-            $arrayTotalTasksByGroup = $this->getTotalTasksByGroup ($groupUid);
-            if ( isset ($arrayTotalTasksByGroup[$groupUid]) && $arrayTotalTasksByGroup[$groupUid] > 0 )
+            $this->throwExceptionIfNotExistsGroup ($objTeam->getId ());
+            $arrayTotalTasksByGroup = $this->getTotalTasksByGroup ($objTeam->getId ());
+            if ( isset ($arrayTotalTasksByGroup[$objTeam->getId ()]) && $arrayTotalTasksByGroup[$objTeam->getId ()] > 0 )
             {
                 throw new Exception ("ID_GROUP_CANNOT_DELETE_WHILE_ASSIGNED_TO_TASK");
             }
-            
+
             //Delete
             $group = new \Team();
-            $result = $group->remove ($groupUid);
+            $group->remove ($objTeam);
 
 
             $objPermissions = new \ObjectPermissions (null);
-            $objPermissions->deleteAll ("team", $groupUid);
+            $objPermissions->deleteAll ("team", $objTeam->getId ());
         } catch (Exception $e) {
             throw $e;
         }
@@ -245,7 +245,6 @@ class Team
     public function getTotalTasksByGroup ($groupUid = "")
     {
         try {
-            $arrayData = array();
             //Verif data
             if ( $groupUid != "" )
             {
@@ -328,7 +327,10 @@ class Team
             $arrayGroup = array();
             $numRecTotal = 0;
             $arrWhere = array();
-            //Verify data
+
+            //Set variables
+            $filterName = "filter";
+
             //Get data
             if ( !is_null ($limit) && $limit . "" == "0" )
             {
@@ -352,6 +354,8 @@ class Team
             {
                 $criteria .= " WHERE team_name LIKE ?";
                 $arrWhere[] = "%" . $arrayFilterData['filter'] . "%";
+
+                $filterName = (isset ($arrayFilterData["filterOption"])) ? $arrayFilterData["filterOption"] : "";
             }
 
             //Number records total
@@ -386,7 +390,7 @@ class Team
             {
                 $criteria .= " LIMIT " . ((int) ($limit));
             }
-            
+
             $results = $this->objMysql->_query ($criteria, $arrWhere);
 
             foreach ($results as $row) {
@@ -604,7 +608,7 @@ class Team
                         $objUser = new \BusinessModel\UsersFactory();
                         $arrayUser[] = $objUser->getUser ($userId);
                     }
-                    
+
                     return $arrayUser;
 
                     break;

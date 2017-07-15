@@ -108,7 +108,7 @@ class BaseAudit
      * @param      string $format The date/time format string (either date()-style or strftime()-style).
      *                          If format is NULL, then the integer unix timestamp will be returned.
      * @return     mixed Formatted date/time value as string or integer unix timestamp (if format is NULL).
-     * @throws     PropelException - if unable to convert the date/time to timestamp.
+     * @throws     Exception - if unable to convert the date/time to timestamp.
      */
     public function getHistoryDate ($format = 'Y-m-d H:i:s')
     {
@@ -122,8 +122,7 @@ class BaseAudit
             $ts = strtotime ($this->history_date);
             if ( $ts === -1 || $ts === false )
             {
-                throw new PropelException ("Unable to parse value of [history_date] as date/time value: " .
-                var_export ($this->history_date, true));
+                throw new \Exception ("Unable to parse value of [history_date] as date/time value: ");
             }
         }
         else
@@ -301,36 +300,6 @@ class BaseAudit
     }
 
     /**
-     * Removes this object from datastore and sets delete attribute.
-     *
-     * @param      Connection $con
-     * @return     void
-     * @throws     PropelException
-     * @see        BaseObject::setDeleted()
-     * @see        BaseObject::isDeleted()
-     */
-    public function delete ($con = null)
-    {
-        if ( $this->isDeleted () )
-        {
-            throw new PropelException ("This object has already been deleted.");
-        }
-        if ( $con === null )
-        {
-            $con = Propel::getConnection (AppHistoryPeer::DATABASE_NAME);
-        }
-        try {
-            $con->begin ();
-            AppHistoryPeer::doDelete ($this, $con);
-            $this->setDeleted (true);
-            $con->commit ();
-        } catch (PropelException $e) {
-            $con->rollback ();
-            throw $e;
-        }
-    }
-
-    /**
      * Stores the object in the database.  If the object is new,
      * it inserts it; otherwise an update is performed.  This method
      * wraps the doSave() worker method in a transaction.
@@ -340,7 +309,7 @@ class BaseAudit
      * @throws     PropelException
      * @see        doSave()
      */
-    public function save ($con = null)
+    public function save ()
     {
        
         if ( $this->objMysql === null )

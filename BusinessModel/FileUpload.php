@@ -1,4 +1,5 @@
 <?php
+
 namespace BusinessModel;
 
 class FileUpload
@@ -193,7 +194,7 @@ class FileUpload
     public function streamFile ($file, $download = false, $downloadFileName = '')
     {
 
-        
+
         $typearray = explode ('.', basename ($file));
         $typefile = $typearray[count ($typearray) - 1];
         $filename = $file;
@@ -352,6 +353,76 @@ class FileUpload
                 }
             }
         }
+    }
+
+    /**
+     * resizeImage
+     *
+     * @param string $path,
+     * @param string $resWidth
+     * @param string $resHeight
+     * @param string $saveTo default value null
+     *
+     * @return void
+     */
+    public function resizeImage ($path, $resWidth, $resHeight, $saveTo = null)
+    {
+        $imageInfo = getimagesize ($path);
+
+        if ( !$imageInfo )
+        {
+            throw new Exception ("Could not get image information");
+        }
+        
+        list ($width, $height) = $imageInfo;
+        $percentHeight = $resHeight / $height;
+        $percentWidth = $resWidth / $width;
+        $percent = ($percentWidth < $percentHeight) ? $percentWidth : $percentHeight;
+        $resWidth = $width * $percent;
+        $resHeight = $height * $percent;
+
+        // Resample
+        $image_p = imagecreatetruecolor ($resWidth, $resHeight);
+        imagealphablending ($image_p, false);
+        imagesavealpha ($image_p, true);
+
+        $background = imagecolorallocate ($image_p, 0, 0, 0);
+        ImageColorTransparent ($image_p, $background); // make the new temp image all transparent
+        
+//Assume 3 channels if we can't find that information
+        if ( !array_key_exists ("channels", $imageInfo) )
+        {
+            $imageInfo["channels"] = 3;
+        }
+        $memoryNeeded = Round (($imageInfo[0] * $imageInfo[1] * $imageInfo['bits'] * $imageInfo['channels'] + Pow (2, 16)) * 1.95) / (1024 * 1024);
+
+        if ( $memoryNeeded < 80 )
+        {
+            $memoryNeeded = 80;
+        }
+
+        ini_set ('memory_limit', intval ($memoryNeeded) . 'M');
+
+        $functions = array(IMAGETYPE_GIF => array('imagecreatefromgif', 'imagegif'
+            ), IMAGETYPE_JPEG => array('imagecreatefromjpeg', 'imagejpeg'), IMAGETYPE_PNG => array('imagecreatefrompng', 'imagepng'));
+
+        if ( !array_key_exists ($imageInfo[2], $functions) )
+        {
+            throw new Exception ("Image format not supported");
+        }
+        list ($inputFn, $outputFn) = $functions[$imageInfo[2]];
+
+        $image = $inputFn ($path);
+        imagecopyresampled ($image_p, $image, 0, 0, 0, 0, $resWidth, $resHeight, $width, $height);
+        $outputFn ($image_p, $saveTo);
+
+        if ( !is_null ($saveTo) )
+        {
+            $filter = new \Password();
+            $saveTo = $filter->validateInput ($saveTo, "path");
+        }
+
+        chmod ($saveTo, 0666);
     }
 
 }

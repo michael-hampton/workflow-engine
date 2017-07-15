@@ -173,10 +173,7 @@ class MessageApplication
             if ( !is_null ($limit) && $limit . "" == "0" )
             {
                 return $arrayMessageApplication;
-            }
-
-            $arrayEventType = array("START", "INTERMEDIATE");
-            
+            }            
 
             //SQL
             $select = "SELECT ma.*, md.*, sm.step_condition, sm.order_id";
@@ -426,7 +423,7 @@ class MessageApplication
 
             $arrayVariable = array();
             foreach ($arrayVariableName['MSGT_VARIABLES'] as $key => $value) {
-                foreach ($arrayVariableValue['MSGT_VARIABLES'] as $key2 => $value2) {
+                foreach ($arrayVariableValue['MSGT_VARIABLES'] as $value2) {
                     if ( $value2['MSGTV_NAME'] == $value['MSGTV_NAME'] )
                     {
                         $arrayVariable[$value['FIELD']] = $value2['VALUE'];

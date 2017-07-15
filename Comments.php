@@ -60,7 +60,7 @@ class Comments extends BaseComments
                 $oCase = new Cases();
                 $p = $oCase->getUsersParticipatedInCase ($appUid);
 
-                foreach ($p as $key => $userParticipated) {
+                foreach ($p as $userParticipated) {
                     $noteRecipientsA[] = $userParticipated;
                 }
 
@@ -219,7 +219,7 @@ class Comments extends BaseComments
 
         if ( !empty ($results) )
         {
-            foreach ($results as $key => $result) {
+            foreach ($results as $result) {
                 $result['comment'] = htmlentities (stripslashes ($result['comment']), ENT_QUOTES, 'UTF-8');
                 $response['notes'][] = $result;
             }

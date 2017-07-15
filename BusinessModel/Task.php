@@ -218,7 +218,7 @@ class Task
                 $this->unsetVar ($arrayProperty, "TAS_TYPE_DAY");
                 $this->unsetVar ($arrayProperty, "TAS_CALENDAR");
             }
-            if (isset($arrayProperty["TAS_SEND_LAST_EMAIL"]) && $arrayProperty["TAS_SEND_LAST_EMAIL"] == "TRUE" )
+            if ( isset ($arrayProperty["TAS_SEND_LAST_EMAIL"]) && $arrayProperty["TAS_SEND_LAST_EMAIL"] == "TRUE" )
             {
                 if ( empty ($arrayProperty["TAS_DEF_SUBJECT_MESSAGE"]) )
                 {
@@ -249,14 +249,12 @@ class Task
                 //Additional configuration
                 if ( isset ($arrayProperty["TAS_DEF_MESSAGE_TYPE"]) )
                 {
-                    
-                    $oConf = new \Configurations();
                     if ( !isset ($arrayProperty["TAS_DEF_MESSAGE_TEMPLATE"]) )
                     {
                         $arrayProperty["TAS_DEF_MESSAGE_TEMPLATE"] = "alert_message.html";
                     }
-                  //  $oConf->aConfig = array("TAS_DEF_MESSAGE_TYPE" => $arrayProperty["TAS_DEF_MESSAGE_TYPE"], "TAS_DEF_MESSAGE_TEMPLATE" => $arrayProperty["TAS_DEF_MESSAGE_TEMPLATE"]);
-                  //  $oConf->saveConfig ("TAS_EXTRA_PROPERTIES", $arrayProperty["TAS_UID"], "", "");
+                    //  $oConf->aConfig = array("TAS_DEF_MESSAGE_TYPE" => $arrayProperty["TAS_DEF_MESSAGE_TYPE"], "TAS_DEF_MESSAGE_TEMPLATE" => $arrayProperty["TAS_DEF_MESSAGE_TEMPLATE"]);
+                    //  $oConf->saveConfig ("TAS_EXTRA_PROPERTIES", $arrayProperty["TAS_UID"], "", "");
                 }
             }
             else
@@ -310,26 +308,26 @@ class Task
                 $this->unsetVar ($arrayProperty, "TAS_RECEIVE_MESSAGE_TYPE");
                 $this->unsetVar ($arrayProperty, "TAS_RECEIVE_MESSAGE_TEMPLATE");
             }
-            
+
             $result = $task->updateTaskProperties ($arrayProperty);
-          /*  if ( isset ($arrayProperty['CONSOLIDATE_DATA']) && !empty ($arrayProperty['CONSOLIDATE_DATA']) )
-            {
-                if ( !empty ($arrayProperty['CONSOLIDATE_DATA']['consolidated_dynaform']) )
-                {
-                   
-                    
-                    $dataConso = array(
-                        'con_status' => $arrayProperty['CONSOLIDATE_DATA']['consolidated_enable'],
-                        'tas_uid' => $arrayProperty['TAS_UID'],
-                        'dyn_uid' => $arrayProperty['CONSOLIDATE_DATA']['consolidated_dynaform'],
-                        'pro_uid' => $arrayProperty['PRO_UID'],
-                        'rep_uid' => $arrayProperty['CONSOLIDATE_DATA']['consolidated_report_table'],
-                        'table_name' => $arrayProperty['CONSOLIDATE_DATA']['consolidated_table'],
-                        'title' => $arrayProperty['CONSOLIDATE_DATA']['consolidated_title']
-                    );
-                    
-                }
-            }*/
+            /*  if ( isset ($arrayProperty['CONSOLIDATE_DATA']) && !empty ($arrayProperty['CONSOLIDATE_DATA']) )
+              {
+              if ( !empty ($arrayProperty['CONSOLIDATE_DATA']['consolidated_dynaform']) )
+              {
+
+
+              $dataConso = array(
+              'con_status' => $arrayProperty['CONSOLIDATE_DATA']['consolidated_enable'],
+              'tas_uid' => $arrayProperty['TAS_UID'],
+              'dyn_uid' => $arrayProperty['CONSOLIDATE_DATA']['consolidated_dynaform'],
+              'pro_uid' => $arrayProperty['PRO_UID'],
+              'rep_uid' => $arrayProperty['CONSOLIDATE_DATA']['consolidated_report_table'],
+              'table_name' => $arrayProperty['CONSOLIDATE_DATA']['consolidated_table'],
+              'title' => $arrayProperty['CONSOLIDATE_DATA']['consolidated_title']
+              );
+
+              }
+              } */
             $arrayResult["status"] = "OK";
             if ( $result == 3 )
             {
@@ -370,7 +368,7 @@ class Task
         try {
             $prj_uid = $this->validateProUid ($prj_uid);
             $act_uid = $this->validateActUid ($act_uid);
-            G::LoadClass ('tasks');
+
             $tasks = new \Tasks();
             $tasks->deleteTask ($act_uid);
         } catch (Exception $e) {
@@ -431,7 +429,7 @@ class Task
     public function throwExceptionIfNotExistsTask ($processUid, $taskUid)
     {
         try {
-          
+
             $sql = "SELECT TAS_UID FROM workflow.task WHERE TAS_UID = ?";
             $arrParameters = array($taskUid);
 

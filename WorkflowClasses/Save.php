@@ -348,7 +348,7 @@ class Save
             $this->object['step_data'] = json_encode ($this->object['step_data']);
         }
 
-        $query = $this->objMysql->_update ("task_manager.projects", $this->object, array("id" => $this->id));
+        $this->objMysql->_update ("task_manager.projects", $this->object, array("id" => $this->id));
     }
 
     public function saveStep ($arrSteps)

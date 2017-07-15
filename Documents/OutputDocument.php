@@ -188,12 +188,12 @@ class OutputDocument extends BaseOutputDocument
     public function generate ($sUID, $aFields, $sPath, $sFilename, $sContent, $sLandscape = false, $sTypeDocToGener = 'BOTH', $aProperties = array())
     {
         if ( ($sUID != '') && is_array ($aFields) && ($sPath != '') )
-        {   
+        {
             $objCases = new Cases();
             $sContent = $objCases->replaceDataField ($sContent, $aFields);
-                  
+
             $objFile = new FileUpload();
-            
+
             $objFile->verifyPath ($sPath, true);
             //Start - Create .doc
             $oFile = fopen ($sPath . $sFilename . '.doc', 'wb');
@@ -346,9 +346,7 @@ class OutputDocument extends BaseOutputDocument
         }
         else
         {
-            return PEAR::raiseError (
-                            null, G_ERROR_USER_UID, null, null, 'You tried to call to a generate method without send the Output Document UID, fields to use and the file path!', 'G_Error', true
-            );
+            throw new Exception ('You tried to call to a generate method without send the Output Document UID, fields to use and the file path!');
         }
     }
 
@@ -636,4 +634,5 @@ class OutputDocument extends BaseOutputDocument
             throw ($oError);
         }
     }
+
 }

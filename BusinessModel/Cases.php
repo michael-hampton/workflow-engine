@@ -84,14 +84,6 @@ class Cases
         if ( $action == 'search' || $action == 'to_reassign' )
         {
             $userUid = ($user == "CURRENT_USER") || $user == '' ? $userUid : $user;
-
-            if ( $first )
-            {
-                $result = array();
-                $result['totalCount'] = 0;
-                $result['data'] = array();
-                return $result;
-            }
         }
 
         $result = $this->getAll (
@@ -661,8 +653,9 @@ class Cases
             if ( $blSaveProject === true )
             {
                 $projectId = $this->saveProject ($arrData, $objWorkflow, $objUser);
-                
-                if(!$projectId) {
+
+                if ( !$projectId )
+                {
                     return false;
                 }
 
@@ -881,13 +874,13 @@ class Cases
      * @param type $status
      * @param type $rejectionReason
      */
-    public function updateStatus (\Elements $objElement, $status, $rejectionReason = '')
+    public function updateStatus (\Elements $objElement, \Users $objUser, $status, $rejectionReason = '')
     {
         /** Todo
          * Pass in user object
          */
         $arrStepData = array(
-            'claimed' => $_SESSION["user"]["username"],
+            'claimed' => $objUser->getUsername (),
             "dateCompleted" => date ("Y-m-d H:i;s"),
             "status" => $status
         );
@@ -898,7 +891,6 @@ class Cases
         }
 
         $objSteps = new \WorkflowStep (null, $objElement);
-        $objUser = (new \BusinessModel\UsersFactory())->getUser ($_SESSION['user']['usrid']);
 
         if ( $status === "COMPLETE" )
         {
@@ -914,12 +906,10 @@ class Cases
      * 
      * @param Elements $objElements
      */
-    public function assignUsers (\Elements $objElements)
+    public function assignUsers (\Elements $objElements, \Users $objUser)
     {
-        $objUser = (new \BusinessModel\UsersFactory())->getUser ($_SESSION['user']['usrid']);
-
         $arrStepData = array(
-            'claimed' => $_SESSION["user"]["username"],
+            'claimed' => $objUser->getUsername (),
             "dateCompleted" => date ("Y-m-d H:i;s"),
             "status" => "CLAIMED"
         );
@@ -960,14 +950,14 @@ class Cases
         {
             $objForm = new \BusinessModel\Form (new \Task ($dynaFormUid));
             $arrAllFields = $objForm->getFields (true);
-            $arrFields = array_keys($arrAllFields);
+            $arrFields = array_keys ($arrAllFields);
 
-          /*  if ( !empty ($arrAllFields) )
-            {
-                foreach ($arrAllFields as $key => $arrField) {
-                    $arrFields[] = $key;
-                }
-            }*/
+            /*  if ( !empty ($arrAllFields) )
+              {
+              foreach ($arrAllFields as $key => $arrField) {
+              $arrFields[] = $key;
+              }
+              } */
 
 
             $arrayCaseVariable = $this->__getFieldsAndValuesByDynaFormAndAppData (
@@ -994,8 +984,6 @@ class Cases
     private function __getFieldsAndValuesByDynaFormAndAppData (array $form, \Elements $objElements, array $caseVariables)
     {
         try {
-            $caseVariableAux = [];
-
             foreach ($form as $value) {
                 $field = $value;
 
@@ -1041,8 +1029,6 @@ class Cases
     public function addCasesOutputDocument ($projectId, $caseId, $stepId, $outputDocumentUid, $userUid)
     {
         try {
-            $sApplication = $caseId;
-            $sUserLogged = $userUid;
             $outputID = $outputDocumentUid;
 
             $oOutputDocument = new \OutputDocument();
@@ -1050,8 +1036,6 @@ class Cases
             $Fields = $this->getCaseVariables ($caseId, $userUid, $projectId, $stepId);
 
             $sFilename = preg_replace ('[^A-Za-z0-9_]', '_', $this->replaceDataField ($aOD->getOutDocFilename (), $Fields));
-
-            $fileTags = $aOD->getOutDocTags ();
 
             $objDocumentVersion = new \DocumentVersion (array());
             $lastDocVersion = $objDocumentVersion->getLastDocVersionByFilename ($sFilename);
@@ -1444,8 +1428,6 @@ class Cases
         {
             foreach ($PERMISSIONS as $row) {
 
-                $USER = $row['USR_UID'];
-                $O_TYPE = $row['OP_OBJ_TYPE'];
                 $ACTION = $row['OP_ACTION'];
 
                 $sw_participate = false; // must be false for default
@@ -1616,10 +1598,7 @@ class Cases
             $numRecTotal = 0;
             //Set variables
             $stepId = $objStep->getStepId ();
-            $taskId = $objStep->getWorkflowStepId ();
             $workflowId = $objStep->getWorkflowId ();
-            $user = new \BusinessModel\UsersFactory();
-            $group = new \BusinessModel\Team();
             //Set variables
             $filterName = 'filter';
 
@@ -1778,7 +1757,7 @@ class Cases
                     {
                         $lastStep = end ($objAudit['elements'][$elementId]['steps']);
 
-                        
+
                         $rows[$WorkflowObject['object_id']] = $elementId;
                         $dates[$WorkflowObject['object_id']] = $lastStep['dateCompleted'];
                         $total++;
@@ -1819,18 +1798,23 @@ class Cases
 
         $casesToReassign = $data['cases'];
 
-        foreach ($casesToReassign as $key => $val) {
+        foreach ($casesToReassign as $val) {
 
             if ( $doReassign === true )
             {
                 $appDelegation = $this->objMysql->_select ("workflow.workflow_data", [], ["object_id" => $val['parentId']]);
-                $existDelegation = $this->validateReassignData ($objTask, $appDelegation, $val, $data, 'DELEGATION_NOT_EXISTS');
+                $existDelegation = $this->validateReassignData ($objTask, $appDelegation, $val, 'DELEGATION_NOT_EXISTS');
+
+                if ( !$existDelegation )
+                {
+                    return false;
+                }
 
                 //Will be not able reassign a case when is paused
-                $flagPaused = $this->validateReassignData ($objTask, $appDelegation, $val, $data, 'ID_REASSIGNMENT_PAUSED_ERROR');
+                $flagPaused = $this->validateReassignData ($objTask, $appDelegation, $val, 'ID_REASSIGNMENT_PAUSED_ERROR');
 
                 //Current users of OPEN DEL_INDEX thread
-                $flagSameUser = $this->validateReassignData ($objTask, $appDelegation, $val, $data, 'REASSIGNMENT_TO_THE_SAME_USER');
+                $flagSameUser = $this->validateReassignData ($objTask, $appDelegation, $val, 'REASSIGNMENT_TO_THE_SAME_USER');
 
 
                 if ( $flagPaused && $flagSameUser )
@@ -1847,11 +1831,8 @@ class Cases
                 throw new \Exception ("No user provided");
             }
 
-
-            $usrUid = $val['user']->getUserId ();
-
             //USER_NOT_ASSIGNED_TO_TASK
-            $flagHasPermission = $this->validateReassignData ($objTask, array(), $val, $data, 'USER_NOT_ASSIGNED_TO_TASK');
+            $flagHasPermission = $this->validateReassignData ($objTask, array(), $val, 'USER_NOT_ASSIGNED_TO_TASK');
 
             return $flagHasPermission;
         }
@@ -1864,12 +1845,11 @@ class Cases
      * @param string $type
      * @return bool
      */
-    private function validateReassignData (\Task $objTask, $appDelegation = array(), $value, $data, $type = 'DELEGATION_NOT_EXISTS')
+    private function validateReassignData (\Task $objTask, $appDelegation = array(), $value, $type = 'DELEGATION_NOT_EXISTS')
     {
         $return = true;
         switch ($type) {
             case 'DELEGATION_NOT_EXISTS':
-                $exists = 0;
 
                 $workflowData = json_decode ($appDelegation[0]['workflow_data'], true);
 

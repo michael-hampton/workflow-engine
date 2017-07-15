@@ -16,57 +16,57 @@ class CalendarDefinition extends BaseCalendarDefinition
 
     public $calendarLog = '';
     private $objMysql;
-    
+
     public function __construct ()
     {
-        parent::__construct();
+        parent::__construct ();
         $this->objMysql = new Mysql2();
     }
 
     public function getCalendarList ($onlyActive = false, $arrayMode = false)
     {
-        $Criteria = new Criteria ('workflow');
-        $Criteria->clearSelectColumns ();
-        $Criteria->addSelectColumn (CalendarDefinitionPeer::CALENDAR_UID);
-        $Criteria->addSelectColumn (CalendarDefinitionPeer::CALENDAR_NAME);
-        $Criteria->addSelectColumn (CalendarDefinitionPeer::CALENDAR_CREATE_DATE);
-        $Criteria->addSelectColumn (CalendarDefinitionPeer::CALENDAR_UPDATE_DATE);
-        $Criteria->addSelectColumn (CalendarDefinitionPeer::CALENDAR_DESCRIPTION);
-        $Criteria->addSelectColumn (CalendarDefinitionPeer::CALENDAR_STATUS);
-        // $Criteria->addAsColumn('DELETABLE', "IF (CALENDAR_UID <> '00000000000000000000000000000001', '".G::LoadTranslation('ID_DELETE')."','') ");
-        $Criteria->addAsColumn ('DELETABLE', "CASE WHEN CALENDAR_UID <> '00000000000000000000000000000001' THEN '" . G::LoadTranslation ('ID_DELETE') . "' ELSE '' END ");
-        // Note: This list doesn't show deleted items (STATUS = DELETED)
-        if ( $onlyActive )
-        {
-            // Show only active. Used on assignment lists
-            $Criteria->add (calendarDefinitionPeer::CALENDAR_STATUS, "ACTIVE", CRITERIA::EQUAL);
-        }
-        else
-        {
-            // Show Active and Inactive calendars. USed in main list
-            $Criteria->add (calendarDefinitionPeer::CALENDAR_STATUS, array("ACTIVE", "INACTIVE"), CRITERIA::IN);
-        }
-        $Criteria->add (calendarDefinitionPeer::CALENDAR_UID, "xx", CRITERIA::NOT_EQUAL);
-        if ( !$arrayMode )
-        {
-            return $Criteria;
-        }
-        else
-        {
-            $oDataset = calendarDefinitionPeer::doSelectRS ($Criteria);
-            $oDataset->setFetchmode (ResultSet::FETCHMODE_ASSOC);
-            $oDataset->next ();
-            $calendarA = array(0 => 'dummy');
-            $calendarCount = 0;
-            while (is_array ($aRow = $oDataset->getRow ())) {
-                $calendarCount ++;
-                $calendarA[$calendarCount] = $aRow;
-                $oDataset->next ();
-            }
-            $return['criteria'] = $Criteria;
-            $return['array'] = $calendarA;
-            return $return;
-        }
+//        $Criteria = new Criteria ('workflow');
+//        $Criteria->clearSelectColumns ();
+//        $Criteria->addSelectColumn (CalendarDefinitionPeer::CALENDAR_UID);
+//        $Criteria->addSelectColumn (CalendarDefinitionPeer::CALENDAR_NAME);
+//        $Criteria->addSelectColumn (CalendarDefinitionPeer::CALENDAR_CREATE_DATE);
+//        $Criteria->addSelectColumn (CalendarDefinitionPeer::CALENDAR_UPDATE_DATE);
+//        $Criteria->addSelectColumn (CalendarDefinitionPeer::CALENDAR_DESCRIPTION);
+//        $Criteria->addSelectColumn (CalendarDefinitionPeer::CALENDAR_STATUS);
+//        // $Criteria->addAsColumn('DELETABLE', "IF (CALENDAR_UID <> '00000000000000000000000000000001', '".G::LoadTranslation('ID_DELETE')."','') ");
+//        $Criteria->addAsColumn ('DELETABLE', "CASE WHEN CALENDAR_UID <> '00000000000000000000000000000001' THEN '" . G::LoadTranslation ('ID_DELETE') . "' ELSE '' END ");
+//        // Note: This list doesn't show deleted items (STATUS = DELETED)
+//        if ( $onlyActive )
+//        {
+//            // Show only active. Used on assignment lists
+//            $Criteria->add (calendarDefinitionPeer::CALENDAR_STATUS, "ACTIVE", CRITERIA::EQUAL);
+//        }
+//        else
+//        {
+//            // Show Active and Inactive calendars. USed in main list
+//            $Criteria->add (calendarDefinitionPeer::CALENDAR_STATUS, array("ACTIVE", "INACTIVE"), CRITERIA::IN);
+//        }
+//        $Criteria->add (calendarDefinitionPeer::CALENDAR_UID, "xx", CRITERIA::NOT_EQUAL);
+//        if ( !$arrayMode )
+//        {
+//            return $Criteria;
+//        }
+//        else
+//        {
+//            $oDataset = calendarDefinitionPeer::doSelectRS ($Criteria);
+//            $oDataset->setFetchmode (ResultSet::FETCHMODE_ASSOC);
+//            $oDataset->next ();
+//            $calendarA = array(0 => 'dummy');
+//            $calendarCount = 0;
+//            while (is_array ($aRow = $oDataset->getRow ())) {
+//                $calendarCount ++;
+//                $calendarA[$calendarCount] = $aRow;
+//                $oDataset->next ();
+//            }
+//            $return['criteria'] = $Criteria;
+//            $return['array'] = $calendarA;
+//            return $return;
+//        }
     }
 
     //Added by qennix
@@ -214,7 +214,7 @@ class CalendarDefinition extends BaseCalendarDefinition
                 $workingDaysOK[$day] = false;
             }
             $sw_all = false;
-            foreach ($fields['BUSINESS_DAY'] as $keyB => $businessHours) {
+            foreach ($fields['BUSINESS_DAY'] as $businessHours) {
                 if ( ($businessHours['CALENDAR_BUSINESS_DAY'] == 7 ) )
                 {
                     $sw_all = true;
@@ -242,34 +242,36 @@ class CalendarDefinition extends BaseCalendarDefinition
             return $defaultCalendar;
         }
     }
-    
-    public function retrieveByPK($pk)
+
+    public function retrieveByPK ($pk)
     {
-        $result = $this->objMysql->_select("calendar.calendar", [], ["CALENDAR_UID" => $pk]);
-        
-        if(!isset($result[0]) || empty($result[0])) {
+        $result = $this->objMysql->_select ("calendar.calendar", [], ["CALENDAR_UID" => $pk]);
+
+        if ( !isset ($result[0]) || empty ($result[0]) )
+        {
             return false;
         }
-        
+
         $objCalendarDefinition = new CalendarDefinition();
-        $objCalendarDefinition->setCalendarCreateDate($result[0]['CALENDAR_CREATE_DATE']);
-        $objCalendarDefinition->setCalendarName($result[0]['CALENDAR_NAME']);
-        $objCalendarDefinition->setCalendarUpdateDate($result[0]['CALENDAR_UPDATE_DATE']);
-        
-        if(isset($result[0]['CALENDAR_DESCRIPTION'])) {
-             $objCalendarDefinition->setCalendarDescription($result[0]['CALENDAR_DESCRIPTION']);
+        $objCalendarDefinition->setCalendarCreateDate ($result[0]['CALENDAR_CREATE_DATE']);
+        $objCalendarDefinition->setCalendarName ($result[0]['CALENDAR_NAME']);
+        $objCalendarDefinition->setCalendarUpdateDate ($result[0]['CALENDAR_UPDATE_DATE']);
+
+        if ( isset ($result[0]['CALENDAR_DESCRIPTION']) )
+        {
+            $objCalendarDefinition->setCalendarDescription ($result[0]['CALENDAR_DESCRIPTION']);
         }
-       
-        $objCalendarDefinition->setCalendarStatus($result[0]['CALENDAR_STATUS']);
-        $objCalendarDefinition->setCalendarWorkDays($result[0]['CALENDAR_WORK_DAYS']);
-        $objCalendarDefinition->setCalendarUid($pk);
-        
+
+        $objCalendarDefinition->setCalendarStatus ($result[0]['CALENDAR_STATUS']);
+        $objCalendarDefinition->setCalendarWorkDays ($result[0]['CALENDAR_WORK_DAYS']);
+        $objCalendarDefinition->setCalendarUid ($pk);
+
         return $objCalendarDefinition;
     }
 
     public function saveCalendarInfo ($aData)
     {
-        
+
         $CalendarUid = $aData['CALENDAR_UID'];
         $CalendarName = $aData['CALENDAR_NAME'];
         $CalendarDescription = $aData['CALENDAR_DESCRIPTION'];
@@ -279,12 +281,12 @@ class CalendarDefinition extends BaseCalendarDefinition
         {
             $CalendarStatus = 'ACTIVE';
         }
-        
+
         $CalendarWorkDays = isset ($aData['CALENDAR_WORK_DAYS']) ? implode ("|", $aData['CALENDAR_WORK_DAYS']) : "";
-       
+
         //if exists the row in the database will update it, otherwise will insert.
         $tr = $this->retrieveByPK ($CalendarUid);
-        
+
         if ( !(is_object ($tr) && get_class ($tr) == 'CalendarDefinition') )
         {
             $tr = new CalendarDefinition();
@@ -292,6 +294,7 @@ class CalendarDefinition extends BaseCalendarDefinition
         }
         else
         {
+            
         }
         $tr->setCalendarUid ($CalendarUid);
         $tr->setCalendarName ($CalendarName);
@@ -299,18 +302,18 @@ class CalendarDefinition extends BaseCalendarDefinition
         $tr->setCalendarDescription ($CalendarDescription);
         $tr->setCalendarStatus ($CalendarStatus);
         $tr->setCalendarWorkDays ($CalendarWorkDays);
-        
+
         if ( $tr->validate () )
         {
             // we save it, since we get no validation errors, or do whatever else you like.
             $CalendarUid = $tr->save ();
 
-            
+
             //Calendar Business Hours Save code.
             //First Delete all current records
             $CalendarBusinessHoursObj = new CalendarBusinessHours();
             $CalendarBusinessHoursObj->deleteAllCalendarBusinessHours ($CalendarUid);
-            
+
             //Save all the sent records
             foreach ($aData['BUSINESS_DAY'] as $key => $objData) {
                 $objData['CALENDAR_UID'] = $CalendarUid;
@@ -360,8 +363,7 @@ class CalendarDefinition extends BaseCalendarDefinition
         if ( $tr->validate () )
         {
             // we save it, since we get no validation errors, or do whatever else you like.
-            $res = $tr->save ();
-            $deletedCalendar = $tr->getCalendarName ();
+            $tr->save ();
         }
         else
         {
@@ -378,61 +380,62 @@ class CalendarDefinition extends BaseCalendarDefinition
 
     public function getCalendarFor ($userUid, $proUid, $tasUid, $sw_validate = true)
     {
-       /* $Criteria = new Criteria ('workflow');
-        //Default Calendar
-        $calendarUid = "00000000000000000000000000000001";
-        $calendarOwner = "DEFAULT";
-        //Load User,Task and Process calendars (if exist)
-        $Criteria->addSelectColumn (CalendarAssignmentsPeer::CALENDAR_UID);
-        $Criteria->addSelectColumn (CalendarAssignmentsPeer::OBJECT_UID);
-        $Criteria->addSelectColumn (CalendarAssignmentsPeer::OBJECT_TYPE);
-        $Criteria->add (CalendarAssignmentsPeer::OBJECT_UID, array($userUid, $proUid, $tasUid), CRITERIA::IN);
-        $oDataset = CalendarAssignmentsPeer::doSelectRS ($Criteria);
-        $oDataset->setFetchmode (ResultSet::FETCHMODE_ASSOC);
-        $oDataset->next ();
-        $calendarArray = array();
-        while (is_array ($aRow = $oDataset->getRow ())) {
-            if ( $aRow['OBJECT_UID'] == $userUid )
-            {
-                $calendarArray['USER'] = $aRow['CALENDAR_UID'];
-            }
-            if ( $aRow['OBJECT_UID'] == $proUid )
-            {
-                $calendarArray['PROCESS'] = $aRow['CALENDAR_UID'];
-            }
-            if ( $aRow['OBJECT_UID'] == $tasUid )
-            {
-                $calendarArray['TASK'] = $aRow['CALENDAR_UID'];
-            }
-            $oDataset->next ();
-        }
-        if ( isset ($calendarArray['USER']) )
-        {
-            $calendarUid = $calendarArray['USER'];
-            $calendarOwner = "USER";
-        }
-        elseif ( isset ($calendarArray['PROCESS']) )
-        {
-            $calendarUid = $calendarArray['PROCESS'];
-            $calendarOwner = "PROCESS";
-        }
-        elseif ( isset ($calendarArray['TASK']) )
-        {
-            $calendarUid = $calendarArray['TASK'];
-            $calendarOwner = "TASK";
-        }
-        //print "<h1>$calendarUid</h1>";
-        if ( $sw_validate )
-        {
-            $calendarDefinition = $this->getCalendarInfo ($calendarUid);
-        }
-        else
-        {
-            $calendarDefinition = $this->getCalendarInfoE ($calendarUid);
-        }
-        $calendarDefinition['CALENDAR_APPLIED'] = $calendarOwner;
-        $this->addCalendarLog ("--=== Calendar Applied: " . $calendarDefinition['CALENDAR_NAME'] . " -> $calendarOwner");
-        return $calendarDefinition;*/
+
+        /* $Criteria = new Criteria ('workflow');
+          //Default Calendar
+          $calendarUid = "00000000000000000000000000000001";
+          $calendarOwner = "DEFAULT";
+          //Load User,Task and Process calendars (if exist)
+          $Criteria->addSelectColumn (CalendarAssignmentsPeer::CALENDAR_UID);
+          $Criteria->addSelectColumn (CalendarAssignmentsPeer::OBJECT_UID);
+          $Criteria->addSelectColumn (CalendarAssignmentsPeer::OBJECT_TYPE);
+          $Criteria->add (CalendarAssignmentsPeer::OBJECT_UID, array($userUid, $proUid, $tasUid), CRITERIA::IN);
+          $oDataset = CalendarAssignmentsPeer::doSelectRS ($Criteria);
+          $oDataset->setFetchmode (ResultSet::FETCHMODE_ASSOC);
+          $oDataset->next ();
+          $calendarArray = array();
+          while (is_array ($aRow = $oDataset->getRow ())) {
+          if ( $aRow['OBJECT_UID'] == $userUid )
+          {
+          $calendarArray['USER'] = $aRow['CALENDAR_UID'];
+          }
+          if ( $aRow['OBJECT_UID'] == $proUid )
+          {
+          $calendarArray['PROCESS'] = $aRow['CALENDAR_UID'];
+          }
+          if ( $aRow['OBJECT_UID'] == $tasUid )
+          {
+          $calendarArray['TASK'] = $aRow['CALENDAR_UID'];
+          }
+          $oDataset->next ();
+          }
+          if ( isset ($calendarArray['USER']) )
+          {
+          $calendarUid = $calendarArray['USER'];
+          $calendarOwner = "USER";
+          }
+          elseif ( isset ($calendarArray['PROCESS']) )
+          {
+          $calendarUid = $calendarArray['PROCESS'];
+          $calendarOwner = "PROCESS";
+          }
+          elseif ( isset ($calendarArray['TASK']) )
+          {
+          $calendarUid = $calendarArray['TASK'];
+          $calendarOwner = "TASK";
+          }
+          //print "<h1>$calendarUid</h1>";
+          if ( $sw_validate )
+          {
+          $calendarDefinition = $this->getCalendarInfo ($calendarUid);
+          }
+          else
+          {
+          $calendarDefinition = $this->getCalendarInfoE ($calendarUid);
+          }
+          $calendarDefinition['CALENDAR_APPLIED'] = $calendarOwner;
+          $this->addCalendarLog ("--=== Calendar Applied: " . $calendarDefinition['CALENDAR_NAME'] . " -> $calendarOwner");
+          return $calendarDefinition; */
     }
 
     public function assignCalendarTo ($objectUid, $calendarUid, $objectType)
@@ -440,7 +443,7 @@ class CalendarDefinition extends BaseCalendarDefinition
         $objCalendarAssignment = new CalendarAssignment();
         //if exists the row in the database propel will update it, otherwise will insert.
         $tr = $objCalendarAssignment->retrieveByPk ($objectUid, $objectType);
-        
+
         if ( $calendarUid != "" )
         {
             if ( !(is_object ($tr) && get_class ($tr) == 'CalendarAssignment') )
@@ -461,7 +464,7 @@ class CalendarDefinition extends BaseCalendarDefinition
                 $msg = '';
                 $validationFailuresArray = $tr->getValidationFailures ();
                 foreach ($validationFailuresArray as $message) {
-                    $msg .= $objValidationFailure->getMessage () . "<br/>";
+                    $msg .= $message . "<br/>";
                 }
                 //return array ( 'codError' => -100, 'rowsAffected' => 0, 'message' => $msg );
             }
@@ -471,7 +474,7 @@ class CalendarDefinition extends BaseCalendarDefinition
             //Delete record
             if ( (is_object ($tr) && get_class ($tr) == 'CalendarAssignment' ) )
             {
-                $this->objMysql->_delete("calendar.calendar_assignees", [], ["OBJECT_TYPE" => $objectType, "USER_UID" => $objectUid]);
+                $this->objMysql->_delete ("calendar.calendar_assignees", [], ["OBJECT_TYPE" => $objectType, "USER_UID" => $objectUid]);
             }
         }
     }
@@ -479,15 +482,15 @@ class CalendarDefinition extends BaseCalendarDefinition
     //Added by Qennix
     //Counts all users,task,process by calendar
     public function getAllCounterByCalendar ($type)
-    {        
+    {
         $sql = "SELECT CALENDAR_UID, COUNT(*) AS CNT FROM calendar.calendar_assignees
                 WHERE OBJECT_TYPE = ?
                 GROUP BY CALENDAR_UID";
-        
-        $results = $this->objMysql->_query($sql, [$type]);
+
+        $results = $this->objMysql->_query ($sql, [$type]);
 
         $aCounter = Array();
-        
+
         foreach ($results as $row) {
             $aCounter[$row['CALENDAR_UID']] = $row['CNT'];
         }

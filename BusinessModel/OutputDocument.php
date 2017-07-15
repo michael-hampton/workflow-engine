@@ -140,7 +140,7 @@ class OutputDocument
             }
             else
             {
-                throw new \Exception (\G::LoadTranslation ("ID_INVALID_VALUE_FOR", array('out_doc_pdf_security_permissions')));
+                throw new \Exception ("ID_INVALID_VALUE_FOR");
             }
         }
         try {

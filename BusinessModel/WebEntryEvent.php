@@ -281,8 +281,10 @@ class WebEntryEvent
                     )
                 )
             );
-            $result = $task->saveProcessPermission ($permissions);
+            
+            $task->saveProcessPermission ($permissions);
             $this->webEntryEventWebEntryTaskUid = $eventUid;
+            
             //WebEntry
             $arrayWebEntryData = $this->webEntry->create (
                     $projectUid, $objUser->getUserId (), array(
@@ -570,7 +572,7 @@ class WebEntryEvent
 
             $objWebEntryEvent = new \WebEntryEvent();
             $objWebEntryEvent->setWeeUid ($webEntryEventUid);
-            $result = $objWebEntryEvent->delete ();
+            $objWebEntryEvent->delete ();
         } catch (\Exception $e) {
             throw $e;
         }
@@ -659,7 +661,7 @@ class WebEntryEvent
             //Return
             return $arrayWebEntryEvent;
         } catch (Exception $ex) {
-            throw $e;
+            throw $ex;
         }
     }
 

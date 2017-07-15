@@ -41,7 +41,6 @@ class InputDocument
             reset ($objSave->object['step_data']['elements']);
             $applicationUid = key ($objSave->object['step_data']['elements']);
 
-
             //Verify data inbox
             $case = new \BusinessModel\Cases();
             $application = $case->getCaseInfo ($projectUid, $applicationUid);
@@ -118,30 +117,9 @@ class InputDocument
             {
                 throw new \Exception ("ID_USER_NOT_HAVE_PERMISSION_DELETE_INPUT_DOCUMENT");
             }
-            
+
             $objAttachment = new \BusinessModel\Attachment();
-            $objAttachment->deleteProcessFilesManager($application->getWorkflow_id(), $arrAttachment[0]['id']);
-        } catch (\Exception $e) {
-            throw $e;
-        }
-    }
-
-    /**
-     * Verify exists app_doc_uid in table APP_DOCUMENT
-     *
-     * @param string $applicationUid
-     *
-     * return void Throw exception
-     */
-    private function throwExceptionIfNotExistsAppDocument ($appDocumentUid)
-    {
-        try {
-            $appDocument = \AppDocumentPeer::retrieveByPK ($appDocumentUid, 1);
-
-            if ( is_null ($appDocument) )
-            {
-                throw new \Exception ("ID_CASES_INPUT_DOES_NOT_EXIST");
-            }
+            $objAttachment->deleteProcessFilesManager ($application->getWorkflow_id (), $arrAttachment[0]['id']);
         } catch (\Exception $e) {
             throw $e;
         }
@@ -150,8 +128,8 @@ class InputDocument
     public function downloadInputDocument ($app_uid, $app_doc_uid, $attachmentArray)
     {
 
-      //  $documentVersion = new \DocumentVersion();
-       // $iDocVersion = $documentVersion->getLastDocVersionByFilename ($attachmentArray[0]['filename']);
+        //  $documentVersion = new \DocumentVersion();
+        // $iDocVersion = $documentVersion->getLastDocVersionByFilename ($attachmentArray[0]['filename']);
 
         $info = pathinfo ($attachmentArray[0]["file_destination"]);
         $app_uid = $attachmentArray[0]['source_id'];

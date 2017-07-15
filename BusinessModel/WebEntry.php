@@ -129,7 +129,7 @@ class WebEntry
      *
      * return void Throw exception if exists the title of a Web Entry
      */
-    public function throwExceptionIfExistsTitle ($processUid, $webEntryTitle, $fieldNameForException, $webEntryUidExclude = "")
+    public function throwExceptionIfExistsTitle ($processUid, $webEntryTitle, $webEntryUidExclude = "")
     {
         try {
             if ( $this->existsTitle ($processUid, $webEntryTitle, $webEntryUidExclude) )
@@ -155,13 +155,12 @@ class WebEntry
         try {
             //Set variables
             $arrayWebEntryData = ($webEntryUid == "") ? array() : $this->getWebEntry ($webEntryUid, true);
-            $flagInsert = ($webEntryUid == "") ? true : false;
             $arrayDataMain = array_merge ($arrayWebEntryData, $arrayData);
             //Verify data - Field definition
             //Verify data
             if ( isset ($arrayData["WE_TITLE"]) )
             {
-                $this->throwExceptionIfExistsTitle ($processUid, $arrayData["WE_TITLE"], $webEntryUid);
+                $this->throwExceptionIfExistsTitle ($processUid, $webEntryUid);
             }
             if ( isset ($arrayData["TAS_UID"]) )
             {
@@ -229,12 +228,9 @@ class WebEntry
             //Set variables
             $arrayWebEntryData = $this->getWebEntry ($webEntryUid, true);
             $processUid = $arrayWebEntryData["PRO_UID"];
-            $taskUid = $arrayWebEntryData["TAS_UID"];
             $dynaFormUid = $arrayWebEntryData["DYN_UID"];
             $webEntryMethod = $arrayWebEntryData["WE_METHOD"];
-            $webEntryInputDocumentAccess = $arrayWebEntryData["WE_INPUT_DOCUMENT_ACCESS"];
             $webEntryData = "";
-            $wsRoundRobin = 0; //0, 1 //0 - Cyclical Assignment
             $pathDataPublicProcess = $this->pathDataPublic . $processUid;
             //Delete previous files
             if ( trim ($arrayWebEntryData["WE_DATA"]) != "" )
@@ -250,22 +246,19 @@ class WebEntry
             //Create files
             $objFileUpload = new FileUpload();
             $objFileUpload->mk_dir ($pathDataPublicProcess, 0777);
-           
+
             switch ($webEntryMethod) {
                 case "WS":
                     //require_once(PATH_RBAC . "model" . PATH_SEP . "RbacUsers.php");
                     //$user = new \RbacUsers();
-                    $arrayUserData = (new UsersFactory())->getUser ($arrayWebEntryData["USR_UID"]);
-                    $usrUsername = $arrayUserData->getUsername ();
-                    $usrPassword = $arrayUserData->getPassword ();
+                    //$arrayUserData = (new UsersFactory())->getUser ($arrayWebEntryData["USR_UID"]);
+                    //$usrUsername = $arrayUserData->getUsername ();
+                    //$usrPassword = $arrayUserData->getPassword ();
                     $dynaForm = new Form (new \Task ($arrayWebEntryData["DYN_UID"]));
                     $arrayDynaFormData = $dynaForm->getFields ();
                     //Creating sys.info;
                     $sitePublicPath = "";
-                    if ( file_exists ($sitePublicPath . "") )
-                    {
-                        
-                    }
+                   
                     //Creating the first file
                     $weTitle = $this->sanitizeFilename ($arrayWebEntryData["WE_TITLE"]);
                     $fileName = $weTitle;
@@ -374,11 +367,11 @@ class WebEntry
 
             //Set variables
             $arrayWebEntryData = $this->getWebEntry ($webEntryUid, true);
-            
+
             //Delete web entry 
             $objWebEntry = new \WebEntry();
             $objWebEntry->setWeUid ($arrayWebEntryData['WE_UID']);
-            $result = $objWebEntry->delete();
+            $result = $objWebEntry->delete ();
             //Delete filesa 
             if ( $arrayWebEntryData["WE_METHOD"] == "WS" )
             {
@@ -449,7 +442,7 @@ class WebEntry
             if ( !empty ($record["WE_UPDATE_DATE"]) )
             {
                 $dateTime = new \DateTime ($record["WE_UPDATE_DATE"]);
-                $webEntryUpdateDate = $dateTime->format ($confEnvSetting["dateFormat"]);
+                $webEntryUpdateDate = $dateTime->format ("Y-m-d H:i:s");
             }
 
             $webEntry = new \WebEntry();
@@ -542,7 +535,7 @@ class WebEntry
     public function update ($webEntryUid, $userUidUpdater, array $arrayData)
     {
         try {
-            
+
             //Verify data
             $this->throwExceptionIfDataIsNotArray ($arrayData, "\$arrayData");
             $this->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
@@ -553,15 +546,15 @@ class WebEntry
             $this->throwExceptionIfDataIsInvalid ($webEntryUid, $arrayWebEntryData["PRO_UID"], $arrayData);
             //Update
             try {
-                
+
                 $webEntry = new \WebEntry();
-                $webEntry->setWeUid($webEntryUid);
+                $webEntry->setWeUid ($webEntryUid);
                 $webEntry->loadObject ($arrayData);
                 $webEntry->setWeUpdateUsrUid ($userUidUpdater);
                 $webEntry->setWeUpdateDate ("now");
                 if ( $webEntry->validate () )
                 {
-                    $result = $webEntry->save ();
+                    $webEntry->save ();
                     //Set WE_DATA
                     $this->setWeData ($webEntryUid);
                     return $arrayData;
@@ -581,4 +574,5 @@ class WebEntry
             throw $e;
         }
     }
+
 }

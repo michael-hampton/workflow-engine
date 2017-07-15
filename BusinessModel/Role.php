@@ -146,9 +146,6 @@ class Role
         try {
 
             //Set variables
-            $arrayRoleData = ($roleUid == "") ? array() : $this->getRole ($roleUid, true);
-            $flagInsert = ($roleUid == "") ? true : false;
-            $arrayDataMain = array_merge ($arrayRoleData, $arrayData);
             //Verify data
             if ( isset ($arrayData["role_code"]) && !preg_match ("/^\w+$/", $arrayData["role_code"]) )
             {

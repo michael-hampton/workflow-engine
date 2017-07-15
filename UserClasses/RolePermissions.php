@@ -43,7 +43,7 @@ class RolePermissions extends BaseRolePermission
 
             if ( $this->validate () )
             {
-                $iResult = $this->save ();
+                $this->save ();
             }
 
             return true;

@@ -89,12 +89,7 @@ class Step
 
             switch ($type) {
                 case "DYNAFORM":
-//                    $dynaform = new \Dynaform();
-//
-//                    if ( !$dynaform->dynaformExists ($objectUid) )
-//                    {
-//                        $msg = "ID_DYNAFORM_DOES_NOT_EXIST";
-//                    }
+
                     break;
                 case "INPUT_DOCUMENT":
                     $inputdoc = new \InputDocument();
@@ -228,7 +223,7 @@ class Step
             {
                 throw new \Exception ("ID_UNDEFINED_VALUE_IS_REQUIRED");
             }
-            
+
             $arrayData["STEP_UID_OBJ"] = trim ($arrayData["STEP_UID_OBJ"]);
 
             if ( $arrayData["STEP_UID_OBJ"] == "" )
@@ -240,7 +235,7 @@ class Step
             {
                 throw new \Exception ("ID_UNDEFINED_VALUE_IS_REQUIRED");
             }
-            
+
             $arrayData["STEP_MODE"] = trim ($arrayData["STEP_MODE"]);
 
             if ( $arrayData["STEP_MODE"] == "" )
@@ -263,7 +258,7 @@ class Step
             {
                 throw new \Exception ("ID_RECORD_EXISTS_IN_TABLE");
             }
-            
+
             $arrayData['PRO_UID'] = $processUid;
             $arrayData['TAS_UID'] = $taskUid;
 
@@ -312,7 +307,6 @@ class Step
                         $arrayData = $dynaform->load ($row["STEP_UID_OBJ"]);
 
                         $titleObj = $arrayData["DYN_TITLE"];
-                        $descriptionObj = $arrayData["DYN_DESCRIPTION"];
                         break;
                     case "INPUT_DOCUMENT":
                         $inputDocument = new \InputDocument();
@@ -339,7 +333,7 @@ class Step
 
                         if ( isset ($externalSteps) && is_array ($externalSteps) && count ($externalSteps) > 0 )
                         {
-                            foreach ($externalSteps as $key => $value) {
+                            foreach ($externalSteps as $value) {
                                 if ( $value->sStepId == $row["STEP_UID_OBJ"] )
                                 {
                                     $titleObj = $value->sStepTitle;

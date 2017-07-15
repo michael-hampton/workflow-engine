@@ -78,7 +78,6 @@ class BPMNWorkflow extends BPMN
         $arrGateways = [];
 
         $objBPMN = new BPMN();
-        $objTasks = new Task();
         $arrStepMapping = $objBPMN->getAllTasks ($this->workflow);
 
         $intNoOfSteps = count ($arrStepMapping);
@@ -292,7 +291,6 @@ class BPMNWorkflow extends BPMN
             }
             else
             {
-                $check = $objTask->getTask ($steps['key']);
                 $check2 = $objBPMN->getFlow ($steps['key'], $this->workflow);
 
                 $arrStepFields[$steps['key']] = $this->objMysql->_select ("workflow.step_fields", array(), array("step_id" => $steps['key']));
@@ -509,7 +507,7 @@ class BPMNWorkflow extends BPMN
         switch ($data['messageType']) {
             case "send":
             case "receive":
-                $messageEventRelationUid = $this->createMessageEventRelationByBpmnFlow ((new Flow())->retrieveByPk($data['EVN_UID']));
+                $this->createMessageEventRelationByBpmnFlow ((new Flow())->retrieveByPk($data['EVN_UID']));
                 break;
         }
     }

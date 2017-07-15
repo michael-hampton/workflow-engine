@@ -389,7 +389,7 @@ class MessageEventDefinition
             $results = $this->objMysql->_query ("SELECT * FROM workflow.message_definition WHERE workflow_id = ?", [$projectUid]);
 
             foreach ($results as $result) {
-                $row = $this->setMessageEventDefinitionVariablesForRecordByMessageType ($rsCriteria->getRow ());
+                $row = $this->setMessageEventDefinitionVariablesForRecordByMessageType ($result);
                 $arrayMessageEventDefinition[] = $this->getMessageEventDefinitionDataFromRecord ($row);
             }
             //Return
@@ -407,7 +407,7 @@ class MessageEventDefinition
      *
      * return array Return an array with data of a Message-Event-Definition
      */
-    public function getMessageEventDefinition ($messageEventDefinitionUid, $flagGetRecord = false)
+    public function getMessageEventDefinition ($messageEventDefinitionUid)
     {
         try {
             //Verify data
