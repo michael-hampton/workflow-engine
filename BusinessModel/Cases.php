@@ -960,14 +960,14 @@ class Cases
         {
             $objForm = new \BusinessModel\Form (new \Task ($dynaFormUid));
             $arrAllFields = $objForm->getFields (true);
-            $arrFields = [];
+            $arrFields = array_keys($arrAllFields);
 
-            if ( !empty ($arrAllFields) )
+          /*  if ( !empty ($arrAllFields) )
             {
                 foreach ($arrAllFields as $key => $arrField) {
                     $arrFields[] = $key;
                 }
-            }
+            }*/
 
 
             $arrayCaseVariable = $this->__getFieldsAndValuesByDynaFormAndAppData (
