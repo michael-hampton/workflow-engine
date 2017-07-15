@@ -207,7 +207,7 @@ class UsersFactory
      * @param string $sPassword
      * @return array
      */
-    public function testPassword ($sPassword = '')
+    public function testPassword ()
     {
         if ( !preg_match ("/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{8,}$/", $this->password) )
         {
@@ -230,7 +230,6 @@ class UsersFactory
         try {
             //Set variables
             $arrayUserData = ($userUid == "") ? array() : $this->getUser ($userUid, true);
-            $flagInsert = ($userUid == "") ? true : false;
 
             $arrayFinalData = array_merge ($arrayUserData, $arrayData);
 
@@ -252,7 +251,7 @@ class UsersFactory
 
             if ( isset ($arrayData["USR_NEW_PASS"]) )
             {
-                $this->throwExceptionIfPasswordIsInvalid ($arrayData["USR_NEW_PASS"], $this->arrayFieldNameForException["usrNewPass"]);
+                $this->throwExceptionIfPasswordIsInvalid ($arrayData["USR_NEW_PASS"]);
             }
 
 
@@ -383,7 +382,6 @@ class UsersFactory
                 }
                 //Update in workflow
                 //Save Calendar assigment
-
 
                 return true;
             } catch (Exception $e) {
@@ -600,8 +598,7 @@ class UsersFactory
 
                     $aAux = explode ('.', $_FILES['upload']['name']);
                     $objFile->uploadFile ($_FILES['upload']['tmp_name'], PATH_IMAGES_ENVIRONMENT_USERS, $userUid . '.' . $aAux[1]);
-                    die;
-                    \G::resizeImage (PATH_IMAGES_ENVIRONMENT_USERS . $userUid . '.' . $aAux[1], 96, 96, PATH_IMAGES_ENVIRONMENT_USERS . $userUid . '.gif');
+               //     \G::resizeImage (PATH_IMAGES_ENVIRONMENT_USERS . $userUid . '.' . $aAux[1], 96, 96, PATH_IMAGES_ENVIRONMENT_USERS . $userUid . '.gif');
                 }
             }
             else
