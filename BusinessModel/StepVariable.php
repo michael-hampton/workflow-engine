@@ -209,7 +209,7 @@ class StepVariable
      * @param string $variableName       Name
      *
      */
-    public function existsName ($fieldId, $variableName, $variableUidToExclude = "")
+    public function existsName ($fieldId, $variableName)
     {
         try {
             $result = $this->objMysql->_query ("SELECT * FROM workflow.workflow_variables WHERE variable_name = ? AND field_id != ?", [$variableName, $fieldId]);
