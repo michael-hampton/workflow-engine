@@ -250,7 +250,7 @@ class WebEntry
             //Create files
             $objFileUpload = new FileUpload();
             $objFileUpload->mk_dir ($pathDataPublicProcess, 0777);
-            $http = "http://";
+           
             switch ($webEntryMethod) {
                 case "WS":
                     //require_once(PATH_RBAC . "model" . PATH_SEP . "RbacUsers.php");
