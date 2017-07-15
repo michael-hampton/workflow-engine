@@ -253,7 +253,7 @@ class MessageEventDefinition
 
                 if ( $messageEventDefinition->validate () )
                 {
-                    $result = $messageEventDefinition->save ();
+                    $messageEventDefinition->save ();
                     //Return
                     $arrayData = $arrayDataBackup;
 
