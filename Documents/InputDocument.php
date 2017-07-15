@@ -7,7 +7,6 @@ class InputDocument extends BaseInputDocument
 {
 
     private $stepId;
-    private $documentId;
     private $objMysql;
 
     public function __construct ($stepId = null)
