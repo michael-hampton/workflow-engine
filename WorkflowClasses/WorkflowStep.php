@@ -594,8 +594,8 @@ class WorkflowStep
 
     public function stepExists ($stepId)
     {
-
         $result = $this->objMysql->_select ("workflow.task", [], ["TAS_UID" => $stepId]);
+
         if ( isset ($result[0]) && !empty ($result[0]) )
         {
             return true;

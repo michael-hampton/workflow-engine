@@ -371,8 +371,8 @@ class Form extends FieldFactory
     public function throwExceptionIfNotExistsDynaForm($dynaFormUid, $fieldNameForException = '')
     {
         try {
-            $sql = "SELECT * FROM workflow.task t
-                    INNER JOIN workflow.step_fields sf ON sf.step_id = s.TAS_UID
+            $sql = "SELECT * FROM workflow.step s
+                    INNER JOIN workflow.step_fields sf ON sf.step_id = s.STEP_UID_OBJ
                     WHERE s.TAS_UID = ? ";
             $arrParameters = array($dynaFormUid);
 

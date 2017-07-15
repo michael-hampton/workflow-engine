@@ -260,9 +260,9 @@ class WebEntryEvent
      */
     public function createWebEntry ($projectUid, $eventUid, $dynaFormUid, $userUid, $title, $description, \Users $objUser)
     {
+        
         try {
             //Task
-            $task = new \Task();
             //Task - User
             $task = new StepPermission (new \Task ($dynaFormUid));
             $permissions = array(
@@ -290,6 +290,7 @@ class WebEntryEvent
                 "WE_INPUT_DOCUMENT_ACCESS" => 1
                     )
             );
+            
             $this->webEntryEventWebEntryUid = $arrayWebEntryData->getWeUid ();
         } catch (\Exception $e) {
             throw $e;
@@ -611,7 +612,8 @@ class WebEntryEvent
             {
                 $http = "http://";
                 $url = $http . $_SERVER["HTTP_HOST"] . "/core/public/webentry/" . $record["PRJ_UID"];
-                $record["WEE_WE_URL"] = $url . "/" . $record["WEE_TITLE"];
+                
+                $record["WEE_WE_URL"] = $url . "/" . str_replace(" ", "_", $record["WEE_TITLE"]) . ".php";
             }
             $objWebEntryEvent = new \WebEntryEvent();
             $objWebEntryEvent->setWeeUid ($record["WEE_UID"]);

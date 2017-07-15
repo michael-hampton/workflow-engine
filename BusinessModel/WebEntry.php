@@ -191,7 +191,7 @@ class WebEntry
                 }
             }
 
-            $objStepPermissions = new StepPermission (new \Task ($arrayData['TAS_UID']));
+            $objStepPermissions = new StepPermission (new \Task ($arrayData['DYN_UID']));
             $arrStepPermissions = $objStepPermissions->getProcessPermissions ();
             $arrMasterUser = explode (",", $arrStepPermissions['master']['user']);
             if ( $arrayDataMain["WE_METHOD"] == "WS" && isset ($arrayData["TAS_UID"]) )
@@ -321,11 +321,13 @@ class WebEntry
             //Verify data
             $this->throwExceptionIfDataIsNotArray ($arrayData, "\$arrayData");
             $this->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
+            
             //Set data
             unset ($arrayData["WE_UID"]);
             unset ($arrayData["WE_DATA"]);
             //Verify data
             $this->throwExceptionIfDataIsInvalid ("", $processUid, $arrayData);
+                        
             //Create
             try {
                 $webEntry = new \WebEntry();
@@ -333,6 +335,7 @@ class WebEntry
                 $webEntry->setProUid ($processUid);
                 $webEntry->setWeCreateUsrUid ($userUidCreator);
                 $webEntry->setWeCreateDate (date ("Y-m-d H:i:s"));
+                
                 if ( $webEntry->validate () )
                 {
                     $webEntryUid = $webEntry->save ();

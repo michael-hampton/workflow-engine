@@ -304,16 +304,13 @@ class StepPermission
     public function validateStepUid ()
     {
         $this->stepId = trim ($this->stepId);
-        
+
         if ( $this->stepId == '' )
         {
-            echo "Mike";
-            echo debug_backtrace()[1]['function'];
             throw (new \Exception ("STEP ID HAS NOT BEEN SET"));
         }
 
         $objWorkflowStep = new \WorkflowStep();
-        
 
         if ( !($objWorkflowStep->stepExists ($this->stepId)) )
         {

@@ -1,5 +1,7 @@
 <?php
+
 namespace BusinessModel;
+
 class FormBuilder
 {
 
@@ -286,9 +288,9 @@ class FormBuilder
         $this->html .= '<div id="' . $this->_elements[$this->key]['id'] . 'Warning" class="formValidation">
             ' . $this->_elements[$this->key]['id'] . ' cannot be blank.
         </div>';
-        
+
         $this->html .= '<script>
-                        $("#'.$this->_elements[$this->key]['id'].'").datepicker({
+                        $("#' . $this->_elements[$this->key]['id'] . '").datepicker({
                             todayBtn: "linked",
                             keyboardNavigation: false,
                             forceParse: false,
@@ -503,24 +505,28 @@ class FormBuilder
             <select ' . $disabled . ' class="form-control ' . $fieldClass . ' m-b" id="' . $this->_elements[$this->key]['id'] . '" name="' . $this->_elements[$this->key]['name'] . '">';
         $this->html .= '<option value="">Select One</option>';
 
-        foreach ($this->_elements[$this->key]['options'] as $value => $name) {
+        if ( !empty ($this->_elements[$this->key]['options']) && is_array ($this->_elements[$this->key]['options']) )
+        {
+            foreach ($this->_elements[$this->key]['options'] as $value => $name) {
 
-            if ( is_array ($name) )
-            {
-                $value = $name['id'];
-                $name = $name['value'];
-            }
+                if ( is_array ($name) )
+                {
+                    $value = $name['id'];
+                    $name = $name['value'];
+                }
 
-            if ( !empty ($this->_elements[$this->key]['value']) && $this->_elements[$this->key]['value'] == $value )
-            {
-                $strSelected = 'selected="selected"';
+                if ( !empty ($this->_elements[$this->key]['value']) && $this->_elements[$this->key]['value'] == $value )
+                {
+                    $strSelected = 'selected="selected"';
+                }
+                else
+                {
+                    $strSelected = '';
+                }
+                $this->html .= '<option value="' . $value . '" ' . $strSelected . '>' . $name . '</option>';
             }
-            else
-            {
-                $strSelected = '';
-            }
-            $this->html .= '<option value="' . $value . '" ' . $strSelected . '>' . $name . '</option>';
         }
+
         $this->html .= '</select>
         </div>';
 
