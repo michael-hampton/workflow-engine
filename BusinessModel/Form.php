@@ -368,7 +368,7 @@ class Form extends FieldFactory
      *
      * return void Throw exception if doesn't exists the DynaForm in table DYNAFORM
      */
-    public function throwExceptionIfNotExistsDynaForm($dynaFormUid, $fieldNameForException = '')
+    public function throwExceptionIfNotExistsDynaForm($dynaFormUid)
     {
         try {
             $sql = "SELECT * FROM workflow.step s
