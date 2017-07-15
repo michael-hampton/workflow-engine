@@ -150,8 +150,8 @@ class InputDocument
     public function downloadInputDocument ($app_uid, $app_doc_uid, $attachmentArray)
     {
 
-        $documentVersion = new \DocumentVersion();
-        $iDocVersion = $documentVersion->getLastDocVersionByFilename ($attachmentArray[0]['filename']);
+      //  $documentVersion = new \DocumentVersion();
+       // $iDocVersion = $documentVersion->getLastDocVersionByFilename ($attachmentArray[0]['filename']);
 
         $info = pathinfo ($attachmentArray[0]["file_destination"]);
         $app_uid = $attachmentArray[0]['source_id'];
@@ -164,8 +164,6 @@ class InputDocument
         $ext = (isset ($info['extension']) ? $info['extension'] : '');
         $realPath = $attachmentArray[0]['file_destination'];
         $realPath1 = "C:/xampp/htdocs/FormBuilder/public/uploads/" . $arrInput[$attachmentArray[0]['file_type']]->getDestinationPath () . "/" . $info['filename'] . "." . $ext;
-
-        echo $realPath1;
 
         if ( !file_exists ($realPath) && file_exists ($realPath1) )
         {
