@@ -248,7 +248,6 @@ class PermissionFactory
                 return $arrayPermission;
             }
             //Set variables
-            $rolePermission = new RolePermissions();
             //SQL
             switch ($option) {
                 case "PERMISSIONS":

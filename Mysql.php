@@ -228,7 +228,7 @@ class Mysql2 extends D
             if ( !is_int ($offset) )
             {
 
-                D::P (['ERROR' => 'Non integer passed to function as OFFSET value'], true);
+                throw new Exception('Non integer passed to function as OFFSET value');
                 return FALSE;
             }
 
@@ -307,7 +307,7 @@ class Mysql2 extends D
         $this->queryDatabase ($query, $values, FALSE);
     }
 
-    public function _insert ($table, $data, $format = '')
+    public function _insert ($table, $data)
     {
         // Check for $table or $data not set
 

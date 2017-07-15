@@ -134,9 +134,10 @@ try {
 
                 $messageApplication = new \BusinessModel\MessageApplication();
 
+                $objUser = (new BusinessModel\UsersFactory())->getUser($_SESSION['user']['usrid']);
 
 
-                $messageApplication->catchMessageEvent (true);
+                $messageApplication->catchMessageEvent ($objUser);
 
                 break;
 

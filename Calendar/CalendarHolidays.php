@@ -100,7 +100,7 @@ class CalendarHolidays extends BaseCalendarHolidays
         $tr->setCalendarHolidayEnd ($CalendarHolidayEnd);
         if ( $tr->validate () )
         {
-            $id = $tr->save ();
+            $tr->save ();
         }
         else
         {

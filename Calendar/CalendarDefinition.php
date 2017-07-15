@@ -292,10 +292,7 @@ class CalendarDefinition extends BaseCalendarDefinition
             $tr = new CalendarDefinition();
             $tr->setCalendarCreateDate ('now');
         }
-        else
-        {
-            
-        }
+
         $tr->setCalendarUid ($CalendarUid);
         $tr->setCalendarName ($CalendarName);
         $tr->setCalendarUpdateDate ('now');

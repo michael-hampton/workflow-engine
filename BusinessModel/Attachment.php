@@ -260,9 +260,9 @@ class Attachment
 
         $arrUploadedFiles = array();
 
-        foreach ($_FILES['fileUpload']['name'] as $key => $name) {
-            $size = $_FILES['fileUpload']['size'][$key];
-            $file_tmp = $_FILES['fileUpload']['tmp_name'][$key];
+        foreach ($arrFiles['fileUpload']['name'] as $key => $name) {
+            $size = $arrFiles['fileUpload']['size'][$key];
+            $file_tmp = $arrFiles['fileUpload']['tmp_name'][$key];
             $arrName = explode ('.', $name);
             $file_ext = strtolower (end ($arrName));
 

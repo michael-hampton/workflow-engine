@@ -137,7 +137,7 @@ class Lists
         return $result[0]['id'];
     }
 
-    public function loadList ($listName = '', $dataList = array(), $total = false)
+    public function loadList ($listName = '', $dataList = array())
     {
         if ( !isset ($dataList["userId"]) )
         {

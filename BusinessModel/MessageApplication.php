@@ -263,7 +263,7 @@ class MessageApplication
      * @throws \Exception
      * @return void
      */
-    public function catchMessageEvent ($frontEnd = false)
+    public function catchMessageEvent (\Users $objUser)
     {
         try {
             $case = new \BusinessModel\Cases();
@@ -298,7 +298,6 @@ class MessageApplication
                     $taskUid = $arrayMessageApplicationData["EVN_UID_CATCH"];
                     $messageApplicationUid = $arrayMessageApplicationData["MSGAPP_UID"];
                     $messageApplicationCorrelation = $arrayMessageApplicationData["MSGAPP_CORRRELATION"];
-                    $objUser = (new \BusinessModel\UsersFactory())->getUser ($_SESSION['user']['usrid']);
                     $messageEventDefinitionCorrelation = $arrayMessageApplicationData["MSGED_CORRELATION"];
                     $arrayVariable = $this->mergeVariables ($arrayMessageApplicationData["MSGED_VARIABLES"], $arrayMessageApplicationData["MSGAPP_VARIABLES"]);
                     $flagCatched = false;
@@ -328,7 +327,7 @@ class MessageApplication
 
                                     $aInfo = array(
                                         'action' => 'CREATED-NEW-CASE'
-                                        , 'usrUid' => $_SESSION['user']['usrid']
+                                        , 'usrUid' => $objUser->getUserId ()
                                         , 'proUid' => $arrCase['project_id']
                                         , 'tasUid' => $taskUid
                                         , 'appUid' => $arrCase['case_id']
@@ -347,7 +346,7 @@ class MessageApplication
 
                                     $aInfo = array(
                                         'action' => 'ROUTED-NEW-CASE'
-                                        , 'usrUid' => $_SESSION['user']['usrid']
+                                        , 'usrUid' => $objUser->getUserId ()
                                         , 'proUid' => $arrCase['project_id']
                                         , 'tasUid' => $taskUid
                                         , 'appUid' => $arrCase['case_id']
@@ -374,7 +373,7 @@ class MessageApplication
 
                                 $aInfo = array(
                                     'action' => 'ROUTED-NEW-CASE'
-                                    , 'usrUid' => $_SESSION['user']['usrid']
+                                    , 'usrUid' => $objUser->getUserId ()
                                     , 'proUid' => $objElement->getParentId ()
                                     , 'tasUid' => $taskUid
                                     , 'appUid' => $objElement->getId ()
@@ -395,7 +394,7 @@ class MessageApplication
                         //Message-Application catch
                         if ( $flagCatched )
                         {
-                            $result = $this->update ($messageApplicationUid, array("MSGAPP_STATUS" => "READ"));
+                            $this->update ($messageApplicationUid, array("MSGAPP_STATUS" => "READ"));
                         }
                         $counter++;
                         //Progress bar

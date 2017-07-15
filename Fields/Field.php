@@ -314,32 +314,32 @@ class Field
      * 
      * @return     string
      */
-    function setDefaultValue ($defaultValue)
+    public function setDefaultValue ($defaultValue)
     {
         $this->defaultValue = $defaultValue;
     }
 
-    function setFieldClass ($fieldClass)
+    public function setFieldClass ($fieldClass)
     {
         $this->fieldClass = $fieldClass;
     }
 
-    function setPlaceholder ($placeholder)
+    public function setPlaceholder ($placeholder)
     {
         $this->placeholder = $placeholder;
     }
 
-    function setMaxLength ($maxLength)
+    public function setMaxLength ($maxLength)
     {
         $this->maxLength = $maxLength;
     }
 
-    function getFieldConditions ()
+    public function getFieldConditions ()
     {
         return $this->fieldConditions;
     }
 
-    function setFieldConditions ($fieldConditions)
+    public function setFieldConditions ($fieldConditions)
     {
         $this->fieldConditions = $fieldConditions;
     }
@@ -349,12 +349,12 @@ class Field
      * 
      * @return     string
      */
-    function getCustomJavascript ()
+    public function getCustomJavascript ()
     {
         return $this->customJavascript;
     }
 
-    function setCustomJavascript ($customJavascript)
+    public function setCustomJavascript ($customJavascript)
     {
         $this->customJavascript = $customJavascript;
     }

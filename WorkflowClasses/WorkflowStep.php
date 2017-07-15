@@ -482,7 +482,7 @@ class WorkflowStep
 
         if ( $hasEvent !== 'true' )
         {
-            $this->checkEvents ();
+            $this->checkEvents ($objUser);
         }
 
         if ( ($this->nextStep == 0 || $this->nextStep == "") && $complete === true && $arrCompleteData['status'] == "COMPLETE" )
@@ -635,7 +635,7 @@ class WorkflowStep
         }
     }
 
-    public function checkEvents ()
+    public function checkEvents (Users $objUser)
     {
         $objEvent = new \BusinessModel\Event();
         $arrEvents = $objEvent->getEvent ($this->_workflowStepId);
@@ -658,7 +658,7 @@ class WorkflowStep
             if ( isset ($arrConditions['receiveNotification']) && trim (strtolower ($arrConditions['receiveNotification'])) == "yes" )
             {
                 $objMessageApplication = new \BusinessModel\MessageApplication();
-                $objMessageApplication->catchMessageEvent ();
+                $objMessageApplication->catchMessageEvent ($objUser);
             }
         }
     }

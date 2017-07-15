@@ -181,10 +181,6 @@ class WebEntryEvent
     public function throwExceptionIfDataIsInvalid ($webEntryEventUid, $projectUid, array $arrayData)
     {
         try {
-            //Set variables
-            $arrayWebEntryEventData = ($webEntryEventUid == "") ? array() : $this->getWebEntryEvent ($webEntryEventUid, true);
-            $flagInsert = ($webEntryEventUid == "") ? true : false;
-            $arrayFinalData = array_merge ($arrayWebEntryEventData, $arrayData);
             //Verify data
             if ( isset ($arrayData["EVN_UID"]) )
             {
@@ -265,11 +261,8 @@ class WebEntryEvent
     public function createWebEntry ($projectUid, $eventUid, $dynaFormUid, $userUid, $title, $description, \Users $objUser)
     {
         try {
-            $bpmn = new Event();
-            $arrayEventData = $bpmn->getEvent ($eventUid);
             //Task
             $task = new \Task();
-            $prefix = "wee-";
             //Task - User
             $task = new StepPermission (new \Task ($dynaFormUid));
             $permissions = array(

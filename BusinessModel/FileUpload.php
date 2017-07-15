@@ -40,8 +40,6 @@ class FileUpload
      */
     public function verifyPath ($strPath, $createPath = false)
     {
-        $folder_path = strstr ($strPath, '.') ? dirname ($strPath) : $strPath;
-
         if ( file_exists ($strPath) || @is_dir ($strPath) )
         {
             return true;
@@ -98,7 +96,7 @@ class FileUpload
                 {
                     $winPath = explode ("\\", $file);
                     $file = "";
-                    foreach ($winPath as $k => $v) {
+                    foreach ($winPath as $v) {
                         if ( $v != "" )
                         {
                             $file.= $v . "\\";

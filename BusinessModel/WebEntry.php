@@ -257,7 +257,6 @@ class WebEntry
                     $dynaForm = new Form (new \Task ($arrayWebEntryData["DYN_UID"]));
                     $arrayDynaFormData = $dynaForm->getFields ();
                     //Creating sys.info;
-                    $sitePublicPath = "";
                    
                     //Creating the first file
                     $weTitle = $this->sanitizeFilename ($arrayWebEntryData["WE_TITLE"]);

@@ -670,11 +670,6 @@ class Cases
             if ( isset ($arrFiles['fileUpload']) )
             {
                 $arrFiles = $this->uploadCaseFiles ($arrFiles, $projectId, $objStep);
-
-//                if ( !$arrFiles )
-//                {
-//                    $errorCounter++;
-//                }
             }
 
             if ( $errorCounter === 0 )
@@ -950,13 +945,14 @@ class Cases
         {
             $objForm = new \BusinessModel\Form (new \Task ($dynaFormUid));
             $arrAllFields = $objForm->getFields (true);
-            
+
             $arrFields = [];
-            
-            if(!empty($arrAllFields) && is_array ($arrAllFields)) {
-                 $arrFields = array_keys ($arrAllFields);
+
+            if ( !empty ($arrAllFields) && is_array ($arrAllFields) )
+            {
+                $arrFields = array_keys ($arrAllFields);
             }
-           
+
             $arrayCaseVariable = $this->__getFieldsAndValuesByDynaFormAndAppData (
                     $arrFields, $objCase, $arrSystemVariables
             );
