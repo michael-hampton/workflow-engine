@@ -1,0 +1,2 @@
+# workflow-engine
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/17919856dc7644759728421c87a9ad28)](https://www.codacy.com/app/michael.hampton/workflow-engine?utm_source=github.com&utm_medium=referral&utm_content=michael-hampton/workflow-engine&utm_campaign=badger)
