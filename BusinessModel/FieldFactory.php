@@ -96,7 +96,7 @@ class FieldFactory
 
         $arrParameters = array($objTask->getStepId ());
         $arrResult = $this->objMysql->_query ($query, $arrParameters);
-        foreach ($arrResult as $intKey => $arrField) {
+        foreach ($arrResult as $arrField) {
             $arrFields[$arrField['field_id']] = new \Field ($arrField['field_id']);
             $arrFields[$arrField['field_id']]->setFieldType ($arrField['field_type']);
             $arrFields[$arrField['field_id']]->setLabel ($arrField['label']);
