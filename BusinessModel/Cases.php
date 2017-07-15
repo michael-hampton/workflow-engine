@@ -1114,7 +1114,6 @@ class Cases
         $strContentAux = str_replace ($nrt, $nrthtml, $sContent);
 
         $iOcurrences = preg_match_all ('/\[([^\]]+)\]/', $sContent, $arrayMatch1, PREG_PATTERN_ORDER | PREG_OFFSET_CAPTURE);
-        $nl2brRecursive = true;
 
         if ( $iOcurrences )
         {
