@@ -406,7 +406,7 @@ class Attachment
      */
     function formatSizeUnits ($bytes, $type)
     {
-        $GB = number_format ($bytes / 1073741824, 2);
+       // $GB = number_format ($bytes / 1073741824, 2);
 
         $MB = number_format ($bytes / 1048576, 2);
 
