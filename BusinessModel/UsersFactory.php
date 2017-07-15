@@ -230,9 +230,7 @@ class UsersFactory
     {
         try {
             //Set variables
-            $arrayUserData = ($userUid == "") ? array() : $this->getUser ($userUid, true);
-
-            $arrayFinalData = array_merge ($arrayUserData, $arrayData);
+           // $arrayUserData = ($userUid == "") ? array() : $this->getUser ($userUid, true);
 
 
             //Verify data
