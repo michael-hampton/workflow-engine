@@ -176,7 +176,7 @@ class MessageApplication
             }
 
             $arrayEventType = array("START", "INTERMEDIATE");
-            $arrayEventMarker = array("MESSAGECATCH");
+            
 
             //SQL
             $select = "SELECT ma.*, md.*, sm.step_condition, sm.order_id";
