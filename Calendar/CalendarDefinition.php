@@ -106,7 +106,7 @@ class CalendarDefinition extends BaseCalendarDefinition
         //if exists the row in the database propel will update it, otherwise will insert.
         $tr = CalendarDefinitionPeer::retrieveByPK ($CalendarUid);
         $defaultCalendar['CALENDAR_UID'] = "00000000000000000000000000000001";
-        $defaultCalendar['CALENDAR_NAME'] = G::LoadTranslation ('ID_DEFAULT_CALENDAR');
+        $defaultCalendar['CALENDAR_NAME'] = 'DEFAULT_CALENDAR';
         $defaultCalendar['CALENDAR_CREATE_DATE'] = date ("Y-m-d");
         $defaultCalendar['CALENDAR_UPDATE_DATE'] = date ("Y-m-d");
         $defaultCalendar['CALENDAR_DESCRIPTION'] = "DEFAULT";
