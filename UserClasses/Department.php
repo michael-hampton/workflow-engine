@@ -54,7 +54,7 @@ class Department extends BaseDepartment
             }
             if ( $this->validate () )
             {
-                $res = $this->save ();
+                $this->save ();
                 return $this->getId ();
             }
             else
