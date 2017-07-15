@@ -375,7 +375,6 @@ class AppDelegation
         //$firstAudit = array_shift (array_slice ($row['audit_object']['steps'], 0, 1));
         $lastEl = array_values (array_slice ($row['audit_object']['steps'], -1))[0];
         $taskId = $row['TASK']['task_properties']['TAS_UID'];
-        $arrStep = [];
 
         $step = $row['audit_object']['steps'][$taskId];
 
