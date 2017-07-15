@@ -406,7 +406,7 @@ class Role
                 $arrayData["status"] = ($arrayData["status"] == "ACTIVE") ? 1 : 0;
             }
 
-            $result = $role->updateRole ($arrayData);
+            $role->updateRole ($arrayData);
 
 
             return $arrayData;
