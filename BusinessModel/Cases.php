@@ -922,7 +922,7 @@ class Cases
      * @param string $dynaFormUid, Uid for step
      * @return array
      */
-    public function getCaseVariables ($app_uid, $usr_uid, $pro_uid, $dynaFormUid = null, $act_uid = null, $app_index = null)
+    public function getCaseVariables ($app_uid, $pro_uid, $dynaFormUid = null, $act_uid = null, $app_index = null)
     {
         $this->isInteger ($app_uid, '$app_uid');
         //Validator::appUid($app_uid, '$app_uid');
@@ -1026,7 +1026,7 @@ class Cases
 
             $oOutputDocument = new \OutputDocument();
             $aOD = $oOutputDocument->retrieveByPk ($outputID);
-            $Fields = $this->getCaseVariables ($caseId, $userUid, $projectId, $stepId);
+            $Fields = $this->getCaseVariables ($caseId, $projectId, $stepId);
 
             $sFilename = preg_replace ('[^A-Za-z0-9_]', '_', $this->replaceDataField ($aOD->getOutDocFilename (), $Fields));
 
@@ -1083,7 +1083,7 @@ class Cases
 
     /* Returns content with [parameters] replaced with its values defined */
 
-    public function replaceDataField ($sContent, $aFields, $DBEngine = 'mysql')
+    public function replaceDataField ($sContent, $aFields)
     {
         $nrt = array("\n", "\r", "\t");
         $nrthtml = array("(n /)", "(r /)", "(t /)");
@@ -1105,7 +1105,7 @@ class Cases
             $strContentAux1 = null;
             $strContentAux1 = $strContentAux;
 
-            foreach ($arrayGrid as $index => $value) {
+            foreach ($arrayGrid as $value) {
                 if ( $value !== "" )
                 {
                     $grdName = $value;
@@ -1305,13 +1305,13 @@ class Cases
 
                 //$aFields['POSITION'] = $_SESSION['STEP_POSITION'];
                 $aFields['CONFIRM'] = 'ID_CONFIRM_DELETE_ELEMENT';
-                if ( in_array ($aRow['id'], $aObjectPermissions['OUTPUT_DOCUMENTS']) )
-                {
-                    if ( in_array ($aRow['id'], $aDelete['OUTPUT_DOCUMENTS']) )
-                    {
-                        $aFields['ID_DELETE'] = 'ID_DELETE';
-                    }
-                }
+//                if ( in_array ($aRow['id'], $aObjectPermissions['OUTPUT_DOCUMENTS']) )
+//                {
+//                    if ( in_array ($aRow['id'], $aDelete['OUTPUT_DOCUMENTS']) )
+//                    {
+//                        $aFields['ID_DELETE'] = 'ID_DELETE';
+//                    }
+//                }
                 $aOutputDocuments[] = $aFields;
             }
         }
@@ -1662,7 +1662,7 @@ class Cases
 
             if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData['filter']) && trim ($arrayFilterData['filter']) != '' )
             {
-                $search = $arraySearch[(isset ($arrayFilterData['filterOption'])) ? $arrayFilterData['filterOption'] : ''];
+                $search = (isset ($arrayFilterData['filterOption'])) ? $arrayFilterData['filterOption'] : '';
 
                 $sql .= "AND (username LIKE '%" . $search . "%' OR firstName LIKE '%" . $search . "%' OR lastName LIKE '%" . $search . "%' )";
             }

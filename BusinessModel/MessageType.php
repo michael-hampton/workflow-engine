@@ -270,7 +270,7 @@ class MessageType
                 {
                     $msgtvNameAux = $arrayDataVariables[$i]["MSGTV_NAME"];
                     $counter = 0;
-                    foreach ($arrayDataVarAux as $key => $value) {
+                    foreach ($arrayDataVarAux as $value) {
                         if ( $value["MSGTV_NAME"] == $msgtvNameAux )
                         {
                             $counter = $counter + 1;

@@ -379,7 +379,7 @@ class Form extends FieldFactory
            $result = $this->objMysql->_query($sql, $arrParameters);
 
             if (!isset($result[0]) || empty($result[0])) {
-                $this->throwExceptionDynaFormDoesNotExist($dynaFormUid, $fieldNameForException);
+                $this->throwExceptionDynaFormDoesNotExist();
             }
         } catch (\Exception $e) {
             throw $e;
@@ -394,7 +394,7 @@ class Form extends FieldFactory
      *
      * @return void
      */
-    private function throwExceptionDynaFormDoesNotExist($dynaFormUid)
+    private function throwExceptionDynaFormDoesNotExist()
     {
         throw new \Exception('ID_DYNAFORM_DOES_NOT_EXIST');
     }

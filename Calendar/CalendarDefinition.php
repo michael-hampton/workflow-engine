@@ -23,7 +23,7 @@ class CalendarDefinition extends BaseCalendarDefinition
         $this->objMysql = new Mysql2();
     }
 
-    public function getCalendarList ($onlyActive = false, $arrayMode = false)
+    public function getCalendarList ()
     {
 //        $Criteria = new Criteria ('workflow');
 //        $Criteria->clearSelectColumns ();
@@ -453,7 +453,7 @@ class CalendarDefinition extends BaseCalendarDefinition
             if ( $tr->validate () )
             {
                 // we save it, since we get no validation errors, or do whatever else you like.
-                $res = $tr->save ();
+                $tr->save ();
             }
             else
             {

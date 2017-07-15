@@ -867,7 +867,6 @@ class Calendar
         $fields ['HOURS_FOR_DAY'] = $keyModa;
         $fields ['BUSINESS_DAY'] = $CalendarBusinessHours;
 
-        $CalendarHolidaysObj = new \CalendarHolidays ( );
         $CalendarHolidays = $this->getCalendarHolidays ($calendarUid);
 
         $fields ['HOLIDAY'] = $CalendarHolidays;

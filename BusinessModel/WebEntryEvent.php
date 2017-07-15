@@ -91,8 +91,9 @@ class WebEntryEvent
     public function existsTitle ($projectUid, $webEntryEventTitle, $webEntryEventUidToExclude = "")
     {
         try {
-            $sql = "SELECT * FROM WEB_ENTRY_EVENT WHERE PRJ_UID = ?";
-            $arrParameters = array($projectUid);
+            $sql = "SELECT * FROM WEB_ENTRY_EVENT WHERE PRJ_UID = ? AND WEE_TITLE = ?";
+            $arrParameters = array($projectUid, $webEntryEventTitle);
+            
             if ( $webEntryEventUidToExclude != "" )
             {
                 $sql .= " AND WEE_UID != ?";
@@ -522,7 +523,7 @@ class WebEntryEvent
                 $objWebEntry->loadObject ($arrayData);
                 if ( $objWebEntry->validate () )
                 {
-                    $result = $objWebEntry->save ();
+                    $objWebEntry->save ();
 
                     //Return
                     $arrayData = $arrayDataBackup;

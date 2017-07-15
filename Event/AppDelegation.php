@@ -191,10 +191,9 @@ class AppDelegation
         $delTaskDueDate = $this->calculateDueDate ($objFlow);
         $delRiskDate = $this->calculateRiskDate ($objFlow, date ("Y-m-d H:i:s"), $this->getRisk ());
 
-        echo $delRiskDate . " " . $delTaskDueDate;
     }
 
-    public function calculateDuration ($cron = 0)
+    public function calculateDuration ()
     {
         if ( $this->objMysql === null )
         {
@@ -371,7 +370,6 @@ class AppDelegation
     {
 
         //$firstAudit = array_shift (array_slice ($row['audit_object']['steps'], 0, 1));
-        $lastEl = array_values (array_slice ($row['audit_object']['steps'], -1))[0];
         $taskId = $row['TASK']['task_properties']['TAS_UID'];
 
         $step = $row['audit_object']['steps'][$taskId];
