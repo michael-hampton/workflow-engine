@@ -146,7 +146,7 @@ class MessageEventDefinition
                     throw new \Exception ("ID_EVENT_NOT_EXIST");
                 }
 
-                $condition = json_decode ($bpmnEvent[0]['step_condition'], true);
+               
 
                 if ( $arrayData['messageType'] == "send" )
                 {
