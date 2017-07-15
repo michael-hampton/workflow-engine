@@ -17,7 +17,7 @@ namespace BusinessModel;
 class MessageApplication
 {
 
-    private $frontEnd = false;
+    
     private $objMysql;
 
     private function getConnection ()
