@@ -10,7 +10,6 @@ class Lists
     private $audit;
     private $projectId;
     private $lastStep;
-    private $arrParents = array();
     private $objMysql;
     private $parentId;
     private $lastStepInProcess;
