@@ -402,7 +402,6 @@ class OutputDocument
             if ( isset ($result[0]) && !empty ($result[0]) )
             {
                 $flagAssigned = true;
-                $arrayData[] = \G::LoadTranslation ("ID_CASES_MENU_ADMIN");
             }
 
             //Return
