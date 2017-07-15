@@ -941,11 +941,11 @@ class Calendar
                 throw (new \Exception ('You must define at least one Business Day for all days'));
             }
             $workingDaysOK = array();
-            foreach ($workingDays as $key => $day) {
+            foreach ($workingDays as $day) {
                 $workingDaysOK[$day] = false;
             }
             $sw_all = false;
-            foreach ($fields ['BUSINESS_DAY'] as $keyB => $businessHours) {
+            foreach ($fields ['BUSINESS_DAY'] as $businessHours) {
                 if ( ($businessHours['CALENDAR_BUSINESS_DAY'] == 7 ) )
                 {
                     $sw_all = true;
