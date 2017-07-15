@@ -375,8 +375,8 @@ class CalendarDefinition extends BaseCalendarDefinition
         }
     }
 
-    public function getCalendarFor ($userUid, $proUid, $tasUid, $sw_validate = true)
-    {
+   // public function getCalendarFor ($userUid, $proUid, $tasUid, $sw_validate = true)
+   // {
 
         /* $Criteria = new Criteria ('workflow');
           //Default Calendar
@@ -433,7 +433,7 @@ class CalendarDefinition extends BaseCalendarDefinition
           $calendarDefinition['CALENDAR_APPLIED'] = $calendarOwner;
           $this->addCalendarLog ("--=== Calendar Applied: " . $calendarDefinition['CALENDAR_NAME'] . " -> $calendarOwner");
           return $calendarDefinition; */
-    }
+   // }
 
     public function assignCalendarTo ($objectUid, $calendarUid, $objectType)
     {
