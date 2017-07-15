@@ -3,7 +3,7 @@
 class BPMNWorkflow extends BPMN
 {
     
-    use Validator;
+    use \BusinessModel\Validator;
 
     private $objMysql;
     private $workflow;

@@ -184,7 +184,7 @@ class Calendar
                     {
                         if ( $value["CALENDAR_BUSINESS_DAY"] != 0 && !in_array ($value["CALENDAR_BUSINESS_DAY"], $arrayData["CALENDAR_WORK_DAYS"], true) )
                         {
-                            throw new \Exception ("ID_VALUE_SPECIFIED_DOES_NOT_EXIST");
+                            throw new \Exception ("ID_VALUE_SPECIFIED_DOES_NOT_EXIST " . $value["CALENDAR_BUSINESS_DAY"]);
                         }
                         $arrayCalendarWorkHour[] = array(
                             "CALENDAR_BUSINESS_DAY" => $this->workDaysTransformData ($value["CALENDAR_BUSINESS_DAY"]),
