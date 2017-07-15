@@ -303,9 +303,7 @@ class BPMNWorkflow extends BPMN
                     echo "DELETING STEP " . $steps['text'] . " ";
 
                     $objFlow->removeFlow ();
-
                     $objTask->removeTask ($steps['key']);
-                    
                     $id = (new Task())->create(array("TAS_TITLE" => $steps['text'], "PRO_UID" => $this->workflow));
 
                     $arrStepFields[$steps['key']]['step_id'] = $id;
