@@ -159,6 +159,8 @@ class SendNotification extends Notification
             "step_id" => $this->status
                 )
         );
+        
+        return $id;
     }
 
     /**
