@@ -136,7 +136,7 @@ class MessageType
                     {
                         $variable = new \BusinessModel\MessageType\Variable();
 
-                        foreach ($arrayData["MSGT_VARIABLES"] as $key => $value) {
+                        foreach ($arrayData["MSGT_VARIABLES"] as $value) {
                             $arrayVariable = $value;
 
                             $variable->create ($messageTypeUid, $arrayVariable);
