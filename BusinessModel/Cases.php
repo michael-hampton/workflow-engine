@@ -1778,7 +1778,7 @@ class Cases
                     {
                         $lastStep = end ($objAudit['elements'][$elementId]['steps']);
 
-                        $date = $lastStep['dateCompleted'];
+                        
                         $rows[$WorkflowObject['object_id']] = $elementId;
                         $dates[$WorkflowObject['object_id']] = $lastStep['dateCompleted'];
                         $total++;
