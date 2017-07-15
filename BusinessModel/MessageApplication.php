@@ -274,7 +274,6 @@ class MessageApplication
             //Get data
             $totalMessageEvent = 0;
             $counterStartMessageEvent = 0;
-            $counterIntermediateCatchMessageEvent = 0;
             $counter = 0;
             $start = 0;
             $limit = 1000;
