@@ -323,7 +323,7 @@ class Calendar
             $nP = (isset ($arrayAux[$calendarUid])) ? $arrayAux[$calendarUid] : 0;
             if ( $nU + $nT + $nP > 0 )
             {
-                throw (new \Exception (\G::LoadTranslation ("ID_MSG_CANNOT_DELETE_CALENDAR")));
+                throw (new \Exception ("ID_MSG_CANNOT_DELETE_CALENDAR"));
             }
             //Delete
             $calendarDefinition->deleteCalendar ($calendarUid);
