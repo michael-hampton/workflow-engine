@@ -369,7 +369,7 @@ class Cases
      *
      * return array Return an array with data of Case Info
      */
-    public function getCaseInfo ($projectId, $caseId = null, $userUid = null)
+    public function getCaseInfo ($projectId, $caseId = null)
     {
         if ( $this->objMysql === null )
         {
