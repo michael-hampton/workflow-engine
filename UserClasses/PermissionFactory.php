@@ -239,7 +239,7 @@ class PermissionFactory
         try {
             $arrayPermission = array();
             //Verify data
-            $role = new Role();
+            
             $this->throwExceptionIfNotExistsRole ($roleUid);
           
             //Get data
