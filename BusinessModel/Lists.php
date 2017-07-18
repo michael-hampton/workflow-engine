@@ -146,7 +146,6 @@ class Lists
         }
 
             $this->validateUserId ($objUser->getUserId());
-            $userUid = $objUser->getUserId();
             $this->username = $objUser->getUsername();
 
         if ( isset ($dataList['page']) && is_numeric ($dataList['page']) )
