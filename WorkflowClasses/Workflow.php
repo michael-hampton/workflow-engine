@@ -138,7 +138,7 @@ class Workflow extends BaseProcess
     {
         $this->sort = $sort;
         $this->dir = $dir;
-        $aProcesses = Array();
+        $aProcesses = array();
         $arrParameters = array();
 
         $sql = "SELECT w.workflow_id,
@@ -193,7 +193,7 @@ class Workflow extends BaseProcess
         //execute the query
         $results = $this->objMysql->_query ($sql, $arrParameters);
 
-        $processes = Array();
+        $processes = array();
         $uids = array();
 
         foreach ($results as $row) {
@@ -375,7 +375,7 @@ class Workflow extends BaseProcess
     {
         $results = $this->objMysql->_query ("SELECT request_id, COUNT(*) AS CNT FROM workflow.workflows GROUP BY request_id");
 
-        $aProc = Array();
+        $aProc = array();
         foreach ($results as $row) {
             $aProc[$row['request_id']] = $row['CNT'];
         }
