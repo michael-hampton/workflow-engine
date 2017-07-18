@@ -100,7 +100,7 @@ class Save
         }
     }
 
-    public function save ()
+    public function save (Users $objUser)
     {
         if ( isset ($this->object['step_data']) )
         {
