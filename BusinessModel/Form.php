@@ -339,7 +339,7 @@ class Form extends FieldFactory
             $objFormBuilder->buildDocHTML ($arrDocuments);
         }
 
-        $outPutDocuments = $objCases->getAllGeneratedDocumentsCriteria ($projectId, $elementId, $stepId, $_SESSION['user']['usrid']);
+        $outPutDocuments = $objCases->getAllGeneratedDocumentsCriteria ($projectId, $elementId, $stepId, $objUser->getUserId());
 
         if ( !empty ($outPutDocuments) )
         {
