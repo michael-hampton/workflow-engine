@@ -103,8 +103,8 @@ class Save
     public function doAudit(Users $objUser) {
         if(trim($objUser->getUserId()) === "") {
             return false;
-            }
         }
+    }
 
     public function save (Users $objUser)
     {
@@ -126,7 +126,7 @@ class Save
             $this->setId ($id);
         }
 
-$this->doAudit($objUser);
+        $this->doAudit($objUser);
 
 
         return true;
