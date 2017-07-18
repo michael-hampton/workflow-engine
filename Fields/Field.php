@@ -234,12 +234,12 @@ class Field
         $this->fieldId = $fieldId;
     }
 
-    function getDataType ()
+    public function getDataType ()
     {
         return $this->dataType;
     }
 
-    function setDataType ($dataType)
+    public function setDataType ($dataType)
     {
         $this->dataType = $dataType;
     }
@@ -249,22 +249,22 @@ class Field
      * 
      * @return     string
      */
-    function getOptions ()
+    public function getOptions ()
     {
         return $this->options;
     }
 
-    function setOptions ($options)
+    public function setOptions ($options)
     {
         $this->options = $options;
     }
 
-    function getRequired_field ()
+    public function getRequired_field ()
     {
         return $this->required_field;
     }
 
-    function setRequired_field ($required_field)
+    public function setRequired_field ($required_field)
     {
         $this->required_field = $required_field;
     }
@@ -274,7 +274,7 @@ class Field
      * 
      * @return     string
      */
-    function getDefaultValue ()
+    public function getDefaultValue ()
     {
         return $this->defaultValue;
     }
@@ -284,7 +284,7 @@ class Field
      * 
      * @return     string
      */
-    function getFieldClass ()
+    public function getFieldClass ()
     {
         return $this->fieldClass;
     }
@@ -294,7 +294,7 @@ class Field
      * 
      * @return     string
      */
-    function getPlaceholder ()
+    public function getPlaceholder ()
     {
         return $this->placeholder;
     }
@@ -304,7 +304,7 @@ class Field
      * 
      * @return     int
      */
-    function getMaxLength ()
+    public function getMaxLength ()
     {
         return $this->maxLength;
     }
