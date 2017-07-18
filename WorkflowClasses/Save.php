@@ -99,6 +99,12 @@ class Save
             $this->object['audit_data'] = json_decode ($arrWorkflowObject[0]['audit_data'], true);
         }
     }
+    
+    public function doAudit(Users $objUser) {
+        if(trim($objUser->getUserId()) === "") {
+            return false;
+            }
+        }
 
     public function save (Users $objUser)
     {
@@ -120,7 +126,7 @@ class Save
             $this->setId ($id);
         }
 
-
+$this->doAudit($objUser);
 
 
         return true;
