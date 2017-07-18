@@ -270,7 +270,6 @@ class MessageApplication
 
             //Get data
             $totalMessageEvent = 0;
-            $counterStartMessageEvent = 0;
             $counter = 0;
             $start = 0;
             $limit = 1000;
@@ -421,7 +420,7 @@ class MessageApplication
         try {
 
             $arrayVariable = array();
-            foreach ($arrayVariableName['MSGT_VARIABLES'] as $key => $value) {
+            foreach ($arrayVariableName['MSGT_VARIABLES'] as $value) {
                 foreach ($arrayVariableValue['MSGT_VARIABLES'] as $value2) {
                     if ( $value2['MSGTV_NAME'] == $value['MSGTV_NAME'] )
                     {
@@ -480,7 +479,7 @@ class MessageApplication
 
                 if ( $messageApplication->validate () )
                 {
-                    $result = $messageApplication->save ();
+                    $messageApplication->save ();
                     //Return
                     return true;
                 }
