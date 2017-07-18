@@ -152,7 +152,7 @@ class NotificationsFactory
         $_SESSION["pagination"]["total_counter"] = $totalRows;
 
         $current_page = $page;
-        $startwith = $pageLimit * $page;
+        //$startwith = $pageLimit * $page;
         $total_pages = $totalRows / $pageLimit;
         $_SESSION["pagination"]["current_page"] = $current_page;
 
