@@ -131,17 +131,17 @@ class Elements
         return true;
     }
 
-    function getLocation ()
+    public function getLocation ()
     {
         return $this->location;
     }
 
-    function getDescription ()
+    public function getDescription ()
     {
         return $this->description;
     }
 
-    function getName ()
+    public function getName ()
     {
         return $this->name;
     }
@@ -166,22 +166,22 @@ class Elements
         return $this->current_step;
     }
 
-    function getWorkflow_id ()
+    public function getWorkflow_id ()
     {
         return $this->workflow_id;
     }
 
-    function getSource_id ()
+    public function getSource_id ()
     {
         return $this->source_id;
     }
 
-    function getSampleRef ()
+    public function getSampleRef ()
     {
         return $this->sampleRef;
     }
 
-    function getFile2 ()
+    public function getFile2 ()
     {
         return $this->file2;
     }
@@ -190,7 +190,7 @@ class Elements
      * 
      * @param type $location
      */
-    function setLocation ($location)
+    public function setLocation ($location)
     {
         $this->location = $location;
         $this->arrElement['location'] = $location;
@@ -200,7 +200,7 @@ class Elements
      * 
      * @param type $description
      */
-    function setDescription ($description)
+    public function setDescription ($description)
     {
         $this->description = $description;
         $this->arrElement['description'] = $description;
@@ -211,7 +211,7 @@ class Elements
      * 
      * @param type $name
      */
-    function setName ($name)
+    public function setName ($name)
     {
         $this->name = $name;
         $this->arrElement['name'] = $name;
@@ -222,7 +222,7 @@ class Elements
      * 
      * @param type $current_step
      */
-    function setCurrent_step ($current_step)
+    public function setCurrent_step ($current_step)
     {
         $this->current_step = $current_step;
         $this->arrElement['current_step'] = $current_step;
@@ -233,7 +233,7 @@ class Elements
      * 
      * @param type $workflow_id
      */
-    function setWorkflow_id ($workflow_id)
+    public function setWorkflow_id ($workflow_id)
     {
         $this->workflow_id = $workflow_id;
         $this->arrElement['workflow_id'] = $workflow_id;
@@ -243,7 +243,7 @@ class Elements
      * 
      * @param type $source_id
      */
-    function setSource_id ($source_id)
+    public function setSource_id ($source_id)
     {
         $this->source_id = $source_id;
         $this->arrElement['source_id'] = $source_id;
@@ -253,7 +253,7 @@ class Elements
      * 
      * @param type $sampleRef
      */
-    function setSampleRef ($sampleRef)
+    public function setSampleRef ($sampleRef)
     {
         $this->sampleRef = $sampleRef;
         $this->arrElement['sampleRef'] = $sampleRef;
@@ -263,7 +263,7 @@ class Elements
      * 
      * @param string $file2
      */
-    function setFile2 ($file2)
+    public function setFile2 ($file2)
     {
         if ( isset ($this->file2) )
         {
@@ -274,7 +274,7 @@ class Elements
         $this->arrElement['file2'] = $file2;
     }
 
-    function getBatch ()
+    public function getBatch ()
     {
         return $this->batch;
     }
@@ -283,13 +283,13 @@ class Elements
      * 
      * @param type $batch
      */
-    function setBatch ($batch)
+    public function setBatch ($batch)
     {
         $this->batch = $batch;
         $this->arrElement['batch'] = $batch;
     }
 
-    function getRejectionReason ()
+    public function getRejectionReason ()
     {
         return $this->rejectionReason;
     }
@@ -298,7 +298,7 @@ class Elements
      * 
      * @param type $rejectionReason
      */
-    function setRejectionReason ($rejectionReason)
+    public function setRejectionReason ($rejectionReason)
     {
         $this->rejectionReason = $rejectionReason;
         $this->arrElement['rejectionReason'] = $rejectionReason;
@@ -447,7 +447,7 @@ class Elements
      * @param type $workflow
      * @return type
      */
-    public function buildObjectId ($sourceId, $workflow)
+    public function buildObjectId ($sourceId)
     {
         $objMysql = new Mysql2();
         $result = $objMysql->_select ("task_manager.projects", array(), array("id" => $sourceId));
@@ -461,21 +461,21 @@ class Elements
             $workflowData = json_decode ($arrWorkflowData[0]['workflow_data'], true);
         }
   
-        $count = 0;
+        //$count = 0;
 
-        if ( isset ($JSON['elements']) && !empty ($JSON['elements']) )
-        {
-            foreach ($JSON['elements'] as $arrElements) {
+        //if ( isset ($JSON['elements']) && !empty ($JSON['elements']) )
+        //{
+           //foreach ($JSON['elements'] as $arrElements) {
                 //foreach ($arrElements as $workflowId => $arrElement) {
                 //if ( $workflowId == $workflow )
                 //{
-                $count++;
+                //$count++;
                 //}
                 //}
-            }
-        }
+            //}
+        //}
 
-        return ($count + 1);
+        return (count($JSON['elements']) + 1);
     }
 
     public function getId ()
