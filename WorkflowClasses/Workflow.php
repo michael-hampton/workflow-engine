@@ -138,8 +138,8 @@ class Workflow extends BaseProcess
     {
         $this->sort = $sort;
         $this->dir = $dir;
-        $aProcesses = Array();
-        $categories = Array();
+        $aProcesses = array();
+        $categories = array();
         $arrParameters = array();
 
         $sql = "SELECT w.workflow_id,
@@ -194,7 +194,7 @@ class Workflow extends BaseProcess
         //execute the query
         $results = $this->objMysql->_query ($sql, $arrParameters);
 
-        $processes = Array();
+        $processes = array();
         $uids = array();
 
         foreach ($results as $row) {
@@ -203,7 +203,7 @@ class Workflow extends BaseProcess
         }
 
         //process details will have the info about the processes
-        $processesDetails = Array();
+        $processesDetails = array();
 
         foreach ($processes as $process) {
 
