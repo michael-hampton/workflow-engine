@@ -669,7 +669,7 @@ class Cases
 
             if ( isset ($arrFiles['fileUpload']) )
             {
-                $arrFiles = $this->uploadCaseFiles ($arrFiles, $projectId, $objStep);
+                $arrFiles = $this->uploadCaseFiles ($arrFiles, $projectId, $objStep, $objUser);
             }
 
             if ( $errorCounter === 0 )
@@ -712,7 +712,7 @@ class Cases
      * Uploads files that were saved as part of the new case process
      * @see addCase
      */
-    public function uploadCaseFiles ($arrFilesUploaded, $projectId, \WorkflowStep $objStep, $fileType = '')
+    public function uploadCaseFiles ($arrFilesUploaded, $projectId, \WorkflowStep $objStep, \Users $objUser, $fileType = '')
     {
         if ( isset ($arrFilesUploaded['fileUpload']['name'][0]) && !empty ($arrFilesUploaded['fileUpload']['name'][0]) )
         {
@@ -723,7 +723,7 @@ class Cases
                     "source_id" => $projectId,
                     "filename" => $value,
                     "date_uploaded" => date ("Y-m-d H:i:s"),
-                    "uploaded_by" => $_SESSION['user']['username'],
+                    "uploaded_by" => $objUser->getUsername(),
                     "contents" => $fileContent,
                     "files" => $arrFilesUploaded,
                     "step" => $objStep
@@ -1019,7 +1019,7 @@ class Cases
      *
      * return object Return an object with data of an OutputDocument
      */
-    public function addCasesOutputDocument ($projectId, $caseId, $stepId, $outputDocumentUid, $userUid)
+    public function addCasesOutputDocument ($projectId, $caseId, $stepId, $outputDocumentUid, $objUser)
     {
         try {
             $outputID = $outputDocumentUid;
@@ -1036,7 +1036,7 @@ class Cases
             if ( ($aOD->getOutDocVersioning () ) )
             {
                 $lastDocVersion ++;
-                $objDocumentVersion->create (array("filename" => $sFilename, "document_id" => $aOD->getOutDocUid (), "document_type" => "OUTPUT"));
+                $objDocumentVersion->create (array("filename" => $sFilename, "document_id" => $aOD->getOutDocUid (), "document_type" => "OUTPUT"), $objUser);
             }
 
             $sFilename = $aOD->getOutDocUid () . "_" . $lastDocVersion;
