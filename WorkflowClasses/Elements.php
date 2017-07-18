@@ -548,7 +548,7 @@ class Elements
         return $array;
     }
 
-    private function doAudit ()
+    private function doAudit (\Users $objUser)
     {
         $result = $this->objMysql->_select ("task_manager.projects", array(), array("id" => $this->source_id));
         $data = json_decode ($result[0]['step_data'], true);
@@ -581,7 +581,7 @@ class Elements
         }
     }
 
-    public function save ()
+    public function save(\Users $objUser)
     {
         $objMysql = new Mysql2();
 
@@ -602,7 +602,7 @@ class Elements
         }
         else
         {
-            $this->doAudit ();
+            $this->doAudit (\Users $objUser);
             $this->JSON['elements'][$this->id] = $this->arrElement;
 
             $objMysql->_update ("task_manager.projects", array("step_data" => json_encode ($this->JSON)), array("id" => $this->source_id));
