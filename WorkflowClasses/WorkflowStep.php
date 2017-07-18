@@ -232,7 +232,7 @@ class WorkflowStep
         {
             return false;
         }
-        if ( $objMike->save () === false )
+        if ( $objMike->save ($objUser) === false )
         {
             return false;
         }
