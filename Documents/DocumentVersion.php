@@ -103,7 +103,7 @@ class DocumentVersion extends BaseDocumentVersion
      * @return string
      *
      */
-    public function create ($aData)
+    public function create ($aData, Users $objUser)
     {
         try {
             $docVersion = $this->getLastDocVersionByFilename ($aData['filename']);
@@ -111,7 +111,7 @@ class DocumentVersion extends BaseDocumentVersion
 
             $objVersioning = new DocumentVersion();
             $objVersioning->setDocVersion ($docVersion);
-            $objVersioning->setUsrUid ($_SESSION['user']['usrid']);
+            $objVersioning->setUsrUid ($objUser->getUserId());
             $objVersioning->setDocUid ($aData['document_id']);
             $objVersioning->setAppDocCreateDate (date ("Y-m-d H:i:s"));
             $objVersioning->setAppDocFilename ($aData['filename']);
