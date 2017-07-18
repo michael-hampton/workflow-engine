@@ -571,7 +571,7 @@ class Elements
                 "PRO_UID" => 120,
                 "TAS_UID" => $this->id,
                 "APP_UPDATE_DATE" => date ("Y-m-d H:i:s"),
-                "USER_UID" => $_SESSION['user']['username'],
+                "USER_UID" => $objUser->getUsername(),
                 "before" => $fieldsOnBoth,
                 "message" => "Field Updated"
             );
