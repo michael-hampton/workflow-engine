@@ -34,7 +34,7 @@ class Attachment
         $this->id = $id;
     }
 
-    public function loadObject ($arrData)
+    public function loadObject ($arrData, \Users $objUser)
     {
         if ( isset ($arrData['files']) )
         {
@@ -49,7 +49,7 @@ class Attachment
                 $this->stepId = $arrData['step']->getStepId ();
                 $this->projectId = $arrData['source_id'];
 
-                $result = $this->uploadDocument ($arrData['files'], $arrData);
+                $result = $this->uploadDocument ($arrData['files'], $arrData, $objUser);
 
                 return $result;
             }
@@ -227,7 +227,7 @@ class Attachment
      * @return boolean
      * @throws Exception
      */
-    private function uploadDocument ($arrFiles, $arrData)
+    private function uploadDocument ($arrFiles, $arrData, \Users $objUser)
     {
         $stepDocument = new \BusinessModel\InputDocument (new \Task ($this->stepId));
 
@@ -342,7 +342,7 @@ class Attachment
             $arrResponse = $this->addProcessFilesManager ($arrData['source_id'], $arrData['uploaded_by'], $aData);
 
             // update version
-            $objVersioning->create (array("filename" => $originalFilename, "document_id" => $this->documentId));
+            $objVersioning->create (array("filename" => $originalFilename, "document_id" => $this->documentId), $objUser);
             $arrUploadedFiles[] = $arrResponse['prf_uid'];
 
             $intCount++;
