@@ -139,17 +139,15 @@ class Lists
 
     public function loadList ($listName = '', \Users $objUser, $dataList = array())
     {
-        if ( !isset ($dataList["userId"]) )
+        if ( trim ($objUser->getUserId()) === "")
         {
 
             throw (new \Exception ("ID_USER_NOT_EXIST"));
         }
-        else
-        {
 
             $this->validateUserId ($objUser->getUserId());
             $userUid = $objUser->getUserId();
-        }
+            $this->username = $objUser->getUsername();
 
         if ( isset ($dataList['page']) && is_numeric ($dataList['page']) )
         {
