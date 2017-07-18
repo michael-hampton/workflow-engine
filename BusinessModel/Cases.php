@@ -1349,17 +1349,17 @@ class Cases
 
         $USR_UID = $objUser->getUserId ();
 
-        $USER_PERMISSIONS = Array();
-        $INPUT = Array();
-        $OUTPUT = Array();
-        $GROUP_PERMISSIONS = Array();
+        $USER_PERMISSIONS = array();
+        $INPUT = array();
+        $OUTPUT = array();
+        $GROUP_PERMISSIONS = array();
 
-        $RESULT = Array(
-            "DYNAFORM" => Array(),
-            "Input" => Array(),
-            "Output" => Array(),
+        $RESULT = array(
+            "DYNAFORM" => array(),
+            "Input" => array(),
+            "Output" => array(),
             "CASES_NOTES" => 0,
-            "MSGS_HISTORY" => Array()
+            "MSGS_HISTORY" => array()
 
                 /* ----------------------------------********--------------------------------- */
         );
@@ -1477,7 +1477,7 @@ class Cases
 
         $sw_participate = !isset ($sw_participate) ? false : true;
 
-        return Array(
+        return array(
             "DYNAFORMS" => $RESULT['DYNAFORM'],
             "INPUT_DOCUMENTS" => $RESULT['Input'],
             "OUTPUT_DOCUMENTS" => $RESULT['Output'],
