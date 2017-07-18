@@ -391,7 +391,6 @@ class OutputDocument
     {
         try {
             $flagAssigned = false;
-            $arrayData = array();
             //Step
             $result = $this->objMysql->_query ("SELECT d.* FROM `output_document` d 
                                             INNER JOIN step sd ON sd.STEP_UID_OBJ = d.id
