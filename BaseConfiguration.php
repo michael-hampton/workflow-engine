@@ -6,10 +6,16 @@
 abstract class BaseConfiguration implements Persistent
 {
 	 protected $arrFieldMapping = array(
-        'fk_team' => array('accessor' => 'getFkTeamId', 'mutator' => 'setFkTeamId', 'type' => 'int', 'required' => 'true'),
-        'summary' => array('accessor' => 'getSummary', 'mutator' => 'setSummary', 'type' => 'string', 'required' => 'true'),
-        'jobRole' => array('accessor' => 'getRole', 'mutator' => 'setRole', 'type' => 'string', 'required' => 'true')
+        'CFG_UID' => array('accessor' => 'getCfgUid', 'mutator' => 'setCfgUid', 'type' => 'int', 'required' => 'true'),
+        'OBJ_UID' => array('accessor' => 'getObjUid', 'mutator' => 'setObjUid', 'type' => 'string', 'required' => 'true'),
+        'PRO_UID' => array('accessor' => 'getProUid', 'mutator' => 'setProUid', 'type' => 'string', 'required' => 'true'),
+	 'USR_UID' => array('accessor' => 'getUsrUid', 'mutator' => 'setUsrUid', 'type' => 'string', 'required' => 'true'),
+	    'APP_UID' => array('accessor' => 'getAppUid', 'mutator' => 'setAppUid', 'type' => 'string', 'required' => 'true'),
+	      'CFG_VALUE' => array('accessor' => 'getCfgValue', 'mutator' => 'setCfgValue', 'type' => 'string', 'required' => 'true')
     );
+	 
+	 private $objMysql;
+	 
 
     /**
      * The value for the cfg_uid field.
@@ -79,6 +85,11 @@ abstract class BaseConfiguration implements Persistent
     public function getObjUid()
     {
         return $this->obj_uid;
+    }
+    
+    public function __construct()
+    {
+	 $this->objMysql = new Mysql2();
     }
     
     /**
@@ -252,7 +263,11 @@ abstract class BaseConfiguration implements Persistent
      */
     public function save()
     {
-      
+	 if(trim($this->cfg_uid) === "") {
+		  $this->objMysql->_insert("workflow.CONFIGURATION", ["CFG_UID" => $this->cfg_uid, "CFG_VALUE" => $this->cfg_value]);
+	 } else {
+		  $this->objMysql->_update("workflow.CONFIGURATION", ["CFG_VALUE" => $this->cfg_value], ["CFG_UID" => $this->cfg_uid]);
+	 }
     }
    
    /**
@@ -284,14 +299,17 @@ abstract class BaseConfiguration implements Persistent
      */
     public function validate()
     {
-        $res = $this->doValidate($columns);
-        if ($res === true) {
-            $this->validationFailures = array();
-            return true;
-        } else {
-            $this->validationFailures = $res;
-            return false;
-        }
+      $errorCount = 0;
+      
+      if($this->cfg_uid === "") {
+	 $errorCount++;
+      }
+      
+      if(trim($this->cfg_value) === "") {
+	 $errorCount++;
+      }
+      
+      return $errorCount > 0 ? false : true;
     }
 	 
    public function loadObject(array $arrData)
