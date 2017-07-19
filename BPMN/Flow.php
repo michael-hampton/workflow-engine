@@ -159,7 +159,7 @@ class Flow
      * 
      * @param type $firstStep
      */
-    publc function setFirstStep ($firstStep)
+    public function setFirstStep ($firstStep)
     {
         $this->firstStep = $firstStep;
     }

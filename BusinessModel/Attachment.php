@@ -285,8 +285,8 @@ class Attachment
                 {
                     $this->arrayValidation[] = "TOO BIG";
                 }
-
-                if ( !in_array ($file_ext, $arrExtensions) === false )
+          
+                if ( !in_array (trim($file_ext), $arrExtensions))
                 {
                     $this->arrayValidation[] = "extension not allowed, please choose a JPEG or PNG file.";
                 }

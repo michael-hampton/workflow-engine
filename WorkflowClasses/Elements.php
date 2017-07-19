@@ -454,28 +454,15 @@ class Elements
         $JSON = json_decode ($result[0]['step_data'], true);
 
         $arrWorkflowData = $objMysql->_select ("workflow.workflow_data", array(), array("object_id" => $this->source_id));
-        
+
         $workflowData = [];
-        
-        if(isset($arrWorkflowData[0]['workflow_data'])) {
+
+        if ( isset ($arrWorkflowData[0]['workflow_data']) )
+        {
             $workflowData = json_decode ($arrWorkflowData[0]['workflow_data'], true);
         }
-  
-        //$count = 0;
 
-        //if ( isset ($JSON['elements']) && !empty ($JSON['elements']) )
-        //{
-           //foreach ($JSON['elements'] as $arrElements) {
-                //foreach ($arrElements as $workflowId => $arrElement) {
-                //if ( $workflowId == $workflow )
-                //{
-                //$count++;
-                //}
-                //}
-            //}
-        //}
-
-        return (count($JSON['elements']) + 1);
+        return isset($JSON['elements']) ? count ($JSON['elements']) + 1 : 1;
     }
 
     public function getId ()
@@ -571,7 +558,7 @@ class Elements
                 "PRO_UID" => 120,
                 "TAS_UID" => $this->id,
                 "APP_UPDATE_DATE" => date ("Y-m-d H:i:s"),
-                "USER_UID" => $objUser->getUsername(),
+                "USER_UID" => $objUser->getUsername (),
                 "before" => $fieldsOnBoth,
                 "message" => "Field Updated"
             );
@@ -581,7 +568,7 @@ class Elements
         }
     }
 
-    public function save(\Users $objUser)
+    public function save (\Users $objUser)
     {
         $objMysql = new Mysql2();
 
@@ -602,7 +589,7 @@ class Elements
         }
         else
         {
-            $this->doAudit (\Users $objUser);
+            $this->doAudit ($objUser);
             $this->JSON['elements'][$this->id] = $this->arrElement;
 
             $objMysql->_update ("task_manager.projects", array("step_data" => json_encode ($this->JSON)), array("id" => $this->source_id));
@@ -613,7 +600,7 @@ class Elements
     {
         return $this->current_step;
     }
-    
+
     public function getDueDate ()
     {
         return $this->dueDate;
@@ -623,7 +610,5 @@ class Elements
     {
         $this->dueDate = $dueDate;
     }
-
-
 
 }

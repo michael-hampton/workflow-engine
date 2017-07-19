@@ -1,7 +1,15 @@
 <?php
 class Configuration extends BaseConfiguration
 {
-    public function create(array $arrayData)
+    private $objMysql;
+    
+    public function __construct ()
+    {
+        parent::__construct ();
+        $this->objMysql = new Mysql2();
+    }
+
+        public function create(array $arrayData)
     {
         try {
             $this->setCfgUid($arrayData["CFG_UID"]);
@@ -28,8 +36,7 @@ class Configuration extends BaseConfiguration
     public function update($fields)
     {
         try {
-            $this->load($fields['CFG_UID'], $fields['OBJ_UID'], $fields['PRO_UID'], $fields['USR_UID'], $fields['APP_UID']);
-            $this->fromArray($fields,BasePeer::TYPE_FIELDNAME);
+            $this->loadObject($fields);
             if ($this->validate()) {
                 $contentResult=0;
                 $result=$this->save();
@@ -62,7 +69,16 @@ class Configuration extends BaseConfiguration
     */
     public function exists($CfgUid, $ObjUid = "", $ProUid = "", $UsrUid = "", $AppUid = "")
     {
-        $oRow = ConfigurationPeer::retrieveByPK( $CfgUid, $ObjUid, $ProUid, $UsrUid, $AppUid );
-        return (( get_class ($oRow) == 'Configuration' )&&(!is_null($oRow)));
+        $result = $this->objMysql->_select("workflow.CONFIGURATION", [], ["CFG_UID" => $CfgUid]);
+        
+        if(!isset($result[0]) || empty($result[0])) {
+            return false;
+        }
+        $objConfiguration = new Configuration();
+        $objConfiguration->setCfgUid($result[0]['CFG_UID']);
+        $objConfiguration->setCfgValue($result[0]['CFG_VALUE']);
+        
+        return $objConfiguration;
+        
     }
 }

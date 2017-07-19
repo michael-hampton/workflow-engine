@@ -736,7 +736,7 @@ class Cases
 
                 $objAttachments = new \BusinessModel\Attachment();
 
-                $id = $arrFiles = $objAttachments->loadObject ($arrData);
+                $id = $arrFiles = $objAttachments->loadObject ($arrData, $objUser);
 
                 if ( $id === false )
                 {
