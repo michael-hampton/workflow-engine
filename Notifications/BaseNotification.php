@@ -131,32 +131,32 @@ abstract class BaseNotification implements Persistent
         }
     }
 
-    function getRecipient ()
+    public function getRecipient ()
     {
         return $this->recipient;
     }
 
-    function getMessage ()
+    public function getMessage ()
     {
         return $this->message;
     }
 
-    function getSubject ()
+    public function getSubject ()
     {
         return $this->subject;
     }
 
-    function getBody ()
+    public function getBody ()
     {
         return $this->body;
     }
 
-    function getHasRead ()
+    public function getHasRead ()
     {
         return $this->hasRead;
     }
 
-    function getDateSent ()
+    public function getDateSent ()
     {
         return $this->dateSent;
     }
@@ -165,7 +165,7 @@ abstract class BaseNotification implements Persistent
      * 
      * @param type $hasRead
      */
-    function setHasRead ($hasRead)
+    public function setHasRead ($hasRead)
     {
         $this->hasRead = $hasRead;
     }
@@ -174,17 +174,17 @@ abstract class BaseNotification implements Persistent
      * 
      * @param type $dateSent
      */
-    function setDateSent ($dateSent)
+    public function setDateSent ($dateSent)
     {
         $this->dateSent = $dateSent;
     }
 
-    function getTriggeringStatus ()
+    public function getTriggeringStatus ()
     {
         return $this->triggeringStatus;
     }
 
-    function getId ()
+    public function getId ()
     {
         return $this->id;
     }
@@ -193,7 +193,7 @@ abstract class BaseNotification implements Persistent
      * 
      * @param type $triggeringStatus
      */
-    function setTriggeringStatus ($triggeringStatus)
+    public function setTriggeringStatus ($triggeringStatus)
     {
         $this->triggeringStatus = $triggeringStatus;
         $this->arrNotificationData['triggering_status'] = $triggeringStatus;
@@ -204,7 +204,7 @@ abstract class BaseNotification implements Persistent
      * 
      * @param type $id
      */
-    function setId ($id)
+    public function setId ($id)
     {
         $this->id = $id;
     }
@@ -213,7 +213,7 @@ abstract class BaseNotification implements Persistent
      * 
      * @param type $subject
      */
-    function setSubject ($subject)
+    public function setSubject ($subject)
     {
         $this->subject = $subject;
         $this->arrNotificationData['message_subject'] = $subject;
@@ -224,7 +224,7 @@ abstract class BaseNotification implements Persistent
      * 
      * @param type $body
      */
-    function setBody ($body)
+    public function setBody ($body)
     {
         $this->body = $body;
         $this->arrNotificationData['message_body'] = $body;
@@ -235,14 +235,14 @@ abstract class BaseNotification implements Persistent
      * 
      * @param type $recipient
      */
-    function setRecipient ($recipient)
+    public function setRecipient ($recipient)
     {
         $this->recipient = $recipient;
         $this->arrNotificationData['to'] = $recipient;
         $this->arrMessages['recipient'] = $recipient;
     }
 
-    function getParentId ()
+    public function getParentId ()
     {
         return $this->parentId;
     }
@@ -251,13 +251,13 @@ abstract class BaseNotification implements Persistent
      * 
      * @param type $parentId
      */
-    function setParentId ($parentId)
+    public function setParentId ($parentId)
     {
         $this->parentId = $parentId;
         $this->arrMessages['parent_id'] = $parentId;
     }
 
-    function getProjectId ()
+    public function getProjectId ()
     {
         return $this->projectId;
     }
@@ -271,7 +271,7 @@ abstract class BaseNotification implements Persistent
         $this->projectId = $projectId;
     }
 
-    function getSentByUser ()
+    public function getSentByUser ()
     {
         return $this->sentByUser;
     }
@@ -280,13 +280,13 @@ abstract class BaseNotification implements Persistent
      * 
      * @param type $sentByUser
      */
-    function setSentByUser ($sentByUser)
+    public function setSentByUser ($sentByUser)
     {
         $this->sentByUser = $sentByUser;
         $this->arrMessages['sent_by_user'] = $sentByUser;
     }
     
-    function getStepData ()
+    public function getStepData ()
     {
         return $this->stepData;
     }
@@ -295,17 +295,17 @@ abstract class BaseNotification implements Persistent
      * 
      * @param type $stepData
      */
-    function setStepData ($stepData)
+    public function setStepData ($stepData)
     {
         $this->stepData = $stepData;
     }
     
-    function getStepName ()
+    public function getStepName ()
     {
         return $this->stepName;
     }
 
-    function setStepName ($stepName)
+    public function setStepName ($stepName)
     {
         $this->stepName = $stepName;
     }
