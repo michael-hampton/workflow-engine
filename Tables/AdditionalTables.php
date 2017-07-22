@@ -50,13 +50,14 @@ function validateType ($value, $type)
  *
  * @author michael.hampton
  */
-class AdditionalTables
+class AdditionalTables extends BaseAdditionalTables
 {
 
     private $objMysql;
 
     public function __construct ()
     {
+        parent::__construct();
         $this->objMysql = new Mysql2();
     }
 
@@ -73,8 +74,8 @@ class AdditionalTables
         //echo $objElement->getSource_id();
         $appUid = $objElement->getId ();
         $proUid = $objElement->getSource_id ();
-        
-        $workflowId = (new \BusinessModel\Cases())->getCaseInfo($proUid, $appUid)->getWorkflow_id ();
+
+        $workflowId = (new \BusinessModel\Cases())->getCaseInfo ($proUid, $appUid)->getWorkflow_id ();
 
         $results = $this->objMysql->_select ("report_tables.additional_tables", [], ["PRO_UID" => $workflowId]);
 
@@ -101,12 +102,12 @@ class AdditionalTables
             $record = $this->objMysql->_select ("report_tables.{$className}", [], ["pro_uid" => $objElement->getSource_id (), "app_id" => $objElement->getId ()]);
 
             $objSaveReport = new SaveReport();
-            $objSaveReport->setProjectId($objElement->getSource_id());
-            $objSaveReport->setAppUid($objElement->getId());
+            $objSaveReport->setProjectId ($objElement->getSource_id ());
+            $objSaveReport->setAppUid ($objElement->getId ());
 
             if ( isset ($record[0]) && !empty ($record[0]) )
             {
-                $objSaveReport->setBlUpdate(TRUE);
+                $objSaveReport->setBlUpdate (TRUE);
             }
 
             $objSaveReport->setTableName ($className);
@@ -116,7 +117,7 @@ class AdditionalTables
             foreach ($criteria as $field) {
                 $fieldTypes[] = array($field['COLUMN_NAME'] => $field['DATA_TYPE']);
             }
-            
+
             switch ($result['ADD_TAB_TYPE']) {
                 //switching by report table type
                 case 'NORMAL':
@@ -138,13 +139,67 @@ class AdditionalTables
                                 }
                             }
                         }
-                        
                     }
 
                     $objSaveReport->save ();
 
                     break;
             }
+        }
+    }
+
+    public static function getPHPName ($sName)
+    {
+        $sName = trim ($sName);
+        $aAux = explode ('_', $sName);
+        foreach ($aAux as $iKey => $sPart) {
+            $aAux[$iKey] = ucwords (strtolower ($sPart));
+        }
+        return implode ('', $aAux);
+    }
+
+    public function loadByName ($name)
+    {
+        try {
+
+            $results = $this->objMysql->_select ("report_tables.additional_tables", [], ["ADD_TAB_CLASS_NAME" => $name]);
+
+            if ( !isset ($results[0]) || empty ($results[0]) )
+            {
+                return false;
+            }
+
+            return $results;
+        } catch (Exception $oError) {
+            throw($oError);
+        }
+    }
+
+    /**
+     * Create & Update function
+     */
+    public function create ($aData, $aFields = array())
+    {
+        try {
+            $oAdditionalTables = new AdditionalTables();
+            $oAdditionalTables->loadObject ($aData);
+            if ( $oAdditionalTables->validate () )
+            {
+                $iResult = $oAdditionalTables->save ();
+
+                return $aData['ADD_TAB_UID'];
+            }
+            else
+            {
+                $sMessage = '';
+                $aValidationFailures = $oAdditionalTables->getValidationFailures ();
+                foreach ($aValidationFailures as $oValidationFailure) {
+                    $sMessage .= $oValidationFailure . '<br />';
+                }
+                throw(new Exception ('The registry cannot be created!<br />' . $sMessage));
+            }
+        } catch (Exception $oError) {
+            throw($oError);
         }
     }
 

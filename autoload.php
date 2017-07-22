@@ -215,5 +215,10 @@ require_once HOME_DIR . 'core/app/library/Step/InputDocument.php';
 require_once HOME_DIR . 'core/app/library/MessageType/Variable.php';
 
 require_once HOME_DIR . 'core/app/library/Tables/SaveReport.php';
+require_once HOME_DIR . 'core/app/library/Tables/pmTable.php';
+require_once HOME_DIR . 'core/app/library/Tables/BaseAdditionalTable.php';
 require_once HOME_DIR . 'core/app/library/Tables/AdditionalTables.php';
-
+require_once HOME_DIR . 'core/app/library/Tables/BaseReportField.php';
+require_once HOME_DIR . 'core/app/library/Tables/ReportField.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/ReportTable.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/Table.php';

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Base class that represents a row from the 'REPORT_TABLE' table.
  *
@@ -8,126 +9,151 @@
  */
 abstract class BaseReportTable implements Persistent
 {
+
     /**
      * The value for the rep_tab_uid field.
      * @var        string
      */
     protected $rep_tab_uid = '';
+
     /**
      * The value for the rep_tab_title field.
      * @var        string
      */
     protected $rep_tab_title;
+
     /**
      * The value for the pro_uid field.
      * @var        string
      */
     protected $pro_uid = '';
+
     /**
      * The value for the rep_tab_name field.
      * @var        string
      */
     protected $rep_tab_name = '';
+
     /**
      * The value for the rep_tab_type field.
      * @var        string
      */
     protected $rep_tab_type = '';
+
     /**
      * The value for the rep_tab_grid field.
      * @var        string
      */
     protected $rep_tab_grid = '';
+
     /**
      * The value for the rep_tab_connection field.
      * @var        string
      */
     protected $rep_tab_connection = '';
+
     /**
      * The value for the rep_tab_create_date field.
      * @var        int
      */
     protected $rep_tab_create_date;
+
     /**
      * The value for the rep_tab_status field.
      * @var        string
      */
     protected $rep_tab_status = 'ACTIVE';
+
     /**
      * Flag to prevent endless save loop, if this object is referenced
      * by another object which falls in this transaction.
      * @var        boolean
      */
     protected $alreadyInSave = false;
+
     /**
      * Flag to prevent endless validation loop, if this object is referenced
      * by another object which falls in this transaction.
      * @var        boolean
      */
     protected $alreadyInValidation = false;
+    private $objMysql;
+
+    public function __construct ()
+    {
+        $this->objMysql = new Mysql2();
+    }
+
     /**
      * Get the [rep_tab_uid] column value.
      * 
      * @return     string
      */
-    public function getRepTabUid()
+    public function getRepTabUid ()
     {
         return $this->rep_tab_uid;
     }
+
     /**
      * Get the [rep_tab_title] column value.
      * 
      * @return     string
      */
-    public function getRepTabTitle()
+    public function getRepTabTitle ()
     {
         return $this->rep_tab_title;
     }
+
     /**
      * Get the [pro_uid] column value.
      * 
      * @return     string
      */
-    public function getProUid()
+    public function getProUid ()
     {
         return $this->pro_uid;
     }
+
     /**
      * Get the [rep_tab_name] column value.
      * 
      * @return     string
      */
-    public function getRepTabName()
+    public function getRepTabName ()
     {
         return $this->rep_tab_name;
     }
+
     /**
      * Get the [rep_tab_type] column value.
      * 
      * @return     string
      */
-    public function getRepTabType()
+    public function getRepTabType ()
     {
         return $this->rep_tab_type;
     }
+
     /**
      * Get the [rep_tab_grid] column value.
      * 
      * @return     string
      */
-    public function getRepTabGrid()
+    public function getRepTabGrid ()
     {
         return $this->rep_tab_grid;
     }
+
     /**
      * Get the [rep_tab_connection] column value.
      * 
      * @return     string
      */
-    public function getRepTabConnection()
+    public function getRepTabConnection ()
     {
         return $this->rep_tab_connection;
     }
+
     /**
      * Get the [optionally formatted] [rep_tab_create_date] column value.
      * 
@@ -136,222 +162,313 @@ abstract class BaseReportTable implements Persistent
      * @return     mixed Formatted date/time value as string or integer unix timestamp (if format is NULL).
      * @throws     PropelException - if unable to convert the date/time to timestamp.
      */
-    public function getRepTabCreateDate($format = 'Y-m-d H:i:s')
+    public function getRepTabCreateDate ($format = 'Y-m-d H:i:s')
     {
-        if ($this->rep_tab_create_date === null || $this->rep_tab_create_date === '') {
+        if ( $this->rep_tab_create_date === null || $this->rep_tab_create_date === '' )
+        {
             return null;
-        } elseif (!is_int($this->rep_tab_create_date)) {
+        }
+        elseif ( !is_int ($this->rep_tab_create_date) )
+        {
             // a non-timestamp value was set externally, so we convert it
-            $ts = strtotime($this->rep_tab_create_date);
-            if ($ts === -1 || $ts === false) {
-                throw new PropelException("Unable to parse value of [rep_tab_create_date] as date/time value: " .
-                    var_export($this->rep_tab_create_date, true));
+            $ts = strtotime ($this->rep_tab_create_date);
+            if ( $ts === -1 || $ts === false )
+            {
+                throw new PropelException ("Unable to parse value of [rep_tab_create_date] as date/time value: " .
+                var_export ($this->rep_tab_create_date, true));
             }
-        } else {
+        }
+        else
+        {
             $ts = $this->rep_tab_create_date;
         }
-        if ($format === null) {
+        if ( $format === null )
+        {
             return $ts;
-        } elseif (strpos($format, '%') !== false) {
-            return strftime($format, $ts);
-        } else {
-            return date($format, $ts);
+        }
+        elseif ( strpos ($format, '%') !== false )
+        {
+            return strftime ($format, $ts);
+        }
+        else
+        {
+            return date ($format, $ts);
         }
     }
+
     /**
      * Get the [rep_tab_status] column value.
      * 
      * @return     string
      */
-    public function getRepTabStatus()
+    public function getRepTabStatus ()
     {
         return $this->rep_tab_status;
     }
+
     /**
      * Set the value of [rep_tab_uid] column.
      * 
      * @param      string $v new value
      * @return     void
      */
-    public function setRepTabUid($v)
+    public function setRepTabUid ($v)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
-        if ($this->rep_tab_uid !== $v || $v === '') {
+        if ( $this->rep_tab_uid !== $v || $v === '' )
+        {
             $this->rep_tab_uid = $v;
         }
-    } 
-    
+    }
+
     /**
      * Set the value of [rep_tab_title] column.
      * 
      * @param      string $v new value
      * @return     void
      */
-    public function setRepTabTitle($v)
+    public function setRepTabTitle ($v)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
-        if ($this->rep_tab_title !== $v) {
+        if ( $this->rep_tab_title !== $v )
+        {
             $this->rep_tab_title = $v;
         }
     }
-    
+
     /**
      * Set the value of [pro_uid] column.
      * 
      * @param      string $v new value
      * @return     void
      */
-    public function setProUid($v)
+    public function setProUid ($v)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
-        if ($this->pro_uid !== $v || $v === '') {
+        if ( $this->pro_uid !== $v || $v === '' )
+        {
             $this->pro_uid = $v;
         }
     }
-    
+
     /**
      * Set the value of [rep_tab_name] column.
      * 
      * @param      string $v new value
      * @return     void
      */
-    public function setRepTabName($v)
+    public function setRepTabName ($v)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
-        if ($this->rep_tab_name !== $v || $v === '') {
+        if ( $this->rep_tab_name !== $v || $v === '' )
+        {
             $this->rep_tab_name = $v;
             $this->modifiedColumns[] = ReportTablePeer::REP_TAB_NAME;
         }
-    } 
-    
+    }
+
     /**
      * Set the value of [rep_tab_type] column.
      * 
      * @param      string $v new value
      * @return     void
      */
-    public function setRepTabType($v)
+    public function setRepTabType ($v)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
-        if ($this->rep_tab_type !== $v || $v === '') {
+        if ( $this->rep_tab_type !== $v || $v === '' )
+        {
             $this->rep_tab_type = $v;
         }
-    } 
-    
+    }
+
     /**
      * Set the value of [rep_tab_grid] column.
      * 
      * @param      string $v new value
      * @return     void
      */
-    public function setRepTabGrid($v)
+    public function setRepTabGrid ($v)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
-        if ($this->rep_tab_grid !== $v || $v === '') {
+        if ( $this->rep_tab_grid !== $v || $v === '' )
+        {
             $this->rep_tab_grid = $v;
         }
-    } 
-    
+    }
+
     /**
      * Set the value of [rep_tab_connection] column.
      * 
      * @param      string $v new value
      * @return     void
      */
-    public function setRepTabConnection($v)
+    public function setRepTabConnection ($v)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
-        if ($this->rep_tab_connection !== $v || $v === '') {
+        if ( $this->rep_tab_connection !== $v || $v === '' )
+        {
             $this->rep_tab_connection = $v;
         }
-    } 
-    
+    }
+
     /**
      * Set the value of [rep_tab_create_date] column.
      * 
      * @param      int $v new value
      * @return     void
      */
-    public function setRepTabCreateDate($v)
+    public function setRepTabCreateDate ($v)
     {
-        if ($v !== null && !is_int($v)) {
-            $ts = strtotime($v);
+        if ( $v !== null && !is_int ($v) )
+        {
+            $ts = strtotime ($v);
             //Date/time accepts null values
-            if ($v == '') {
+            if ( $v == '' )
+            {
                 $ts = null;
             }
-            if ($ts === -1 || $ts === false) {
-                throw new PropelException("Unable to parse date/time value for [rep_tab_create_date] from input: " .
-                    var_export($v, true));
+            if ( $ts === -1 || $ts === false )
+            {
+                throw new PropelException ("Unable to parse date/time value for [rep_tab_create_date] from input: " .
+                var_export ($v, true));
             }
-        } else {
+        }
+        else
+        {
             $ts = $v;
         }
-        if ($this->rep_tab_create_date !== $ts) {
-            $this->rep_tab_create_date = date("Y-m-d H:i:s", $ts);
+        if ( $this->rep_tab_create_date !== $ts )
+        {
+            $this->rep_tab_create_date = date ("Y-m-d H:i:s", $ts);
         }
-    } 
-    
+    }
+
     /**
      * Set the value of [rep_tab_status] column.
      * 
      * @param      string $v new value
      * @return     void
      */
-    public function setRepTabStatus($v)
+    public function setRepTabStatus ($v)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
-        if ($this->rep_tab_status !== $v || $v === 'ACTIVE') {
+        if ( $this->rep_tab_status !== $v || $v === 'ACTIVE' )
+        {
             $this->rep_tab_status = $v;
         }
-    } 
-    
+    }
+
+    /**
+     * Array of ValidationFailed objects.
+     * @var        array ValidationFailed[]
+     */
+    protected $validationFailures = array();
+
+    /**
+     * Gets any ValidationFailed objects that resulted from last call to validate().
+     *
+     *
+     * @return     array ValidationFailed[]
+     * @see        validate()
+     */
+    public function getValidationFailures ()
+    {
+        return $this->validationFailures;
+    }
+
+    /**
+     * Validates the objects modified field values and all objects related to this table.
+     * @return     boolean Whether all columns pass validation.
+     * @see        getValidationFailures()
+     */
     public function validate ()
     {
-       
+        
     }
-    
+
     public function loadObject (array $arrData)
     {
         
     }
-    
+
+    /**
+     * Stores the object in the database.  If the object is new,
+     * it inserts it; otherwise an update is performed.  This method
+     * wraps the doSave() worker method in a transaction.
+     *     
+     */
     public function save ()
     {
-        
+        if ( trim ($this->rep_tab_uid) !== "" )
+        {
+            $this->objMysql->_update ("report_tables.report_table", [
+                "REP_TAB_TITLE" => $this->rep_tab_title,
+                "PRO_UID" => $this->pro_uid,
+                "REP_TAB_NAME" => $this->rep_tab_name,
+                "REP_TAB_TYPE" => $this->rep_tab_type,
+                "REP_TAB_CONNECTION" => $this->rep_tab_connection,
+                "REP_TAB_CREATE_DATE" => $this->rep_tab_create_date,
+                "REP_TAB_STATUS" => $this->rep_tab_status
+                    ], [
+                "REP_TAB_UID" => $this->rep_tab_uid
+                    ]
+            );
+        }
+        else
+        {
+            $id = $this->objMysql->_insert ("report_tables.report_table", [
+                "REP_TAB_TITLE" => $this->rep_tab_title,
+                "PRO_UID" => $this->pro_uid,
+                "REP_TAB_NAME" => $this->rep_tab_name,
+                "REP_TAB_TYPE" => $this->rep_tab_type,
+                "REP_TAB_CONNECTION" => $this->rep_tab_connection,
+                "REP_TAB_CREATE_DATE" => $this->rep_tab_create_date,
+                "REP_TAB_STATUS" => $this->rep_tab_status
+            ]);
+            
+            return $id;
+        }
     }
-    
-   
+
 }
