@@ -571,7 +571,7 @@ class Elements
     public function save (\Users $objUser)
     {
         $objMysql = new Mysql2();
-
+        
         if ( $this->id == "" )
         {
             $id = $this->buildObjectId ($this->source_id, $this->workflow_id);
@@ -594,6 +594,10 @@ class Elements
 
             $objMysql->_update ("task_manager.projects", array("step_data" => json_encode ($this->JSON)), array("id" => $this->source_id));
         }
+        
+
+        $additionalTables = new AdditionalTables();
+        $additionalTables->updateReportTables($this);
     }
 
     public function getCurrent_step ()

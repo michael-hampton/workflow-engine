@@ -214,3 +214,6 @@ require_once HOME_DIR . '/core/app/library/BusinessModel/Calendar.php';
 require_once HOME_DIR . 'core/app/library/Step/InputDocument.php';
 require_once HOME_DIR . 'core/app/library/MessageType/Variable.php';
 
+require_once HOME_DIR . 'core/app/library/Tables/SaveReport.php';
+require_once HOME_DIR . 'core/app/library/Tables/AdditionalTables.php';
+
