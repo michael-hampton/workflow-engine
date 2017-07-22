@@ -251,7 +251,6 @@ class Attachment
             }
 
             $inputName = $objStepDocument[$this->documentId]->getTitle (); // input document name
-            //$projectId = 1;
             $intCount = 0;
             $versioning = $objStepDocument[$this->documentId]->getVersioning ();
             $dir2 = $objStepDocument[$this->documentId]->getDestinationPath ();
@@ -273,16 +272,7 @@ class Attachment
             $actualSize = $maxFileSize * (($unit == "MB") ? 1024 * 1024 : 1024); //Bytes
 
             if ( !empty ($objStepDocument) )
-            {
-//                if ( $unit == "MB" )
-//                {
-//                    $actualSize = $this->formatSizeUnits ($size, "MB");
-//                }
-//                else
-//                {
-//                    $actualSize = $this->formatSizeUnits ($size, "KB");
-//                }
-                
+            {   
                 if ( $actualSize > 0 && $size > 0 )
                 {
                     if ( $size > $actualSize )

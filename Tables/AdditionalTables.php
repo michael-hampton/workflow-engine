@@ -128,7 +128,7 @@ class AdditionalTables
                     }
 
                     foreach ($objElement->arrElement as $i => $v) {
-                        foreach ($fieldTypes as $key => $fieldType) {
+                        foreach ($fieldTypes as $fieldType) {
                             foreach ($fieldType as $name => $type) {
                                 if ( $i == $name )
                                 {
