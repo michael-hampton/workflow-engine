@@ -124,7 +124,7 @@ class SendNotification extends Notification
             $this->subject = $objCases->replaceDataField ($this->subject, $Fields);
             $this->body = $objCases->replaceDataField ($this->body, $Fields);
                         
-            $this->save ();
+            $this->sendMessage ();
             
             //	sending email notification
             $this->notificationEmail ($this->recipient, $this->subject, $this->body);
@@ -138,7 +138,7 @@ class SendNotification extends Notification
     /**
      *
      */
-    public function save ()
+    public function sendMessage ()
     {
         $this->objMysql->_query ("UPDATE workflow.notifications_sent
                                 SET status = 2

@@ -127,6 +127,11 @@ require_once HOME_DIR . '/core/app/library/Notifications/BaseNotification.php';
 require_once HOME_DIR . '/core/app/library/Notifications/Notification.php';
 require_once HOME_DIR . '/core/app/library/Notifications/SendNotification.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/NotificationsFactory.php';
+
+require_once HOME_DIR . '/core/app/library/BusinessModel/EmailServer.php';
+require_once HOME_DIR . '/core/app/library/Notifications/BaseEmailServer.php';
+require_once HOME_DIR . '/core/app/library/Notifications/EmailServer.php';
+
 /* * ********************* BPMN Classes ***************************************************** */
 require_once HOME_DIR . '/core/app/library/BPMN/BPMN.php';
 require_once HOME_DIR . '/core/app/library/BPMN/BPMNWorkflow.php';

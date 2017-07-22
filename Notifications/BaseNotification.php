@@ -19,7 +19,11 @@ abstract class BaseNotification implements Persistent
     protected $parentId;
     protected $stepData;
     protected $stepName;
-    
+    protected $cc;
+    protected $bcc;
+    protected $from;
+    protected $sendToAll;
+    protected $fromName;
     private $arrFieldMapping = array(
         "notificationId" => array("accessor" => "getId", "mutator" => "setId"),
         "step" => array("accessor" => "getTriggeringStatus", "mutator" => "setTriggeringStatus"),
@@ -29,7 +33,12 @@ abstract class BaseNotification implements Persistent
         "sentByUser" => array("accessor" => "getSentByUser", "mutator" => "setSentByUser"),
         "parentId" => array("accessor" => "getParentId", "mutator" => "setParentId"),
         "step_data" => array("accessor" => "getStepData", "mutator" => "setStepData"),
-        "step_name" => array("accessor" => "getStepName", "mutator" => "setStepName")
+        "step_name" => array("accessor" => "getStepName", "mutator" => "setStepName"),
+        "CC" => array("accessor" => "getCc", "mutator" => "setCc"),
+        "BCC" => array("accessor" => "getBcc", "mutator" => "setBcc"),
+        "from" => array("accessor" => "getFrom", "mutator" => "setFrom"),
+        "fromName" => array("accessor" => "getFromName", "mutator" => "setFromName"),
+        "sendToAll" => array("accessor" => "getSendToAll", "mutator" => "setSendToAll")
     );
     public $arrNotificationData = array();
     public $arrMessages = array();
@@ -69,7 +78,7 @@ abstract class BaseNotification implements Persistent
 
         return true;
     }
-    
+
     public function validate ()
     {
         ;
@@ -120,15 +129,13 @@ abstract class BaseNotification implements Persistent
     {
         $objMysql = new Mysql2();
         $arrResult = $objMysql->_select ("auto_notifications", array(), array("triggering_status" => $this->status, "system" => $this->system));
-        
-        if ( !empty ($arrResult) )
-        {
-            $this->message = $arrResult[0];
-        }
-        else
+
+        if ( !isset ($arrResult[0]) || empty ($arrResult[0]) )
         {
             return false;
         }
+
+        $this->message = $arrResult[0];
     }
 
     public function getRecipient ()
@@ -160,7 +167,7 @@ abstract class BaseNotification implements Persistent
     {
         return $this->dateSent;
     }
-    
+
     /**
      * 
      * @param type $hasRead
@@ -285,7 +292,7 @@ abstract class BaseNotification implements Persistent
         $this->sentByUser = $sentByUser;
         $this->arrMessages['sent_by_user'] = $sentByUser;
     }
-    
+
     public function getStepData ()
     {
         return $this->stepData;
@@ -299,7 +306,7 @@ abstract class BaseNotification implements Persistent
     {
         $this->stepData = $stepData;
     }
-    
+
     public function getStepName ()
     {
         return $this->stepName;
@@ -310,6 +317,56 @@ abstract class BaseNotification implements Persistent
         $this->stepName = $stepName;
     }
 
+    public function getCc ()
+    {
+        return $this->cc;
+    }
+
+    public function getBcc ()
+    {
+        return $this->bcc;
+    }
+
+    public function getFrom ()
+    {
+        return $this->from;
+    }
+
+    public function getSendToAll ()
+    {
+        return $this->sendToAll;
+    }
+
+    public function getFromName ()
+    {
+        return $this->fromName;
+    }
+
+    public function setCc ($cc)
+    {
+        $this->cc = $cc;
+    }
+
+    public function setBcc ($bcc)
+    {
+        $this->bcc = $bcc;
+    }
+
+    public function setFrom ($from)
+    {
+        $this->from = $from;
+    }
+
+    public function setSendToAll ($sendToAll)
+    {
+        $this->sendToAll = $sendToAll;
+    }
+
+    public function setFromName ($fromName)
+    {
+        $this->fromName = $fromName;
+    }
+
     /**
      * 
      */
@@ -317,11 +374,35 @@ abstract class BaseNotification implements Persistent
     {
         if ( isset ($this->id) && is_numeric ($this->id) )
         {
-            $this->objMysql->_update ("task_manager.auto_notifications", $this->arrNotificationData, array("id" => $this->id));
+            $this->objMysql->_update ("task_manager.auto_notifications", [
+                "system" => "task_manager",
+                "message_subject" => $this->subject,
+                "message_body" => $this->body,
+                "to" => $this->recipient,
+                "from_name" => $this->fromName,
+                "from_mail" => $this->from,
+                "cc" => $this->cc,
+                "bcc" => $this->bcc,
+                "send_to_all" => $this->sendToAll
+                    ], array(
+                "id" => $this->id
+                    )
+            );
         }
         else
         {
-            $this->objMysql->_insert ("task_manager.auto_notifications", array($this->arrNotificationData));
+            $this->objMysql->_insert ("task_manager.auto_notifications", [
+                "triggering_status" => $this->triggeringStatus,
+                "system" => "task_manager",
+                "message_subject" => $this->subject,
+                "message_body" => $this->body,
+                "to" => $this->recipient,
+                "from_name" => $this->fromName,
+                "from_mail" => $this->from,
+                "cc" => $this->cc,
+                "bcc" => $this->bcc,
+                "send_to_all" => $this->sendToAll
+            ]);
         }
     }
 

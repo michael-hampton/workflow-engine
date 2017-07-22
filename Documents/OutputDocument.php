@@ -14,6 +14,8 @@
 class OutputDocument extends BaseOutputDocument
 {
 
+    use \BusinessModel\Validator;
+
     private $objMysql;
 
     public function __construct ()
@@ -449,8 +451,8 @@ class OutputDocument extends BaseOutputDocument
         {
             $tcpdfPermissions = array('print', 'modify', 'copy', 'annot-forms', 'fill-forms', 'extract', 'assemble', 'print-high');
             $pdfSecurity = $aProperties['pdfSecurity'];
-            $userPass = G::decrypt ($pdfSecurity['openPassword'], $sUID);
-            $ownerPass = ($pdfSecurity['ownerPassword'] != '') ? G::decrypt ($pdfSecurity['ownerPassword'], $sUID) : null;
+            $userPass = $this->decrypt ($pdfSecurity['openPassword'], $sUID);
+            $ownerPass = ($pdfSecurity['ownerPassword'] != '') ? $this->decrypt ($pdfSecurity['ownerPassword'], $sUID) : null;
             $permissions = explode ("|", $pdfSecurity['permissions']);
             $permissions = array_diff ($tcpdfPermissions, $permissions);
             $pdf->SetProtection ($permissions, $userPass, $ownerPass);
