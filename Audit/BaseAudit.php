@@ -422,20 +422,4 @@ class BaseAudit
     {
         return true;
     }
-
-    /**
-     * Retrieves a field from the object by name passed in as a string.
-     *
-     * @param      string $name name
-     * @param      string $type The type of fieldname the $name is of:
-     *                     one of the class type constants TYPE_PHPNAME,
-     *                     TYPE_COLNAME, TYPE_FIELDNAME, TYPE_NUM
-     * @return     mixed Value of field.
-     */
-    public function getByName ($name, $type = BasePeer::TYPE_PHPNAME)
-    {
-        $pos = AppHistoryPeer::translateFieldName ($name, $type, BasePeer::TYPE_NUM);
-        return $this->getByPosition ($pos);
-    }
-
 }
