@@ -271,7 +271,6 @@ abstract class BaseEmailServer implements Persistent
         }
     }
 
-// setMessUid()
     /**
      * Set the value of [mess_engine] column.
      * 
@@ -292,7 +291,6 @@ abstract class BaseEmailServer implements Persistent
         }
     }
 
-// setMessEngine()
     /**
      * Set the value of [mess_server] column.
      * 
@@ -313,7 +311,6 @@ abstract class BaseEmailServer implements Persistent
         }
     }
 
-// setMessServer()
     /**
      * Set the value of [mess_port] column.
      * 
@@ -334,7 +331,6 @@ abstract class BaseEmailServer implements Persistent
         }
     }
 
-// setMessPort()
     /**
      * Set the value of [mess_rauth] column.
      * 
@@ -355,7 +351,6 @@ abstract class BaseEmailServer implements Persistent
         }
     }
 
-// setMessRauth()
     /**
      * Set the value of [mess_account] column.
      * 
@@ -376,7 +371,6 @@ abstract class BaseEmailServer implements Persistent
         }
     }
 
-// setMessAccount()
     /**
      * Set the value of [mess_password] column.
      * 
@@ -397,7 +391,6 @@ abstract class BaseEmailServer implements Persistent
         }
     }
 
-// setMessPassword()
     /**
      * Set the value of [mess_from_mail] column.
      * 
@@ -418,7 +411,6 @@ abstract class BaseEmailServer implements Persistent
         }
     }
 
-// setMessFromMail()
     /**
      * Set the value of [mess_from_name] column.
      * 
@@ -439,7 +431,6 @@ abstract class BaseEmailServer implements Persistent
         }
     }
 
-// setMessFromName()
     /**
      * Set the value of [smtpsecure] column.
      * 
@@ -460,7 +451,6 @@ abstract class BaseEmailServer implements Persistent
         }
     }
 
-// setSmtpsecure()
     /**
      * Set the value of [mess_try_send_inmediatly] column.
      * 
@@ -481,7 +471,6 @@ abstract class BaseEmailServer implements Persistent
         }
     }
 
-// setMessTrySendInmediatly()
     /**
      * Set the value of [mail_to] column.
      * 
@@ -502,7 +491,6 @@ abstract class BaseEmailServer implements Persistent
         }
     }
 
-// setMailTo()
     /**
      * Set the value of [mess_default] column.
      * 
@@ -522,8 +510,6 @@ abstract class BaseEmailServer implements Persistent
             $this->mess_default = $v;
         }
     }
-
-// setMessDefault()
 
     /**
      * Stores the object in the database.  If the object is new,

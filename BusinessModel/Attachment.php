@@ -247,7 +247,7 @@ class Attachment
             $arrExtensions = explode (",", $extensions);
 
             foreach ($arrExtensions as $key => $extension) {
-                $arrExtensions[$key] = str_replace (".", "", $extension);
+                $arrExtensions[$key] = trim(str_replace (".", "", $extension));
             }
 
             $inputName = $objStepDocument[$this->documentId]->getTitle (); // input document name
@@ -270,23 +270,28 @@ class Attachment
             $dir = $_SERVER['DOCUMENT_ROOT'] . "/FormBuilder/public/uploads/" . $dir2 . "/";
             $destination = $dir . $filename;
 
+            $actualSize = $maxFileSize * (($unit == "MB") ? 1024 * 1024 : 1024); //Bytes
+
             if ( !empty ($objStepDocument) )
             {
-                if ( $unit == "MB" )
+//                if ( $unit == "MB" )
+//                {
+//                    $actualSize = $this->formatSizeUnits ($size, "MB");
+//                }
+//                else
+//                {
+//                    $actualSize = $this->formatSizeUnits ($size, "KB");
+//                }
+                
+                if ( $actualSize > 0 && $size > 0 )
                 {
-                    $actualSize = $this->formatSizeUnits ($size, "MB");
-                }
-                else
-                {
-                    $actualSize = $this->formatSizeUnits ($size, "KB");
+                    if ( $size > $actualSize )
+                    {
+                        throw new Exception ("ID_SIZE_VERY_LARGE_PERMITTED");
+                    }
                 }
 
-                if ( $actualSize > $size )
-                {
-                    $this->arrayValidation[] = "TOO BIG";
-                }
-          
-                if ( !in_array (trim($file_ext), $arrExtensions))
+                if ( !in_array (trim ($file_ext), $arrExtensions) )
                 {
                     $this->arrayValidation[] = "extension not allowed, please choose a JPEG or PNG file.";
                 }
