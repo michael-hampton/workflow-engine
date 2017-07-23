@@ -23,6 +23,7 @@ abstract class BaseNotification implements Persistent
     protected $bcc;
     protected $from;
     protected $sendToAll;
+    protected $defaultFrom = "bluetiger_uan@yahoo.com";
     protected $fromName;
     private $arrFieldMapping = array(
         "notificationId" => array("accessor" => "getId", "mutator" => "setId"),
