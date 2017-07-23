@@ -120,6 +120,20 @@ class AdditionalTables extends BaseAdditionalTables
             throw ($oError);
         }
     }
+    
+       /**
+     * Retrieve a single object by pkey.
+     *
+     * @param      mixed $pk the primary key.
+     * @param      Connection $con the connection to use
+     * @return     AdditionalTables
+     */
+    public static function retrieveByPK($pk)
+    {
+        $results = $this->objMysql->_select("report_tables.additional_tables", [], ["ADD_TAB_UID" => $pk]);
+        
+        return isset($results[0]) && !empty($results[0]) ? $results[0]™: null;
+    }
 
     /**
      * Update the report table with a determinated case data
