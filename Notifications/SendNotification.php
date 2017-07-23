@@ -187,6 +187,14 @@ class SendNotification extends Notification
 
         $headers = $fromName . ''.$from.'' . "\r\n" .
                 'X-Mailer: PHP/' . phpversion ();
+        
+        if(trim($this->cc) !== '') {
+            $headers .= "CC: CC Name ".$this->cc."\n";
+        }
+        
+        if(trim($this->bcc) !== "") {
+            $headers .= "BCC: ".$this->bcc."\n"; 
+        }
 
         $message = $sendto . " " . $message_subject . " " . $message_body;
 
