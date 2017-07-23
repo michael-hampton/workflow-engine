@@ -637,9 +637,54 @@ abstract class BaseAdditionalTables implements Persistent
 
 // setAddTabTag()
 
+  
+    /**
+     * Validates the objects modified field values and all objects related to this table.
+     *
+     * If $columns is either a column name or an array of column names
+     * only those columns are validated.
+     *
+     * @param      mixed $columns Column name or an array of column names.
+     * @return     boolean Whether all columns pass validation.
+     * @see        doValidate()
+     * @see        getValidationFailures()
+     */
+    public function validate ()
+    {
+        $errorCount = 0;
+        foreach ($this->arrFieldMapping as $fieldName => $arrField) {
+            if ( $arrField['required'] === 'true' )
+            {
+                $accessor = $this->arrFieldMapping[$fieldName]['accessor'];
+                if ( trim ($this->$accessor ()) == "" )
+                {
+                    $this->validationFailures[] = $fieldName . " Is empty. It is a required field";
+                    $errorCount++;
+                }
+            }
+        }
+        if ( $errorCount > 0 )
+        {
+            return FALSE;
+        }
+        return TRUE;
+    }
     public function loadObject (array $arrData)
     {
-        
+        foreach ($arrData as $formField => $formValue) {
+            if ( isset ($this->arrFieldMapping[$formField]) )
+            {
+                $mutator = $this->arrFieldMapping[$formField]['mutator'];
+                if ( method_exists ($this, $mutator) && is_callable (array($this, $mutator)) )
+                {
+                    if ( isset ($this->arrFieldMapping[$formField]) && trim ($formValue) != "" )
+                    {
+                        call_user_func (array($this, $mutator), $formValue);
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     public function save ()
@@ -696,16 +741,6 @@ abstract class BaseAdditionalTables implements Persistent
     public function getValidationFailures ()
     {
         return $this->validationFailures;
-    }
-
-    /**
-     * Validates the objects modified field values and all objects related to this table.
-     * @return     boolean Whether all columns pass validation.
-     * @see        getValidationFailures()
-     */
-    public function validate ()
-    {
-        return true;
     }
 
 }
