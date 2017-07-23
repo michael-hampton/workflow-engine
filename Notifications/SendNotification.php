@@ -66,19 +66,18 @@ class SendNotification extends Notification
 
             $this->subject = $this->message['message_subject'];
             $this->body = $this->message['message_body'];
+            
+            $noteRecipientsList = array();
 
             if ( !empty ($this->arrEmailAddresses) )
             {
-                $this->recipient = implode (",", $this->arrEmailAddresses);
+                $noteRecipientsList[] = $this->arrEmailAddresses);
             }
-            else
-            {
+          
                 if ( $blSendToAllParticipants === true )
                 {
                     $case = new \BusinessModel\Cases();
                     $p = $case->getUsersParticipatedInCase ($this->projectId);
-
-                    $noteRecipientsList = array();
 
                     if ( !empty ($p) )
                     {
@@ -102,7 +101,7 @@ class SendNotification extends Notification
                         }
                     }
 
-                    if ( !in_array ($this->message['to'], $noteRecipientsList) )
+                    if ( !in_array ($this->message['to'], $noteRecipientsList) && trim($this->message['to']) !== '' )
                     {
                         $noteRecipientsList[] = $this->message['to'];
                     }
@@ -110,12 +109,7 @@ class SendNotification extends Notification
                     $noteRecipients = implode (",", $noteRecipientsList);
 
                     $this->recipient = $noteRecipients;
-                }
-                else
-                {
-                    $this->recipient = $this->message['to'];
-                }
-            }
+               
 
             $objCases = new \BusinessModel\Cases();
 
