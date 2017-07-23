@@ -172,7 +172,10 @@ class SendNotification extends Notification
     public function notificationEmail ($sendto, $message_subject, $message_body)
     {
         $environment = "DEV";
-
+        
+        $from = trim($this->from) !== "") ? $this->from : $this->defaultFrom;
+        $fromName = trim($this->fromName) !== "") ? $this->fromName : "";
+        
         switch ($environment) {
 
             case "DEV":
@@ -188,7 +191,7 @@ class SendNotification extends Notification
                 break;
         }
 
-        $headers = 'From:EasyFlow<donotreply@easyflow.co.uk>' . "\r\n" .
+        $headers = $fromName . ''.$from.'' . "\r\n" .
                 'X-Mailer: PHP/' . phpversion ();
 
         $message = $sendto . " " . $message_subject . " " . $message_body;
