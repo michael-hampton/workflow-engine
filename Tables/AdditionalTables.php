@@ -82,6 +82,13 @@ class AdditionalTables extends BaseAdditionalTables
         }
         return $aFields;
     }
+    
+    public function deleteAll($tab_uid)
+        {
+        $this->objMysql->_delete("report_tables.additional_tables", ["ADD_TAB_UID" => $tab_uid]);
+        
+        $this->objMysql->_delete("report_tables.fields", ["ADD_TAB_UID" => $tab_uid]);
+        }
 
     /**
      * Populate the report table with all case data
