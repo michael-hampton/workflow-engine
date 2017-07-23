@@ -120,7 +120,21 @@ abstract class BaseAdditionalTables implements Persistent
      */
     protected $alreadyInValidation = false;
     private $objMysql;
-
+    
+    
+    private $arrFieldMapping = array(
+        "MESS_ENGINE" => array("accessor" => "getMessEngine", "mutator" => "setMessEngine", "required" => "true"),
+        "MESS_SERVER" => array("accessor" => "getMessServer", "mutator" => "setMessServer", "required" => "true"),
+        "MESS_PORT" => array("accessor" => "getMessPort", "mutator" => "setMessPort", "required" => "false"),
+        "MESS_ACCOUNT" => array("accessor" => "getMessAccount", "mutator" => "setMessAccount", "required" => "true"),
+        "SMTPSECURE" => array("accessor" => "getSmtpsecure", "mutator" => "setSmtpsecure", "required" => "true"),
+        "MESS_RAUTH" => array("accessor" => "getMessRauth", "mutator" => "setMessRauth", "required" => "true"),
+        "MESS_PASSWORD" => array("accessor" => "getMessPassword", "mutator" => "setMessPassword", "required" => "true"),
+        "MESS_FROM_MAIL" => array("accessor" => "getMessFromMail", "mutator" => "setMessFromMail", "required" => "true"),
+        "MESS_FROM_NAME" => array("accessor" => "getMessFromName", "mutator" => "setMessFromName", "required" => "true"),
+        "MESS_DEFAULT" => array("accessor" => "GetMessDefault", "mutator" => "setMessDefault", "required" => "true"),
+    );
+    
     public function __construct ()
     {
         $this->objMysql = new Mysql2();
