@@ -81,6 +81,7 @@ class AdditionalTables extends BaseAdditionalTables
         }
         return $aFields;
     }
+    
     public function getFields()
     {
         if (count($this->fields) > 0) {
@@ -100,6 +101,26 @@ class AdditionalTables extends BaseAdditionalTables
         return $this->fields;
     }
     
+    
+    /**
+     * verify if Additional Table row specified in [sUID] exists.
+     *
+     * @param      string $sUID   the uid of the additional table
+     */
+    public function exists ($sUID)
+    {
+        try {
+            $oPro = $this->retrieveByPk($sUID);
+            if (is_object($oPro) && get_class($oPro) == 'AdditionalTables') {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (Exception $oError) {
+            throw ($oError);
+        }
+    }
+
     /**
      * Update the report table with a determinated case data
      * @param string $proUid
