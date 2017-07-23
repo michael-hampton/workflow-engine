@@ -123,16 +123,15 @@ abstract class BaseAdditionalTables implements Persistent
     
     
     private $arrFieldMapping = array(
-        "MESS_ENGINE" => array("accessor" => "getMessEngine", "mutator" => "setMessEngine", "required" => "true"),
-        "MESS_SERVER" => array("accessor" => "getMessServer", "mutator" => "setMessServer", "required" => "true"),
-        "MESS_PORT" => array("accessor" => "getMessPort", "mutator" => "setMessPort", "required" => "false"),
-        "MESS_ACCOUNT" => array("accessor" => "getMessAccount", "mutator" => "setMessAccount", "required" => "true"),
-        "SMTPSECURE" => array("accessor" => "getSmtpsecure", "mutator" => "setSmtpsecure", "required" => "true"),
-        "MESS_RAUTH" => array("accessor" => "getMessRauth", "mutator" => "setMessRauth", "required" => "true"),
-        "MESS_PASSWORD" => array("accessor" => "getMessPassword", "mutator" => "setMessPassword", "required" => "true"),
-        "MESS_FROM_MAIL" => array("accessor" => "getMessFromMail", "mutator" => "setMessFromMail", "required" => "true"),
-        "MESS_FROM_NAME" => array("accessor" => "getMessFromName", "mutator" => "setMessFromName", "required" => "true"),
-        "MESS_DEFAULT" => array("accessor" => "GetMessDefault", "mutator" => "setMessDefault", "required" => "true"),
+        "ADD_TAB_UID" => array("accessor" => "getAddTabUid", "mutator" => "setAddTabUid", "required" => "false"),
+        "ADD_TAB_NAME" => array("accessor" => "getAddTabName", "mutator" => "setAddTabName", "required" => "true"),
+        "ADD_TAB_CLASS_NAME" => array("accessor" => "getAddTabClassName", "mutator" => "setAddTabClassName", "required" => "false"),
+        "ADD_TAB_DESCRIPTION" => array("accessor" => "getAddTabDescription", "mutator" => "setAddTabDescription", "required" => "true"),
+        "ADD_TAB_PLG_UID" => array("accessor" => "getAddTabPlgUid", "mutator" => "setAddTabPlgUid", "required" => "false"),
+        "DBS_UID" => array("accessor" => "getDbsUid", "mutator" => "setDbsUid", "required" => "true"),
+        "PRO_UID" => array("accessor" => "getProUid", "mutator" => "setProUid", "required" => "true"),
+        "ADD_TAB_TYPE" => array("accessor" => "getAddTabType", "mutator" => "setAddTabType", "required" => "true"),
+        "ADD_TAB_GRID" => array("accessor" => "getAddTabGrid", "mutator" => "setAddTabGrid", "required" => "true"),
     );
     
     public function __construct ()
@@ -708,7 +707,7 @@ abstract class BaseAdditionalTables implements Persistent
         }
         else
         {
-            $this->objMysql->_insert ("report_tables.additional_tables", [
+            $id = $this->objMysql->_insert ("report_tables.additional_tables", [
                 "PRO_UID" => $this->pro_uid,
                 "ADD_TAB_TYPE" => $this->add_tab_type,
                 "ADD_TAB_CLASS_NAME" => $this->add_tab_class_name,
@@ -722,6 +721,8 @@ abstract class BaseAdditionalTables implements Persistent
                 "ADD_TAB_PLG_UID" => $this->add_tab_plg_uid
                     ]
             );
+            
+            return $id;
         }
     }
 

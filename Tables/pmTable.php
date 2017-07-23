@@ -32,6 +32,8 @@ class pmTable
     private $db;
     private $alterTable = true;
     private $keepData = false;
+    private $sPrefix = "RPT_";
+    private $objMysql;
 
     public function __construct ($tableName = null)
     {
@@ -41,6 +43,7 @@ class pmTable
             $this->className = $this->toCamelCase ($tableName);
         }
         $this->dbConfig = new StdClass();
+        $this->objMysql = new Mysql2();
     }
 
     /**
@@ -147,14 +150,139 @@ class pmTable
         }
         return implode ('', $tmp);
     }
-    
+
     /**
      * Build the pmTable with all dependencies
      */
     public function build ()
     {
-        echo "<pre>";
-        print_r($this->columns);
-        die;
+        $array = json_decode (json_encode ($this->columns), true);
+
+        $this->createTable ($this->tableName, 'report', 'NORMAL', $array);
     }
+
+    /**
+     * Function createTable
+     * This Function creates the table
+     *
+     * @access public
+     * @param string $sTableName Table name
+     * @param string $sConnection Connection name
+     * @param string $sType
+     * @param array $aFields
+     * @param string $bDefaultFields
+     * @return void
+     */
+    public function createTable ($sTableName, $sConnection = 'report', $sType = 'NORMAL', $aFields = array(), $bDefaultFields = true)
+    {
+        $sTableName = $this->sPrefix . $sTableName;
+        //we have to do the propel connection
+
+        $dbAdapter = "mysql";
+
+        try {
+            switch ($dbAdapter) {
+                case 'mysql':
+                    $sQuery = 'CREATE TABLE IF NOT EXISTS `' . $sTableName . '` (';
+                    if ( $bDefaultFields )
+                    {
+                        $sQuery .= "`id` INT(11) NOT NULL AUTO_INCREMENT,`PRO_UID` INT(11) NOT NULL, `APP_UID` INT(11) NOT NULL,";
+
+                        if ( $sType == 'GRID' )
+                        {
+                            $sQuery .= "`ROW` INT NOT NULL,";
+                        }
+                    }
+                    foreach ($aFields as $aField) {
+
+                        if ( !in_array ($aField['column_name'], array("PRO_UID", "APP_UID")) )
+                        {
+                            switch ($aField['column_type']) {
+                                case 'number':
+                                case 'INTEGER':
+                                    $sQuery .= '`' . $aField['column_name'] . '` INT(' . $aField['column_size'] . ') ' . " NOT NULL DEFAULT '0',";
+                                    break;
+                                case 'char':
+                                case "VARCHAR":
+                                    $sQuery .= '`' . $aField['column_name'] . '` VARCHAR(' . $aField['column_size'] . ')' . " NOT NULL DEFAULT '',";
+                                    break;
+                                case 'text':
+                                    $sQuery .= '`' . $aField['column_name'] . '` TEXT' . " ,";
+                                    break;
+                                case 'date':
+                                    $sQuery .= '`' . $aField['column_name'] . '` DATE' . " NULL,";
+                                    break;
+                            }
+                        }
+                    }
+                    if ( $bDefaultFields )
+                    {
+                        $sQuery .= 'PRIMARY KEY (id' . ($sType == 'GRID' ? ',ROW' : '') . ')) ';
+                    }
+                    $sQuery .= ' DEFAULT CHARSET=utf8;';
+
+                    break;
+                case 'mssql':
+                    $sQuery = 'CREATE TABLE [' . $sTableName . '] (';
+                    if ( $bDefaultFields )
+                    {
+                        $sQuery .= "[APP_UID] VARCHAR(32) NOT NULL DEFAULT '', [APP_NUMBER] INT NOT NULL,";
+                        if ( $sType == 'GRID' )
+                        {
+                            $sQuery .= "[ROW] INT NOT NULL,";
+                        }
+                    }
+                    foreach ($aFields as $aField) {
+                        switch ($aField['sType']) {
+                            case 'number':
+                                $sQuery .= '[' . $aField['sFieldName'] . '] ' . $this->aDef['mssql'][$aField['sType']] . " NOT NULL DEFAULT '0',";
+                                break;
+                            case 'char':
+                                $sQuery .= '[' . $aField['sFieldName'] . '] ' . $this->aDef['mssql'][$aField['sType']] . " NOT NULL DEFAULT '',";
+                                break;
+                            case 'text':
+                                $sQuery .= '[' . $aField['sFieldName'] . '] ' . $this->aDef['mssql'][$aField['sType']] . " NOT NULL DEFAULT '',";
+                                break;
+                            case 'date':
+                                $sQuery .= '[' . $aField['sFieldName'] . '] ' . $this->aDef['mssql'][$aField['sType']] . " NULL,";
+                                break;
+                        }
+                    }
+                    if ( $bDefaultFields )
+                    {
+                        $sQuery .= 'PRIMARY KEY (id' . ($sType == 'GRID' ? ',ROW' : '') . ')) ';
+                    }
+                    else
+                    {
+                        $sQuery .= ' ';
+                    }
+
+
+                    break;
+            }
+
+            $this->objMysql->_query ($sQuery);
+        } catch (Exception $oError) {
+            throw ($oError);
+        }
+    }
+
+    /**
+     * Function populateTable
+     * This Function fills the table
+     *
+     * @access public
+     * @param string $sTableName Table name
+     * @param string $sConnection Connection name
+     * @param string $sType
+     * @param array $aFields
+     * @param string $sProcessUid
+     * @param string $sGrid
+     * @return void
+     */
+    public function populateTable ($sTableName, $sConnection = 'report', $sType = 'NORMAL', $aFields = array(), $sProcessUid = '', $sGrid = '')
+    {
+        
+    }
+
 }

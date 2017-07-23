@@ -120,20 +120,18 @@ abstract class BaseReportField implements Persistent
      */
     protected $alreadyInValidation = false;
     private $objMysql;
-    
     private $arrFieldMapping = array(
-        "MESS_ENGINE" => array("accessor" => "getMessEngine", "mutator" => "setMessEngine", "required" => "true"),
-        "MESS_SERVER" => array("accessor" => "getMessServer", "mutator" => "setMessServer", "required" => "true"),
-        "MESS_PORT" => array("accessor" => "getMessPort", "mutator" => "setMessPort", "required" => "false"),
-        "MESS_ACCOUNT" => array("accessor" => "getMessAccount", "mutator" => "setMessAccount", "required" => "true"),
-        "SMTPSECURE" => array("accessor" => "getSmtpsecure", "mutator" => "setSmtpsecure", "required" => "true"),
-        "MESS_RAUTH" => array("accessor" => "getMessRauth", "mutator" => "setMessRauth", "required" => "true"),
-        "MESS_PASSWORD" => array("accessor" => "getMessPassword", "mutator" => "setMessPassword", "required" => "true"),
-        "MESS_FROM_MAIL" => array("accessor" => "getMessFromMail", "mutator" => "setMessFromMail", "required" => "true"),
-        "MESS_FROM_NAME" => array("accessor" => "getMessFromName", "mutator" => "setMessFromName", "required" => "true"),
-        "MESS_DEFAULT" => array("accessor" => "GetMessDefault", "mutator" => "setMessDefault", "required" => "true"),
+        "FLD_INDEX" => array("accessor" => "getFldIndex", "mutator" => "setFldIndex", "required" => "true"),
+        "ADD_TAB_UID" => array("accessor" => "getAddTabUid", "mutator" => "setAddTabUid", "required" => "true"),
+        "FLD_NAME" => array("accessor" => "getFldName", "mutator" => "setFldName", "required" => "false"),
+        "FLD_DESCRIPTION" => array("accessor" => "getFldDescription", "mutator" => "setFldDescription", "required" => "true"),
+        "FLD_TYPE" => array("accessor" => "getFldType", "mutator" => "setFldType", "required" => "true"),
+        "FLD_SIZE" => array("accessor" => "getFldSize", "mutator" => "setFldSize", "required" => "true"),
+        "FLD_NULL" => array("accessor" => "getFldNull", "mutator" => "setFldNull", "required" => "true"),
+        "FLD_AUTO_INCREMENT" => array("accessor" => "getFldAutoIncrement", "mutator" => "setFldAutoIncrement", "required" => "true"),
+        "FLD_KEY" => array("accessor" => "getFldKey", "mutator" => "setFldKey", "required" => "true"),
+        "FLD_DYN_UID" => array("accessor" => "getFldDynUid", "mutator" => "setFldDynUid", "required" => "false"),
     );
-    
 
     public function __construct ()
     {
@@ -659,7 +657,8 @@ abstract class BaseReportField implements Persistent
                 "FLD_AUTO_INCREMENT" => $this->fld_auto_increment,
                 "FLD_TABLE_INDEX" => $this->fld_index,
                 "FLD_FOREIGN_KEY" => $this->fld_foreign_key,
-                "FLD_FILTER" => $this->fld_filter
+                "FLD_FILTER" => $this->fld_filter,
+                "FLD_DYN_UID" => $this->fld_dyn_uid
                     ], ["FLD_UID" => $this->fld_uid]
             );
         }
@@ -676,12 +675,12 @@ abstract class BaseReportField implements Persistent
                 "FLD_AUTO_INCREMENT" => $this->fld_auto_increment,
                 "FLD_TABLE_INDEX" => $this->fld_index,
                 "FLD_FOREIGN_KEY" => $this->fld_foreign_key,
-                "FLD_FILTER" => $this->fld_filter
+                "FLD_FILTER" => $this->fld_filter,
+                "FLD_DYN_UID" => $this->fld_dyn_uid
                     ]
             );
         }
     }
-
 
     /**
      * Validates the objects modified field values and all objects related to this table.
@@ -714,6 +713,7 @@ abstract class BaseReportField implements Persistent
         }
         return TRUE;
     }
+
     public function loadObject (array $arrData)
     {
         foreach ($arrData as $formField => $formValue) {

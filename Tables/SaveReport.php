@@ -17,7 +17,7 @@ class SaveReport
     private $fields;
     private $tableName;
     private $objMysql;
-    private $datebaseName = "report_tables";
+    private $datebaseName = "task_manager";
     private $appUid;
     private $projectId;
     private $blUpdate = false;
@@ -40,7 +40,8 @@ class SaveReport
     public function setAppUid ($appUid)
     {
         $this->appUid = $appUid;
-        $this->fields['app_id'] = $appUid;
+        $this->fields['APP_UID'] = $appUid;
+        $this->fields['APP_STATUS'] = 'ACTIVE';
     }
 
     public function getProjectId ()
@@ -51,14 +52,14 @@ class SaveReport
     public function setProjectId ($projectId)
     {
         $this->projectId = $projectId;
-        $this->fields['pro_uid'] = $projectId;
+        $this->fields['PRO_UID'] = $projectId;
     }
 
     public function setVariable ($fieldName, $fieldValue)
     {
         $this->fields[$fieldName] = $fieldValue;
     }
-    
+
     public function getBlUpdate ()
     {
         return $this->blUpdate;
@@ -69,7 +70,6 @@ class SaveReport
         $this->blUpdate = $blUpdate;
     }
 
-    
     public function save ()
     {
         if ( $this->blUpdate === FALSE )

@@ -57,51 +57,88 @@ class AdditionalTables extends BaseAdditionalTables
 
     public function __construct ()
     {
-        parent::__construct();
+        parent::__construct ();
         $this->objMysql = new Mysql2();
     }
 
-    
     /**
      * Function load
      * access public
      */
-    public function load($sUID, $bFields = false)
+    public function load ($sUID, $bFields = false)
     {
-        $aFields = $this->retrieveByPK($sUID);
-        
-        if (is_null($oAdditionalTables)) {
+        $aFields = $this->retrieveByPK ($sUID);
+
+        if ( is_null ($aFields) )
+        {
             return null;
         }
-        
-        $this->loadObject($aFields);
-        
-        if ($bFields) {
-            $aFields['FIELDS'] = $this->getFields();
+
+        $this->loadObject ($aFields);
+
+        if ( $bFields )
+        {
+            $aFields['FIELDS'] = $this->getFields ();
         }
         return $aFields;
     }
-    
-    public function getFields()
+
+    /**
+     * Populate the report table with all case data
+     * @param string $sType
+     * @param string $sProcessUid
+     * @param string $sGrid
+     * @return number
+     */
+    public function populateReportTable ($pro_uid, $rep_uid, $tableName, $validate)
     {
-        if (count($this->fields) > 0) {
+        $results = $this->objMysql->_select ("workflow.workflow_data");
+
+        if ( !isset ($results[0]) || empty ($results[0]) )
+        {
+            return false;
+        }
+
+        foreach ($results as $result) {
+            $workflowData = json_decode ($result['workflow_data'], true);
+            $projectId = $result['object_id'];
+
+            if ( isset ($workflowData['elements']) && !empty ($workflowData['elements']) )
+            {
+                foreach ($workflowData['elements'] as $elementId => $element) {
+                    if ( $element['workflow_id'] === $pro_uid )
+                    {
+                        $objElement = new Elements ($projectId, $elementId);
+                        $this->updateReportTables ($objElement);
+                    }
+                }
+            }
+        }
+
+        die;
+    }
+
+    public function getFields ()
+    {
+        if ( count ($this->fields) > 0 )
+        {
             return $this->fields;
         }
-        
-        $results = $this->objMysql->_select("report_tables.report_fields", [], ["ADD_TAB_UID" => $this->getAddTabUid()]);
-        
-        
-        while ($results as $auxField) {
-            
-            if ($auxField['FLD_TYPE'] == 'TIMESTAMP') {
+
+        $results = $this->objMysql->_select ("report_tables.fields", [], ["ADD_TAB_UID" => $this->getAddTabUid ()]);
+
+
+        foreach ($results as $auxField) {
+
+            if ( $auxField['FLD_TYPE'] == 'TIMESTAMP' )
+            {
                 $auxField['FLD_TYPE'] = 'DATETIME';
             }
             $this->fields[] = $auxField;
         }
         return $this->fields;
     }
-    
-    
+
     /**
      * verify if Additional Table row specified in [sUID] exists.
      *
@@ -110,29 +147,32 @@ class AdditionalTables extends BaseAdditionalTables
     public function exists ($sUID)
     {
         try {
-            $oPro = $this->retrieveByPk($sUID);
-            if (is_object($oPro) && get_class($oPro) == 'AdditionalTables') {
+            $oPro = $this->retrieveByPk ($sUID);
+            if ( is_object ($oPro) && get_class ($oPro) == 'AdditionalTables' )
+            {
                 return true;
-            } else {
+            }
+            else
+            {
                 return false;
             }
         } catch (Exception $oError) {
             throw ($oError);
         }
     }
-    
-       /**
+
+    /**
      * Retrieve a single object by pkey.
      *
      * @param      mixed $pk the primary key.
      * @param      Connection $con the connection to use
      * @return     AdditionalTables
      */
-    public static function retrieveByPK($pk)
+    public function retrieveByPK ($pk)
     {
-        $results = $this->objMysql->_select("report_tables.additional_tables", [], ["ADD_TAB_UID" => $pk]);
-        
-        return isset($results[0]) && !empty($results[0]) ? $results[0]™: null;
+        $results = $this->objMysql->_select ("report_tables.additional_tables", [], ["ADD_TAB_UID" => $pk]);
+
+        return isset ($results[0]) && !empty ($results[0]) ? $results[0] : null;
     }
 
     /**
@@ -160,11 +200,11 @@ class AdditionalTables extends BaseAdditionalTables
 
         foreach ($results as $result) {
 
-            $className = $result['ADD_TAB_CLASS_NAME'];
+            $className = "rpt_" . strtolower ($result['ADD_TAB_CLASS_NAME']);
 
             $criteria = $this->objMysql->_query ("SELECT `COLUMN_NAME`, DATA_TYPE  
                                                     FROM `INFORMATION_SCHEMA`.`COLUMNS` 
-                                                    WHERE `TABLE_SCHEMA`='report_tables' 
+                                                    WHERE `TABLE_SCHEMA`='task_manager' 
                                                         AND `TABLE_NAME`='" . $className . "';");
 
 
@@ -173,7 +213,7 @@ class AdditionalTables extends BaseAdditionalTables
                 continue;
             }
 
-            $record = $this->objMysql->_select ("report_tables.{$className}", [], ["pro_uid" => $objElement->getSource_id (), "app_id" => $objElement->getId ()]);
+            $record = $this->objMysql->_select ("task_manager.{$className}", [], ["pro_uid" => $objElement->getSource_id (), "APP_UID" => $objElement->getId ()]);
 
             $objSaveReport = new SaveReport();
             $objSaveReport->setProjectId ($objElement->getSource_id ());
@@ -195,6 +235,7 @@ class AdditionalTables extends BaseAdditionalTables
             switch ($result['ADD_TAB_TYPE']) {
                 //switching by report table type
                 case 'NORMAL':
+                case "GLOBAL":
 
                     // parsing empty values to null
                     if ( !is_array ($objElement->arrElement) )
@@ -261,7 +302,7 @@ class AdditionalTables extends BaseAdditionalTables
             {
                 $iResult = $oAdditionalTables->save ();
 
-                return $aData['ADD_TAB_UID'];
+                return $iResult;
             }
             else
             {

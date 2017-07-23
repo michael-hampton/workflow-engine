@@ -117,18 +117,17 @@ class Table
      *
      * @return void
      */
-    public function generateDataReport ($pro_uid, $rep_uid, $validate = true)
+    public function generateDataReport ($pro_uid, $rep_uid, $tableName, $validate = true)
     {
         if ( $validate )
         {
             $pro_uid = $this->validateProUid ($pro_uid);
             $rep_uid = $this->validateTabUid ($rep_uid);
         }
-        $additionalTables = new AdditionalTables();
-        $table = $additionalTables->load ($rep_uid);
-        $additionalTables->populateReportTable (
-                $table['ADD_TAB_NAME'], \pmTable::resolveDbSource ($table['DBS_UID']), $table['ADD_TAB_TYPE'], $table['PRO_UID'], $table['ADD_TAB_GRID'], $table['ADD_TAB_UID']
-        );
+        
+        $additionalTables = new \AdditionalTables();
+//        $table = $additionalTables->load ($rep_uid);
+        $additionalTables->populateReportTable ($pro_uid, $rep_uid, $tableName);
     }
 
     /**
@@ -284,10 +283,8 @@ class Table
         //backward compatility
         $flagKey = false;
         $columnsStd = array();
-       
+        
         foreach ($columns as $i => $column) {
-
-            print_r ($columns[$i]);
 
             $columns[$i]['field_dyn'] = $columns[$i]['field_name'];
 
@@ -353,20 +350,7 @@ class Table
                     $columns[$i]['column_type'] = false;
                 }
             }
-            if ( isset ($columns[$i]['field_dyn']) && $columns[$i]['field_dyn'] != '' )
-            {
-                $res = array_search ($columns[$i]['field_dyn'], $fieldsValidate['NAMES']);
-                if ( $res === false )
-                {
-                    throw (new \Exception ("The property fld_dyn: '" . $columns[$i]['field_dyn'] . "' is incorrect."));
-                }
-                else
-                {
-                    $columns[$i]['_index'] = $fieldsValidate['INDEXS'][$res];
-                    $columns[$i]['field_uid'] = $fieldsValidate['UIDS'][$res];
-                }
-            }
-
+ 
             $temp = new \stdClass();
             foreach ($columns[$i] as $key => $valCol) {
                 eval ('$temp->' . str_replace ('fld', 'field', $key) . " = '" . $valCol . "';");
@@ -398,7 +382,7 @@ class Table
             throw (new \Exception ("The fields must have a key 'fld_key'"));
         }
 
-        $pmTable = new \pmTable ($tableName);
+        $pmTable = new \pmTable ($repTabClassName);
         $pmTable->setDataSource ($tableCon);
         $pmTable->setColumns ($columnsStd);
         $pmTable->setAlterTable (true);
@@ -461,6 +445,7 @@ class Table
 
         // Updating pmtable fields
         foreach ($columnsStd as $i => $column) {
+
             $column = (array) $column;
             $field = array(
                 'FLD_UID' => $column['uid'],
@@ -476,7 +461,7 @@ class Table
                 'FLD_FOREIGN_KEY' => 0,
                 'FLD_FOREIGN_KEY_TABLE' => '',
                 'FLD_DYN_NAME' => $column['field_dyn'],
-                'FLD_DYN_UID' => $column['field_uid'],
+                'FLD_DYN_UID' => $column['field_dyn'],
                 'FLD_FILTER' => (isset ($column['field_filter']) && $column['field_filter']) ? 1 : 0
             );
             $oFields->create ($field);
@@ -484,7 +469,7 @@ class Table
         if ( $reportFlag )
         {
             $rep_uid = $addTabUid;
-            $this->generateDataReport ($pro_uid, $rep_uid, false);
+            $this->generateDataReport ($pro_uid, $rep_uid, $repTabClassName, false);
         }
         if ( $createRep )
         {
@@ -913,8 +898,8 @@ class Table
             'field_uid' => '',
             'column_name' => 'APP_UID',
             'label' => 'APP_UID',
-            'column_type' => 'VARCHAR',
-            'column_size' => 32,
+            'column_type' => 'INTEGER',
+            'column_size' => 11,
             'field_dyn' => '',
             'field_key' => 1,
             'field_null' => 0,
@@ -926,8 +911,8 @@ class Table
             'uid' => '',
             'field_name' => '',
             'field_uid' => '',
-            'column_name' => 'APP_NUMBER',
-            'label' => 'APP_NUMBER',
+            'column_name' => 'PRO_UID',
+            'label' => 'PRO_UID',
             'column_type' => 'INTEGER',
             'column_size' => 11,
             'field_dyn' => '',
