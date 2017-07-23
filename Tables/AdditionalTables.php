@@ -114,16 +114,125 @@ class AdditionalTables extends BaseAdditionalTables
                 }
             }
         }
+    }
 
-        die;
+    public function getAllData ($sUID, $start = null, $limit = null, $keyOrderUppercase = true, $filter = '', $appUid = false, $search = '')
+    {
+        $addTab = new AdditionalTables();
+        $aData = $addTab->load ($sUID, true);
+
+        if ( !isset ($_SESSION['PROCESS']) )
+        {
+            $_SESSION["PROCESS"] = $aData['PRO_UID'];
+        }
+        $aData['DBS_UID'] = isset ($aData['DBS_UID']) ? $aData['DBS_UID'] : 'workflow';
+
+        $sql = " SELECT ";
+
+        foreach ($aData['FIELDS'] as $aField) {
+            $sql .= $aField['FLD_NAME'] . ",";
+        }
+
+        $sql = rtrim ($sql, ',');
+
+        $sql .= " FROM task_manager.rpt_" . strtolower ($aData['ADD_TAB_CLASS_NAME']);
+
+        if ( $filter != '' && is_string ($filter) )
+        {
+            $stringOr = '';
+            $closure = '';
+            $types = array('INTEGER', 'BIGINT', 'SMALLINT', 'TINYINT', 'DECIMAL', 'DOUBLE', 'FLOAT', 'REAL');
+            foreach ($aData['FIELDS'] as $aField) {
+                if ( ($appUid == false && $aField['FLD_NAME'] != 'APP_UID') || ($appUid == true) )
+                {
+                    if ( in_array ($aField['FLD_TYPE'], $types) )
+                    {
+                        if ( is_numeric ($filter) )
+                        {
+                            $stringOr = $stringOr . $aField['FLD_NAME'] . ' = "' . $filter . ';';
+                        }
+                    }
+                    else
+                    {
+                        $stringOr = $stringOr . $aField['FLD_NAME'] . ' LIKE "%' . $filter . '%"';
+                    }
+                }
+            }
+        }
+
+        if ( $search !== '' && is_string ($search) )
+        {
+            try {
+                $object = json_decode ($search);
+                if ( isset ($object->where) )
+                {
+                    $stringAnd = "";
+                    $closure = "";
+                    $fields = $object->where;
+                    foreach ($fields as $key => $value) {
+                        if ( is_string ($value) )
+                        {
+                            $stringAnd = $stringAnd . " AND " . $key . " = " . $value;
+                        }
+                        if ( is_object ($value) )
+                        {
+
+                            if ( isset ($value->like) )
+                            {
+                                $stringAnd = $stringAnd . " AND $key LIKE '%" . $value->like . "%'";
+                            }
+                            if ( isset ($value->nlike) )
+                            {
+                                $stringAnd = $stringAnd . " AND $key NOT LIKE '%" . $value->nlike . "%'";
+                            }
+
+                            if ( isset ($value->neq) )
+                            {
+                                $stringAnd = $stringAnd . " AND $key != " . $value->like . " ";
+                            }
+                        }
+                    }
+                    if ( !empty ($stringAnd) )
+                    {
+                        $stringAnd = " AND (" . $stringAnd . ")";
+                    }
+                }
+            } catch (Exception $e) {
+                throw $e;
+            }
+        }
+
+        $count = $this->objMysql->_query ($sql);
+        $count = count ($count);
+
+        if ( isset ($_POST['sort']) )
+        {
+            if ( $_POST['dir'] == 'ASC' )
+            {
+                $sql .= "ORDER BY " . $_POST['sort'] . " ASC";
+            }
+            else
+            {
+                $sql .= "ORDER BY " . $_POST['sort'] . " DESC";
+            }
+        }
+
+        if ( isset ($limit) )
+        {
+            $sql .= " LIMIT " . (int) $limit;
+        }
+        if ( isset ($start) )
+        {
+            $sql .= " OFFSET " . (int) $start;
+        }
+
+        $results = $this->objMysql->_query ($sql);
+
+        return array('rows' => $results, 'count' => $count);
     }
 
     public function getFields ()
     {
-        if ( count ($this->fields) > 0 )
-        {
-            return $this->fields;
-        }
 
         $results = $this->objMysql->_select ("report_tables.fields", [], ["ADD_TAB_UID" => $this->getAddTabUid ()]);
 

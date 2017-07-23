@@ -16,10 +16,6 @@ class Table
      * List of Tables in process
      * @var string $pro_uid. Uid for process
      * @var string $reportFlag. If is report table
-     *
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
-     *
      * @return array
      */
     public function getTables ($pro_uid = '', $reportFlag = false)
@@ -66,13 +62,14 @@ class Table
         $additionalTables = new \AdditionalTables();
         // TABLE PROPERTIES
         $table = $additionalTables->load ($tab_uid, true);
-        $table['DBS_UID'] = $table['DBS_UID'] == null || $table['DBS_UID'] == '' ? 'workflow' : $table['DBS_UID'];
+        
+        $table['DBS_UID'] = !isset($table['DBS_UID']) || $table['DBS_UID'] == '' ? 'workflow' : $table['DBS_UID'];
         // TABLE NUM ROWS DATA
-        $tableData = $additionalTables->getAllData ($tab_uid, 0, 2);
+        $tableData = $additionalTables->getAllData ($tab_uid, 0, 20);
         if ( $reportFlag )
         {
             $tabData['REP_UID'] = $tab_uid;
-            $tabData['REP_TAB_NAME'] = $table['ADD_TAB_NAME'];
+            $tabData['REP_TAB_NAME'] = $table['ADD_TAB_CLASS_NAME'];
             $tabData['REP_TAB_DESCRIPTION'] = $table['ADD_TAB_DESCRIPTION'];
             $tabData['REP_TAB_CLASS_NAME'] = $table['ADD_TAB_CLASS_NAME'];
             $tabData['REP_TAB_CONNECTION'] = $table['DBS_UID'];
@@ -83,26 +80,23 @@ class Table
         else
         {
             $tabData['PMT_UID'] = $tab_uid;
-            $tabData['PMT_TAB_NAME'] = $table['ADD_TAB_NAME'];
+            $tabData['PMT_TAB_NAME'] = $table['ADD_TAB_CLASS_NAME'];
             $tabData['PMT_TAB_DESCRIPTION'] = $table['ADD_TAB_DESCRIPTION'];
             $tabData['PMT_TAB_CLASS_NAME'] = $table['ADD_TAB_CLASS_NAME'];
             $tabData['PMT_NUM_ROWS'] = $tableData['count'];
         }
+        
         // TABLE FIELDS
         $hiddenFields = array(
             'fld_foreign_key', 'fld_foreign_key_table',
             'fld_dyn_name', 'fld_dyn_uid', 'fld_filter'
         );
-        foreach ($table['FIELDS'] as $valField) {
-            foreach ($valField as $key => $value) {
-                if ( in_array ($key, $hiddenFields) )
-                {
-                    unset ($fieldTemp[$key]);
-                }
-            }
-            $tabData['FIELDS'][] = $fieldTemp;
-        }
         
+        foreach ($table['FIELDS'] as $valField) {
+
+            $tabData['FIELDS'][] = $valField;
+        }
+
         return $tabData;
     }
 
