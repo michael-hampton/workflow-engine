@@ -167,6 +167,10 @@ class Table
         }
         return $result;
     }
+    
+    public function dropTable($tableName) {
+        $this->objMysql->_query('DROP TABLE IF EXISTS `".$tableName."`');
+        }
 
     /**
      * Save Data for Table
@@ -264,9 +268,12 @@ class Table
         // validations
         if ( $createRep )
         {
-            if ( is_array ($oAdditionalTables->loadByName ($tableName)) )
+            $data = $oAdditionalTables->loadByName ($tableName);
+            if ( is_array ($data) )
             {
-                throw new Exception ('ID_PMTABLE_ALREADY_EXISTS');
+                $this->dropTable($tableName):
+                $this->deleteTable($data[0]["ADD_TAB_UID"]);
+                //throw new Exception ('ID_PMTABLE_ALREADY_EXISTS');
             }
         }
         if ( in_array (strtoupper ($tableName), $reservedWords) ||
@@ -697,17 +704,7 @@ class Table
         }
         $tab_uid = $this->validateTabUid ($tab_uid, $reportFlag);
         $at = new AdditionalTables();
-        $table = $at->load ($tab_uid);
-        if ( !isset ($table) )
-        {
-            require_once 'classes/model/ReportTable.php';
-            $rtOld = new ReportTable();
-            $existReportTableOld = $rtOld->load ($tab_uid);
-            if ( count ($existReportTableOld) == 0 )
-            {
-                throw new Exception (G::LoadTranslation ('ID_TABLE_NOT_EXIST_SKIPPED'));
-            }
-        }
+        
         $at->deleteAll ($tab_uid);
     }
 
