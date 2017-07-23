@@ -61,6 +61,45 @@ class AdditionalTables extends BaseAdditionalTables
         $this->objMysql = new Mysql2();
     }
 
+    
+    /**
+     * Function load
+     * access public
+     */
+    public function load($sUID, $bFields = false)
+    {
+        $aFields = $this->retrieveByPK($sUID);
+        
+        if (is_null($oAdditionalTables)) {
+            return null;
+        }
+        
+        $this->loadObject($aFields);
+        
+        if ($bFields) {
+            $aFields['FIELDS'] = $this->getFields();
+        }
+        return $aFields;
+    }
+    public function getFields()
+    {
+        if (count($this->fields) > 0) {
+            return $this->fields;
+        }
+        
+        $results = $this->objMysql->_select("report_tables.report_fields", [], ["ADD_TAB_UID" => $this->getAddTabUid()]);
+        
+        
+        while ($results as $auxField) {
+            
+            if ($auxField['FLD_TYPE'] == 'TIMESTAMP') {
+                $auxField['FLD_TYPE'] = 'DATETIME';
+            }
+            $this->fields[] = $auxField;
+        }
+        return $this->fields;
+    }
+    
     /**
      * Update the report table with a determinated case data
      * @param string $proUid
