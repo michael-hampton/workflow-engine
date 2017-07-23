@@ -30,13 +30,9 @@ class Table
             $pro_uid = $this->validateProUid ($pro_uid);
         }
         $reportTables = array();
-        $oCriteria = new \Criteria ('workflow');
-        $oCriteria->addSelectColumn (\AdditionalTablesPeer::ADD_TAB_UID);
-        $oCriteria->add (\AdditionalTablesPeer::PRO_UID, $pro_uid, \Criteria::EQUAL);
-        $oDataset = \AdditionalTablesPeer::doSelectRS ($oCriteria);
-        $oDataset->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
-        while ($oDataset->next ()) {
-            $row = $oDataset->getRow ();
+     
+        $results = $this->objMysql->_select('report_tables.additional_tables', [], ["PRO_UID" => $pro_uid]);
+        foreach ($results as $row) {
             $reportTables[] = $this->getTable ($row['ADD_TAB_UID'], $pro_uid, $reportFlag, false);
         }
         return $reportTables;
@@ -67,7 +63,7 @@ class Table
             $tab_uid = $this->validateTabUid ($tab_uid, $reportFlag);
         }
         $tabData = array();
-        $additionalTables = new AdditionalTables();
+        $additionalTables = new \AdditionalTables();
         // TABLE PROPERTIES
         $table = $additionalTables->load ($tab_uid, true);
         $table['DBS_UID'] = $table['DBS_UID'] == null || $table['DBS_UID'] == '' ? 'workflow' : $table['DBS_UID'];
@@ -98,9 +94,7 @@ class Table
             'fld_dyn_name', 'fld_dyn_uid', 'fld_filter'
         );
         foreach ($table['FIELDS'] as $valField) {
-            $fieldTemp = array();
-            $fieldTemp = array_change_key_case ($valField, CASE_LOWER);
-            foreach ($fieldTemp as $key => $value) {
+            foreach ($valField as $key => $value) {
                 if ( in_array ($key, $hiddenFields) )
                 {
                     unset ($fieldTemp[$key]);
@@ -108,7 +102,7 @@ class Table
             }
             $tabData['FIELDS'][] = $fieldTemp;
         }
-        $tabData = array_change_key_case ($tabData, CASE_LOWER);
+        
         return $tabData;
     }
 
