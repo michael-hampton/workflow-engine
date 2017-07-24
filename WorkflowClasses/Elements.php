@@ -423,6 +423,18 @@ class Elements
             $this->JSON = $JSON;
         }
     }
+    
+     public function updateTitle(\Users $objUser)
+    {
+        $this->getElement();
+        $objCases = new \BusinessModel\Cases();
+        $Fields = $objCases->getCaseVariables($this->id, $objUser->getUserId(), $this->source_id, "PENDING");
+
+        $title = $objCases->replaceDataField($this->name, $Fields);
+        
+        $this->setName($title);
+        $this->save();
+    }
 
     public function getElement ()
     {
