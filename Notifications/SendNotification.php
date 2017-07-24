@@ -66,63 +66,64 @@ class SendNotification extends Notification
 
             $this->subject = $this->message['message_subject'];
             $this->body = $this->message['message_body'];
-            
+
             $noteRecipientsList = array();
 
             if ( !empty ($this->arrEmailAddresses) )
             {
-                $noteRecipientsList[] = $this->arrEmailAddresses);
+                $noteRecipientsList[] = $this->arrEmailAddresses;
             }
-          
-                if ( $blSendToAllParticipants === true )
+
+            if ( $blSendToAllParticipants === true )
+            {
+                $case = new \BusinessModel\Cases();
+                $p = $case->getUsersParticipatedInCase ($this->projectId);
+
+                if ( !empty ($p) )
                 {
-                    $case = new \BusinessModel\Cases();
-                    $p = $case->getUsersParticipatedInCase ($this->projectId);
+                    foreach ($p as $userParticipated) {
+                        if ( $userParticipated != '' )
+                        {
+                            $objUsers = new \BusinessModel\UsersFactory();
+                            $arrUser = $objUsers->getUsers (array("filter" => "mike", "filterOption" => trim ($userParticipated)));
 
-                    if ( !empty ($p) )
-                    {
-                        foreach ($p as $userParticipated) {
-                            if ( $userParticipated != '' )
+                            if ( isset ($arrUser['data'][0]) && !empty ($arrUser['data'][0]) )
                             {
-                                $objUsers = new \BusinessModel\UsersFactory();
-                                $arrUser = $objUsers->getUsers (array("filter" => "mike", "filterOption" => trim ($userParticipated)));
+                                $objUser = $arrUser['data'][0];
+                            }
 
-                                if ( isset ($arrUser['data'][0]) && !empty ($arrUser['data'][0]) )
-                                {
-                                    $objUser = $arrUser['data'][0];
-                                }
-
-                                if ( is_object ($objUser) && get_class ($objUser) === "Users" )
-                                {
-                                    $emailAddress = $objUser->getUser_email ();
-                                    $noteRecipientsList[] = $emailAddress;
-                                }
+                            if ( is_object ($objUser) && get_class ($objUser) === "Users" )
+                            {
+                                $emailAddress = $objUser->getUser_email ();
+                                $noteRecipientsList[] = $emailAddress;
                             }
                         }
                     }
+                }
+            }
 
-                    if ( !in_array ($this->message['to'], $noteRecipientsList) && trim($this->message['to']) !== '' )
-                    {
-                        $noteRecipientsList[] = $this->message['to'];
-                    }
+            if ( !in_array ($this->message['to'], $noteRecipientsList) && trim ($this->message['to']) !== '' )
+            {
+                $noteRecipientsList[] = $this->message['to'];
+            }
 
-                    $noteRecipients = implode (",", $noteRecipientsList);
+            $noteRecipients = implode (",", $noteRecipientsList);
 
-                    $this->recipient = $noteRecipients;
-               
+            $this->recipient = $noteRecipients;
+
 
             $objCases = new \BusinessModel\Cases();
 
             $Fields = $objCases->getCaseVariables ($this->elementId, $this->projectId, $objTask->getStepId ());
-            
+
             $this->subject = $objCases->replaceDataField ($this->subject, $Fields);
             $this->body = $objCases->replaceDataField ($this->body, $Fields);
-                        
+
             $this->sendMessage ();
-            
+
             //	sending email notification
             $this->notificationEmail ($this->recipient, $this->subject, $this->body);
-            
+
             return true;
         } catch (Exception $ex) {
             throw $ex;
@@ -153,7 +154,7 @@ class SendNotification extends Notification
             "step_id" => $this->status
                 )
         );
-        
+
         return $id;
     }
 
@@ -166,10 +167,10 @@ class SendNotification extends Notification
     public function notificationEmail ($sendto, $message_subject, $message_body)
     {
         $environment = "DEV";
-        
-        $from = trim($this->from) !== "") ? $this->from : $this->defaultFrom;
-        $fromName = trim($this->fromName) !== "") ? $this->fromName : "";
-        
+
+        $from = trim($this->from) !== "" ? $this->from : $this->defaultFrom;
+        $fromName = trim($this->fromName) !== "" ? $this->fromName : "";
+
         switch ($environment) {
 
             case "DEV":
@@ -185,15 +186,17 @@ class SendNotification extends Notification
                 break;
         }
 
-        $headers = $fromName . ''.$from.'' . "\r\n" .
+        $headers = $fromName . '' . $from . '' . "\r\n" .
                 'X-Mailer: PHP/' . phpversion ();
-        
-        if(trim($this->cc) !== '') {
-            $headers .= "CC: CC Name ".$this->cc."\n";
+
+        if ( trim ($this->cc) !== '' )
+        {
+            $headers .= "CC: CC Name " . $this->cc . "\n";
         }
-        
-        if(trim($this->bcc) !== "") {
-            $headers .= "BCC: ".$this->bcc."\n"; 
+
+        if ( trim ($this->bcc) !== "" )
+        {
+            $headers .= "BCC: " . $this->bcc . "\n";
         }
 
         $message = $sendto . " " . $message_subject . " " . $message_body;

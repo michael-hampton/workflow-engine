@@ -264,14 +264,13 @@ class AdditionalTables extends BaseAdditionalTables
     {
         try {
             $oPro = $this->retrieveByPk ($sUID);
-            if ( is_object ($oPro) && get_class ($oPro) == 'AdditionalTables' )
-            {
-                return true;
-            }
-            else
-            {
+          
+            if($oPro === null) {
                 return false;
             }
+            
+            return true;
+            
         } catch (Exception $oError) {
             throw ($oError);
         }

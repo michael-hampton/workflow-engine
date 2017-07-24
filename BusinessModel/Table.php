@@ -26,8 +26,8 @@ class Table
             $pro_uid = $this->validateProUid ($pro_uid);
         }
         $reportTables = array();
-     
-        $results = $this->objMysql->_select('report_tables.additional_tables', [], ["PRO_UID" => $pro_uid]);
+
+        $results = $this->objMysql->_select ('report_tables.additional_tables', [], ["PRO_UID" => $pro_uid]);
         foreach ($results as $row) {
             $reportTables[] = $this->getTable ($row['ADD_TAB_UID'], $pro_uid, $reportFlag, false);
         }
@@ -62,8 +62,8 @@ class Table
         $additionalTables = new \AdditionalTables();
         // TABLE PROPERTIES
         $table = $additionalTables->load ($tab_uid, true);
-        
-        $table['DBS_UID'] = !isset($table['DBS_UID']) || $table['DBS_UID'] == '' ? 'workflow' : $table['DBS_UID'];
+
+        $table['DBS_UID'] = !isset ($table['DBS_UID']) || $table['DBS_UID'] == '' ? 'workflow' : $table['DBS_UID'];
         // TABLE NUM ROWS DATA
         $tableData = $additionalTables->getAllData ($tab_uid, 0, 20);
         if ( $reportFlag )
@@ -74,7 +74,7 @@ class Table
             $tabData['REP_TAB_CLASS_NAME'] = $table['ADD_TAB_CLASS_NAME'];
             $tabData['REP_TAB_CONNECTION'] = $table['DBS_UID'];
             $tabData['REP_TAB_TYPE'] = $table['ADD_TAB_TYPE'];
-            $tabData['REP_TAB_GRID'] = $table['ADD_TAB_GRID'];
+            $tabData['REP_TAB_GRID'] = isset ($table['ADD_TAB_GRID']) ? $table['ADD_TAB_GRID'] : 0;
             $tabData['REP_NUM_ROWS'] = $tableData['count'];
         }
         else
@@ -85,13 +85,13 @@ class Table
             $tabData['PMT_TAB_CLASS_NAME'] = $table['ADD_TAB_CLASS_NAME'];
             $tabData['PMT_NUM_ROWS'] = $tableData['count'];
         }
-        
+
         // TABLE FIELDS
         $hiddenFields = array(
             'fld_foreign_key', 'fld_foreign_key_table',
             'fld_dyn_name', 'fld_dyn_uid', 'fld_filter'
         );
-        
+
         foreach ($table['FIELDS'] as $valField) {
 
             $tabData['FIELDS'][] = $valField;
@@ -118,7 +118,7 @@ class Table
             $pro_uid = $this->validateProUid ($pro_uid);
             $rep_uid = $this->validateTabUid ($rep_uid);
         }
-        
+
         $additionalTables = new \AdditionalTables();
 //        $table = $additionalTables->load ($rep_uid);
         $additionalTables->populateReportTable ($pro_uid, $rep_uid, $tableName);
@@ -167,10 +167,13 @@ class Table
         }
         return $result;
     }
-    
-    public function dropTable($tableName) {
-        $this->objMysql->_query('DROP TABLE IF EXISTS `".$tableName."`');
-        }
+
+    public function dropTable ($tableName)
+    {
+        $tableName = "rpt_".strtolower($tableName);
+        
+        $this->objMysql->_query ('DROP TABLE IF EXISTS ' . $tableName . ' ');
+    }
 
     /**
      * Save Data for Table
@@ -271,8 +274,8 @@ class Table
             $data = $oAdditionalTables->loadByName ($tableName);
             if ( is_array ($data) )
             {
-                $this->dropTable($tableName):
-                $this->deleteTable($data[0]["ADD_TAB_UID"]);
+                $this->dropTable ($tableName);
+                $this->deleteTable ($data[0]["ADD_TAB_UID"]);
                 //throw new Exception ('ID_PMTABLE_ALREADY_EXISTS');
             }
         }
@@ -284,7 +287,7 @@ class Table
         //backward compatility
         $flagKey = false;
         $columnsStd = array();
-        
+
         foreach ($columns as $i => $column) {
 
             $columns[$i]['field_dyn'] = $columns[$i]['field_name'];
@@ -302,10 +305,10 @@ class Table
             {
                 $columns[$i]['column_type'] = $columns[$i]['column_type'];
             }
-            
+
             if ( isset ($columns[$i]['column_size']) )
             {
-                $columns[$i]['column_size'] =  $columns[$i]['column_size'];
+                $columns[$i]['column_size'] = $columns[$i]['column_size'];
                 if ( !is_numeric ($columns[$i]['column_size']) )
                 {
                     throw (new \Exception ("The property fld_size: '" . $columns[$i]['column_size'] . "' is incorrect numeric value."));
@@ -351,7 +354,7 @@ class Table
                     $columns[$i]['column_type'] = false;
                 }
             }
- 
+
             $temp = new \stdClass();
             foreach ($columns[$i] as $key => $valCol) {
                 eval ('$temp->' . str_replace ('fld', 'field', $key) . " = '" . $valCol . "';");
@@ -441,7 +444,7 @@ class Table
             $oCriteria->add (\FieldsPeer::ADD_TAB_UID, $dataValidate['TAB_UID']);
             \FieldsPeer::doDelete ($oCriteria);
         }
-        
+
         $oFields = new \ReportField();
 
         // Updating pmtable fields
@@ -703,8 +706,8 @@ class Table
             $pro_uid = $this->validateProUid ($pro_uid);
         }
         $tab_uid = $this->validateTabUid ($tab_uid, $reportFlag);
-        $at = new AdditionalTables();
-        
+        $at = new \AdditionalTables();
+
         $at->deleteAll ($tab_uid);
     }
 

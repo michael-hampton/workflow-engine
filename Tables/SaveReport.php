@@ -79,8 +79,8 @@ class SaveReport
         else
         {
             $this->objMysql->_update ($this->datebaseName . "." . $this->tableName, $this->fields, [
-                "pro_uid" => $this->projectId,
-                "app_id" => $this->appUid
+                "PRO_UID" => $this->projectId,
+                "APP_UID" => $this->appUid
                     ]
             );
         }
