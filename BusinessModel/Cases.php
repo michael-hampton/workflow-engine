@@ -143,10 +143,10 @@ class Cases
                 foreach ($workflowData['elements'] as $elementId => $element) {
                     //if ( $elementId == $caseId )
                     //{
-                     //if ( isset ($element['current_step']) && isset ($element['workflow_id']) )
-                     //{
-                        //$previousStep = $this->getPreviousStep ($element['current_step'], $element['workflow_id']);
-                     //}
+                    //if ( isset ($element['current_step']) && isset ($element['workflow_id']) )
+                    //{
+                    //$previousStep = $this->getPreviousStep ($element['current_step'], $element['workflow_id']);
+                    //}
 
                     if ( isset ($auditData['elements'][$elementId]['steps']) )
                     {
@@ -690,6 +690,8 @@ class Cases
                 {
                     $variables['form']['hasEvent'] = true;
                 }
+                
+                $objElements->setOriginalTitle($_POST['form']['name']);
 
                 $validation = $objStep->save ($objElements, $variables['form'], $objUser);
                 $caseId = $objElements->getId ();
@@ -723,7 +725,7 @@ class Cases
                     "source_id" => $projectId,
                     "filename" => $value,
                     "date_uploaded" => date ("Y-m-d H:i:s"),
-                    "uploaded_by" => $objUser->getUsername(),
+                    "uploaded_by" => $objUser->getUsername (),
                     "contents" => $fileContent,
                     "files" => $arrFilesUploaded,
                     "step" => $objStep
@@ -941,26 +943,25 @@ class Cases
 
         $arrayCaseVariable = [];
 
+        $arrFields = [];
+
         if ( !is_null ($dynaFormUid) )
         {
             $objForm = new \BusinessModel\Form (new \Task ($dynaFormUid));
             $arrAllFields = $objForm->getFields (true);
 
-            $arrFields = [];
+
 
             if ( !empty ($arrAllFields) && is_array ($arrAllFields) )
             {
                 $arrFields = array_keys ($arrAllFields);
             }
+        }
 
-            $arrayCaseVariable = $this->__getFieldsAndValuesByDynaFormAndAppData (
-                    $arrFields, $objCase, $arrSystemVariables
-            );
-        }
-        else
-        {
-            $arrayCaseVariable = $objCase;
-        }
+
+        $arrayCaseVariable = $this->__getFieldsAndValuesByDynaFormAndAppData (
+                $arrFields, $objCase, $arrSystemVariables
+        );
 
         return $arrayCaseVariable;
     }
@@ -1001,7 +1002,6 @@ class Cases
                     }
                 }
             }
-
 
             return $caseVariable;
         } catch (Exception $ex) {

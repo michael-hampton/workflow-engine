@@ -74,7 +74,7 @@ class SendNotification extends Notification
                 $noteRecipientsList[] = $this->arrEmailAddresses;
             }
 
-            if ( $blSendToAllParticipants === true )
+            if ( (int) $this->sendToAll === 1 )
             {
                 $case = new \BusinessModel\Cases();
                 $p = $case->getUsersParticipatedInCase ($this->projectId);
@@ -110,7 +110,6 @@ class SendNotification extends Notification
             $noteRecipients = implode (",", $noteRecipientsList);
 
             $this->recipient = $noteRecipients;
-
 
             $objCases = new \BusinessModel\Cases();
 
@@ -168,8 +167,8 @@ class SendNotification extends Notification
     {
         $environment = "DEV";
 
-        $from = trim($this->from) !== "" ? $this->from : $this->defaultFrom;
-        $fromName = trim($this->fromName) !== "" ? $this->fromName : "";
+        $from = trim ($this->from) !== "" ? $this->from : $this->defaultFrom;
+        $fromName = trim ($this->fromName) !== "" ? $this->fromName : "";
 
         switch ($environment) {
 
@@ -186,12 +185,12 @@ class SendNotification extends Notification
                 break;
         }
 
-        $headers = $fromName . '' . $from . '' . "\r\n" .
+        $headers = '<' . $fromName . '>' . $from . '' . "\r\n" .
                 'X-Mailer: PHP/' . phpversion ();
 
         if ( trim ($this->cc) !== '' )
         {
-            $headers .= "CC: CC Name " . $this->cc . "\n";
+            $headers .= " CC: " . $this->cc . "\n";
         }
 
         if ( trim ($this->bcc) !== "" )

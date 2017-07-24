@@ -137,6 +137,12 @@ abstract class BaseNotification implements Persistent
         }
 
         $this->message = $arrResult[0];
+
+        $this->fromName = trim ($arrResult[0]['from_name']) !== "" ? $arrResult[0]['from_name'] : '';
+        $this->from = trim ($arrResult[0]['from_mail']) !== "" ? $arrResult[0]['from_mail'] : '';
+        $this->cc = trim ($arrResult[0]['cc']) !== "" ? $arrResult[0]['cc'] : '';
+        $this->bcc = trim ($arrResult[0]['bcc']) !== "" ? $arrResult[0]['bcc'] : '';
+        $this->sendToAll = $arrResult[0]['send_to_all'];
     }
 
     public function getRecipient ()

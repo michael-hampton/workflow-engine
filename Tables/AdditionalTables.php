@@ -82,13 +82,13 @@ class AdditionalTables extends BaseAdditionalTables
         }
         return $aFields;
     }
-    
-    public function deleteAll($tab_uid)
-        {
-        $this->objMysql->_delete("report_tables.additional_tables", ["ADD_TAB_UID" => $tab_uid]);
-        
-        $this->objMysql->_delete("report_tables.fields", ["ADD_TAB_UID" => $tab_uid]);
-        }
+
+    public function deleteAll ($tab_uid)
+    {
+        $this->objMysql->_delete ("report_tables.additional_tables", ["ADD_TAB_UID" => $tab_uid]);
+
+        $this->objMysql->_delete ("report_tables.fields", ["ADD_TAB_UID" => $tab_uid]);
+    }
 
     /**
      * Populate the report table with all case data
@@ -264,13 +264,13 @@ class AdditionalTables extends BaseAdditionalTables
     {
         try {
             $oPro = $this->retrieveByPk ($sUID);
-          
-            if($oPro === null) {
+
+            if ( $oPro === null )
+            {
                 return false;
             }
-            
+
             return true;
-            
         } catch (Exception $oError) {
             throw ($oError);
         }
@@ -304,7 +304,14 @@ class AdditionalTables extends BaseAdditionalTables
         $appUid = $objElement->getId ();
         $proUid = $objElement->getSource_id ();
 
-        $workflowId = (new \BusinessModel\Cases())->getCaseInfo ($proUid, $appUid)->getWorkflow_id ();
+        $objCase = (new \BusinessModel\Cases())->getCaseInfo ($proUid, $appUid);
+        
+        if ( !is_object ($objCase) )
+        {
+            return false;
+        }
+
+        $workflowId = $objCase->getWorkflow_id ();
 
         $results = $this->objMysql->_select ("report_tables.additional_tables", [], ["PRO_UID" => $workflowId]);
 

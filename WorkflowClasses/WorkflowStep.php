@@ -257,12 +257,17 @@ class WorkflowStep
                 return false;
             }
         }
+
+//        if ( method_exists ($objMike, "updateTitle") )
+//        {
+//            $objMike->updateTitle ($objUser, $this);
+//        }
     }
 
     private function searchArray ($products, $field, $value)
     {
         foreach ($products as $key => $product) {
-            if ( $product[$field] === $value )
+            if ( isset ($product[$field]) && $product[$field] === $value )
                 return $key;
         }
         return false;
@@ -554,6 +559,8 @@ class WorkflowStep
         }
 
         $this->sendNotification ($objMike, $arrCompleteData, $arrEmailAddresses);
+        
+        $this->nextTask = $step;
     }
 
     public function complete ($objMike, $arrCompleteData, Users $objUser, $arrEmailAddresses = array())
@@ -571,6 +578,11 @@ class WorkflowStep
         }
 
         $this->completeWorkflowObject ($objMike, $objUser, $arrCompleteData, true, $arrEmailAddresses);
+
+        if ( method_exists ($objMike, "updateTitle") )
+        {
+            $objMike->updateTitle ($objUser, $this);
+        }
 
         if ( isset ($this->nextStep) && $this->nextStep !== 0 )
         {
