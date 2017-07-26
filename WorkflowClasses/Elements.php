@@ -25,6 +25,7 @@ class Elements
     private $dateCompleted;
     private $dueDate;
     private $originalTitle;
+    private $originalDescription;
     public $objJobFields = array(
         "location" => array("required" => "true", "type" => "string", "accessor" => "getLocation", "mutator" => "setLocation"),
         "batch" => array("required" => "true", "type" => "string", "accessor" => "getBatch", "mutator" => "setBatch"),
@@ -37,6 +38,7 @@ class Elements
         "file2" => array("required" => "true", "type" => "int", "accessor" => "getFile2", "mutator" => "setFile2"),
         "rejectionReason" => array("required" => "false", "type" => "string", "accessor" => "getRejectionReason", "mutator" => "setRejectionReason"),
         "originalTitle" => array("required" => "false", "type" => "string", "accessor" => "getOriginalTitle", "mutator" => "setOriginalTitle"),
+        "originalDescription" => array("required" => "false", "type" => "string", "accessor" => "getOriginalDescription", "mutator" => "setOriginalDescription"),
     );
     public $objSchedulerFields = array(
         "description" => array("fieldName" => "title", "required" => "true", "type" => "int"),
@@ -425,7 +427,18 @@ class Elements
             $this->JSON = $JSON;
         }
     }
-    
+
+    public function getOriginalDescription ()
+    {
+        return $this->originalDescription;
+    }
+
+    public function setOriginalDescription ($originalDescription)
+    {
+        $this->originalDescription = $originalDescription;
+        $this->arrElement['originalDescription'] = $originalDescription;
+    }
+
     public function getOriginalTitle ()
     {
         return $this->originalTitle;
@@ -437,23 +450,38 @@ class Elements
         $this->arrElement['originalTitle'] = $originalTitle;
     }
 
-    
     public function updateTitle (\Users $objUser, WorkflowStep $objStep = null)
     {
         $this->getElement ();
+
+        $intChanged = 0;
 
         $dynaformId = $objStep !== null && is_numeric ($objStep->getNextTask ()) && (int) $objStep->getNextTask () !== 0 ? $objStep->getNextTask () : '';
 
         $objCases = new \BusinessModel\Cases();
 
         $Fields = $objCases->getCaseVariables ((int) $this->id, $this->source_id, $dynaformId);
-        
+
         if ( !empty ($Fields) )
         {
-            $title = $objCases->replaceDataField ($this->originalTitle, $Fields);
-            $this->setName ($title);
-            
-            $this->save ($objUser);
+            if ( trim ($this->originalTitle) !== "" )
+            {
+                $title = $objCases->replaceDataField ($this->originalTitle, $Fields);
+                $this->setName ($title);
+                $intChanged++;
+            }
+
+            if ( trim ($this->originalDescription) !== "" )
+            {
+                $description = $objCases->replaceDataField ($this->originalDescription, $Fields);
+                $this->setDescription ($description);
+                $intChanged++;
+            }
+
+            if ( $intChanged > 0 )
+            {
+                $this->save ($objUser);
+            }
         }
     }
 
@@ -640,7 +668,7 @@ class Elements
 
             $this->objMysql->_update ("task_manager.projects", array("step_data" => json_encode ($this->JSON)), array("id" => $this->source_id));
         }
-        
+
         $additionalTables = new AdditionalTables();
         $additionalTables->updateReportTables ($this);
     }

@@ -257,11 +257,6 @@ class WorkflowStep
                 return false;
             }
         }
-
-//        if ( method_exists ($objMike, "updateTitle") )
-//        {
-//            $objMike->updateTitle ($objUser, $this);
-//        }
     }
 
     private function searchArray ($products, $field, $value)

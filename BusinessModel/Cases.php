@@ -676,7 +676,7 @@ class Cases
             {
                 if ( isset ($arrFiles) && !empty ($arrFiles) )
                 {
-                    $_POST['form']['file2'] = implode (",", $arrFiles);
+                    $variables['form']['file2'] = implode (",", $arrFiles);
                 }
 
                 $variables['form']['source_id'] = $projectId;
@@ -691,8 +691,14 @@ class Cases
                     $variables['form']['hasEvent'] = true;
                 }
                 
-                $objElements->setOriginalTitle($_POST['form']['name']);
-
+                if(isset($variables['form']['name']) && trim($variables['form']['name']) !== "") {
+                     $objElements->setOriginalTitle($variables['form']['name']);
+                }
+                
+                 if(isset($variables['form']['description']) && trim($variables['form']['description']) !== "") {
+                     $objElements->setOriginalDescription($variables['form']['description']);
+                }
+      
                 $validation = $objStep->save ($objElements, $variables['form'], $objUser);
                 $caseId = $objElements->getId ();
 
@@ -702,6 +708,8 @@ class Cases
                     echo json_encode ($validate);
                     return false;
                 }
+                
+                $objElements->updateTitle($objUser, $objStep);
 
                 return array("project_id" => $projectId, "case_id" => $caseId);
             }
