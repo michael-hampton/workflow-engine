@@ -158,7 +158,7 @@ class WebEntryEvent
      *
      * return void Throw exception if exists the title of a WebEntry-Event
      */
-    public function throwExceptionIfExistsTitle ($projectUid, $webEntryEventTitle, $fieldNameForException, $webEntryEventUidToExclude = "")
+    public function throwExceptionIfExistsTitle ($projectUid, $webEntryEventTitle, $webEntryEventUidToExclude = "")
     {
         try {
             if ( $this->existsTitle ($projectUid, $webEntryEventTitle, $webEntryEventUidToExclude) )
@@ -211,23 +211,7 @@ class WebEntryEvent
                     throw new \Exception ("ID_ACTIVITY_DOES_NOT_EXIST");
                 }
             }
-//            if ( isset ($arrayData["EVN_UID"]) || isset ($arrayData["ACT_UID"]) )
-//            {
-//                
-//
-//                $criteria->addSelectColumn (\BpmnFlowPeer::FLO_UID);
-//                $criteria->add (\BpmnFlowPeer::FLO_ELEMENT_ORIGIN, $arrayFinalData["EVN_UID"], \Criteria::EQUAL);
-//                $criteria->add (\BpmnFlowPeer::FLO_ELEMENT_ORIGIN_TYPE, "bpmnEvent", \Criteria::EQUAL);
-//                $criteria->add (\BpmnFlowPeer::FLO_ELEMENT_DEST, $arrayFinalData["ACT_UID"], \Criteria::EQUAL);
-//                $criteria->add (\BpmnFlowPeer::FLO_ELEMENT_DEST_TYPE, "bpmnActivity", \Criteria::EQUAL);
-//
-//                $rsCriteria = \BpmnFlowPeer::doSelectRS ($criteria);
-//
-//                if ( !$rsCriteria->next () )
-//                {
-//                    throw new \Exception (\G::LoadTranslation ("ID_WEB_ENTRY_EVENT_FLOW_EVENT_TO_ACTIVITY_DOES_NOT_EXIST"));
-//                }
-//            }
+
             if ( isset ($arrayData["DYN_UID"]) )
             {
                 $dynaForm = new \WorkflowStep();
