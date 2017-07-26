@@ -146,7 +146,7 @@ class Notification
      *
      * return void
      */
-    public function delete ($pro_uid, $emailEventUid, $passValidation = true)
+    public function delete ($emailEventUid, $passValidation = true)
     {
         try {
             //Verify data
@@ -155,28 +155,6 @@ class Notification
                 $this->verifyIfEmailEventExists ($emailEventUid);
             }
             //Delete Email event
-        } catch (\Exception $e) {
-            throw $e;
-        }
-    }
-
-    /**
-     * Delete Email-Event by event uid
-     *
-     * @param string $emailEventUid Unique id of Email-Event
-     *
-     * return void
-     */
-    public function deleteByEvent ($stepId)
-    {
-        try {
-            //Verify data
-            if ( !$this->existsEvent ($prj_uid, $evn_uid) )
-            {
-                throw new \Exception ("ID_EMAIL_EVENT_DEFINITION_DOES_NOT_EXIST");
-            }
-            $arrayData = $this->existsEvent ($prj_uid, $evn_uid);
-            $this->delete ($prj_uid, $arrayData[0]);
         } catch (\Exception $e) {
             throw $e;
         }
@@ -254,7 +232,7 @@ class Notification
      *
      * return bool Return true if exists the Event of a Message-Event-Definition, false otherwise
      */
-    public function existsEvent ($projectUid, $eventUid)
+    public function existsEvent ($stepId)
     {
         try {
 
