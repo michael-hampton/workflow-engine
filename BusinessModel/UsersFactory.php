@@ -27,11 +27,6 @@ class UsersFactory
         $this->deptId = $deptId;
         $this->permId = $permId;
         $this->teamId = $teamId;
-
-        if ( !defined ("PATH_IMAGES_ENVIRONMENT_USERS") )
-        {
-            define ("PATH_IMAGES_ENVIRONMENT_USERS", $_SERVER['DOCUMENT_ROOT'] . "/FormBuilder/public/img/users");
-        }
     }
 
     /**

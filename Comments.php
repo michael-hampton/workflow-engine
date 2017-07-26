@@ -1,7 +1,5 @@
 <?php
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Mysql.php';
-
 class Comments extends BaseComments
 {
 

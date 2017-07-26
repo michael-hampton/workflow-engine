@@ -16,15 +16,6 @@ class Attachment
 
     public function __construct ()
     {
-        if ( !defined ("PATH_DATA_PUBLIC") )
-        {
-            define ("PATH_DATA_PUBLIC", $_SERVER['DOCUMENT_ROOT'] . "/FormBuilder/public/");
-        }
-
-        if ( !defined ("PATH_SEP") )
-        {
-            define ("PATH_SEP", "/");
-        }
 
         $this->objMysql = new \Mysql2();
     }
@@ -266,7 +257,7 @@ class Attachment
             $file_ext = strtolower (end ($arrName));
 
             $filename = $this->projectId . "_" . $intCount . date ("YmdHis") . "." . $file_ext;
-            $dir = $_SERVER['DOCUMENT_ROOT'] . "/FormBuilder/public/uploads/" . $dir2 . "/";
+            $dir = UPLOADS_DIR . $dir2 . "/";
             $destination = $dir . $filename;
 
             $actualSize = $maxFileSize * (($unit == "MB") ? 1024 * 1024 : 1024); //Bytes
@@ -287,7 +278,7 @@ class Attachment
                 }
 
                 $filename = $inputName . "_" . $this->projectId . "_" . $intCount . "." . $file_ext;
-                $dir = $_SERVER['DOCUMENT_ROOT'] . "/FormBuilder/public/uploads/" . $dir2 . "/";
+                $dir = UPLOADS_DIR . $dir2 . "/";
                 $destination = $dir . $filename;
 
                 $objVersioning = new \DocumentVersion();

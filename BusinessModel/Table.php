@@ -87,11 +87,6 @@ class Table
         }
 
         // TABLE FIELDS
-        $hiddenFields = array(
-            'fld_foreign_key', 'fld_foreign_key_table',
-            'fld_dyn_name', 'fld_dyn_uid', 'fld_filter'
-        );
-
         foreach ($table['FIELDS'] as $valField) {
 
             $tabData['FIELDS'][] = $valField;
@@ -120,7 +115,6 @@ class Table
         }
 
         $additionalTables = new \AdditionalTables();
-//        $table = $additionalTables->load ($rep_uid);
         $additionalTables->populateReportTable ($pro_uid, $rep_uid, $tableName);
     }
 
@@ -129,10 +123,7 @@ class Table
      * @var string $tab_uid. Uid for table
      * @var string $pro_uid. Uid for process
      * @var string $reportFlag. If is report table
-     *
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
-     *
+     *     *
      * @return array
      */
     public function getTableData ($tab_uid, $pro_uid = '', $filter = null, $reportFlag = false, $search = '')
@@ -147,7 +138,6 @@ class Table
         }
         $tab_uid = $this->validateTabUid ($tab_uid, $reportFlag);
         $additionalTables = new AdditionalTables();
-        $table = $additionalTables->load ($tab_uid, true);
         $result = $additionalTables->getAllData ($tab_uid, null, null, null, $filter, false, $search);
         $primaryKeys = $additionalTables->getPrimaryKeys ();
         if ( is_array ($result['rows']) )
@@ -170,8 +160,8 @@ class Table
 
     public function dropTable ($tableName)
     {
-        $tableName = "rpt_".strtolower($tableName);
-        
+        $tableName = "rpt_" . strtolower ($tableName);
+
         $this->objMysql->_query ('DROP TABLE IF EXISTS ' . $tableName . ' ');
     }
 
@@ -181,9 +171,6 @@ class Table
      * @var string $pro_uid. Uid for process
      * @var string $reportFlag. If is report table
      * @var string $createRep. Flag for create table
-     *
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
      *
      * @return array
      */
@@ -232,18 +219,6 @@ class Table
             $tableName = $dataValidate['PMT_TAB_NAME'];
             $tableCon = $dataValidate['PMT_TAB_CONNECTION'];
         }
-        // VERIFY COLUMNS TABLE
-//         [uid] => 
-//            [field_dyn] => 
-//            [field_uid] => 
-//            [field_name] => APP_UID
-//            [field_label] => APP_UID
-//            [field_type] => VARCHAR
-//            [field_size] => 32
-//            [field_key] => 1
-//            [field_null] => 0
-//            [field_filter] => 
-//            [field_autoincrement] => 
 
         $columns = [];
         foreach ($dataValidate['reportFields'] as $key => $reportField) {
@@ -276,7 +251,6 @@ class Table
             {
                 $this->dropTable ($tableName);
                 $this->deleteTable ($data[0]["ADD_TAB_UID"]);
-                //throw new Exception ('ID_PMTABLE_ALREADY_EXISTS');
             }
         }
         if ( in_array (strtoupper ($tableName), $reservedWords) ||
@@ -439,10 +413,6 @@ class Table
             //updating record
             $addTabUid = $dataValidate['TAB_UID'];
             $oAdditionalTables->update ($addTabData);
-            //removing old data fields references
-            $oCriteria = new \Criteria ('workflow');
-            $oCriteria->add (\FieldsPeer::ADD_TAB_UID, $dataValidate['TAB_UID']);
-            \FieldsPeer::doDelete ($oCriteria);
         }
 
         $oFields = new \ReportField();
@@ -494,201 +464,6 @@ class Table
     }
 
     /**
-     * Save Data for PmTable
-     * @var string $pmt_uid. Uid for PmTable
-     * @var string $pmt_data. Data for rows of PmTable
-     *
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
-     *
-     * @return array
-     */
-    public function saveTableData ($pmt_uid, $pmt_data)
-    {
-        $pmt_uid = $this->validateTabUid ($pmt_uid, false);
-        $rows = $pmt_data;
-        $additionalTables = new AdditionalTables();
-        $table = $additionalTables->load ($pmt_uid, true);
-        $primaryKeys = $additionalTables->getPrimaryKeys ();
-        $className = $table['ADD_TAB_CLASS_NAME'];
-        $classPeerName = $className . 'Peer';
-        $row = (array) $rows;
-        $row = array_merge (array_change_key_case ($row, CASE_LOWER), array_change_key_case ($row, CASE_UPPER));
-        $toSave = false;
-        if ( !file_exists (PATH_WORKSPACE . 'classes/' . $className . '.php') )
-        {
-            throw new Exception ('Create::' . G::loadTranslation ('ID_PMTABLE_CLASS_DOESNT_EXIST', $className));
-        }
-        require_once PATH_WORKSPACE . 'classes/' . $className . '.php';
-        eval ('$obj = new ' . $className . '();');
-        eval ('$con = Propel::getConnection(' . $classPeerName . '::DATABASE_NAME);');
-        $obj->fromArray ($row, \BasePeer::TYPE_FIELDNAME);
-        if ( $obj->validate () )
-        {
-            $affectedRows = $obj->save ();
-            if ( $affectedRows == 0 )
-            {
-                throw (new \Exception ("The value of key column is required"));
-            }
-            $toSave = true;
-            $primaryKeysValues = array();
-            foreach ($primaryKeys as $primaryKey) {
-                $method = 'get' . AdditionalTables::getPHPName ($primaryKey['FLD_NAME']);
-                $primaryKeysValues[] = $obj->$method ();
-            }
-        }
-        else
-        {
-            $msg = '';
-            foreach ($obj->getValidationFailures () as $objValidationFailure) {
-                $msg .= $objValidationFailure->getMessage () . "\n";
-            }
-            throw new \Exception (G::LoadTranslation ('ID_ERROR_TRYING_INSERT') . '"' . $table['ADD_TAB_NAME'] . "\"\n" . $msg);
-        }
-        $index = G::encrypt (implode (',', $primaryKeysValues), 'pmtable');
-        $rep = $obj->toArray (\BasePeer::TYPE_FIELDNAME);
-        $rep = array_change_key_case ($rep, CASE_LOWER);
-        $rep['__index__'] = $index;
-        return $rep;
-    }
-
-    /**
-     * Update Data for Table
-     * @var string $tab_data. Data for table
-     * @var string $pro_uid. Uid for process
-     * @var string $reportFlag. If is report table
-     *
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
-     *
-     * @return void
-     */
-    public function updateTable ($tab_data, $pro_uid = '', $reportFlag = false)
-    {
-        if ( $reportFlag )
-        {
-            $tab_uid = $tab_data['rep_uid'];
-            $pro_uid = $this->validateProUid ($pro_uid);
-        }
-        else
-        {
-            $tab_uid = $tab_data['pmt_uid'];
-        }
-        $tab_uid = $this->validateTabUid ($tab_uid, $reportFlag);
-        $dataValidate = array();
-        $oCriteria = new \Criteria ('workflow');
-        $oCriteria->add (\AdditionalTablesPeer::ADD_TAB_UID, $tab_uid, \Criteria::EQUAL);
-        $oDataset = \AdditionalTablesPeer::doSelectRS ($oCriteria);
-        $oDataset->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
-        if ( $oDataset->next () )
-        {
-            $row = $oDataset->getRow ();
-            if ( $reportFlag )
-            {
-                $dataValidate['rep_uid'] = $tab_uid;
-                $dataValidate['rep_tab_name'] = $row['ADD_TAB_NAME'];
-                $dataValidate['rep_tab_dsc'] = $tab_data['rep_tab_dsc'];
-                $dataValidate['rep_tab_connection'] = $row['DBS_UID'];
-                $dataValidate['rep_tab_type'] = $row['ADD_TAB_TYPE'];
-                $dataValidate['rep_tab_grid'] = '';
-                if ( strpos ($row['ADD_TAB_GRID'], '-') )
-                {
-                    list($gridName, $gridId) = explode ('-', $row['ADD_TAB_GRID']);
-                    $dataValidate['rep_tab_grid'] = $gridId;
-                }
-            }
-            else
-            {
-                $dataValidate['pmt_uid'] = $tab_uid;
-                $dataValidate['pmt_tab_name'] = $row['ADD_TAB_NAME'];
-                $dataValidate['pmt_tab_dsc'] = $tab_data['pmt_tab_dsc'];
-            }
-            $dataValidate['fields'] = $tab_data['fields'];
-        }
-        else
-        {
-            if ( $reportFlag )
-            {
-                throw (new \Exception ("The property rep_uid: '$tab_uid' is incorrect."));
-            }
-            else
-            {
-                throw (new \Exception ("The property pmt_uid: '$tab_uid' is incorrect."));
-            }
-        }
-        $this->saveTable ($dataValidate, $pro_uid, $reportFlag, false);
-    }
-
-    /**
-     * Update Data for PmTable
-     * @var string $pmt_uid. Uid for PmTable
-     * @var string $pmt_data. Data for rows of PmTable
-     *
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
-     *
-     * @return void
-     */
-    public function updateTableData ($pmt_uid, $pmt_data)
-    {
-        $pmt_uid = $this->validateTabUid ($pmt_uid, false);
-        $rows = $pmt_data;
-        $rows = array_merge (array_change_key_case ($rows, CASE_LOWER), array_change_key_case ($rows, CASE_UPPER));
-        $oAdditionalTables = new AdditionalTables();
-        $table = $oAdditionalTables->load ($pmt_uid, true);
-        $primaryKeys = $oAdditionalTables->getPrimaryKeys ('keys');
-        foreach ($primaryKeys as $value) {
-            if ( !isset ($rows[$value]) )
-            {
-                throw (new \Exception ("The field for column '$value' is required"));
-            }
-            else
-            {
-                $params[] = is_numeric ($rows[$value]) ? $rows[$value] : "'" . $rows[$value] . "'";
-            }
-        }
-        $className = $table['ADD_TAB_CLASS_NAME'];
-        $classPeerName = $className . 'Peer';
-        $sPath = PATH_DB . SYS_SYS . PATH_SEP . 'classes' . PATH_SEP;
-        if ( !file_exists ($sPath . $className . '.php') )
-        {
-            throw new \Exception ('Update:: ' . G::loadTranslation ('ID_PMTABLE_CLASS_DOESNT_EXIST', $className));
-        }
-        require_once $sPath . $className . '.php';
-        $obj = null;
-        eval ('$obj = ' . $classPeerName . '::retrieveByPk(' . implode (',', $params) . ');');
-        if ( is_object ($obj) )
-        {
-            foreach ($rows as $key => $value) {
-                // validation, don't modify primary keys
-                if ( in_array (G::toUpper ($key), $primaryKeys) || in_array (G::toLower ($key), $primaryKeys) )
-                {
-                    unset ($rows[$key]);
-                }
-                $action = 'set' . AdditionalTables::getPHPName ($key);
-                $obj->$action ($value);
-            }
-            if ( $r = $obj->validate () )
-            {
-                $obj->save ();
-                $result = true;
-            }
-            else
-            {
-                $msg = '';
-                foreach ($obj->getValidationFailures () as $objValidationFailure) {
-                    $msg .= $objValidationFailure->getMessage () . "\n";
-                }
-                throw new \Exception ($msg);
-            }
-        }
-        else
-        {
-            throw (new \Exception ("The key " . implode (',', $params) . " not exist"));
-        }
-    }
-
-    /**
      * Delete Table
      * @var string $tab_uid. Uid for table
      * @var string $pro_uid. Uid for process
@@ -712,81 +487,11 @@ class Table
     }
 
     /**
-     * Delete Data for PmTable
-     * @var string $pmt_uid. Uid for PmTable
-     * @var string $rows. Data for rows of PmTable
-     *
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
-     *
-     * @return void
-     */
-    public function deleteTableData ($pmt_uid, $rows)
-    {
-        $pmt_uid = $this->validateTabUid ($pmt_uid, false);
-        $rows = array_merge (array_change_key_case ($rows, CASE_LOWER), array_change_key_case ($rows, CASE_UPPER));
-        $oAdditionalTables = new AdditionalTables();
-        $table = $oAdditionalTables->load ($pmt_uid, true);
-        $primaryKeys = $oAdditionalTables->getPrimaryKeys ('keys');
-        foreach ($primaryKeys as $value) {
-            if ( !isset ($rows[$value]) )
-            {
-                throw (new \Exception ("The field for column '$value' is required"));
-            }
-            else
-            {
-                $params[] = is_numeric ($rows[$value]) ? $rows[$value] : "'" . $rows[$value] . "'";
-            }
-        }
-        $className = $table['ADD_TAB_CLASS_NAME'];
-        $classPeerName = $className . 'Peer';
-        $sPath = PATH_DB . SYS_SYS . PATH_SEP . 'classes' . PATH_SEP;
-        if ( !file_exists ($sPath . $className . '.php') )
-        {
-            throw new \Exception ('Update:: ' . G::loadTranslation ('ID_PMTABLE_CLASS_DOESNT_EXIST', $className));
-        }
-        require_once $sPath . $className . '.php';
-        $obj = null;
-        eval ('$obj = ' . $classPeerName . '::retrieveByPk(' . implode (',', $params) . ');');
-        if ( is_object ($obj) )
-        {
-            foreach ($rows as $key => $value) {
-                // validation, don't modify primary keys
-                if ( in_array (G::toUpper ($key), $primaryKeys) || in_array (G::toLower ($key), $primaryKeys) )
-                {
-                    unset ($rows[$key]);
-                }
-                $action = 'set' . AdditionalTables::getPHPName ($key);
-                $obj->$action ($value);
-            }
-            if ( $r = $obj->validate () )
-            {
-                $obj->delete ();
-            }
-            else
-            {
-                $msg = '';
-                foreach ($obj->getValidationFailures () as $objValidationFailure) {
-                    $msg .= $objValidationFailure->getMessage () . "\n";
-                }
-                throw new \Exception ($msg);
-            }
-        }
-        else
-        {
-            throw (new \Exception ("The key " . implode (',', $params) . " not exist"));
-        }
-    }
-
-    /**
      * Get Fields of Dynaforms
      * @var string $pro_uid. Uid for Process
      * @var string $rep_tab_type. Type the Report Table
      * @var string $rep_tab_grid. Uid for Grid
-     *
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
-     *
+     *     *
      * @return array
      */
     public function getDynafields ($pro_uid, $rep_tab_type, $rep_tab_grid = '')
@@ -1062,63 +767,6 @@ class Table
             throw (new \Exception ("The property rep_tab_connection: '$rep_tab_connection' is incorrect."));
         }
         return $rep_tab_connection;
-    }
-
-    /**
-     * Validate Report Table Grid
-     * @var string $rep_tab_grid. Grid for report table
-     * @var string $pro_uid. Uid for process
-     *
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
-     *
-     * @return string
-     */
-    public function validateRepGrid ($rep_tab_grid, $pro_uid)
-    {
-        $rep_tab_grid = trim ($rep_tab_grid);
-        if ( $rep_tab_grid == '' )
-        {
-            throw (new \Exception ("The property rep_tab_grid: '$rep_tab_grid' is incorrect."));
-        }
-        G::loadSystem ('dynaformhandler');
-        $grids = array();
-        $namesGrid = array();
-        $aFieldsNames = array();
-        $oCriteria = new \Criteria ('workflow');
-        $oCriteria->addSelectColumn (\DynaformPeer::DYN_FILENAME);
-        $oCriteria->add (\DynaformPeer::PRO_UID, $pro_uid);
-        $oCriteria->add (\DynaformPeer::DYN_TYPE, 'xmlform');
-        $oDataset = \DynaformPeer::doSelectRS ($oCriteria);
-        $oDataset->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
-        while ($oDataset->next ()) {
-            $aRow = $oDataset->getRow ();
-            $dynaformHandler = new \dynaformHandler (PATH_DYNAFORM . $aRow['DYN_FILENAME'] . '.xml');
-            $nodeFieldsList = $dynaformHandler->getFields ();
-            foreach ($nodeFieldsList as $node) {
-                $arrayNode = $dynaformHandler->getArray ($node);
-                $fieldName = $arrayNode['__nodeName__'];
-                $fieldType = $arrayNode['type'];
-                if ( $fieldType == 'grid' )
-                {
-                    if ( !in_array ($fieldName, $aFieldsNames) )
-                    {
-                        $namesGrid[] = $fieldName;
-                        $grids[] = str_replace ($pro_uid . '/', '', $arrayNode['xmlgrid']);
-                    }
-                }
-            }
-        }
-        $find = array_search ($rep_tab_grid, $grids);
-        if ( $find === false )
-        {
-            throw (new \Exception ("The property rep_tab_grid: '$rep_tab_grid' is incorrect."));
-        }
-        else
-        {
-            $rep_tab_grid = $namesGrid[$find] . '-' . $rep_tab_grid;
-        }
-        return $rep_tab_grid;
     }
 
     /**

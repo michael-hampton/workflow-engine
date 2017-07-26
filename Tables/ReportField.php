@@ -22,7 +22,7 @@ class ReportField extends BaseReportField
             $oFields->loadObject ($aData);
             if ( $oFields->validate () )
             {
-                $iResult = $oFields->save ();
+               $oFields->save ();
                 return $aData['FLD_UID'];
             }
             else

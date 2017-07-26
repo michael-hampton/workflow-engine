@@ -927,11 +927,7 @@ class Cases
     public function getCaseVariables ($app_uid, $pro_uid, $dynaFormUid = null, $act_uid = null, $app_index = null)
     {
         $this->isInteger ($app_uid, '$app_uid');
-        //Validator::appUid($app_uid, '$app_uid');
-        //$this->isInteger ($usr_uid, '$usr_uid');
-        //$this->validateUserId ($usr_uid);
 
-        require_once $_SERVER['DOCUMENT_ROOT'] . "/core/app/config/config.php";
         $arrSystemVariables = getSystemVariables ();
 
         $objCase = $this->getCaseInfo ($pro_uid, $app_uid);
@@ -1040,7 +1036,7 @@ class Cases
             }
 
             $sFilename = $aOD->getOutDocUid () . "_" . $lastDocVersion;
-            $pathOutput = $_SERVER['DOCUMENT_ROOT'] . "/FormBuilder/public/uploads/OutputDocuments/" . $projectId . "/";
+            $pathOutput = OUTPUT_DOCUMENTS . $projectId . "/";
             $objFile = new \BusinessModel\FileUpload();
             $objFile->mk_dir ($pathOutput);
 

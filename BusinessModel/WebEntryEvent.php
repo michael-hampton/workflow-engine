@@ -612,7 +612,7 @@ class WebEntryEvent
             if ( $record["WEE_WE_UID"] . "" != "" )
             {
                 $http = "http://";
-                $url = $http . $_SERVER["HTTP_HOST"] . "/core/public/webentry/" . $record["PRJ_UID"];
+                $url = WEB_ENTRY_DIR . $record["PRJ_UID"];
                 
                 $record["WEE_WE_URL"] = $url . "/" . str_replace(" ", "_", $record["WEE_TITLE"]) . ".php";
             }

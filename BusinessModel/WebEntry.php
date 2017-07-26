@@ -272,7 +272,7 @@ class WebEntry
 
                     $header .= '<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>';
                     //Creating the second file, the  post file who receive the post form.
-                    $pluginTpl = $_SERVER['DOCUMENT_ROOT'] . "/core/public/webentry/template.phtml";
+                    $pluginTpl = WEB_ENTRY_TEMPLATES;
                     $objFormBuilder = new FormBuilder ("AddNewForm");
                     $objFormBuilder->buildForm ($arrayDynaFormData);
                     $html = $objFormBuilder->render ();
@@ -289,7 +289,7 @@ class WebEntry
                     $dynaForm = new Form (new \Task ($arrayWebEntryData["DYN_UID"]));
                     $arrayDynaFormData = $dynaForm->getFields ();
                     //Creating the second file, the  post file who receive the post form.
-                    $pluginTpl = $_SERVER['DOCUMENT_ROOT'] . "/core/public/webentry/template.phtml";
+                    $pluginTpl = WEB_ENTRY_TEMPLATES;
                     $objFormBuilder = new FormBuilder ("AddNewForm");
                     $objFormBuilder->buildForm ($arrayDynaFormData);
                     $html = $objFormBuilder->render ();
@@ -434,7 +434,7 @@ class WebEntry
             {
 
                 $http = "http://";
-                $url = $http . $_SERVER["HTTP_HOST"] . "/public/webentry/" . $record["PRO_UID"];
+                $url = WEB_ENTRY_DIR . $record["PRO_UID"];
 
                 $record["WE_DATA"] = $url . "/" . $record["WE_DATA"];
             }
