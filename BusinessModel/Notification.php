@@ -68,8 +68,8 @@ class Notification
     {
         try {
             //Verify data
-            $this->throwExceptionIfDataIsNotArray ($arrayData, "\$arrayData");
-            $this->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
+            $this->throwExceptionIfDataIsNotArray ($arrayData);
+            $this->throwExceptionIfDataIsEmpty ($arrayData);
 
             //Verify data
             // verify step
@@ -106,14 +106,15 @@ class Notification
 
         try {
             //Verify data
-            $this->throwExceptionIfDataIsNotArray ($arrayData, "\$arrayData");
-            $this->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
+            $this->throwExceptionIfDataIsNotArray ($arrayData);
+            $this->throwExceptionIfDataIsEmpty ($arrayData);
             //Verify data
             $this->verifyIfEmailEventExists ($emailEventUid);
 
             //Update
             try {
                 $emailEvent = new \Notification();
+                $arrayData['body'] = urldecode ($arrayData['body'])
                 $emailEvent->loadObject ($arrayData);
                 $emailEvent->setId ($emailEventUid);
                 $result = $emailEvent->save ();
@@ -172,7 +173,7 @@ class Notification
             //Verify data
             if ( !$this->existsEvent ($prj_uid, $evn_uid) )
             {
-                throw new \Exception (\G::LoadTranslation ("ID_EMAIL_EVENT_DEFINITION_DOES_NOT_EXIST"));
+                throw new \Exception ("ID_EMAIL_EVENT_DEFINITION_DOES_NOT_EXIST");
             }
             $arrayData = $this->existsEvent ($prj_uid, $evn_uid);
             $this->delete ($prj_uid, $arrayData[0]);
