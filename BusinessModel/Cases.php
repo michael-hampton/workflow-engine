@@ -1246,7 +1246,7 @@ class Cases
                             foreach ($listing as $folderitem) {
                                 if ( ($folderitem->filename == $aRow['APP_DOC_UID']) && ($folderitem->type == "DOC") )
                                 {
-                                    $fileDocLabel = G::LoadTranslation ('ID_GET_EXTERNAL_FILE') . " .doc";
+                                    $fileDocLabel = ".doc";
                                     $fileDoc = $folderitem->downloadScript;
                                     continue;
                                 }
