@@ -259,6 +259,11 @@ class BaseDocumentVersion implements Persistent
         }
     }
 
+    public function getAppDocCreateDate ()
+    {
+        return $this->app_doc_create_date;
+    }
+
 // setAppDocType()
 
     /**
@@ -283,12 +288,12 @@ class BaseDocumentVersion implements Persistent
                 throw new PropelException ("Unable to parse date/time value for [app_doc_create_date] from input: " .
                 var_export ($v, true));
             }
-            
-             $ts = date("Y-m-d H:i:s", $ts);
+
+            $ts = date ("Y-m-d H:i:s", $ts);
         }
         else
         {
-            $ts = date("Y-m-d H:i:s", $ts);
+            $ts = date ("Y-m-d H:i:s", $ts);
         }
         if ( $this->app_doc_create_date !== $ts )
         {
@@ -374,7 +379,7 @@ class BaseDocumentVersion implements Persistent
     {
         return true;
     }
-    
+
     public function loadObject (array $arrData)
     {
         ;

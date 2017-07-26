@@ -690,15 +690,17 @@ class Cases
                 {
                     $variables['form']['hasEvent'] = true;
                 }
-                
-                if(isset($variables['form']['name']) && trim($variables['form']['name']) !== "") {
-                     $objElements->setOriginalTitle($variables['form']['name']);
+
+                if ( isset ($variables['form']['name']) && trim ($variables['form']['name']) !== "" )
+                {
+                    $objElements->setOriginalTitle ($variables['form']['name']);
                 }
-                
-                 if(isset($variables['form']['description']) && trim($variables['form']['description']) !== "") {
-                     $objElements->setOriginalDescription($variables['form']['description']);
+
+                if ( isset ($variables['form']['description']) && trim ($variables['form']['description']) !== "" )
+                {
+                    $objElements->setOriginalDescription ($variables['form']['description']);
                 }
-      
+
                 $validation = $objStep->save ($objElements, $variables['form'], $objUser);
                 $caseId = $objElements->getId ();
 
@@ -708,8 +710,8 @@ class Cases
                     echo json_encode ($validate);
                     return false;
                 }
-                
-                $objElements->updateTitle($objUser, $objStep);
+
+                $objElements->updateTitle ($objUser, $objStep);
 
                 return array("project_id" => $projectId, "case_id" => $caseId);
             }
@@ -1030,8 +1032,9 @@ class Cases
 
             $oOutputDocument = new \OutputDocument();
             $aOD = $oOutputDocument->retrieveByPk ($outputID);
-            $Fields = $this->getCaseVariables ($caseId, $projectId, $stepId);
 
+            $Fields = $this->getCaseVariables ((int) $caseId, $projectId, $stepId);
+            
             $sFilename = preg_replace ('[^A-Za-z0-9_]', '_', $this->replaceDataField ($aOD->getOutDocFilename (), $Fields));
 
             $objDocumentVersion = new \DocumentVersion (array());
@@ -1044,7 +1047,9 @@ class Cases
             }
 
             $sFilename = $aOD->getOutDocUid () . "_" . $lastDocVersion;
+            
             $pathOutput = OUTPUT_DOCUMENTS . $projectId . "/";
+            
             $objFile = new \BusinessModel\FileUpload();
             $objFile->mk_dir ($pathOutput);
 
@@ -1146,7 +1151,7 @@ class Cases
      * @return object
      */
 
-    public function getAllGeneratedDocumentsCriteria ($sProcessUID, $sApplicationUID, $sTasKUID, $sUserUID)
+    public function getAllGeneratedDocumentsCriteria ($sProcessUID, $sApplicationUID, \Task $objTask, \Users $objUser)
     {
         if ( $this->objMysql === null )
         {
@@ -1155,14 +1160,13 @@ class Cases
 
         $listing = false;
 
-        $objUserFactory = new \BusinessModel\UsersFactory();
-        $objUser = $objUserFactory->getUser ($sUserUID);
+        $aObjectPermissions = $this->getAllObjectsFrom ($sProcessUID, $sApplicationUID, $objTask->getTasUid (), $objUser);
 
-        $aObjectPermissions = $this->getAllObjectsFrom ($sProcessUID, $sApplicationUID, $sTasKUID, $objUser);
         if ( !is_array ($aObjectPermissions) )
         {
             $aObjectPermissions = array('DYNAFORMS' => array(-1), 'INPUT_DOCUMENTS' => array(-1), 'OUTPUT_DOCUMENTS' => array(-1));
         }
+
         if ( !isset ($aObjectPermissions['DYNAFORMS']) )
         {
             $aObjectPermissions['DYNAFORMS'] = array(-1);
@@ -1197,26 +1201,28 @@ class Cases
             }
         }
 
-        $results = $this->objMysql->_select ("workflow.step", [], ["TAS_UID" => $sTasKUID]);
+        $arrSteps = (new Step())->getSteps ($objTask->getTasUid ());
 
         $aOutputDocuments = array();
 
-
-        foreach ($results as $aRow) {
+        foreach ($arrSteps as $aRow) {
 
             $oAppDocument = new \DocumentVersion();
 
-            $lastVersion = $oAppDocument->getLastDocVersion ($aRow['STEP_UID_OBJ']);
+            $lastVersion = $oAppDocument->getLastDocVersion ($aRow->getStepUidObj ());
 
-            if ( $aRow['document_type'] == "OUTPUT_DOCUMENT" )
+            if ( $aRow->getStepTypeObj () == "OUTPUT_DOCUMENT" )
             {
-                $aAux = $oAppDocument->load ($aRow['STEP_UID_OBJ'], $lastVersion);
+
+                $this->addCasesOutputDocument ($sProcessUID, $sApplicationUID, $objTask->getTasUid (), $aRow->getStepUidObj (), $objUser);
+
+                $aAux = $oAppDocument->load ($aRow->getStepUidObj (), $lastVersion);
 
                 $oOutputDocument = new \OutputDocument();
-                $aGields = $oOutputDocument->retrieveByPk ($aRow['STEP_UID_OBJ']);
+                $aGields = $oOutputDocument->retrieveByPk ($aRow->getStepUidObj ());
                 //OUTPUTDOCUMENT
                 $outDocTitle = $aGields->getOutDocTitle ();
-                switch ($aGields->getOutDocGenerate ()) {
+               switch ($aGields->getOutDocGenerate ()) {
                     case "PDF":
                         $fileDoc = 'javascript:alert("NO DOC")';
                         $fileDocLabel = " ";
@@ -1224,7 +1230,6 @@ class Cases
                                 $aAux['id'] . '&v=' . $lastVersion . '&ext=pdf&random=' . rand ();
                         $filePdfLabel = ".pdf";
                         break;
-
                     case "DOC":
                         $fileDoc = 'tasks/cases_ShowOutputDocument?a=' .
                                 $aAux['id'] . '&v=' . $lastVersion . '&ext=doc&random=' . rand ();
@@ -1232,7 +1237,6 @@ class Cases
                         $filePdf = 'javascript:alert("NO PDF")';
                         $filePdfLabel = " ";
                         break;
-
                     case "BOTH":
                         $fileDoc = 'tasks/cases_ShowOutputDocument?a=' .
                                 $aAux['id'] . '&v=' . $lastVersion . '&ext=doc&random=' . rand ();
@@ -1242,7 +1246,7 @@ class Cases
                             foreach ($listing as $folderitem) {
                                 if ( ($folderitem->filename == $aRow['APP_DOC_UID']) && ($folderitem->type == "DOC") )
                                 {
-                                    $fileDocLabel = ".doc";
+                                    $fileDocLabel = G::LoadTranslation ('ID_GET_EXTERNAL_FILE') . " .doc";
                                     $fileDoc = $folderitem->downloadScript;
                                     continue;
                                 }
@@ -1251,19 +1255,15 @@ class Cases
                         $filePdf = 'tasks/cases_ShowOutputDocument?a=' .
                                 $aAux['id'] . '&v=' . $lastVersion . '&ext=pdf&random=' . rand ();
                         $filePdfLabel = ".pdf";
-
                         break;
                 }
-
                 try {
                     $oUser = new \BusinessModel\UsersFactory();
                     $aAux1 = $oUser->getUser ($aAux['user_id']);
-
                     $sUser = $this->usersNameFormatBySetParameters ("@lastName, @firstName (@userName)", $aAux1->getUsername (), $aAux1->getFirstName (), $aAux1->getLastName ());
                 } catch (\Exception $oException) {
                     $sUser = '(USER DELETED)';
                 }
-
                 //if both documents were generated, we choose the pdf one, only if doc was
                 //generate then choose the doc file.
                 $firstDocLink = $filePdf;
@@ -1306,16 +1306,16 @@ class Cases
                 {
                     $aFields['TITLE'] = $aFields['APP_DOC_COMMENT'];
                 }
-
                 //$aFields['POSITION'] = $_SESSION['STEP_POSITION'];
                 $aFields['CONFIRM'] = 'ID_CONFIRM_DELETE_ELEMENT';
-//                if ( in_array ($aRow['id'], $aObjectPermissions['OUTPUT_DOCUMENTS']) )
-//                {
-//                    if ( in_array ($aRow['id'], $aDelete['OUTPUT_DOCUMENTS']) )
-//                    {
-//                        $aFields['ID_DELETE'] = 'ID_DELETE';
-//                    }
-//                }
+                
+                if ( in_array ($aRow->getStepUidObj (), $aObjectPermissions['OUTPUT_DOCUMENTS']) )
+                {
+                    //if ( in_array ($aRow->getStepUidObj (), $aDelete['OUTPUT_DOCUMENTS']) )
+                    //{
+                        $aFields['ID_DELETE'] = 'ID_DELETE';
+                    //}
+                }
                 $aOutputDocuments[] = $aFields;
             }
         }

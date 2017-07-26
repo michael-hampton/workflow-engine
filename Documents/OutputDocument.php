@@ -28,13 +28,12 @@ class OutputDocument extends BaseOutputDocument
     {
         try {
             $oOutputDocument = $this->retrieveByPK ($sOutDocUid);
-            if ( is_null ($oOutputDocument) )
+            if ( is_null ($oOutputDocument) || !is_object ($oOutputDocument) )
             {
                 return false;
             }
-            $aFields = $oOutputDocument->toArray (BasePeer::TYPE_FIELDNAME);
-            $this->fromArray ($aFields, BasePeer::TYPE_FIELDNAME);
-            return $aFields;
+
+            return $oOutputDocument;
         } catch (Exception $oError) {
             throw ($oError);
         }
@@ -191,10 +190,10 @@ class OutputDocument extends BaseOutputDocument
     {
         if ( ($sUID != '') && is_array ($aFields) && ($sPath != '') )
         {
-            $objCases = new Cases();
+            $objCases = new \BusinessModel\Cases();
             $sContent = $objCases->replaceDataField ($sContent, $aFields);
 
-            $objFile = new FileUpload();
+            $objFile = new \BusinessModel\FileUpload();
 
             $objFile->verifyPath ($sPath, true);
             //Start - Create .doc
@@ -422,8 +421,8 @@ class OutputDocument extends BaseOutputDocument
         $pdf = new TCPDF ($sOrientation, PDF_UNIT, $sMedia, true, 'UTF-8', false);
         // set document information
         $pdf->SetCreator (PDF_CREATOR);
-        $pdf->SetAuthor ($aFields['USR_USERNAME']);
-        $pdf->SetTitle ('Processmaker');
+        $pdf->SetAuthor ($aFields['USER']);
+        $pdf->SetTitle ('EasyFlow');
         $pdf->SetSubject ($sFilename);
         $pdf->SetCompression (true);
         $margins = $aProperties['margins'];

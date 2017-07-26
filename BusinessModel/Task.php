@@ -426,7 +426,7 @@ class Task
      *
      * return void Throw exception if doesn't exists the Task
      */
-    public function throwExceptionIfNotExistsTask ($processUid, $taskUid)
+    public function throwExceptionIfNotExistsTask ($processUid = null, $taskUid)
     {
         try {
 
@@ -434,7 +434,7 @@ class Task
             $arrParameters = array($taskUid);
 
 
-            if ( $processUid != "" )
+            if ( $processUid != null )
             {
                 $sql .= " AND PRO_UID = ?";
                 $arrParameters[] = $processUid;

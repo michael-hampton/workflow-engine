@@ -162,9 +162,16 @@ class Step
     {
         $step = new \Step();
 
-        if ( !$step->StepExists ($stepUid) )
+        if ( $this->objMysql === null )
         {
-            throw new \Exception ("ID_STEP_DOES_NOT_EXIST");
+            $this->getConnection ();
+        }
+
+        $result = $this->objMysql->_select ("workflow.step", [], ["STEP_UID" => $stepUid]);
+
+        if ( !isset ($result[0]) || empty ($result[0]) )
+        {
+            throw new Exception ("STEP ID DOESNT EXIST");
         }
     }
 
@@ -278,6 +285,46 @@ class Step
     }
 
     /**
+     * Get all Steps of a Task
+     *
+     * @param string $taskUid Unique id of Task
+     *
+     * return array Return an array with all Steps of a Task
+     */
+    public function getSteps ($taskUid)
+    {
+        try {
+
+            if ( $this->objMysql === null )
+            {
+                $this->getConnection ();
+            }
+
+            $arrayStep = array();
+            $step = new Step();
+            //Verify data
+            $task = new Task();
+            $task->throwExceptionIfNotExistsTask (null, $taskUid);
+
+            $results = $this->objMysql->_select ("workflow.step", [], ["TAS_UID" => $taskUid], ["STEP_UID" => "ASC"]);
+
+            foreach ($results as $row) {
+                $arrayData = $step->getStep ($row["STEP_UID"]);
+                
+                if ( count ($arrayData) > 0 )
+                {
+                    $arrayStep[] = $arrayData;
+                }
+            }
+
+            //Return
+            return $arrayStep;
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
      * Get data of a Step
      *
      * @param string $stepUid Unique id of Step
@@ -287,26 +334,31 @@ class Step
     public function getStep ($stepUid)
     {
         try {
+
+            if ( $this->objMysql === null )
+            {
+                $this->getConnection ();
+            }
+
             $arrayStep = array();
 
             //Verify data
             $this->throwExceptionIfNotExistsStep ($stepUid);
 
             //Get data
-            $sql = "SELECT * FROM step WHERE STEP_UID = ?";
-            $arrParameters = array($stepUid);
 
-            $results = $this->objMysql->_query ($sql, $arrParameters);
+            $results = $this->objMysql->_select ("workflow.step", [], ["STEP_UID" => $stepUid]);
 
             $arrayStep = array();
+            $titleObj = '';
+            $descriptionObj = '';
 
             foreach ($results as $row) {
                 switch ($row["STEP_TYPE_OBJ"]) {
                     case "DYNAFORM":
-                        $dynaform = new \Dynaform();
-                        $arrayData = $dynaform->load ($row["STEP_UID_OBJ"]);
-
-                        $titleObj = $arrayData["DYN_TITLE"];
+                        //$dynaform = new \Dynaform();
+                        //$arrayData = $dynaform->load ($row["STEP_UID_OBJ"]);
+                        //$titleObj = $arrayData["DYN_TITLE"];
                         break;
                     case "INPUT_DOCUMENT":
                         $inputDocument = new \InputDocument();
@@ -326,6 +378,9 @@ class Step
                         {
                             return $arrayStep;
                         }
+
+                        $titleObj = $arrayData->getOutDocTitle();
+                        $descriptionObj = $arrayData->getOutDocDescription();
 
                         break;
                     case "EXTERNAL":
@@ -348,14 +403,15 @@ class Step
                 $objStep->setStepTypeObj ($row["STEP_TYPE_OBJ"]);
                 $objStep->setStepMode ($row["STEP_MODE"]);
                 $objStep->setStepCondition ($row["STEP_CONDITION"]);
-                $objStep->setStepPosition ((int) ($row["STEP_POSITION"]));
                 $objStep->setStepUidObj ($row["STEP_UID_OBJ"]);
+                $objStep->setTitle($titleObj);
+                $objStep->setDescription($descriptionObj);
 
                 //Return
                 $arrayStep[] = $objStep;
             }
 
-            return $arrayStep;
+            return $objStep;
         } catch (\Exception $e) {
             throw $e;
         }

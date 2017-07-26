@@ -772,9 +772,7 @@ abstract class BaseTask implements Persistent
         {
             $v = (string) $v;
         }
-
-
-
+        
         if ( $this->tas_uid !== $v || $v === '' )
         {
             $this->tas_uid = $v;

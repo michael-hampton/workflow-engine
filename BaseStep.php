@@ -2,7 +2,9 @@
 
 abstract class BaseStep implements Persistent
 {
-    /************************* BASE MODEL ******************************************/
+
+    /*     * *********************** BASE MODEL ***************************************** */
+
     protected $arrFieldMapping = array(
         'STEP_UID' => array('accessor' => 'getStepUid', 'mutator' => 'setStepUid', 'type' => 'int', 'required' => 'false'),
         'PRO_UID' => array('accessor' => 'getProUid', 'mutator' => 'setProUid', 'type' => 'string', 'required' => 'true'),
@@ -12,10 +14,9 @@ abstract class BaseStep implements Persistent
         'STEP_CONDITION' => array('accessor' => 'getStepCondition', 'mutator' => 'setStepCondition', 'type' => 'string', 'required' => 'false'),
         'STEP_MODE' => array('accessor' => 'getStepMode', 'mutator' => 'setStepMode', 'type' => 'string', 'required' => 'true')
     );
-
     private $objMysql;
 
-    public function __construct()
+    public function __construct ()
     {
         $this->objMysql = new Mysql2();
     }
@@ -81,15 +82,16 @@ abstract class BaseStep implements Persistent
      * @var        boolean
      */
     protected $alreadyInValidation = false;
-
     protected $validationFailures;
+    protected $title;
+    protected $description;
 
     /**
      * Get the [step_uid] column value.
      *
      * @return     string
      */
-    public function getStepUid()
+    public function getStepUid ()
     {
         return $this->step_uid;
     }
@@ -99,7 +101,7 @@ abstract class BaseStep implements Persistent
      *
      * @return     string
      */
-    public function getProUid()
+    public function getProUid ()
     {
         return $this->pro_uid;
     }
@@ -109,7 +111,7 @@ abstract class BaseStep implements Persistent
      *
      * @return     string
      */
-    public function getTasUid()
+    public function getTasUid ()
     {
         return $this->tas_uid;
     }
@@ -119,7 +121,7 @@ abstract class BaseStep implements Persistent
      *
      * @return     string
      */
-    public function getStepTypeObj()
+    public function getStepTypeObj ()
     {
         return $this->step_type_obj;
     }
@@ -129,7 +131,7 @@ abstract class BaseStep implements Persistent
      *
      * @return     string
      */
-    public function getStepUidObj()
+    public function getStepUidObj ()
     {
         return $this->step_uid_obj;
     }
@@ -139,7 +141,7 @@ abstract class BaseStep implements Persistent
      *
      * @return     string
      */
-    public function getStepCondition()
+    public function getStepCondition ()
     {
         return $this->step_condition;
     }
@@ -149,7 +151,7 @@ abstract class BaseStep implements Persistent
      *
      * @return     int
      */
-    public function getStepPosition()
+    public function getStepPosition ()
     {
         return $this->step_position;
     }
@@ -159,7 +161,7 @@ abstract class BaseStep implements Persistent
      *
      * @return     string
      */
-    public function getStepMode()
+    public function getStepMode ()
     {
         return $this->step_mode;
     }
@@ -167,7 +169,7 @@ abstract class BaseStep implements Persistent
     /**
      * @return mixed
      */
-    public function getValidationFailures()
+    public function getValidationFailures ()
     {
         return $this->validationFailures;
     }
@@ -178,14 +180,16 @@ abstract class BaseStep implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setStepUid($v)
+    public function setStepUid ($v)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
-            $v = (string)$v;
+        if ( $v !== null && !is_string ($v) )
+        {
+            $v = (string) $v;
         }
-        if ($this->step_uid !== $v || $v === '') {
+        if ( $this->step_uid !== $v || $v === '' )
+        {
             $this->step_uid = $v;
         }
     }
@@ -196,14 +200,16 @@ abstract class BaseStep implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setProUid($v)
+    public function setProUid ($v)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
-            $v = (string)$v;
+        if ( $v !== null && !is_string ($v) )
+        {
+            $v = (string) $v;
         }
-        if ($this->pro_uid !== $v || $v === '0') {
+        if ( $this->pro_uid !== $v || $v === '0' )
+        {
             $this->pro_uid = $v;
         }
     }
@@ -214,14 +220,16 @@ abstract class BaseStep implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setTasUid($v)
+    public function setTasUid ($v)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
-            $v = (string)$v;
+        if ( $v !== null && !is_string ($v) )
+        {
+            $v = (string) $v;
         }
-        if ($this->tas_uid !== $v || $v === '0') {
+        if ( $this->tas_uid !== $v || $v === '0' )
+        {
             $this->tas_uid = $v;
         }
     }
@@ -232,14 +240,16 @@ abstract class BaseStep implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setStepTypeObj($v)
+    public function setStepTypeObj ($v)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
-            $v = (string)$v;
+        if ( $v !== null && !is_string ($v) )
+        {
+            $v = (string) $v;
         }
-        if ($this->step_type_obj !== $v || $v === 'DYNAFORM') {
+        if ( $this->step_type_obj !== $v || $v === 'DYNAFORM' )
+        {
             $this->step_type_obj = $v;
         }
     }
@@ -250,14 +260,16 @@ abstract class BaseStep implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setStepUidObj($v)
+    public function setStepUidObj ($v)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
-            $v = (string)$v;
+        if ( $v !== null && !is_string ($v) )
+        {
+            $v = (string) $v;
         }
-        if ($this->step_uid_obj !== $v || $v === '0') {
+        if ( $this->step_uid_obj !== $v || $v === '0' )
+        {
             $this->step_uid_obj = $v;
         }
     }
@@ -268,14 +280,16 @@ abstract class BaseStep implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setStepCondition($v)
+    public function setStepCondition ($v)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
-            $v = (string)$v;
+        if ( $v !== null && !is_string ($v) )
+        {
+            $v = (string) $v;
         }
-        if ($this->step_condition !== $v) {
+        if ( $this->step_condition !== $v )
+        {
             $this->step_condition = $v;
         }
     }
@@ -286,14 +300,16 @@ abstract class BaseStep implements Persistent
      * @param      int $v new value
      * @return     void
      */
-    public function setStepPosition($v)
+    public function setStepPosition ($v)
     {
         // Since the native PHP type for this column is integer,
         // we will cast the input value to an int (if it is not).
-        if ($v !== null && !is_int($v) && is_numeric($v)) {
-            $v = (int)$v;
+        if ( $v !== null && !is_int ($v) && is_numeric ($v) )
+        {
+            $v = (int) $v;
         }
-        if ($this->step_position !== $v || $v === 0) {
+        if ( $this->step_position !== $v || $v === 0 )
+        {
             $this->step_position = $v;
         }
     }
@@ -304,56 +320,82 @@ abstract class BaseStep implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setStepMode($v)
+    public function setStepMode ($v)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
-            $v = (string)$v;
+        if ( $v !== null && !is_string ($v) )
+        {
+            $v = (string) $v;
         }
-        if ($this->step_mode !== $v || $v === 'EDIT') {
+        if ( $this->step_mode !== $v || $v === 'EDIT' )
+        {
             $this->step_mode = $v;
         }
     }
 
-    public function save()
+    public function getTitle ()
     {
-        if (trim($this->step_uid) === "") {
-            $result = $this->objMysql->_insert("workflow.step",
-                    ['PRO_UID' => $this->pro_uid, 'TAS_UID' => $this->tas_uid, 'STEP_UID_OBJ' => $this->step_uid_obj, 'STEP_TYPE_OBJ' => $this->step_type_obj, 'STEP_CONDITION' => $this->step_condition, 'STEP_MODE' => $this->step_mode]);
-        } else {
-            $result = $this - objMysql_update("workflow.step",
-                    ['PRO_UID' => $this->pro_uid, 'TAS_UID' => $this->step_uid, 'STEP_TYPE_OBJ' => $this->step_type_obj, 'STEP_CONDITION' => $this->step_condition, 'STEP_MODE' => $this->step_mode],
-                    ['STEP_UID' => $this->step_uid]);
-        }
-        return $result;
-
+        return $this->title;
     }
 
-    public function validate()
+    public function getDescription ()
+    {
+        return $this->description;
+    }
+
+    public function setTitle ($title)
+    {
+        $this->title = $title;
+    }
+
+    public function setDescription ($description)
+    {
+        $this->description = $description;
+    }
+
+    public function save ()
+    {
+        if ( trim ($this->step_uid) === "" )
+        {
+            $result = $this->objMysql->_insert ("workflow.step", ['PRO_UID' => $this->pro_uid, 'TAS_UID' => $this->tas_uid, 'STEP_UID_OBJ' => $this->step_uid_obj, 'STEP_TYPE_OBJ' => $this->step_type_obj, 'STEP_CONDITION' => $this->step_condition, 'STEP_MODE' => $this->step_mode]);
+        }
+        else
+        {
+            $result = $this - objMysql_update ("workflow.step", ['PRO_UID' => $this->pro_uid, 'TAS_UID' => $this->step_uid, 'STEP_TYPE_OBJ' => $this->step_type_obj, 'STEP_CONDITION' => $this->step_condition, 'STEP_MODE' => $this->step_mode], ['STEP_UID' => $this->step_uid]);
+        }
+        return $result;
+    }
+
+    public function validate ()
     {
         foreach ($this->arrFieldMapping as $strColumnName => $arrFieldMap) {
 
-            if ($arrFieldMap['required'] === 'true') {
+            if ( $arrFieldMap['required'] === 'true' )
+            {
 
-                if (trim($this->{$arrFieldMap['accessor']}()) === "") {
+                if ( trim ($this->{$arrFieldMap['accessor']} ()) === "" )
+                {
                     $this->validationFailures[] = $strColumnName . " Is missing";
                 }
             }
         }
 
-        return count($this->validationFailures) > 0 ? false : true;
+        return count ($this->validationFailures) > 0 ? false : true;
     }
 
-    public function loadObject(array $arrData)
+    public function loadObject (array $arrData)
     {
-        if (!empty($arrData) && is_array($arrData)) {
+        if ( !empty ($arrData) && is_array ($arrData) )
+        {
             foreach ($this->arrFieldMapping as $strFieldKey => $arrFields) {
-                if (isset($arrData[$strFieldKey])) {
+                if ( isset ($arrData[$strFieldKey]) )
+                {
                     $strMutatorMethod = $arrFields['mutator'];
 
-                    if (is_callable(array($this, $strMutatorMethod))) {
-                        call_user_func(array($this, $strMutatorMethod), $arrData[$strFieldKey]);
+                    if ( is_callable (array($this, $strMutatorMethod)) )
+                    {
+                        call_user_func (array($this, $strMutatorMethod), $arrData[$strFieldKey]);
                     }
                 }
             }
@@ -363,9 +405,10 @@ abstract class BaseStep implements Persistent
 
         return false;
     }
-    
-    public function doDelete()
+
+    public function doDelete ()
     {
-        $this->objMysql->_delete("workflow.step", ["TAS_UID" => $this->tas_uid, "STEP_TYPE_OBJ" => $this->step_type_obj, "STEP_UID_OBJ" => $this->step_uid_obj]);
+        $this->objMysql->_delete ("workflow.step", ["TAS_UID" => $this->tas_uid, "STEP_TYPE_OBJ" => $this->step_type_obj, "STEP_UID_OBJ" => $this->step_uid_obj]);
     }
+
 }
