@@ -2,14 +2,14 @@
 
 define ("HOME_DIR", "C:/xampp/htdocs/");
 define ("PATH_THIRDPARTY", HOME_DIR . '/core/app/library/thirdparty/');
-define ("PATH_DATA_MAILTEMPLATES", HOME_DIR . '/core/public/templates');
-define ("DIAGRAMS", HOME_DIR . "/core/public/BPMNdata/");
-define ("PATH_DATA_PUBLIC", HOME_DIR . "/FormBuilder/public/");
+define ("PATH_DATA_MAILTEMPLATES", HOME_DIR . 'core/public/templates/');
+define ("DIAGRAMS", HOME_DIR . "core/public/BPMNdata/");
+define ("PATH_DATA_PUBLIC", HOME_DIR . "FormBuilder/public/");
 define ("PATH_SEP", "/");
 define ("UPLOADS_DIR", HOME_DIR . PATH_DATA_PUBLIC . "uploads/");
 define ("OUTPUT_DOCUMENTS", UPLOADS_DIR . "OutputDocuments/");
 define ("PATH_IMAGES_ENVIRONMENT_USERS", HOME_DIR . PATH_DATA_PUBLIC . "img/users");
-define("WEB_ENTRY_DIR", HOME_DIR . "/core/public/webentry/");
+define("WEB_ENTRY_DIR", HOME_DIR . "core/public/webentry/");
 define("WEB_ENTRY_TEMPLATES", WEB_ENTRY_DIR . "template.phtml");
 
 require_once HOME_DIR . "/core/app/config/config.php";

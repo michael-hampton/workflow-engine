@@ -16,6 +16,25 @@ namespace BusinessModel;
 class EmailTemplate
 {
 
+    public function getTemplates ($workflowId)
+    {
+        $data = array();
+
+        $dir = new \DirectoryIterator (PATH_DATA_MAILTEMPLATES . $workflowId);
+        foreach ($dir as $fileinfo) {
+            if ( !$fileinfo->isDot () )
+            {
+                $filename = str_replace(".html", "", $fileinfo->getFilename ());
+                $data[$filename] = array(
+                    "CONTENT" => file_get_contents (PATH_DATA_MAILTEMPLATES . $workflowId . "/" . $fileinfo->getFilename ()),
+                    "TEMPLATE" => $filename
+                );
+            }
+        }
+
+        return $data;
+    }
+
     public function editTemplate (array $arrayData)
     {
         //Action Validations
@@ -53,12 +72,14 @@ class EmailTemplate
         }
         if ( $arrayData['TEMPLATE'] == '' )
         {
-            throw new Exception (\G::LoadTranslation ('ID_TEMPLATE_PARAMETER_EMPTY'));
+            throw new Exception ('ID_TEMPLATE_PARAMETER_EMPTY');
         }
-        $templateFile = fopen (PATH_DATA_MAILTEMPLATES . $arrayData['PRO_UID'] . PATH_SEP . $arrayData['TEMPLATE'], 'w');
+
+        (new \BusinessModel\FileUpload())->mk_dir (PATH_DATA_MAILTEMPLATES . $arrayData['PRO_UID']);
+
+        $templateFile = fopen (PATH_DATA_MAILTEMPLATES . $arrayData['PRO_UID'] . PATH_SEP . $arrayData['TEMPLATE'] . ".html", 'w');
         $content = stripslashes ($arrayData['CONTENT']);
-        $content = str_replace ('@amp@', '&', $content);
-        $content = base64_decode ($content);
+        $content = urldecode ($content);
         fwrite ($templateFile, $content);
         fclose ($templateFile);
     }
