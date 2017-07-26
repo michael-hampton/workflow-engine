@@ -38,30 +38,6 @@ class EmailTemplate
         }
     }
 
-    public function editTemplate (array $arrayData)
-    {
-        //Action Validations
-        if ( !isset ($arrayData['TEMPLATE']) )
-        {
-            $arrayData['TEMPLATE'] = '';
-        }
-        if ( $arrayData['TEMPLATE'] == '' )
-        {
-            throw new Exception (\G::LoadTranslation ('ID_TEMPLATE_PARAMETER_EMPTY'));
-        }
-        $data = array(
-            'CONTENT' => file_get_contents (
-                    PATH_DATA_MAILTEMPLATES . $arrayData['PRO_UID'] . PATH_SEP . $arrayData['TEMPLATE']
-            ),
-            'TEMPLATE' => $arrayData['TEMPLATE'],
-        );
-        global $G_PUBLISH;
-        $G_PUBLISH = new \Publisher();
-        $G_PUBLISH->AddContent ('xmlform', 'xmlform', 'actionsByEmail/actionsByEmail_FileEdit', '', $data);
-        \G::RenderPage ('publish', 'raw');
-        die ();
-    }
-
     public function updateTemplate (array $arrayData)
     {
         //Action Validations
