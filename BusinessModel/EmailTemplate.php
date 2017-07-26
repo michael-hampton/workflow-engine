@@ -20,19 +20,22 @@ class EmailTemplate
     {
         $data = array();
 
-        $dir = new \DirectoryIterator (PATH_DATA_MAILTEMPLATES . $workflowId);
-        foreach ($dir as $fileinfo) {
-            if ( !$fileinfo->isDot () )
-            {
-                $filename = str_replace(".html", "", $fileinfo->getFilename ());
-                $data[$filename] = array(
-                    "CONTENT" => file_get_contents (PATH_DATA_MAILTEMPLATES . $workflowId . "/" . $fileinfo->getFilename ()),
-                    "TEMPLATE" => $filename
-                );
+        if ( is_dir (PATH_DATA_MAILTEMPLATES . $workflowId) )
+        {
+            $dir = new \DirectoryIterator (PATH_DATA_MAILTEMPLATES . $workflowId);
+            foreach ($dir as $fileinfo) {
+                if ( !$fileinfo->isDot () )
+                {
+                    $filename = str_replace (".html", "", $fileinfo->getFilename ());
+                    $data[$filename] = array(
+                        "CONTENT" => file_get_contents (PATH_DATA_MAILTEMPLATES . $workflowId . "/" . $fileinfo->getFilename ()),
+                        "TEMPLATE" => $filename
+                    );
+                }
             }
-        }
 
-        return $data;
+            return $data;
+        }
     }
 
     public function editTemplate (array $arrayData)

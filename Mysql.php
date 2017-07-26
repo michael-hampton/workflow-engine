@@ -255,9 +255,9 @@ class Mysql2 extends D
 
                 return $arrResultSet;
             } catch (Exception $e) {
-                //echo $this->parms($query, $arrParameters);
+                $message = $this->parms($query, $arrParameters);
                 //die($e->getMessage());
-                $this->setLog ($e);
+                $this->setLog ($e, $message);
             }
         }
         else

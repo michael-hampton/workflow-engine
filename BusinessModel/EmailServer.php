@@ -24,6 +24,17 @@ class EmailServer
     {
         $this->objMysql = new \Mysql2();
     }
+    
+    public function checkRecordByName($accountName)
+    {
+        $result = $this->objMysql->_select("email_server", [], ["MESS_ACCOUNT" => $accountName]);
+        
+        if(isset($result[0]) && !empty($result[0])) {
+            return true;
+        }
+        
+        return false;
+    }
 
     /**
      * Create Email Server
@@ -35,9 +46,15 @@ class EmailServer
     public function create (array $arrayData)
     {
         try {
+
             //Verify data
             $this->throwExceptionIfDataIsNotArray ($arrayData, "\$arrayData");
             $this->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
+            
+            if($this->checkRecordByName ($arrayData['MESS_ACCOUNT'])) {
+                return false;
+            }
+            
             //Set data
             unset ($arrayData["MESS_UID"]);
             //Create

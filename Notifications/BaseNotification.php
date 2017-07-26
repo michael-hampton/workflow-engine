@@ -400,10 +400,10 @@ abstract class BaseNotification implements Persistent
         {
             $this->objMysql->_insert ("task_manager.auto_notifications", [
                 "triggering_status" => $this->triggeringStatus,
-                "system" => "task_manager",
+                "`system`" => "task_manager",
                 "message_subject" => $this->subject,
                 "message_body" => $this->body,
-                "to" => $this->recipient,
+                "`to`" => $this->recipient,
                 "from_name" => $this->fromName,
                 "from_mail" => $this->from,
                 "cc" => $this->cc,
