@@ -13,23 +13,12 @@
  */
 class pmTable
 {
-
-    private $dom = null;
-    private $schemaFile = '';
     private $tableName;
     private $oldTableName = null;
     private $columns;
-    private $primaryKey = array();
-    private $baseDir = '';
-    private $targetDir = '';
-    private $configDir = '';
-    private $dataDir = '';
-    private $classesDir = '';
     private $className = '';
     private $dataSource = '';
-    private $rootNode;
     private $dbConfig;
-    private $db;
     private $alterTable = true;
     private $keepData = false;
     private $sPrefix = "RPT_";
@@ -265,24 +254,6 @@ class pmTable
         } catch (Exception $oError) {
             throw ($oError);
         }
-    }
-
-    /**
-     * Function populateTable
-     * This Function fills the table
-     *
-     * @access public
-     * @param string $sTableName Table name
-     * @param string $sConnection Connection name
-     * @param string $sType
-     * @param array $aFields
-     * @param string $sProcessUid
-     * @param string $sGrid
-     * @return void
-     */
-    public function populateTable ($sTableName, $sConnection = 'report', $sType = 'NORMAL', $aFields = array(), $sProcessUid = '', $sGrid = '')
-    {
-        
     }
 
 }
