@@ -361,13 +361,13 @@ class Step
                         //$titleObj = $arrayData["DYN_TITLE"];
                         break;
                     case "INPUT_DOCUMENT":
-                        $inputDocument = new \InputDocument();
-                        $arrayData = $inputDocument->getByUid ($row["STEP_UID_OBJ"]);
+                        //$inputDocument = new \InputDocument();
+                        //$arrayData = $inputDocument->getByUid ($row["STEP_UID_OBJ"]);
 
-                        if ( $arrayData === false )
-                        {
-                            return $arrayStep;
-                        }
+                        //if ( $arrayData === false )
+                        //{
+                            //return $arrayStep;
+                        //}
 
                         break;
                     case "OUTPUT_DOCUMENT":
