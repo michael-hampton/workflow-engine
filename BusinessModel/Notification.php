@@ -114,7 +114,7 @@ class Notification
             //Update
             try {
                 $emailEvent = new \Notification();
-                $arrayData['body'] = urldecode ($arrayData['body'])
+                $arrayData['body'] = urldecode ($arrayData['body']);
                 $emailEvent->loadObject ($arrayData);
                 $emailEvent->setId ($emailEventUid);
                 $result = $emailEvent->save ();

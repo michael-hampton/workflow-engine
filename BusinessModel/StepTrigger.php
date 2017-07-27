@@ -110,16 +110,18 @@ class StepTrigger
         $arrTriggers = $this->getTriggers ();
         $blHasTrigger = false;
 
+        $objCase = new Cases();
+
         foreach ($arrTriggers as $arrTrigger) {
 
             $arrTrigger['event_type'] = isset ($arrTrigger['event_type']) && trim ($arrTrigger['event_type']) !== "" ? $arrTrigger['event_type'] : "INTERMEDIATE";
 
             switch ($arrTrigger['event_type']) {
                 case "START":
-                                        
+
                     $projectId = $this->parentId;
                     $workflowTo = $arrTrigger['workflow_to'];
-                    $objCase = new Cases();
+
                     $objWorkflow = new \Workflow ($workflowTo);
                     $objCase->addCase ($objWorkflow, $objUser, array(), array(), false, $projectId);
                     $this->blAddedCase = true;
@@ -130,13 +132,36 @@ class StepTrigger
 
                     $workflow = isset ($arrTrigger['workflow_from']) ? $arrTrigger['workflow_from'] : $arrTrigger['workflow_id'];
                     $triggerType = isset ($arrTrigger['trigger_type']) ? $arrTrigger['trigger_type'] : '';
-                    
-                    if($triggerType === "sendMail") {
-                        switch ($arrTrigger["event_type"] {
+
+                    if ( $triggerType === "sendMail" )
+                    {
+                        switch ($arrTrigger["event_type"]) {
                             case "claimCase":
-                             $template = "claimCase.html":
-                             //$content = file_get_content($template);
-                            break;
+                                $template = PATH_DATA_MAILTEMPLATES . "claimCase.html";
+                                $content = file_get_contents ($template);
+                                $subject = "CASE HAS BEEN CLAIMED BY [USER]";
+                                break;
+                        }
+
+                        $objSendNotification = new \SendNotification();
+                        $objSendNotification->setProjectId ($this->parentId);
+                        $recipients = $objSendNotification->getTaskUsers ();
+
+                        if ( empty ($recipients) )
+                        {
+                            return false;
+                        }
+
+                        $recipients = implode (",", $recipients);
+
+                        $Fields = $objCase->getCaseVariables ((int) $this->elementId, (int) $this->parentId, (int) $this->currentStep);
+
+                        if ( trim ($content) !== "" && trim ($subject) !== "" )
+                        {
+                            $subject = $objCase->replaceDataField ($subject, $Fields);
+                            $body = $objCase->replaceDataField ($content, $Fields);
+                            
+                            $objSendNotification->notificationEmail($recipients, $subject, $body);
                         }
                     }
 

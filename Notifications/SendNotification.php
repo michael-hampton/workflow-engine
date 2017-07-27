@@ -2,8 +2,6 @@
 
 class SendNotification extends Notification
 {
-
-    private $elementId;
     private $arrEmailAddresses = array();
 
     /**
@@ -47,6 +45,40 @@ class SendNotification extends Notification
         $this->elementId = (int) $elementId;
     }
 
+    public function getTaskUsers ()
+    {
+        $case = new \BusinessModel\Cases();
+        $p = $case->getUsersParticipatedInCase ($this->projectId);
+
+        if ( !empty ($p) )
+        {
+            $noteRecipientsList = [];
+
+            foreach ($p as $userParticipated) {
+                if ( $userParticipated != '' )
+                {
+                    $objUsers = new \BusinessModel\UsersFactory();
+                    $arrUser = $objUsers->getUsers (array("filter" => "mike", "filterOption" => trim ($userParticipated)));
+
+                    if ( isset ($arrUser['data'][0]) && !empty ($arrUser['data'][0]) )
+                    {
+                        $objUser = $arrUser['data'][0];
+                    }
+
+                    if ( is_object ($objUser) && get_class ($objUser) === "Users" )
+                    {
+                        $emailAddress = $objUser->getUser_email ();
+                        $noteRecipientsList[] = $emailAddress;
+                    }
+                }
+            }
+
+            return $noteRecipientsList;
+        }
+
+        return false;
+    }
+
     /**
      *
      * @param type $status
@@ -76,30 +108,8 @@ class SendNotification extends Notification
 
             if ( (int) $this->sendToAll === 1 )
             {
-                $case = new \BusinessModel\Cases();
-                $p = $case->getUsersParticipatedInCase ($this->projectId);
-
-                if ( !empty ($p) )
-                {
-                    foreach ($p as $userParticipated) {
-                        if ( $userParticipated != '' )
-                        {
-                            $objUsers = new \BusinessModel\UsersFactory();
-                            $arrUser = $objUsers->getUsers (array("filter" => "mike", "filterOption" => trim ($userParticipated)));
-
-                            if ( isset ($arrUser['data'][0]) && !empty ($arrUser['data'][0]) )
-                            {
-                                $objUser = $arrUser['data'][0];
-                            }
-
-                            if ( is_object ($objUser) && get_class ($objUser) === "Users" )
-                            {
-                                $emailAddress = $objUser->getUser_email ();
-                                $noteRecipientsList[] = $emailAddress;
-                            }
-                        }
-                    }
-                }
+                $participants = $this->getTaskUsers ();
+                $noteRecipientsList = array_merge ($noteRecipientsList, $participants);
             }
 
             if ( !in_array ($this->message['to'], $noteRecipientsList) && trim ($this->message['to']) !== '' )
@@ -113,7 +123,7 @@ class SendNotification extends Notification
 
             $objCases = new \BusinessModel\Cases();
 
-            $Fields = $objCases->getCaseVariables ($this->elementId, $this->projectId, $objTask->getStepId ());
+            $Fields = $objCases->getCaseVariables ((int) $this->elementId, (int) $this->projectId, (int) $objTask->getStepId ());
 
             $this->subject = $objCases->replaceDataField ($this->subject, $Fields);
             $this->body = $objCases->replaceDataField ($this->body, $Fields);
@@ -128,35 +138,7 @@ class SendNotification extends Notification
             throw $ex;
         }
     }
-
-    /**
-     *
-     */
-    public function sendMessage ()
-    {
-        $this->objMysql->_query ("UPDATE workflow.notifications_sent
-                                SET status = 2
-                                WHERE case_id = ?
-                                AND project_id = ?
-                                AND status != 3", [$this->elementId, $this->projectId]
-        );
-
-        $id = $this->objMysql->_insert (
-                "workflow.notifications_sent", array(
-            "subject" => $this->subject,
-            "message" => $this->body,
-            "recipient" => $this->recipient,
-            "date_sent" => date ("Y-m-d H:i:s"),
-            "project_id" => $this->projectId,
-            "case_id" => $this->elementId,
-            "status" => 1,
-            "step_id" => $this->status
-                )
-        );
-
-        return $id;
-    }
-
+    
     /**
      *
      * @param type $sendto

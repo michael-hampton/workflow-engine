@@ -10,6 +10,7 @@ abstract class BaseNotification implements Persistent
     protected $body;
     protected $objMysql;
     protected $recipient;
+    protected $elementId;
     protected $hasRead;
     protected $dateSent;
     protected $triggeringStatus;
@@ -428,6 +429,34 @@ abstract class BaseNotification implements Persistent
         $this->arrMessages['date_sent'] = date ("Y-m-d H:i:s");
         $this->arrMessages['status'] = 1;
         $this->objMysql->_insert ("workflow.notifications_sent", $this->arrMessages);
+    }
+
+    /**
+     *
+     */
+    public function sendMessage ()
+    {
+        $this->objMysql->_query ("UPDATE workflow.notifications_sent
+                                SET status = 2
+                                WHERE case_id = ?
+                                AND project_id = ?
+                                AND status != 3", [$this->elementId, $this->projectId]
+        );
+
+        $id = $this->objMysql->_insert (
+                "workflow.notifications_sent", array(
+            "subject" => $this->subject,
+            "message" => $this->body,
+            "recipient" => $this->recipient,
+            "date_sent" => date ("Y-m-d H:i:s"),
+            "project_id" => $this->projectId,
+            "case_id" => $this->elementId,
+            "status" => 1,
+            "step_id" => $this->status
+                )
+        );
+
+        return $id;
     }
 
 }
