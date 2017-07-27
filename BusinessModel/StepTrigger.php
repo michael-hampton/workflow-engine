@@ -130,6 +130,15 @@ class StepTrigger
 
                     $workflow = isset ($arrTrigger['workflow_from']) ? $arrTrigger['workflow_from'] : $arrTrigger['workflow_id'];
                     $triggerType = isset ($arrTrigger['trigger_type']) ? $arrTrigger['trigger_type'] : '';
+                    
+                    if($triggerType === "sendMail") {
+                        switch ($arrTrigger["event_type"] {
+                            case "claimCase":
+                             $template = "claimCase.html":
+                             //$content = file_get_content($template);
+                            break;
+                        }
+                    }
 
                     if ( $arrTrigger !== false && !empty ($arrTrigger) )
                     {
