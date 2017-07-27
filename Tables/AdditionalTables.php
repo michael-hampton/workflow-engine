@@ -123,15 +123,11 @@ class AdditionalTables extends BaseAdditionalTables
         }
     }
 
-    public function getAllData ($sUID, $start = null, $limit = null, $keyOrderUppercase = true, $filter = '', $appUid = false, $search = '')
+    public function getAllData ($sUID, $start = null, $limit = null, $keyOrderUppercase = true, $filter = '', $appUid = false, $search = '', $sort = "", $sortDir = "")
     {
         $addTab = new AdditionalTables();
         $aData = $addTab->load ($sUID, true);
 
-        if ( !isset ($_SESSION['PROCESS']) )
-        {
-            $_SESSION["PROCESS"] = $aData['PRO_UID'];
-        }
         $aData['DBS_UID'] = isset ($aData['DBS_UID']) ? $aData['DBS_UID'] : 'workflow';
 
         $sql = " SELECT ";
@@ -212,15 +208,15 @@ class AdditionalTables extends BaseAdditionalTables
         $count = $this->objMysql->_query ($sql);
         $count = count ($count);
 
-        if ( isset ($_POST['sort']) )
+        if ( trim($sort) !== "" )
         {
-            if ( $_POST['dir'] == 'ASC' )
+            if (trim($sortDir) !== "" && $sortDir == 'ASC' )
             {
-                $sql .= "ORDER BY " . $_POST['sort'] . " ASC";
+                $sql .= "ORDER BY " . $sort . " ASC";
             }
             else
             {
-                $sql .= "ORDER BY " . $_POST['sort'] . " DESC";
+                $sql .= "ORDER BY " . $sort . " DESC";
             }
         }
 
@@ -415,7 +411,7 @@ class AdditionalTables extends BaseAdditionalTables
     /**
      * Create & Update function
      */
-    public function create ($aData, $aFields = array())
+    public function create ($aData)
     {
         try {
             $oAdditionalTables = new AdditionalTables();
