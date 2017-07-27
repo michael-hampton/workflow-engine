@@ -115,7 +115,7 @@ class Table
         }
 
         $additionalTables = new \AdditionalTables();
-        $additionalTables->populateReportTable ($pro_uid, $rep_uid, $tableName);
+        $additionalTables->populateReportTable ($pro_uid);
     }
 
     /**

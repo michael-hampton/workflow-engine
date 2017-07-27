@@ -97,7 +97,7 @@ class AdditionalTables extends BaseAdditionalTables
      * @param string $sGrid
      * @return number
      */
-    public function populateReportTable ($pro_uid, $rep_uid, $tableName, $validate)
+    public function populateReportTable ($pro_uid)
     {
         $results = $this->objMysql->_select ("workflow.workflow_data");
 
