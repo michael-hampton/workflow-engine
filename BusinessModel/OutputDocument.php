@@ -16,6 +16,7 @@ namespace BusinessModel;
 
 class OutputDocument
 {
+    use Validator;
 
     private $objMysql;
 
@@ -240,8 +241,8 @@ class OutputDocument
             {
                 if ( isset ($outputDocumentData['out_doc_pdf_security_open_password']) && $outputDocumentData['out_doc_pdf_security_open_password'] != "" )
                 {
-                    $outputDocumentData['out_doc_pdf_security_open_password'] = \G::encrypt ($outputDocumentData['out_doc_pdf_security_open_password'], $sOutputDocumentUID);
-                    $outputDocumentData['out_doc_pdf_security_owner_password'] = \G::encrypt ($outputDocumentData['out_doc_pdf_security_owner_password'], $sOutputDocumentUID);
+                    $outputDocumentData['out_doc_pdf_security_open_password'] = $this->encrypt ($outputDocumentData['out_doc_pdf_security_open_password'], $sOutputDocumentUID);
+                    $outputDocumentData['out_doc_pdf_security_owner_password'] = $this->encrypt ($outputDocumentData['out_doc_pdf_security_owner_password'], $sOutputDocumentUID);
                 }
                 else
                 {
@@ -418,7 +419,7 @@ class OutputDocument
      *
      * return void Throw exception if the OutputDocument it's assigned in other objects
      */
-    public function throwExceptionIfItsAssignedInOtherObjects ($outputDocumentUid, $fieldNameForException)
+    public function throwExceptionIfItsAssignedInOtherObjects ($outputDocumentUid)
     {
         try {
             list($flagAssigned, $arrayData) = $this->itsAssignedInOtherObjects ($outputDocumentUid);
@@ -439,7 +440,7 @@ class OutputDocument
 
             $arrDocuments = [];
 
-            foreach ($results as $key => $result) {
+            foreach ($results as $result) {
                 $oDocument = new \OutputDocument ();
                 $arrDocuments[] = $oDocument->retrieveByPk ($result['id']);
             }
