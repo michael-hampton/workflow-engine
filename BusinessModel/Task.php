@@ -98,6 +98,7 @@ class Task
                 $sql = "FROM workflow.step_permission p
                         LEFT JOIN user_management.poms_users u ON u.team_id = p.permission AND p.permission_type = 'team'
                          LEFT JOIN user_management.teams t ON t.team_id = u.team_id
+                         WHERE 1=1
    
                 ";
 
@@ -109,10 +110,10 @@ class Task
 
                         break;
                     case "AVAILABLE":
-                        $sqlWhere .= " AND team_id NOT IN (" . implode (",", $arrayGroupUid) . ")";
+                        $sql .= " AND t.team_id NOT IN (" . implode (",", $arrayGroupUid) . ")";
                         break;
                 }
-                $sqlWhere .= " AND p.step_id = ? AND p.access_level = ?";
+                $sql .= " AND p.step_id = ? AND p.access_level = ?";
                 $arrParameters = array($taskUid, $taskUserType);
 
                 if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"]) && trim ($arrayFilterData["filter"]) != "" )
@@ -139,7 +140,7 @@ class Task
                   break;
                   } */
 
-                $count = $selectCount . $sql . " WHERE 1 = 1 " . $sqlWhere;
+                $count = $selectCount . $sql;
                 $countResult = $this->objMsql->_query ($count, $arrParameters);
 
                 $numRecTotalGroup = (int) ($countResult[0]["NUM_REC"]);
@@ -150,11 +151,11 @@ class Task
             if ( empty ($type) || $type == "user" )
             {
                 $sqlSelect = "SELECT u.usrid, u.username, u.firstName, u.lastName FROM workflow.step_permission";
-                $sql = "";
+                $sql = "LEFT JOIN user_management.poms_users u ON u.usrid = p.permission AND p.permission_type = 'user' ";
 
                 switch ($option) {
                     case "ASSIGNEE":
-                        $sql .= "   LEFT JOIN user_management.poms_users u ON u.usrid = p.permission AND p.permission_type = 'user' 
+                        $sql .= "   
                                     WHERE step_id = ? AND access_level = ?
                         ";
 
@@ -162,7 +163,7 @@ class Task
 
                         break;
                     case "AVAILABLE":
-                        $sql .= " u.usrid NOT IN (" . implode (",", $arrayUserUid) . ")";
+                        $sql .= " AND u.usrid NOT IN (" . implode (",", $arrayUserUid) . ")";
                         break;
                 }
                 if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"]) && trim ($arrayFilterData["filter"]) != "" )
@@ -174,7 +175,7 @@ class Task
 
                 $sql .= "AND u.status = 1";
                 //Number records total
-                $sqlCount = "SELECT COUNT(u,usrid) AS NUM_REC";
+                $sqlCount = "SELECT COUNT(u,usrid) AS NUM_REC ";
                 $sqlCount .= $sql;
 
 
@@ -220,22 +221,22 @@ class Task
                 $results = $this->objMsql->_query($sql, $arrParameters);
      
                 $numRecGroup = 0;
-                while ($rsCriteriaGroup->next ()) {
-                    $row = $rsCriteriaGroup->getRow ();
-                    $criteria2 = new \Criteria ("workflow");
-                    $criteria2->addSelectColumn ("COUNT(" . \GroupUserPeer::GRP_UID . ") AS NUM_MEM");
-                    $criteria2->add (\GroupUserPeer::GRP_UID, $row["GRP_UID"], \Criteria::EQUAL);
-                    $rsCriteria2 = \GroupUserPeer::doSelectRS ($criteria2);
-                    $rsCriteria2->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
-                    $result = $rsCriteria2->next ();
-                    $row2 = $rsCriteria2->getRow ();
+                foreach($results as $row){
+                    
+                    
+                    $sql2 = "SELECT COUNT(team_id) AS NUM_REM FROM user_management.teams WHERE team_id = ".$row["team_id"];
+                    
+                    
+                    $result2 = $this->objMysql->_query($sql2);
+                    
+                    $row2 = $result2[0];
                     $row["GRP_TITLE"] = $row["GRP_TITLE"] . " (" . $row2["NUM_MEM"] . " " . \G::LoadTranslation (((int) ($row2["NUM_MEM"]) == 1) ? "ID_USER" : "ID_USERS") . ")";
                     $arrayAssignee[] = $this->getTaskAssigneeDataFromRecord (
                             array(
-                        $row["GRP_UID"],
-                        $row["GRP_TITLE"],
+                        $row["team_id"],
+                        $row["team_name"],
                         "",
-                        $row["GRP_TITLE"],
+                        $row["team_name"],
                         "group"
                             ), $taskUserType
                     );
@@ -277,32 +278,35 @@ class Task
                 {
                     //Users
                     //Query
-                    $criteriaUser->addAscendingOrderByColumn (\UsersPeer::USR_FIRSTNAME);
-                    if ( !is_null ($start) )
-                    {
-                        $criteriaUser->setOffset ((int) ($start));
-                    }
+                    $sql .= " ORDER BY u.firstName ASC";
+                    
                     if ( !is_null ($limit) )
                     {
-                        $criteriaUser->setLimit ((int) ($limit));
+                        $sql .= " LIMIT " . (int) $limit;
                     }
-                    switch ($option) {
+                    
+                    if ( !is_null ($start) )
+                    {
+                        $sql .= " OFFSET " . (int) $start;
+                    }
+                    
+                    /*switch ($option) {
                         case "ASSIGNEE":
                             $rsCriteriaUser = \TaskUserPeer::doSelectRS ($criteriaUser);
                             break;
                         case "AVAILABLE":
                             $rsCriteriaUser = \UsersPeer::doSelectRS ($criteriaUser);
                             break;
-                    }
-                    $rsCriteriaUser->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
-                    while ($rsCriteriaUser->next ()) {
-                        $row = $rsCriteriaUser->getRow ();
+                    }*/
+                    $results = $this->objMysql->_query($sql, $arrParameters);
+                    foreach($results as $row){
+                        
                         $arrayAssignee[] = $this->getTaskAssigneeDataFromRecord (
                                 array(
-                            $row["USR_UID"],
-                            $row["USR_FIRSTNAME"],
-                            $row["USR_LASTNAME"],
-                            $row["USR_USERNAME"],
+                            $row["usrid"],
+                            $row["firstName"],
+                            $row["lastName"],
+                            $row["username"],
                             "user"
                                 ), $taskUserType
                         );
