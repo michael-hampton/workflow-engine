@@ -713,6 +713,16 @@ class Cases
 
                 $objElements->updateTitle ($objUser, $objStep);
 
+                (new \Log (LOG_FILE))->log (
+                        array(
+                    "message" => "New Case Created",
+                    'case_id' => $caseId,
+                    'project_id' => $projectId,
+                    'user' => $objUser->getUsername (),
+                    'workflow_id' => $objWorkflow->getWorkflowId (),
+                    'step_id' => $objStep->getStepId ()
+                        ), \Log::NOTICE);
+
                 return array("project_id" => $projectId, "case_id" => $caseId);
             }
         } catch (Exception $ex) {
@@ -1034,7 +1044,7 @@ class Cases
             $aOD = $oOutputDocument->retrieveByPk ($outputID);
 
             $Fields = $this->getCaseVariables ((int) $caseId, $projectId, $stepId);
-            
+
             $sFilename = preg_replace ('[^A-Za-z0-9_]', '_', $this->replaceDataField ($aOD->getOutDocFilename (), $Fields));
 
             $objDocumentVersion = new \DocumentVersion (array());
@@ -1047,9 +1057,9 @@ class Cases
             }
 
             $sFilename = $aOD->getOutDocUid () . "_" . $lastDocVersion;
-            
+
             $pathOutput = OUTPUT_DOCUMENTS . $projectId . "/";
-            
+
             $objFile = new \BusinessModel\FileUpload();
             $objFile->mk_dir ($pathOutput);
 
@@ -1222,7 +1232,7 @@ class Cases
                 $aGields = $oOutputDocument->retrieveByPk ($aRow->getStepUidObj ());
                 //OUTPUTDOCUMENT
                 $outDocTitle = $aGields->getOutDocTitle ();
-               switch ($aGields->getOutDocGenerate ()) {
+                switch ($aGields->getOutDocGenerate ()) {
                     case "PDF":
                         $fileDoc = 'javascript:alert("NO DOC")';
                         $fileDocLabel = " ";
@@ -1308,12 +1318,12 @@ class Cases
                 }
                 //$aFields['POSITION'] = $_SESSION['STEP_POSITION'];
                 $aFields['CONFIRM'] = 'ID_CONFIRM_DELETE_ELEMENT';
-                
+
                 if ( in_array ($aRow->getStepUidObj (), $aObjectPermissions['OUTPUT_DOCUMENTS']) )
                 {
                     //if ( in_array ($aRow->getStepUidObj (), $aDelete['OUTPUT_DOCUMENTS']) )
                     //{
-                        $aFields['ID_DELETE'] = 'ID_DELETE';
+                    $aFields['ID_DELETE'] = 'ID_DELETE';
                     //}
                 }
                 $aOutputDocuments[] = $aFields;

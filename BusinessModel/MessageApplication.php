@@ -17,7 +17,6 @@ namespace BusinessModel;
 class MessageApplication
 {
 
-    
     private $objMysql;
 
     private function getConnection ()
@@ -173,7 +172,7 @@ class MessageApplication
             if ( !is_null ($limit) && $limit . "" == "0" )
             {
                 return $arrayMessageApplication;
-            }            
+            }
 
             //SQL
             $select = "SELECT ma.*, md.*, sm.step_condition, sm.order_id";
@@ -322,7 +321,7 @@ class MessageApplication
                                     $variables['description'] = "DESCRIPTION";
 
                                     //Start and derivate new Case
-                                    $arrCase = $case->addCase ((new \Workflow( $arrayMessageApplicationData['workflow_id'])), $objUser, array("form" => $variables), [], true, null, true);
+                                    $arrCase = $case->addCase ((new \Workflow ($arrayMessageApplicationData['workflow_id'])), $objUser, array("form" => $variables), [], true, null, true);
 
                                     $aInfo = array(
                                         'action' => 'CREATED-NEW-CASE'
@@ -332,12 +331,10 @@ class MessageApplication
                                         , 'appUid' => $arrCase['case_id']
                                         , 'workflowId' => $processUid
                                     );
-                                    $this->syslog (
-                                            200
-                                            , "Case #" . $arrCase['case_id'] . " created"
-                                            , 'CREATED-NEW-CASE'
-                                            , $aInfo
-                                    );
+                                  
+
+                                    (new \Log (LOG_FILE))->log (
+                                            $aInfo, \Log::NOTICE);
 
 
                                     $objElement = $case->getCaseInfo ($arrCase['project_id'], $arrCase['case_id']);
@@ -351,12 +348,8 @@ class MessageApplication
                                         , 'appUid' => $arrCase['case_id']
                                         , 'workflowId' => $processUid
                                     );
-                                    $this->syslog (
-                                            200
-                                            , "Case #" . $arrCase['case_id'] . " routed"
-                                            , 'ROUTED-NEW-CASE'
-                                            , $aInfo
-                                    );
+                                    (new \Log (LOG_FILE))->log (
+                                            $aInfo, \Log::NOTICE);
 
                                     $flagCatched = true;
                                 }
@@ -379,12 +372,8 @@ class MessageApplication
                                     , 'workflowId' => $processUid
                                 );
 
-                                $this->syslog (
-                                        200
-                                        , "Case #".$objElement->getId ()." routed "
-                                        , 'ROUTED-NEW-CASE'
-                                        , $aInfo
-                                );
+                                (new \Log (LOG_FILE))->log (
+                                       $aInfo, \Log::NOTICE);
 
                                 $flagCatched = true;
                                 break;
@@ -498,38 +487,4 @@ class MessageApplication
             throw $e;
         }
     }
-
-    /**
-     * The Syslog register the information in Monolog Class
-     *
-     * @param int $level DEBUG=100 INFO=200 NOTICE=250 WARNING=300 ERROR=400 CRITICAL=500
-     * @param string $message
-     * @param string $ipClient for Context information
-     * @param string $action for Context information
-     * @param string $timeZone for Context information
-     * @param string $workspace for Context information
-     * @param string $usrUid for Context information
-     * @param string $proUid for Context information
-     * @param string $tasUid for Context information
-     * @param string $appUid for Context information
-     * @param string $delIndex for Context information
-     * @param string $stepUid for Context information
-     * @param string $triUid for Context information
-     * @param string $outDocUid for Context information
-     * @param string $inpDocUid for Context information
-     * @param string $url for Context information
-     *
-     * return void
-     */
-    private function syslog (
-    $level, $message, $action = '', $aContext = array()
-    )
-    {
-        try {
-            // \Bootstrap::registerMonolog ('MessageEventCron', $level, $message, $aContext, SYS_SYS, 'processmaker.log');
-        } catch (\Exception $e) {
-            throw $e;
-        }
-    }
-
 }

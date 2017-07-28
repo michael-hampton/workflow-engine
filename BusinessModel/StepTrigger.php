@@ -125,6 +125,17 @@ class StepTrigger
                     $objWorkflow = new \Workflow ($workflowTo);
                     $objCase->addCase ($objWorkflow, $objUser, array(), array(), false, $projectId);
                     $this->blAddedCase = true;
+
+                    (new \Log (LOG_FILE))->log (
+                            array(
+                        "message" => "CREATED NEW CASE BY TRIGGER",
+                        'case_id' => $this->elementId,
+                        'project_id' => $this->parentId,
+                        'user' => $objUser->getUsername (),
+                        'workflow_id' => $this->workflowId,
+                        'step_id' => $this->currentStep
+                            ), \Log::NOTICE);
+
                     break;
 
                 default:
@@ -160,8 +171,8 @@ class StepTrigger
                         {
                             $subject = $objCase->replaceDataField ($subject, $Fields);
                             $body = $objCase->replaceDataField ($content, $Fields);
-                            
-                            $objSendNotification->notificationEmail($recipients, $subject, $body);
+
+                            $objSendNotification->notificationEmail ($recipients, $subject, $body);
                         }
                     }
 
@@ -196,6 +207,16 @@ class StepTrigger
                                 $this->arrWorkflowObject = $objGateway->updateStep ($arrTrigger, $this->arrWorkflowObject, $objMike);
                                 $blHasTrigger = true;
                                 $this->blMove = false;
+
+                                (new \Log (LOG_FILE))->log (
+                                        array(
+                                    "message" => "Gateway Updated Step",
+                                    'case_id' => $this->elementId,
+                                    'project_id' => $this->parentId,
+                                    'user' => $objUser->getUsername (),
+                                    'workflow_id' => $this->arrWorkflowObject['workflow_id'],
+                                    'step_id' => $this->arrWorkflowObject['elements'][$this->parentId]['current_step']
+                                        ), \Log::NOTICE);
                             }
                         }
                         else
@@ -218,6 +239,16 @@ class StepTrigger
                                 {
                                     $objGateway = new \BusinessModel\StepGateway (null);
                                     $this->arrWorkflowObject = $objGateway->updateStep ($arrTrigger, $this->arrWorkflowObject, $objMike);
+
+                                    (new \Log (LOG_FILE))->log (
+                                            array(
+                                        "message" => "Gateway Updated Step",
+                                        'case_id' => $this->elementId,
+                                        'project_id' => $this->parentId,
+                                        'user' => $objUser->getUsername (),
+                                        'workflow_id' => $this->arrWorkflowObject['elements'][$this->elementId]['workflow_id'],
+                                        'step_id' => $this->arrWorkflowObject['elements'][$this->elementId]['current_step']
+                                            ), \Log::NOTICE);
 
                                     $blHasTrigger = true;
                                     $this->blMove = false;

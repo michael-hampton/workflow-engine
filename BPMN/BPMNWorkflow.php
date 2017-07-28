@@ -2,7 +2,7 @@
 
 class BPMNWorkflow extends BPMN
 {
-    
+
     use \BusinessModel\Validator;
 
     private $objMysql;
@@ -286,6 +286,7 @@ class BPMNWorkflow extends BPMN
 
             $objTask = new Task ($steps['key']);
             $objFlow = new Flow ($steps['key'], $this->workflow);
+            $objLog = new \Log (LOG_FILE);
 
             if ( $steps['item'] == "End" || $steps['item'] == "end" )
             {
@@ -299,15 +300,24 @@ class BPMNWorkflow extends BPMN
 
                 if ( $steps['category'] != "event" || $steps['item'] == "start" )
                 {
-                    $this->writeLog ("DELETING STEP " . $steps['text'] . " ", 'stepDesigner.log');
+                    $objLog->log (
+                            array(
+                        "message" => "DELETING STEP",
+                        'step' => $steps['text'],
+                            ), \Log::NOTICE);
 
                     $objFlow->removeFlow ();
                     $objTask->removeTask ($steps['key']);
-                    $id = (new Task())->create(array("TAS_TITLE" => $steps['text'], "PRO_UID" => $this->workflow));
+                    $id = (new Task())->create (array("TAS_TITLE" => $steps['text'], "PRO_UID" => $this->workflow));
 
                     $arrStepFields[$steps['key']]['step_id'] = $id;
-                    
-                    $this->writeLog ("CREATED STEP " . $steps['text'] . " ", 'stepDesigner.log');
+
+                    $objLog->log (
+                            array(
+                        "message" => "CREATED STEP",
+                        'step' => $steps['text'],
+                            ), \Log::NOTICE);
+
 
                     $arrNewMappings[$steps['key']] = $id;
 
@@ -440,8 +450,12 @@ class BPMNWorkflow extends BPMN
                 {
                     $objBPMN->saveFlow ($from, $to, $this->workflow, $key, json_encode ($arrConditions), $arrSteps[$mapping['from']]['loc']);
                 }
-
-                $this->writeLog ("CREATED MAPPING " . $from . " ", 'stepDesigner.log');
+                
+                $objLog->log(
+                            array(
+                        "message" => "CREATED MAPPING",
+                        'step' => $from,
+                            ), \Log::NOTICE);
 
                 $objTrigger = new Trigger ($from);
 
@@ -462,10 +476,10 @@ class BPMNWorkflow extends BPMN
                     $this->objMysql->_delete ("workflow.step_fields", array("step_id" => $key));
 
                     $stepId = $arrSteps['step_id'];
-                    
+
                     (new \BusinessModel\Step())->create ($stepId, $this->workflow, array('STEP_UID_OBJ' => $stepId,
-                                                                                                        'STEP_TYPE_OBJ' => "DYNAFORM",
-                                                                                                         'STEP_MODE' => "EDIT"));
+                        'STEP_TYPE_OBJ' => "DYNAFORM",
+                        'STEP_MODE' => "EDIT"));
 
                     foreach ($arrSteps as $arrStepField) {
                         if ( isset ($arrStepField['field_id']) && isset ($arrStepField['order_id']) )
@@ -508,7 +522,7 @@ class BPMNWorkflow extends BPMN
         switch ($data['messageType']) {
             case "send":
             case "receive":
-                $this->createMessageEventRelationByBpmnFlow ((new Flow())->retrieveByPk($data['EVN_UID']));
+                $this->createMessageEventRelationByBpmnFlow ((new Flow())->retrieveByPk ($data['EVN_UID']));
                 break;
         }
     }
@@ -516,24 +530,24 @@ class BPMNWorkflow extends BPMN
     public function createMessageEventRelationByBpmnFlow (Flow $bpmnFlow)
     {
         try {
-            
+
             $messageEventRelation = new BusinessModel\MessageEventRelation();
-            
+
             $messageEventRelationUid = "";
 
-            if ( (strtolower($bpmnFlow->getCondition()['sendNotification']) === "yes" || strtolower($bpmnFlow->getCondition()['receiveNotification']) === "yes") &&
-                    (int)$bpmnFlow->getIsActive () === 1 && trim($bpmnFlow->getStepTo ()) !== "" &&
+            if ( (strtolower ($bpmnFlow->getCondition ()['sendNotification']) === "yes" || strtolower ($bpmnFlow->getCondition ()['receiveNotification']) === "yes") &&
+                    (int) $bpmnFlow->getIsActive () === 1 && trim ($bpmnFlow->getStepTo ()) !== "" &&
                     !$messageEventRelation->existsEventRelation ($bpmnFlow->getWorkflowId (), $bpmnFlow->getStepFrom (), $bpmnFlow->getStepTo ())
             )
             {
-       
+
                 $arrayResult = $messageEventRelation->create (
                         $bpmnFlow->getWorkflowId (), array(
                     "EVN_UID_THROW" => $bpmnFlow->getStepFrom (),
                     "EVN_UID_CATCH" => $bpmnFlow->getStepTo ()
                         )
                 );
-                
+
                 $messageEventRelationUid = $arrayResult->getMSGER_UID ();
             }
 

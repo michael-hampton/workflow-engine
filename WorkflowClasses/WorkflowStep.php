@@ -409,6 +409,16 @@ class WorkflowStep
                 $step = $this->nextTask;
                 $step2 = $this->nextStep;
                 $arrWorkflow['current_step'] = $this->nextStep;
+
+                (new \Log (LOG_FILE))->log (
+                        array(
+                    "message" => "STEP COMPLETED",
+                    'case_id' => $this->elementId,
+                    'project_id' => $this->parentId,
+                    'user' => $objUser->getUsername (),
+                    'workflow_id' => $this->workflowId,
+                    'step_id' => $this->nextStep
+                        ), \Log::NOTICE);
             }
             $arrWorkflow['status'] = "STEP COMPLETED";
         }
@@ -554,7 +564,7 @@ class WorkflowStep
         }
 
         $this->sendNotification ($objMike, $arrCompleteData, $arrEmailAddresses);
-        
+
         $this->nextTask = $step;
     }
 

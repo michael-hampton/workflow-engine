@@ -1,6 +1,7 @@
 <?php
 
 define ("HOME_DIR", "C:/xampp/htdocs/");
+define ("LOG_FILE", "C:/xampp/htdocs/core/app/logs/easyflow.log");
 define ("PATH_THIRDPARTY", HOME_DIR . '/core/app/library/thirdparty/');
 define ("PATH_DATA_MAILTEMPLATES", HOME_DIR . 'core/public/templates/');
 define ("DIAGRAMS", HOME_DIR . "core/public/BPMNdata/");
@@ -14,6 +15,7 @@ define("WEB_ENTRY_TEMPLATES", WEB_ENTRY_DIR . "template.phtml");
 
 require_once HOME_DIR . "/core/app/config/config.php";
 require_once HOME_DIR . '/core/app/library/Persistent.php';
+require_once HOME_DIR . '/core/app/library/Log.php';
 require_once HOME_DIR . '/core/app/library/BaseConfiguration.php';
 require_once HOME_DIR . '/core/app/library/Configuration.php';
 require_once HOME_DIR . '/core/app/library/class.configuration.php';
