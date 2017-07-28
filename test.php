@@ -190,6 +190,10 @@
      * @param array $arrCompleteData
      * @return bool
      */
+    /**
+     * @param array $arrCompleteData
+     * @return bool
+     */
     private function completeAuditObject(array $arrCompleteData = [], $isParallel = false)
     {
         if($isParallel === true && !isset($this->objAudit['steps'][$this->_workflowStepId]['parallelUsers'])) {
@@ -200,6 +204,13 @@
             
             foreach($arrUsers as $key => $user) {
                 $parallelUsers[$key]['username'] = $user;
+                
+                
+                if(isset($arrCompleteData['completed_by']) && trim($arrCompleteData['completed_by']) !== "") {
+                    if(trim($user) === trim($arrCompleteData['completed_by'])) {
+                        $parallelUsers[$key]['date_completed'] = date("Y-m-d H:i:s");
+                    }
+                }
             }
             
             $this->objAudit['steps'][$this->_workflowStepId]['parallelUsers'] = $parallelUsers;
@@ -211,17 +222,6 @@
         if (!empty($arrCompleteData)) {
             $this->objAudit['steps'][$this->_workflowStepId]['status'] = $arrCompleteData['status'];
             $this->objAudit['steps'][$this->_workflowStepId]['completed_by'] = $arrCompleteData['completed_by'];
-            
-            if($isParallel === true && isset($this->objAudit['steps'][$this->_workflowStepId]['parallelUsers'])) {
-                if(isset($arrCompleteData['completed_by']) && trim($arrCompleteData['completed_by']) !== "") {
-                    foreach($this->objAudit['steps'][$this->_workflowStepId]['parallelUsers'] as $key => $parallelUser) {
-                       if(trim($parallelUser['username']) === trim($arrCompleteData['completed_by'])) {
-                        $this->objAudit['steps'][$this->_workflowStepId]['parallelUsers'][$key]['date_completed'] = date("Y-m-d H:i:s");
-                       }
-                    }
-                }
-            }
-
         }
 
         return true;
