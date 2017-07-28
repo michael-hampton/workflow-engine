@@ -333,9 +333,23 @@ class WorkflowStep
         $objNotifications->buildEmail ($objStep);
     }
 
-    private function completeAuditObject (Users $objUser, array $arrCompleteData = [])
+    private function completeAuditObject (Users $objUser, array $arrCompleteData = [], $isParallel = false)
     {
         $claimed = trim ($objUser->getUsername ()) !== "" ? $objUser->getUsername () : $arrCompleteData['claimed'];
+
+        if ( $isParallel === true && !isset ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers']) )
+        {
+            $arrUsers = (new \BusinessModel\Cases())->getUsersToReassign ($this);
+            //$arrUsers = (new \BusinessModel\Task())->getTaskAssignees($this->workflowId, $this->_stepId, "ASSIGNEE", "MASTER");
+
+            $parallelUsers = [];
+
+            foreach ($arrUsers['data'] as $key => $user) {
+                $parallelUsers[$key]['username'] = $user['username'];
+            }
+
+            $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers'] = $parallelUsers;
+        }
 
         if ( is_numeric ($this->parentId) && is_numeric ($this->elementId) )
         {
@@ -359,6 +373,21 @@ class WorkflowStep
                 $this->objAudit['due_date'] = $arrCompleteData['due_date'];
             }
         }
+
+        if ( $isParallel === true && isset ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers']) )
+        {
+            if ( isset ($arrCompleteData['claimed']) && trim ($arrCompleteData['claimed']) !== "" )
+            {
+                foreach ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers'] as $key => $parallelUser) {
+                    if ( trim ($parallelUser['username']) === trim ($arrCompleteData['claimed']) )
+                    {
+                        $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers'][$key]['dateCompleted'] = date ("Y-m-d H:i:s");
+                    }
+                }
+            }
+        }
+
+        return true;
     }
 
     private function completeWorkflowObject ($objMike, Users $objUser, $arrCompleteData, $complete = false, $arrEmailAddresses = array())
@@ -469,6 +498,35 @@ class WorkflowStep
             
         }
 
+        if ( isset ($arrCompleteData['dateCompleted']) && isset ($arrCompleteData['claimed']) )
+        {
+            $objTask = $objTask->retrieveByPk ($this->_stepId);
+            $blIsParralelTask = false;
+            $blTaskUsersCompleted = 0;
+
+            if ( in_array ($objTask->getTasAssignType (), array("MULTIPLE_INSTANCE", "MULTIPLE_INSTANCE_VALUE_BASED")) )
+            {
+                $blIsParralelTask = true;
+            }
+
+            $this->completeAuditObject ($objUser, $arrCompleteData, $blIsParralelTask);
+
+            if ( $blIsParralelTask === true && $complete === true )
+            {
+                foreach ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers'] as $key => $parallelUser) {
+                    if ( isset ($parallelUser['dateCompleted']) && trim ($parallelUser['dateCompleted']) !== "" )
+                    {
+                        $blTaskUsersCompleted++;
+                    }
+                }
+
+                if ( count ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers']) !== $blTaskUsersCompleted )
+                {
+                    $arrWorkflow['current_step'] = $this->_workflowStepId;
+                }
+            }
+        }
+
 
         $arrWorkflow['workflow_id'] = $this->workflowId;
         if ( !empty ($arrWorkflowData) )
@@ -529,11 +587,6 @@ class WorkflowStep
         if ( $isValidUser === false )
         {
             throw new Exception ("Invalid user given. Cannot complete workflow step " . $step . " - " . $this->workflowId);
-        }
-
-        if ( isset ($arrCompleteData['dateCompleted']) && isset ($arrCompleteData['claimed']) )
-        {
-            $this->completeAuditObject ($objUser, $arrCompleteData);
         }
 
         // Update workflow and audit object

@@ -24,6 +24,305 @@ class Task
     }
 
     /**
+     * Return an assignee list of an activity
+     *
+     * @param string $processUid
+     * @param string $taskUid
+     * @param string $option
+     * @param int    $taskUserType
+     * @param array  $arrayFilterData
+     * @param int    $start
+     * @param int    $limit
+     * @param string $type
+     *
+     * return array
+     */
+    public function getTaskAssignees ($processUid, $taskUid, $option, $taskUserType, $arrayFilterData = null, $start = null, $limit = null, $type = null)
+    {
+        try {
+            $arrayAssignee = array();
+            $numRecTotal = 0;
+            $startbk = $start;
+            $limitbk = $limit;
+            //Verify data
+         
+            //Set variables
+            $filterName = "filter";
+            if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"]) )
+            {
+                $arrayAux = array(
+                    "" => "filter",
+                    "LEFT" => "lfilter",
+                    "RIGHT" => "rfilter"
+                );
+                $filterName = $arrayAux[(isset ($arrayFilterData["filterOption"])) ? $arrayFilterData["filterOption"] : ""];
+            }
+            //Get data
+            if ( !is_null ($limit) && $limit . "" == "0" )
+            {
+                //Return
+                return array(
+                    "total" => $numRecTotal,
+                    "start" => (int) ((!is_null ($startbk)) ? $startbk : 0),
+                    "limit" => (int) ((!is_null ($limitbk)) ? $limitbk : 0),
+                    $filterName => (!is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"])) ? $arrayFilterData["filter"] : "",
+                    "data" => $arrayAssignee
+                );
+            }
+            //Verify data
+            (new Process())->throwExceptionIfNotExistsProcess($processUid);
+            $this->throwExceptionIfNotExistsTask ($processUid, $taskUid, "act_uid");
+            //Set variables
+            $numRecTotalGroup = 0;
+            $numRecTotalUser = 0;
+            switch ($option) {
+                case "ASSIGNEE":
+                    break;
+                case "AVAILABLE":
+                    $task = new \Tasks();
+                    $arrayGroupUid = array();
+                    foreach ($task->getGroupsOfTask ($taskUid, $taskUserType) as $value) {
+                        $arrayGroupUid[] = $value['GRP_UID'];
+                    }
+                    $arrayUserUid = array();
+                    foreach ($task->getUsersOfTask ($taskUid, $taskUserType) as $value) {
+                        $arrayUserUid[] = $value['USR_UID'];
+                    }
+                    break;
+            }
+            
+            //Groups
+            //Query
+            if ( empty ($type) || $type == "group" )
+            {
+                $sql = "SELECT permission, team_id, t.team_name  FROM workflow.step_permission p
+                        LEFT JOIN user_management.poms_users u ON u.usrid = p.permission AND p.permission_type = 'user' 
+   
+                ";
+                
+                $sqlWhere = "";
+                
+
+                switch ($option) {
+                    case "ASSIGNEE":
+                        $sql .= " LEFT JOIN user_management.poms_users u ON u.team_id = p.permission AND p.permission_type = 'team'
+                            . LEFT JOIN user_management.teams t ON t.team_id = u.team_id";
+                        break;
+                    case "AVAILABLE":
+                        $sqlWhere .= " AND team_id NOT IN (".implode(",", $arrayGroupUid).")";
+                        break;
+                }
+                $sqlWhere .= " AND p.step_id = ? AND p.access_level = ?";
+                $arrParameters = array($taskUid, $taskUserType);
+                
+                if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"]) && trim ($arrayFilterData["filter"]) != "" )
+                {
+                    $arraySearch = array(
+                        "" => "%" . $arrayFilterData["filter"] . "%",
+                        "LEFT" => $arrayFilterData["filter"] . "%",
+                        "RIGHT" => "%" . $arrayFilterData["filter"]
+                    );
+                    $search = $arraySearch[(isset ($arrayFilterData["filterOption"])) ? $arrayFilterData["filterOption"] : ""];
+                    $criteriaGroup->add (\GroupwfPeer::GRP_TITLE, $search, \Criteria::LIKE);
+                }
+                $criteriaGroup->add (\GroupwfPeer::GRP_STATUS, "ACTIVE", \Criteria::EQUAL);
+                //Number records total
+                $criteriaCount = clone $criteriaGroup;
+                $criteriaCount->clearSelectColumns ();
+                $criteriaCount->addSelectColumn ("COUNT(" . \GroupwfPeer::GRP_UID . ") AS NUM_REC");
+                switch ($option) {
+                    case "ASSIGNEE":
+                        $rsCriteriaCount = \TaskUserPeer::doSelectRS ($criteriaCount);
+                        break;
+                    case "AVAILABLE":
+                        $rsCriteriaCount = \GroupwfPeer::doSelectRS ($criteriaCount);
+                        break;
+                }
+                $rsCriteriaCount->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
+                $result = $rsCriteriaCount->next ();
+                $row = $rsCriteriaCount->getRow ();
+                $numRecTotalGroup = (int) ($row["NUM_REC"]);
+                $numRecTotal = $numRecTotal + $numRecTotalGroup;
+            }
+            //Users
+            //Query
+            if ( empty ($type) || $type == "user" )
+            {
+                $criteriaUser = new \Criteria ("workflow");
+                $criteriaUser->addSelectColumn (\UsersPeer::USR_UID);
+                $criteriaUser->addSelectColumn (\UsersPeer::USR_USERNAME);
+                $criteriaUser->addSelectColumn (\UsersPeer::USR_FIRSTNAME);
+                $criteriaUser->addSelectColumn (\UsersPeer::USR_LASTNAME);
+                switch ($option) {
+                    case "ASSIGNEE":
+                        $criteriaUser->addJoin (\TaskUserPeer::USR_UID, \UsersPeer::USR_UID, \Criteria::LEFT_JOIN);
+                        $criteriaUser->add (\TaskUserPeer::TAS_UID, $taskUid, \Criteria::EQUAL);
+                        $criteriaUser->add (\TaskUserPeer::TU_TYPE, $taskUserType, \Criteria::EQUAL);
+                        $criteriaUser->add (\TaskUserPeer::TU_RELATION, 1, \Criteria::EQUAL);
+                        break;
+                    case "AVAILABLE":
+                        $criteriaUser->add (\UsersPeer::USR_UID, $arrayUserUid, \Criteria::NOT_IN);
+                        break;
+                }
+                if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"]) && trim ($arrayFilterData["filter"]) != "" )
+                {
+                    $arraySearch = array(
+                        "" => "%" . $arrayFilterData["filter"] . "%",
+                        "LEFT" => $arrayFilterData["filter"] . "%",
+                        "RIGHT" => "%" . $arrayFilterData["filter"]
+                    );
+                    $search = $arraySearch[(isset ($arrayFilterData["filterOption"])) ? $arrayFilterData["filterOption"] : ""];
+                    $criteriaUser->add (
+                            $criteriaUser->getNewCriterion (\UsersPeer::USR_USERNAME, $search, \Criteria::LIKE)->addOr (
+                                    $criteriaUser->getNewCriterion (\UsersPeer::USR_FIRSTNAME, $search, \Criteria::LIKE))->addOr (
+                                    $criteriaUser->getNewCriterion (\UsersPeer::USR_LASTNAME, $search, \Criteria::LIKE))
+                    );
+                }
+                $criteriaUser->add (\UsersPeer::USR_STATUS, "ACTIVE", \Criteria::EQUAL);
+                //Number records total
+                $criteriaCount = clone $criteriaUser;
+                $criteriaCount->clearSelectColumns ();
+                $criteriaCount->addSelectColumn ("COUNT(" . \UsersPeer::USR_UID . ") AS NUM_REC");
+                switch ($option) {
+                    case "ASSIGNEE":
+                        $rsCriteriaCount = \TaskUserPeer::doSelectRS ($criteriaCount);
+                        break;
+                    case "AVAILABLE":
+                        $rsCriteriaCount = \UsersPeer::doSelectRS ($criteriaCount);
+                        break;
+                }
+                $rsCriteriaCount->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
+                $result = $rsCriteriaCount->next ();
+                $row = $rsCriteriaCount->getRow ();
+                $numRecTotalUser = (int) ($row["NUM_REC"]);
+                $numRecTotal = $numRecTotal + $numRecTotalUser;
+            }
+            //Groups
+            //Query
+            if ( empty ($type) || $type == "group" )
+            {
+                $criteriaGroup->addAscendingOrderByColumn ("GRP_TITLE");
+                if ( !is_null ($start) )
+                {
+                    $criteriaGroup->setOffset ((int) ($start));
+                }
+                if ( !is_null ($limit) )
+                {
+                    $criteriaGroup->setLimit ((int) ($limit));
+                }
+                switch ($option) {
+                    case "ASSIGNEE":
+                        $rsCriteriaGroup = \TaskUserPeer::doSelectRS ($criteriaGroup);
+                        break;
+                    case "AVAILABLE":
+                        $rsCriteriaGroup = \GroupwfPeer::doSelectRS ($criteriaGroup);
+                        break;
+                }
+                $rsCriteriaGroup->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
+                $numRecGroup = 0;
+                while ($rsCriteriaGroup->next ()) {
+                    $row = $rsCriteriaGroup->getRow ();
+                    $criteria2 = new \Criteria ("workflow");
+                    $criteria2->addSelectColumn ("COUNT(" . \GroupUserPeer::GRP_UID . ") AS NUM_MEM");
+                    $criteria2->add (\GroupUserPeer::GRP_UID, $row["GRP_UID"], \Criteria::EQUAL);
+                    $rsCriteria2 = \GroupUserPeer::doSelectRS ($criteria2);
+                    $rsCriteria2->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
+                    $result = $rsCriteria2->next ();
+                    $row2 = $rsCriteria2->getRow ();
+                    $row["GRP_TITLE"] = $row["GRP_TITLE"] . " (" . $row2["NUM_MEM"] . " " . \G::LoadTranslation (((int) ($row2["NUM_MEM"]) == 1) ? "ID_USER" : "ID_USERS") . ")";
+                    $arrayAssignee[] = $this->getTaskAssigneeDataFromRecord (
+                            array(
+                        $row["GRP_UID"],
+                        $row["GRP_TITLE"],
+                        "",
+                        $row["GRP_TITLE"],
+                        "group"
+                            ), $taskUserType
+                    );
+                    $numRecGroup++;
+                }
+            }
+            //Users
+            //Query
+            if ( empty ($type) || $type == "user" )
+            {
+                $flagUser = true;
+                if ( $numRecTotalGroup > 0 )
+                {
+                    if ( $numRecGroup > 0 )
+                    {
+                        if ( !is_null ($limit) )
+                        {
+                            if ( $numRecGroup < (int) ($limit) )
+                            {
+                                $start = 0;
+                                $limit = $limit - $numRecGroup;
+                            }
+                            else
+                            {
+                                $flagUser = false;
+                            }
+                        }
+                        else
+                        {
+                            $start = 0;
+                        }
+                    }
+                    else
+                    {
+                        $start = (int) ($start) - $numRecTotalGroup;
+                    }
+                }
+                if ( $flagUser )
+                {
+                    //Users
+                    //Query
+                    $criteriaUser->addAscendingOrderByColumn (\UsersPeer::USR_FIRSTNAME);
+                    if ( !is_null ($start) )
+                    {
+                        $criteriaUser->setOffset ((int) ($start));
+                    }
+                    if ( !is_null ($limit) )
+                    {
+                        $criteriaUser->setLimit ((int) ($limit));
+                    }
+                    switch ($option) {
+                        case "ASSIGNEE":
+                            $rsCriteriaUser = \TaskUserPeer::doSelectRS ($criteriaUser);
+                            break;
+                        case "AVAILABLE":
+                            $rsCriteriaUser = \UsersPeer::doSelectRS ($criteriaUser);
+                            break;
+                    }
+                    $rsCriteriaUser->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
+                    while ($rsCriteriaUser->next ()) {
+                        $row = $rsCriteriaUser->getRow ();
+                        $arrayAssignee[] = $this->getTaskAssigneeDataFromRecord (
+                                array(
+                            $row["USR_UID"],
+                            $row["USR_FIRSTNAME"],
+                            $row["USR_LASTNAME"],
+                            $row["USR_USERNAME"],
+                            "user"
+                                ), $taskUserType
+                        );
+                    }
+                }
+            }
+            //Return
+            return array(
+                "total" => $numRecTotal,
+                "start" => (int) ((!is_null ($startbk)) ? $startbk : 0),
+                "limit" => (int) ((!is_null ($limitbk)) ? $limitbk : 0),
+                $filterName => (!is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"])) ? $arrayFilterData["filter"] : "",
+                "data" => $arrayAssignee
+            );
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
      * Update properties of an Task
      * @var string $prj_uid. Uid for Workflow
      * @var string $act_uid. Uid for Task
@@ -35,7 +334,6 @@ class Task
     {
         //Copy of processmaker/workflow/engine/methods/tasks/tasks_Ajax.php //case "saveTaskData":
         try {
-
             $prj_uid = $this->validateProUid ($prj_uid);
             $act_uid = $this->validateActUid ($act_uid);
             $arrayProperty["TAS_UID"] = $act_uid;
@@ -76,36 +374,6 @@ class Task
             if ( isset ($arrayProperty["TAS_RECEIVE_LAST_EMAIL"]) )
             {
                 $arrayProperty["TAS_RECEIVE_LAST_EMAIL"] = $arrayProperty["TAS_RECEIVE_LAST_EMAIL"] === "TRUE" ? "TRUE" : "FALSE";
-            }
-
-            $conditions = $aTaskInfo->getCondition ();
-
-            if ( isset ($conditions['autoAssign']) )
-            {
-                $assignType = "AUTO_ASIGN";
-            }
-            elseif ( isset ($conditions['claimStep']) )
-            {
-                $assignType = "SELF_SERVICE";
-            }
-            elseif ( isset ($conditions['doAllocation']) )
-            {
-                $assignType = "MANUAL";
-            }
-
-
-            //Validating TAS_ASSIGN_VARIABLE value
-            if ( !isset ($arrayProperty["TAS_ASSIGN_TYPE"]) )
-            {
-
-                if ( trim ($assignType) === "" )
-                {
-                    $arrayProperty["TAS_ASSIGN_TYPE"] = "BALANCED";
-                }
-                else
-                {
-                    $arrayProperty["TAS_ASSIGN_TYPE"] = $assignType;
-                }
             }
 
             switch ($arrayProperty["TAS_ASSIGN_TYPE"]) {
@@ -310,24 +578,7 @@ class Task
             }
 
             $result = $task->updateTaskProperties ($arrayProperty);
-            /*  if ( isset ($arrayProperty['CONSOLIDATE_DATA']) && !empty ($arrayProperty['CONSOLIDATE_DATA']) )
-              {
-              if ( !empty ($arrayProperty['CONSOLIDATE_DATA']['consolidated_dynaform']) )
-              {
 
-
-              $dataConso = array(
-              'con_status' => $arrayProperty['CONSOLIDATE_DATA']['consolidated_enable'],
-              'tas_uid' => $arrayProperty['TAS_UID'],
-              'dyn_uid' => $arrayProperty['CONSOLIDATE_DATA']['consolidated_dynaform'],
-              'pro_uid' => $arrayProperty['PRO_UID'],
-              'rep_uid' => $arrayProperty['CONSOLIDATE_DATA']['consolidated_report_table'],
-              'table_name' => $arrayProperty['CONSOLIDATE_DATA']['consolidated_table'],
-              'title' => $arrayProperty['CONSOLIDATE_DATA']['consolidated_title']
-              );
-
-              }
-              } */
             $arrayResult["status"] = "OK";
             if ( $result == 3 )
             {
@@ -412,8 +663,7 @@ class Task
         {
             throw (new \Exception ("The activity with act_uid: '', does not exist."));
         }
-        $oTask = new \Flow();
-        $oTask->throwExceptionIfNotExistsTask ($act_uid);
+        $this->throwExceptionIfNotExistsTask (null, $act_uid);
         return $act_uid;
     }
 

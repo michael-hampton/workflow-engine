@@ -1592,7 +1592,7 @@ class Cases
      *
      * @return array Return Users to reassign
      */
-    public function getUsersToReassign ($projectId, $caseId, \Users $objUser, \WorkflowStep $objStep, $arrayFilterData = null, $sortField = null, $sortDir = null, $start = null, $limit = null)
+    public function getUsersToReassign (\WorkflowStep $objStep, $arrayFilterData = null, $sortField = null, $sortDir = null, $start = null, $limit = null)
     {
         try {
 
@@ -1605,6 +1605,9 @@ class Cases
             $numRecTotal = 0;
             //Set variables
             $stepId = $objStep->getStepId ();
+            
+            echo $stepId;
+            
             $workflowId = $objStep->getWorkflowId ();
             //Set variables
             $filterName = 'filter';

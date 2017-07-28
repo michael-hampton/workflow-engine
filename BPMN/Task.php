@@ -211,6 +211,26 @@ class Task extends BaseTask
         }
     }
 
+    public function load ($TasUid)
+    {
+        try {
+            $oRow = $this->retrieveByPK ($TasUid);
+            if ( $oRow !== false )
+            {
+                return $oRow;
+                /* ----------------------------------********--------------------------------- */
+                ///////
+                return $this;
+            }
+            else
+            {
+                throw (new Exception ("The row '" . $TasUid . "' in table TASK doesn't exist!"));
+            }
+        } catch (Exception $oError) {
+            throw ($oError);
+        }
+    }
+
     public function updateTaskProperties ($fields)
     {
 
@@ -261,7 +281,6 @@ class Task extends BaseTask
             {
                 return false;
             }
-
 
             $objFlow->loadObject ($fields);
 
