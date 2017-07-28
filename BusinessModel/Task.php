@@ -45,7 +45,6 @@ class Task
             $startbk = $start;
             $limitbk = $limit;
             //Verify data
-         
             //Set variables
             $filterName = "filter";
             if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"]) )
@@ -70,7 +69,7 @@ class Task
                 );
             }
             //Verify data
-            (new Process())->throwExceptionIfNotExistsProcess($processUid);
+            (new Process())->throwExceptionIfNotExistsProcess ($processUid);
             $this->throwExceptionIfNotExistsTask ($processUid, $taskUid, "act_uid");
             //Set variables
             $numRecTotalGroup = 0;
@@ -90,31 +89,32 @@ class Task
                     }
                     break;
             }
-            
+
             //Groups
             //Query
             if ( empty ($type) || $type == "group" )
             {
-                $sql = "SELECT permission, team_id, t.team_name  FROM workflow.step_permission p
-                        LEFT JOIN user_management.poms_users u ON u.usrid = p.permission AND p.permission_type = 'user' 
+                $select = "SELECT permission, team_id, t.team_name  ";
+                $sql = "FROM workflow.step_permission p
+                        LEFT JOIN user_management.poms_users u ON u.team_id = p.permission AND p.permission_type = 'team'
+                         LEFT JOIN user_management.teams t ON t.team_id = u.team_id
    
                 ";
-                
+
                 $sqlWhere = "";
-                
+
 
                 switch ($option) {
                     case "ASSIGNEE":
-                        $sql .= " LEFT JOIN user_management.poms_users u ON u.team_id = p.permission AND p.permission_type = 'team'
-                            . LEFT JOIN user_management.teams t ON t.team_id = u.team_id";
+
                         break;
                     case "AVAILABLE":
-                        $sqlWhere .= " AND team_id NOT IN (".implode(",", $arrayGroupUid).")";
+                        $sqlWhere .= " AND team_id NOT IN (" . implode (",", $arrayGroupUid) . ")";
                         break;
                 }
                 $sqlWhere .= " AND p.step_id = ? AND p.access_level = ?";
                 $arrParameters = array($taskUid, $taskUserType);
-                
+
                 if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"]) && trim ($arrayFilterData["filter"]) != "" )
                 {
                     $arraySearch = array(
@@ -122,103 +122,103 @@ class Task
                         "LEFT" => $arrayFilterData["filter"] . "%",
                         "RIGHT" => "%" . $arrayFilterData["filter"]
                     );
-                    $search = $arraySearch[(isset ($arrayFilterData["filterOption"])) ? $arrayFilterData["filterOption"] : ""];
-                    $criteriaGroup->add (\GroupwfPeer::GRP_TITLE, $search, \Criteria::LIKE);
+                    $search = isset ($arrayFilterData["filterOption"]) ? $arrayFilterData["filterOption"] : "";
+                    $sql .= " AND t.team_name LIKE '%" . $search . "%'";
                 }
-                $criteriaGroup->add (\GroupwfPeer::GRP_STATUS, "ACTIVE", \Criteria::EQUAL);
-                //Number records total
-                $criteriaCount = clone $criteriaGroup;
-                $criteriaCount->clearSelectColumns ();
-                $criteriaCount->addSelectColumn ("COUNT(" . \GroupwfPeer::GRP_UID . ") AS NUM_REC");
-                switch ($option) {
-                    case "ASSIGNEE":
-                        $rsCriteriaCount = \TaskUserPeer::doSelectRS ($criteriaCount);
-                        break;
-                    case "AVAILABLE":
-                        $rsCriteriaCount = \GroupwfPeer::doSelectRS ($criteriaCount);
-                        break;
-                }
-                $rsCriteriaCount->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
-                $result = $rsCriteriaCount->next ();
-                $row = $rsCriteriaCount->getRow ();
-                $numRecTotalGroup = (int) ($row["NUM_REC"]);
+
+                $sql .= " AND t.status = 1";
+
+                $selectCount = "COUNT(team_id) AS NUM_REC";
+
+                /* switch ($option) {
+                  case "ASSIGNEE":
+                  $rsCriteriaCount = \TaskUserPeer::doSelectRS ($criteriaCount);
+                  break;
+                  case "AVAILABLE":
+                  $rsCriteriaCount = \GroupwfPeer::doSelectRS ($criteriaCount);
+                  break;
+                  } */
+
+                $count = $selectCount . $sql . " WHERE 1 = 1 " . $sqlWhere;
+                $countResult = $this->objMsql->_query ($count, $arrParameters);
+
+                $numRecTotalGroup = (int) ($countResult[0]["NUM_REC"]);
                 $numRecTotal = $numRecTotal + $numRecTotalGroup;
             }
             //Users
             //Query
             if ( empty ($type) || $type == "user" )
             {
-                $criteriaUser = new \Criteria ("workflow");
-                $criteriaUser->addSelectColumn (\UsersPeer::USR_UID);
-                $criteriaUser->addSelectColumn (\UsersPeer::USR_USERNAME);
-                $criteriaUser->addSelectColumn (\UsersPeer::USR_FIRSTNAME);
-                $criteriaUser->addSelectColumn (\UsersPeer::USR_LASTNAME);
+                $sqlSelect = "SELECT u.usrid, u.username, u.firstName, u.lastName FROM workflow.step_permission";
+                $sql = "";
+
                 switch ($option) {
                     case "ASSIGNEE":
-                        $criteriaUser->addJoin (\TaskUserPeer::USR_UID, \UsersPeer::USR_UID, \Criteria::LEFT_JOIN);
-                        $criteriaUser->add (\TaskUserPeer::TAS_UID, $taskUid, \Criteria::EQUAL);
-                        $criteriaUser->add (\TaskUserPeer::TU_TYPE, $taskUserType, \Criteria::EQUAL);
-                        $criteriaUser->add (\TaskUserPeer::TU_RELATION, 1, \Criteria::EQUAL);
+                        $sql .= "   LEFT JOIN user_management.poms_users u ON u.usrid = p.permission AND p.permission_type = 'user' 
+                                    WHERE step_id = ? AND access_level = ?
+                        ";
+
+                        $arrParameters = array($taskUid, $taskUserType);
+
                         break;
                     case "AVAILABLE":
-                        $criteriaUser->add (\UsersPeer::USR_UID, $arrayUserUid, \Criteria::NOT_IN);
+                        $sql .= " u.usrid NOT IN (" . implode (",", $arrayUserUid) . ")";
                         break;
                 }
                 if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"]) && trim ($arrayFilterData["filter"]) != "" )
                 {
-                    $arraySearch = array(
-                        "" => "%" . $arrayFilterData["filter"] . "%",
-                        "LEFT" => $arrayFilterData["filter"] . "%",
-                        "RIGHT" => "%" . $arrayFilterData["filter"]
-                    );
-                    $search = $arraySearch[(isset ($arrayFilterData["filterOption"])) ? $arrayFilterData["filterOption"] : ""];
-                    $criteriaUser->add (
-                            $criteriaUser->getNewCriterion (\UsersPeer::USR_USERNAME, $search, \Criteria::LIKE)->addOr (
-                                    $criteriaUser->getNewCriterion (\UsersPeer::USR_FIRSTNAME, $search, \Criteria::LIKE))->addOr (
-                                    $criteriaUser->getNewCriterion (\UsersPeer::USR_LASTNAME, $search, \Criteria::LIKE))
-                    );
+                    $search = isset ($arrayFilterData["filterOption"]) ? $arrayFilterData["filterOption"] : "";
+
+                    $sql .= " AND (u.username LIKE '%" . $search . "%' OR u.firstName LIKE '%" . $search . "%' OR lastName LIKE '%" . $search . "%')";
                 }
-                $criteriaUser->add (\UsersPeer::USR_STATUS, "ACTIVE", \Criteria::EQUAL);
+
+                $sql .= "AND u.status = 1";
                 //Number records total
-                $criteriaCount = clone $criteriaUser;
-                $criteriaCount->clearSelectColumns ();
-                $criteriaCount->addSelectColumn ("COUNT(" . \UsersPeer::USR_UID . ") AS NUM_REC");
-                switch ($option) {
-                    case "ASSIGNEE":
-                        $rsCriteriaCount = \TaskUserPeer::doSelectRS ($criteriaCount);
-                        break;
-                    case "AVAILABLE":
-                        $rsCriteriaCount = \UsersPeer::doSelectRS ($criteriaCount);
-                        break;
-                }
-                $rsCriteriaCount->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
-                $result = $rsCriteriaCount->next ();
-                $row = $rsCriteriaCount->getRow ();
-                $numRecTotalUser = (int) ($row["NUM_REC"]);
+                $sqlCount = "SELECT COUNT(u,usrid) AS NUM_REC";
+                $sqlCount .= $sql;
+
+
+                /* switch ($option) {
+                  case "ASSIGNEE":
+                  $rsCriteriaCount = \TaskUserPeer::doSelectRS ($criteriaCount);
+                  break;
+                  case "AVAILABLE":
+                  $rsCriteriaCount = \UsersPeer::doSelectRS ($criteriaCount);
+                  break;
+                  } */
+
+                $countResult = $this->objMsql->_query ($sql, $arrParameters);
+
+                $numRecTotalUser = (int) ($countResult[0]["NUM_REC"]);
                 $numRecTotal = $numRecTotal + $numRecTotalUser;
             }
             //Groups
             //Query
             if ( empty ($type) || $type == "group" )
             {
-                $criteriaGroup->addAscendingOrderByColumn ("GRP_TITLE");
-                if ( !is_null ($start) )
-                {
-                    $criteriaGroup->setOffset ((int) ($start));
-                }
+                $sql .= " ORDER BY t.team_name ASC";
+
                 if ( !is_null ($limit) )
                 {
-                    $criteriaGroup->setLimit ((int) ($limit));
+                   $sql .= " LIMIT ". (int) $limit;
                 }
-                switch ($option) {
+
+                if ( !is_null ($start) )
+                {
+                    $sql .= " OFFSET ". (int) $start;
+                }
+
+                /*switch ($option) {
                     case "ASSIGNEE":
                         $rsCriteriaGroup = \TaskUserPeer::doSelectRS ($criteriaGroup);
                         break;
                     case "AVAILABLE":
                         $rsCriteriaGroup = \GroupwfPeer::doSelectRS ($criteriaGroup);
                         break;
-                }
-                $rsCriteriaGroup->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
+                }*/
+                
+                $results = $this->objMsql->_query($sql, $arrParameters);
+     
                 $numRecGroup = 0;
                 while ($rsCriteriaGroup->next ()) {
                     $row = $rsCriteriaGroup->getRow ();
