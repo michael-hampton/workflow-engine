@@ -22,6 +22,69 @@ class Task
     {
         $this->objMsql = new \Mysql2();
     }
+    
+        /**
+     * Assign a user or group to an activity
+     *
+     * @param string $sProcessUID {@min 32} {@max 32}
+     * @param string $sTaskUID {@min 32} {@max 32}
+     * @param string $sAssigneeUID {@min 32} {@max 32}
+     * @param string $assType {@choice user,group}
+     *
+     * return array
+     *
+     * @access public
+     */
+    public function addTaskAssignee($sProcessUID, $sTaskUID, $sAssigneeUID, $assType)
+    {
+        try {
+            $this->proUid($sProcessUID);
+            $this->validateActUid($sTaskUID);
+            $iType = 1;
+            $iRelation = '';
+            
+            $sql = "SELECT permission FROM step_permission WHERE permission = ? AND step_id = ? AND permission_type = ?";
+            $arrParameters = array($sAssigneeUID! $sTaskUid, $iType);
+            $results = $this->objMysql->_query($sql, $arrParameters);
+            
+            if (isset($results[0]) && !empty($results[0]) {
+                throw new \Exception("ID_ALREADY_ASSIGNED");
+            } else {
+                $oTypeAssigneeG = \GroupwfPeer::retrieveByPK( $sAssigneeUID );
+                //$oTypeAssigneeU = \UsersPeer::retrieveByPK( $sAssigneeUID );
+                $oTypeAssigneeU = new (\BusinessModel\UsersFactory())->getUser->($sAssigneeUID);
+                if (is_null( $oTypeAssigneeG ) && is_null( $oTypeAssigneeU ) ) {
+                    throw new \Exception("ID_DOES_NOT_CORRESPOND");
+                }
+                if (is_null( $oTypeAssigneeG ) && ! is_null( $oTypeAssigneeU) ) {
+                    $type = "user";
+                    if ( $type != $assType ) {
+                        throw new \Exception("ID_DOES_NOT_CORRESPOND");
+                    }
+                }
+                if (! is_null( $oTypeAssigneeG ) && is_null( $oTypeAssigneeU ) ) {
+                    $type = "group";
+                    if ( $type != $assType ) {
+                        throw new \Exception("ID_DOES_NOT_CORRESPOND");
+                    }
+                }
+                $oTaskUser = new \TaskUser();
+                if ( $assType == "user" ) {
+                    $oTaskUser->create(array('TAS_UID' => $sTaskUID,
+                                             'USR_UID' => $sAssigneeUID,
+                                             'TU_TYPE' => $iType,
+                                             'TU_RELATION' => 1));
+                } else {
+                    $oTaskUser->create(array('TAS_UID' => $sTaskUID,
+                                             'USR_UID' => $sAssigneeUID,
+                                             'TU_TYPE' => $iType,
+                                             'TU_RELATION' => 2));
+                }
+            }
+        } catch ( \Exception $e ) {
+            throw $e;
+        }
+    }
 
     /**
      * Return an assignee list of an activity
