@@ -356,13 +356,12 @@ class Task extends BaseTask
     {
         try {
             $aGroups = array();
-            $sql = "SELECT * FROM workflow.TASK_USER tu LEFT JOIN user_management.poms_users u ON u.team_id = tu.USR_UID WHERE tu.TAS_UID = ? AND TU_TYPE = ? AND TU_RELATION = 2 AND u.status = 1";
+            $sql = "SELECT tu.*, u.team_id, u.usrid FROM workflow.TASK_USER tu LEFT JOIN user_management.poms_users u ON u.team_id = tu.USR_UID WHERE tu.TAS_UID = ? AND TU_TYPE = ? AND TU_RELATION = 2 AND u.status = 1";
             $arrParameters = array($sTaskUID, $iType);
             $results = $this->objMysql->_query ($sql, $arrParameters);
 
             foreach ($results as $aRow) {
                 $aGroups[] = $aRow;
-                $oDataset->next ();
             }
 
             return $aGroups;

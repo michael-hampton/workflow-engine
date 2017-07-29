@@ -442,7 +442,7 @@ class Team
      *
      * return array Return an array with data of a Group
      */
-    public function getGroup ($groupUid)
+    public function getGroup ($groupUid, $throwException)
     {
         try {
             //Verify data

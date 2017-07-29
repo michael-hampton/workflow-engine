@@ -87,12 +87,12 @@ class Team extends BaseTeam
     {
         $result = $this->objMysql->_select ("user_management.teams", array(), array("team_id" => $groupUid));
 
-        if ( isset ($result[0]) && !empty ($result[0]) )
+        if ( !isset ($result[0]) || empty ($result[0]) )
         {
-            return $this->loadObjectFromArray ($result[0]);
+            return false;
         }
 
-        throw new Exception ("Record could not be found");
+        return $this->loadObjectFromArray ($result[0]);
     }
 
     public function loadObjectFromArray ($record)

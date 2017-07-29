@@ -3,6 +3,13 @@
 class Users extends BaseUser
 {
 
+    private $objMysql;
+
+    private function getConnection ()
+    {
+        $this->objMysql = new Mysql2();
+    }
+
     /**
      * Create User
      *
@@ -19,7 +26,7 @@ class Users extends BaseUser
             if ( $this->validate () )
             {
                 $userId = $this->save ();
-                
+
                 return $userId;
             }
             else
@@ -126,7 +133,7 @@ class Users extends BaseUser
         }
 
         $sUserUID = $this->create ($aData);
-        
+
         if ( $sRolCode != '' )
         {
 
@@ -135,8 +142,8 @@ class Users extends BaseUser
 
         return $sUserUID;
     }
-    
-      /**
+
+    /**
 
      * updated an user
 
@@ -151,30 +158,44 @@ class Users extends BaseUser
      * @return void
 
      */
-
     public function updateUser ($aData = array(), $sRolCode = '')
-
     {
 
-        if (isset( $aData['status'] )) {
+        if ( isset ($aData['status']) )
+        {
 
-            if ($aData['status'] == 'ACTIVE') {
+            if ( $aData['status'] == 'ACTIVE' )
+            {
 
                 $aData['status'] = 1;
-
             }
-
         }
 
-        $this->update( $aData );
+        $this->update ($aData);
 
-        if ($sRolCode != '') {
+        if ( $sRolCode != '' )
+        {
 
-            $this->removeRolesFromUser( $aData['USR_UID'] );
+            $this->removeRolesFromUser ($aData['USR_UID']);
 
-            $this->assignRoleToUser( $aData['USR_UID'], $sRolCode );
+            $this->assignRoleToUser ($aData['USR_UID'], $sRolCode);
+        }
+    }
 
+    public function retrieveByPk ($usrUid)
+    {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
         }
 
+        $result = $this->objMysql->_select ("user_management.poms_users", array(), array("usrid" => $usrUid));
+
+        if ( !isset ($result[0]) || empty ($result[0]) )
+        {
+            return false;
+        }
+        
+        return $this->loadObject ($result[0]);
     }
 }
