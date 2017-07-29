@@ -162,9 +162,9 @@ public function addTaskAssignee($sProcessUID, $sTaskUID, $sAssigneeUID, $assType
             //Query
             if ( empty ($type) || $type == "group" )
             {
-                $select = "SELECT permission, team_id, t.team_name  ";
-                $sql = "FROM workflow.step_permission p
-                        LEFT JOIN user_management.poms_users u ON u.team_id = p.permission AND p.permission_type = 'team'
+                $select = "SELECT USR_UID, t.team_name  ";
+                $sql = "FROM workflow.TASK_USER
+                        LEFT JOIN user_management.poms_users u ON u.team_id = p.USR_UID
                          LEFT JOIN user_management.teams t ON t.team_id = u.team_id
                          WHERE 1=1
    
@@ -181,7 +181,7 @@ public function addTaskAssignee($sProcessUID, $sTaskUID, $sAssigneeUID, $assType
                         $sql .= " AND t.team_id NOT IN (" . implode (",", $arrayGroupUid) . ")";
                         break;
                 }
-                $sql .= " AND p.step_id = ? AND p.access_level = ?";
+                $sql .= " AND p.TAS_UID = ? AND p.access_level = ?";
                 $arrParameters = array($taskUid, $taskUserType);
 
                 if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"]) && trim ($arrayFilterData["filter"]) != "" )
@@ -219,12 +219,12 @@ public function addTaskAssignee($sProcessUID, $sTaskUID, $sAssigneeUID, $assType
             if ( empty ($type) || $type == "user" )
             {
                 $sqlSelect = "SELECT u.usrid, u.username, u.firstName, u.lastName FROM workflow.step_permission";
-                $sql = "LEFT JOIN user_management.poms_users u ON u.usrid = p.permission AND p.permission_type = 'user' ";
+                $sql = "LEFT JOIN user_management.poms_users u ON u.usrid = p.TAS_UID";
 
                 switch ($option) {
                     case "ASSIGNEE":
                         $sql .= "   
-                                    WHERE step_id = ? AND access_level = ?
+                                    WHERE TAS_UID = ? AND access_level = ?
                         ";
 
                         $arrParameters = array($taskUid, $taskUserType);
