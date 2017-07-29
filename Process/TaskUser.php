@@ -105,14 +105,14 @@ class TaskUser extends BaseTaskUser
     {
         try {
             $oTaskUser = $this->retrieveByPk ($sTasUid, $sUserUid, $iType, $iRelation);
+          
             if ( is_object ($oTaskUser) && get_class ($oTaskUser) == 'TaskUser' )
             {
                 return true;
             }
-            else
-            {
-                return false;
-            }
+             
+            return false;
+            
         } catch (Exception $oError) {
             throw ($oError);
         }
@@ -136,7 +136,6 @@ class TaskUser extends BaseTaskUser
     //erik: new functions
     public function getUsersTask ($TAS_UID, $TU_TYPE = 1)
     {
-        require_once 'classes/model/Users.php';
         $groupsTask = array();
         $usersTask = array();
         //getting task's users
@@ -152,24 +151,17 @@ class TaskUser extends BaseTaskUser
         
         //getting task's groups
         
-        $criteria->addAsColumn ('GRP_TITLE', 'CONTENT.CON_VALUE');
-        $criteria->addSelectColumn (TaskUserPeer::TAS_UID);
-        $criteria->addSelectColumn (TaskUserPeer::USR_UID);
-        $criteria->addSelectColumn (TaskUserPeer::TU_TYPE);
-        $criteria->addSelectColumn (TaskUserPeer::TU_RELATION);
-        $aConditions[] = array(TaskUserPeer::USR_UID, 'CONTENT.CON_ID');
-        $aConditions[] = array('CONTENT.CON_CATEGORY', $delimiter . 'GRP_TITLE' . $delimiter);
-        $aConditions[] = array('CONTENT.CON_LANG', $delimiter . SYS_LANG . $delimiter);
-        $criteria->addJoinMC ($aConditions, Criteria::LEFT_JOIN);
-        $criteria->add (TaskUserPeer::TAS_UID, $TAS_UID);
-        $criteria->add (TaskUserPeer::TU_TYPE, $TU_TYPE);
-        $criteria->add (TaskUserPeer::TU_RELATION, 2);
-        $dataset = TaskUserPeer::doSelectRS ($criteria);
-        $dataset = TaskUserPeer::doSelectRS ($criteria);
-        $dataset->setFetchmode (ResultSet::FETCHMODE_ASSOC);
-        while ($dataset->next ()) {
-            $usersTask[] = $dataset->getRow ();
+        $sql = "SELECT TAS_UID, USR_UID, TU_TYPE, TU_RELATION, t,team_name
+        FROM workflow.TASK_USER tu
+        LEFT JOIN user_management.teams t on t.team_id = tu.USR_UID
+        WHERE TAS_UID = ? AND TU_TYPE = ? AND TU_RELATION = 2
+        
+        $results = $this->objMysql->_query($sql);
+       
+        foreach($results as $result){
+            $usersTask[] = $result
         }
+        
         $result = new stdClass();
         $result->data = $usersTask;
         $result->totalCount = sizeof ($usersTask);
