@@ -185,8 +185,42 @@ abstract class BaseTaskUser implements Persistent
         return true;
     }
 
-    public function validate()
+   public function getArrValidationErrors ()
     {
-    
+        return $this->arrValidationErrors;
+    }
+
+    /**
+     * 
+     * @param type $arrValidationErrors
+     */
+    public function setArrValidationErrors ($arrValidationErrors)
+    {
+        $this->arrValidationErrors = $arrValidationErrors;
+    }
+
+    /**
+     * 
+     * @return boolean
+     */
+    public function validate ()
+    {
+        $errorCount = 0;
+        foreach ($this->arrayFieldDefinition as $fieldName => $arrField) {
+            if ( $arrField['required'] === true )
+            {
+                $accessor = $this->arrayFieldDefinition[$fieldName]['accessor'];
+                if ( trim ($this->$accessor ()) == "" )
+                {
+                    $this->arrValidationErrors[] = $fieldName . " Is empty. It is a required field";
+                    $errorCount++;
+                }
+            }
+        }
+        if ( $errorCount > 0 )
+        {
+            return FALSE;
+        }
+        return TRUE;
     }
 }
