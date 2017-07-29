@@ -17,7 +17,7 @@ class TaskUser extends BaseTaskUser
             }
             
             $oTaskUser = new TaskUser();
-            $oTaskUser->fromArray( $aData, BasePeer::TYPE_FIELDNAME );
+            $oTaskUser->loadObject( $aData, BasePeer::TYPE_FIELDNAME );
             if ($oTaskUser->validate()) {
                 $iResult = $oTaskUser->save();
                 return $iResult;
