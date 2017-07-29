@@ -37,6 +37,14 @@ abstract class BaseTaskUser implements Persistent
      * @var        boolean
      */
     protected $alreadyInValidation = false;
+
+    private $arrayFieldDefinition = array(
+        "PRO_CREATE_USER" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getProCreateUser", "mutator" => "setProCreateUser"),
+        "PRO_CATEGORY" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getRequestId", "mutator" => "setRequestId"),
+        "PRO_TITLE" => array("type" => "string", "required" => true, "empty" => true, "accessor" => "getWorkflowName", "mutator" => "setWorkflowName"),
+        "PRO_DESCRIPTION" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getDescription", "mutator" => "setDescription"),
+        "PRO_DATE_CREATED" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getProCreateDate", "mutator" => "setProCreateDate")
+    );
     
     /**
      * Get the [tas_uid] column value.
