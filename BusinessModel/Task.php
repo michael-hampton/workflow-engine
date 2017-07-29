@@ -414,14 +414,15 @@ public function addTaskAssignee($sProcessUID, $sTaskUID, $sAssigneeUID, $assType
                 $aGroupUids[] = $aGroup['GRP_UID'];
             }
             foreach ($aGroupUids as $results) {
-                $oCriteria = new \Criteria('workflow');
-                $oCriteria->addSelectColumn('USR_UID');
-                $oCriteria->add(\GroupUserPeer::GRP_UID, $results);
-                $oGroupDataset = \GroupUserPeer::doSelectRS($oCriteria);
-                $oGroupDataset->setFetchmode(\ResultSet::FETCHMODE_ASSOC);
-                while ($oGroupDataset->next()) {
-                    $aGroupRow = $oGroupDataset->getRow();
-                    $oGroupCriteria = new \Criteria('workflow');
+                
+                $sql =_"Select usrid from user_management.poms_users":
+                
+                //$oCriteria->add(\GroupUserPeer::GRP_UID, $results);
+                $results = $this->objMysql->_query($sql);
+              
+                foreach($results as $aGroupRow){
+   
+                   $sl2 =_"select username, usrid, firstNamre, lastName";
                     $oGroupCriteria->addSelectColumn(\UsersPeer::USR_UID);
                     $oGroupCriteria->addSelectColumn(\UsersPeer::USR_FIRSTNAME);
                     $oGroupCriteria->addSelectColumn(\UsersPeer::USR_LASTNAME);
