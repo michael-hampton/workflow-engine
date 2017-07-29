@@ -198,7 +198,7 @@ class Task
             $numRecTotalGroup = 0;
             $numRecTotalUser = 0;
             switch ($option) {
-                case "ASSIGNEE":
+                case "ASSIGNED":
                     break;
                 case "AVAILIABLE":
                     $task = new \Task();
@@ -226,9 +226,9 @@ class Task
                         " . $joinType . " JOIN workflow.TASK_USER p ON u.team_id = p.USR_UID AND p.TU_RELATION = 2
                          LEFT JOIN user_management.teams t ON t.team_id = u.team_id
                          WHERE 1=1";
-
+                
                 switch ($option) {
-                    case "ASSIGNEE":
+                    case "ASSIGNED":
 
                         $teamSql .= " AND p.TAS_UID = ? AND p.TU_RELATION = 2";
                         $arrParameters = array($taskUid);
@@ -244,7 +244,7 @@ class Task
 
                 if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"]) && trim ($arrayFilterData["filter"]) != "" )
                 {
-                    $search = isset ($arrayFilterData["filterOption"]) ? $arrayFilterData["filterOption"] : "";
+                    $search = isset ($arrayFilterData["filter"]) ? $arrayFilterData["filter"] : "";
                     $teamSql .= " AND t.team_name LIKE '%" . $search . "%'";
                 }
 
@@ -272,8 +272,8 @@ class Task
                         WHERE 1 = 1";
 
                 switch ($option) {
-                    case "ASSIGNEE":
-                        $userSql .= " AND TAS_UID = ? AND TASK_RELATION = 1";
+                    case "ASSIGNED":
+                        $userSql .= " AND TAS_UID = ? AND TU_RELATION = 1";
 
                         $arrParameters = array($taskUid);
 
@@ -286,10 +286,11 @@ class Task
 
                         break;
                 }
+                     
                 if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"]) && trim ($arrayFilterData["filter"]) != "" )
                 {
-                    $search = isset ($arrayFilterData["filterOption"]) ? $arrayFilterData["filterOption"] : "";
-
+                    $search = isset ($arrayFilterData["filter"]) ? $arrayFilterData["filter"] : "";
+                    
                     $userSql .= " AND (u.username LIKE '%" . $search . "%' OR u.firstName LIKE '%" . $search . "%' OR lastName LIKE '%" . $search . "%')";
                 }
 

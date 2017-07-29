@@ -339,13 +339,12 @@ class WorkflowStep
 
         if ( $isParallel === true && !isset ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers']) )
         {
-            $arrUsers = (new \BusinessModel\Cases())->getUsersToReassign ($this);
-            //$arrUsers = (new \BusinessModel\Task())->getTaskAssignees($this->workflowId, $this->_stepId, "ASSIGNEE", "MASTER");
+            $arrUsers = (new \BusinessModel\Task())->getTaskAssigneesAll ($this->workflowId, $this->_stepId, '', 0, 100, "user");
 
             $parallelUsers = [];
 
-            foreach ($arrUsers['data'] as $key => $user) {
-                $parallelUsers[$key]['username'] = $user['username'];
+            foreach ($arrUsers as $key => $user) {
+                $parallelUsers[$key]['username'] = $user['aas_username'];
             }
 
             $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers'] = $parallelUsers;
@@ -502,31 +501,99 @@ class WorkflowStep
         {
             $objTask = $objTask->retrieveByPk ($this->_stepId);
             $blIsParralelTask = false;
-            $blTaskUsersCompleted = 0;
 
             if ( in_array ($objTask->getTasAssignType (), array("MULTIPLE_INSTANCE", "MULTIPLE_INSTANCE_VALUE_BASED")) )
             {
+                $taskType = "PARALLEL";
                 $blIsParralelTask = true;
             }
+            else
+            {
+                $taskType = isset ($arrCompleteData['status']) ? $arrCompleteData['status'] : '';
+            }
+
 
             $this->completeAuditObject ($objUser, $arrCompleteData, $blIsParralelTask);
-
-            if ( $blIsParralelTask === true && $complete === true )
+            if ( $complete === true || in_array ($taskType, array("HELD", "ABANDONED", "CLAIMED")) )
             {
-                foreach ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers'] as $key => $parallelUser) {
-                    if ( isset ($parallelUser['dateCompleted']) && trim ($parallelUser['dateCompleted']) !== "" )
-                    {
-                        $blTaskUsersCompleted++;
-                    }
+                if ( trim ($taskType) === "" )
+                {
+                    throw new Exception ("No task type given");
                 }
 
-                if ( count ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers']) !== $blTaskUsersCompleted )
+                if ( !isset ($arrCompleteData['claimed']) || trim ($arrCompleteData['claimed']) === "" )
                 {
-                    $arrWorkflow['current_step'] = $this->_workflowStepId;
+                    throw new Exception ("No user given");
+                }
+
+                $arrUsers = (new \BusinessModel\Task())->getTaskAssigneesAll ($this->workflowId, $this->_stepId, '', 0, 100, "user");
+
+                //      die($arrCompleteData['status']);
+
+                switch ($taskType) {
+                    case "PARALLEL":
+                        $blTaskUsersCompleted = 0;
+
+                        foreach ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers'] as $key => $parallelUser) {
+                            if ( isset ($parallelUser['dateCompleted']) && trim ($parallelUser['dateCompleted']) !== "" )
+                            {
+                                $blTaskUsersCompleted++;
+                            }
+                        }
+
+                        if ( count ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers']) !== $blTaskUsersCompleted )
+                        {
+                            $arrWorkflow['current_step'] = $this->_workflowStepId;
+                        }
+                        break;
+
+                    case "AUTO_ASSIGN":
+                    case "COMPLETE":
+                    case "HELD";
+                    case "ABANDONED":
+                        $blHasValidUser = false;
+
+                        foreach ($arrUsers as $arrUser) {
+                            if ( trim ($arrUser['aas_username']) === trim ($arrCompleteData['claimed']) )
+                            {
+                                $blHasValidUser = true;
+                            }
+                        }
+
+                        if ( $blHasValidUser !== true )
+                        {
+                            $arrWorkflow['current_step'] = $this->_workflowStepId;
+                            throw new Exception ("Invalid task user");
+                        }
+
+                        break;
+
+                    case "CLAIMED":
+                        foreach ($arrUsers as $arrUser) {
+                            if ( trim ($arrUser['aas_username']) === trim ($arrCompleteData['claimed']) )
+                            {
+                                $blHasValidUser = true;
+                            }
+                        }
+
+                        if ( $blHasValidUser !== true )
+                        {
+                            unset ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]);
+                        }
+
+                        $arrWorkflow['current_step'] = $this->_workflowStepId;
+
+                        break;
                 }
             }
         }
 
+        if ( isset ($arrCompleteData['status']) && $arrCompleteData['status'] === "AUTO_ASSIGN" )
+        {
+
+            if ( !isset ($arrCompleteData['claimed']) )
+                $arrUsers = (new \BusinessModel\Task())->getTaskAssigneesAll ($this->workflowId, $this->_stepId, '', 0, 100, "user");
+        }
 
         $arrWorkflow['workflow_id'] = $this->workflowId;
         if ( !empty ($arrWorkflowData) )

@@ -923,7 +923,7 @@ class Cases
      * 
      * @param Elements $objElements
      */
-    public function assignUsers (\Elements $objElements, \Users $objUser)
+    public function assignUsers (\Elements $objElement, \Users $objUser)
     {
         $arrStepData = array(
             'claimed' => $objUser->getUsername (),
@@ -931,8 +931,8 @@ class Cases
             "status" => "CLAIMED"
         );
 
-        $objStep = new \WorkflowStep (null, $objElements);
-        $objStep->assignUserToStep ($objElements, $objUser, $arrStepData);
+        $objStep = new \WorkflowStep (null, $objElement);
+        $objStep->complete ($objElement, $arrStepData, $objUser);
     }
 
     /**
