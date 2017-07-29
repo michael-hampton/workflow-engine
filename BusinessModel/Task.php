@@ -166,23 +166,18 @@ public function addTaskAssignee($sProcessUID, $sTaskUID, $sAssigneeUID, $assType
                 $sql = "FROM workflow.TASK_USER
                         LEFT JOIN user_management.poms_users u ON u.team_id = p.USR_UID
                          LEFT JOIN user_management.teams t ON t.team_id = u.team_id
-                         WHERE 1=1
-   
-                ";
-
-                $sqlWhere = "";
-
+                         WHERE 1=1";
 
                 switch ($option) {
                     case "ASSIGNEE":
 
+                        $sql .= " AND p.TAS_UID = ? AND p.TU_RELATION = 2";
+                        $arrParameters = array($taskUid);
                         break;
                     case "AVAILABLE":
                         $sql .= " AND t.team_id NOT IN (" . implode (",", $arrayGroupUid) . ")";
                         break;
                 }
-                $sql .= " AND p.TAS_UID = ? AND p.access_level = ?";
-                $arrParameters = array($taskUid, $taskUserType);
 
                 if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"]) && trim ($arrayFilterData["filter"]) != "" )
                 {
@@ -219,19 +214,17 @@ public function addTaskAssignee($sProcessUID, $sTaskUID, $sAssigneeUID, $assType
             if ( empty ($type) || $type == "user" )
             {
                 $sqlSelect = "SELECT u.usrid, u.username, u.firstName, u.lastName FROM workflow.step_permission";
-                $sql = "LEFT JOIN user_management.poms_users u ON u.usrid = p.TAS_UID";
+                $sql = "LEFT JOIN user_management.poms_users u ON u.usrid = p.USR_UID";
 
                 switch ($option) {
                     case "ASSIGNEE":
-                        $sql .= "   
-                                    WHERE TAS_UID = ? AND access_level = ?
-                        ";
+                        $sql .= " WHERE TAS_UID = ? AND TASK_RELATION = 1";
 
-                        $arrParameters = array($taskUid, $taskUserType);
+                        $arrParameters = array($taskUid);
 
                         break;
                     case "AVAILABLE":
-                        $sql .= " AND u.usrid NOT IN (" . implode (",", $arrayUserUid) . ")";
+                        $sql .= " WHERE u.usrid NOT IN (" . implode (",", $arrayUserUid) . ")";
                         break;
                 }
                 if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"]) && trim ($arrayFilterData["filter"]) != "" )
@@ -241,7 +234,7 @@ public function addTaskAssignee($sProcessUID, $sTaskUID, $sAssigneeUID, $assType
                     $sql .= " AND (u.username LIKE '%" . $search . "%' OR u.firstName LIKE '%" . $search . "%' OR lastName LIKE '%" . $search . "%')";
                 }
 
-                $sql .= "AND u.status = 1";
+                $sql .= " AND u.status = 1";
                 //Number records total
                 $sqlCount = "SELECT COUNT(u,usrid) AS NUM_REC ";
                 $sqlCount .= $sql;
@@ -256,7 +249,7 @@ public function addTaskAssignee($sProcessUID, $sTaskUID, $sAssigneeUID, $assType
                   break;
                   } */
 
-                $countResult = $this->objMsql->_query ($sql, $arrParameters);
+                $countResult = $this->objMsql->_query ($sqlCount, $arrParameters);
 
                 $numRecTotalUser = (int) ($countResult[0]["NUM_REC"]);
                 $numRecTotal = $numRecTotal + $numRecTotalUser;
