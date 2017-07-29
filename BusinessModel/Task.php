@@ -45,10 +45,10 @@ public function addTaskAssignee($sProcessUID, $sTaskUID, $sAssigneeUID, $assType
             $iRelation = '';
             
             $sql =_"SELECT TU_RELATION, USR_UID, TAS_UID, TU_TYPE FROM TASK_USER WHERE TAS_UID = ? AND USR_UID = ?";
-            $arrParameters = array();
+            $arrParameters = array($sTaskUID,$sProcessUID);
           
 
-            $results= $this->objMysql->_query($sql, $arrParameters);
+            $results = $this->objMysql->_query($sql, $arrParameters);
             foreach($results as $aRow){
                 $iRelation = $aRow['TU_RELATION'];
             }
@@ -64,13 +64,13 @@ public function addTaskAssignee($sProcessUID, $sTaskUID, $sAssigneeUID, $assType
                 if (is_null( $oTypeAssigneeG ) && ! is_null( $oTypeAssigneeU) ) {
                     $type = "user";
                     if ( $type != $assType ) {
-                        throw new \Exception(\G::LoadTranslation("ID_DOES_NOT_CORRESPOND", array($sAssigneeUID, $assType)));
+                        throw new Exception("ID_DOES_NOT_CORRESPOND");
                     }
                 }
                 if (! is_null( $oTypeAssigneeG ) && is_null( $oTypeAssigneeU ) ) {
                     $type = "group";
                     if ( $type != $assType ) {
-                        throw new \Exception(\G::LoadTranslation("ID_DOES_NOT_CORRESPOND", array($sAssigneeUID, $assType)));
+                        throw new \Exception("ID_DOES_NOT_CORRESPOND");
                     }
                 }
                 $oTaskUser = new \TaskUser();
