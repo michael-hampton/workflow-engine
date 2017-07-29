@@ -106,9 +106,9 @@ class Role
         try {
             if ( $this->existsCode ($roleCode, $roleUidExclude) )
             {
-                throw new Exception ("ID_ROLE_CODE_ALREADY_EXISTS");
+                throw new \Exception ("ROLE CODE ALREADY EXISTS");
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }

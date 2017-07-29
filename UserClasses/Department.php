@@ -103,7 +103,7 @@ class Department extends BaseDepartment
         try {
             $oPro = $this->loadDepartmentRecord ($this->retrieveByPK ($aData['id']));
 
-            if ( is_object ($oPro) && get_class ($oPro) == 'Departments' )
+            if ( is_object ($oPro) && get_class ($oPro) == 'Department' )
             {
                 $oPro->loadObject ($aData);
                 if ( $oPro->validate () )

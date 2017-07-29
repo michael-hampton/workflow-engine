@@ -31,7 +31,6 @@ class Users extends BaseUser
             }
             else
             {
-
                 $sMessage = '';
 
                 $aValidationFailures = $this->getValidationFailures ();

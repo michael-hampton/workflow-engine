@@ -118,7 +118,7 @@ class Team extends BaseTeam
         try {
             $oPro = $this->retrieveByPk ($aData['team_id']);
 
-            if ( is_object ($oPro) && get_class ($oPro) == 'Teams' )
+            if ( is_object ($oPro) && get_class ($oPro) == 'Team' )
             {
                 $oPro->loadObject ($aData);
                 if ( $oPro->validate () )
@@ -156,7 +156,7 @@ class Team extends BaseTeam
             return false;
         }
 
-        $this->removeUserOfGroup ($objUser->getUserId ());
+        $this->removeUserOfGroup ($objUser);
         $this->addUserOfGroup ($objTeam->getId (), $objUser->getUserId ());
     }
 

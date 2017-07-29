@@ -185,7 +185,12 @@ class Team
 
 
             $objPermissions = new \ObjectPermissions (null);
-            $objPermissions->deleteAll ("team", $objTeam->getId ());
+
+            try {
+                $objPermissions->deleteAll ("team", $objTeam->getId ());
+            } catch (Exception $ex) {
+                
+            }
         } catch (Exception $e) {
             throw $e;
         }
@@ -596,9 +601,10 @@ class Team
                 case "AVAILABLE-USERS":
                     //Get Uids
                     $arrayUid = array();
-                    $criteria = $this->getUserCriteria ();
+                    $criteria = $this->getUserCriteria (null, $arrayFilterData);
                     $criteria = $criteria['sql'];
 
+                    $criteria .= " AND u.team_id = null";
                     $results = $this->objMysql->_query ($criteria);
 
                     foreach ($results as $row)

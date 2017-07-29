@@ -168,9 +168,9 @@ class UsersFactory
         try {
             if ( $this->existsName ($userName, $userUidToExclude) )
             {
-                throw new Exception ("Username already exists");
+                throw new \Exception("Username already exists");
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
