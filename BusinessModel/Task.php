@@ -35,7 +35,8 @@ class Task
      *
      * @access public
      */
-    public function addTaskAssignee($sProcessUID, $sTaskUID, $sAssigneeUID, $assType)
+    
+public function addTaskAssignee($sProcessUID, $sTaskUID, $sAssigneeUID, $assType)
     {
         try {
             $this->proUid($sProcessUID);
@@ -43,29 +44,33 @@ class Task
             $iType = 1;
             $iRelation = '';
             
-            $sql = "SELECT permission FROM step_permission WHERE permission = ? AND step_id = ? AND permission_type = ?";
-            $arrParameters = array($sAssigneeUID! $sTaskUid, $iType);
-            $results = $this->objMysql->_query($sql, $arrParameters);
-            
-            if (isset($results[0]) && !empty($results[0]) {
+            $sql =_"SELECT TU_RELATION, USR_UID, TAS_UID, TU_TYPE FROM TASK_USER WHERE TAS_UID = ? AND USR_UID = ?";
+            $arrParameters = array();
+          
+
+            $results= $this->objMysql->_query($sql, $arrParameters);
+            foreach($results as $aRow){
+                $iRelation = $aRow['TU_RELATION'];
+            }
+            $oTaskUser = $this->retrieveByPK( $sTaskUID, $sAssigneeUID, $iType, $iRelation );
+            if (! is_null( $oTaskUser )) {
                 throw new \Exception("ID_ALREADY_ASSIGNED");
             } else {
                 $oTypeAssigneeG = \GroupwfPeer::retrieveByPK( $sAssigneeUID );
-                //$oTypeAssigneeU = \UsersPeer::retrieveByPK( $sAssigneeUID );
-                $oTypeAssigneeU = new (\BusinessModel\UsersFactory())->getUser->($sAssigneeUID);
+                $oTypeAssigneeU = \UsersPeer::retrieveByPK( $sAssigneeUID );
                 if (is_null( $oTypeAssigneeG ) && is_null( $oTypeAssigneeU ) ) {
                     throw new \Exception("ID_DOES_NOT_CORRESPOND");
                 }
                 if (is_null( $oTypeAssigneeG ) && ! is_null( $oTypeAssigneeU) ) {
                     $type = "user";
                     if ( $type != $assType ) {
-                        throw new \Exception("ID_DOES_NOT_CORRESPOND");
+                        throw new \Exception(\G::LoadTranslation("ID_DOES_NOT_CORRESPOND", array($sAssigneeUID, $assType)));
                     }
                 }
                 if (! is_null( $oTypeAssigneeG ) && is_null( $oTypeAssigneeU ) ) {
                     $type = "group";
                     if ( $type != $assType ) {
-                        throw new \Exception("ID_DOES_NOT_CORRESPOND");
+                        throw new \Exception(\G::LoadTranslation("ID_DOES_NOT_CORRESPOND", array($sAssigneeUID, $assType)));
                     }
                 }
                 $oTaskUser = new \TaskUser();
