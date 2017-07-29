@@ -57,7 +57,7 @@ class Team
     private function groupExists ($groupUid)
     {
         $result = $this->objMysql->_select ("user_management.teams", array(), array("team_id" => $groupUid));
-       
+
         if ( isset ($result[0]) && !empty ($result[0]) )
         {
             return true;
@@ -453,12 +453,14 @@ class Team
             //SQL
             $result = $this->objMysql->_select ("user_management.teams", array(), array("team_id" => $groupUid));
 
-            if ( isset ($result[0]) && !empty ($result[0]) )
+            if ( !isset ($result[0]) || empty ($result[0]) )
             {
-                $result[0]["GRP_USERS"] = (isset ($arrayTotalUsersByGroup[$groupUid])) ? $arrayTotalUsersByGroup[$groupUid] : 0;
-                $result[0]["GRP_TASKS"] = (isset ($arrayTotalTasksByGroup[$groupUid])) ? $arrayTotalTasksByGroup[$groupUid] : 0;
+                return false;
             }
 
+
+            $result[0]["GRP_USERS"] = (isset ($arrayTotalUsersByGroup[$groupUid])) ? $arrayTotalUsersByGroup[$groupUid] : 0;
+            $result[0]["GRP_TASKS"] = (isset ($arrayTotalTasksByGroup[$groupUid])) ? $arrayTotalTasksByGroup[$groupUid] : 0;
 
             //Return
             $arrResult = $this->getGroupDataFromRecord ($result[0]);

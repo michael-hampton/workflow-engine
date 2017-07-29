@@ -150,6 +150,8 @@ require_once HOME_DIR . '/core/app/library/BPMN/BPMN.php';
 require_once HOME_DIR . '/core/app/library/BPMN/BPMNWorkflow.php';
 require_once HOME_DIR . '/core/app/library/BPMN/BaseTask.php';
 require_once HOME_DIR . '/core/app/library/BPMN/Task.php';
+require_once HOME_DIR . '/core/app/library/Process/BaseTaskUser.php';
+require_once HOME_DIR . '/core/app/library/Process/TaskUser.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/Task.php';
 require_once HOME_DIR . '/core/app/library/BPMN/Participant.php';
 require_once HOME_DIR . '/core/app/library/BPMN/Message.php';

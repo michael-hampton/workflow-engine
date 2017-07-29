@@ -345,4 +345,54 @@ class Task extends BaseTask
         return $objFlow;
     }
 
+    /**
+     * Get the assigned groups of a task
+     *
+     * @param string $sTaskUID
+     * @param integer $iType
+     * @return array
+     */
+    public function getGroupsOfTask ($sTaskUID, $iType)
+    {
+        try {
+            $aGroups = array();
+            $sql = "SELECT * FROM workflow.TASK_USER tu LEFT JOIN user_management.poms_users u ON u.team_id = tu.USR_UID WHERE tu.TAS_UID = ? AND TU_TYPE = ? AND TU_RELATION = 2 AND u.status = 1";
+            $arrParameters = array($sTaskUID, $iType);
+            $results = $this->objMysql->_query ($sql, $arrParameters);
+
+            foreach ($results as $aRow) {
+                $aGroups[] = $aRow;
+                $oDataset->next ();
+            }
+
+            return $aGroups;
+        } catch (Exception $oError) {
+            throw ($oError);
+        }
+    }
+
+    /**
+     * Get the assigned users of a task
+     *
+     * @param string $sTaskUID
+     * @param integer $iType
+     * @return array
+     */
+    public function getUsersOfTask ($sTaskUID, $iType)
+    {
+        try {
+            $aUsers = array();
+            $sql = "SELECT * FROM workflow.TASK_USER tu LEFT JOIN user_management.poms_users u ON u.usrid = tu.USR_UID WHERE tu.TAS_UID = ? AND TU_TYPE = ? AND TU_RELATION = 1 AND u.status = 1";
+            $arrParameters = array($sTaskUID, $iType);
+            $results = $this->objMysql->_query ($sql, $arrParameters);
+
+            foreach ($results as $aRow) {
+                $aUsers[] = $aRow;
+            }
+            return $aUsers;
+        } catch (Exception $oError) {
+            throw ($oError);
+        }
+    }
+
 }

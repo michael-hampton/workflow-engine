@@ -16,14 +16,57 @@ namespace BusinessModel;
 class Task
 {
 
+    use Validator;
+
     private $objMsql;
 
     public function __construct ()
     {
         $this->objMsql = new \Mysql2();
     }
-    
-        /**
+
+    /**
+     * Remove a assignee of an activity
+     *
+     * @param string $sProcessUID {@min 32} {@max 32}
+     * @param string $sTaskUID {@min 32} {@max 32}
+     * @param string $sAssigneeUID {@min 32} {@max 32}
+     *
+     * @access public
+     */
+    public function removeTaskAssignee ($sProcessUID, $sTaskUID, $sAssigneeUID)
+    {
+        try {
+            $this->proUid($sProcessUID);
+            $this->validateActUid($sTaskUID);
+            $iType = 1;
+            $iRelation = '';
+          
+            $sql = "SELECT TU_RELATION FROM workflow.TASK_USER WHERE USR_UID = ? AND TAS_UID = ? AND TU_TYPE = ?";
+            $arrParameters = array($sAssigneeUID, $sTaskUID, $iType);
+            $results = $this->objMsql->_query($sql, $arrParameters);
+            
+            foreach ($results as $aRow) {
+                $iRelation = $aRow['TU_RELATION'];
+            }
+  
+            
+            $oTaskUser = (new \TaskUser())->retrieveByPK ($sTaskUID, $sAssigneeUID, $iType, $iRelation);
+
+            if ( $oTaskUser !== false )
+            {
+                $oTaskUser->delete();
+            }
+            else
+            {
+                throw new \Exception (\G::LoadTranslation ("ID_ROW_DOES_NOT_EXIST"));
+            }
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
      * Assign a user or group to an activity
      *
      * @param string $sProcessUID {@min 32} {@max 32}
@@ -35,58 +78,77 @@ class Task
      *
      * @access public
      */
-    
-public function addTaskAssignee($sProcessUID, $sTaskUID, $sAssigneeUID, $assType)
+    public function addTaskAssignee ($sProcessUID, $sTaskUID, $sAssigneeUID, $assType)
     {
         try {
-            $this->proUid($sProcessUID);
-            $this->validateActUid($sTaskUID);
+            $this->proUid ($sProcessUID);
+            $this->validateActUid ($sTaskUID);
             $iType = 1;
             $iRelation = '';
-            
-            $sql =_"SELECT TU_RELATION, USR_UID, TAS_UID, TU_TYPE FROM TASK_USER WHERE TAS_UID = ? AND USR_UID = ?";
-            $arrParameters = array($sTaskUID,$sProcessUID);
-          
 
-            $results = $this->objMysql->_query($sql, $arrParameters);
-            foreach($results as $aRow){
-                $iRelation = $aRow['TU_RELATION'];
-            }
-            $oTaskUser = $this->retrieveByPK( $sTaskUID, $sAssigneeUID, $iType, $iRelation );
-            if (! is_null( $oTaskUser )) {
-                throw new \Exception("ID_ALREADY_ASSIGNED");
-            } else {
-                $oTypeAssigneeG = \GroupwfPeer::retrieveByPK( $sAssigneeUID );
-                $oTypeAssigneeU = \UsersPeer::retrieveByPK( $sAssigneeUID );
-                if (is_null( $oTypeAssigneeG ) && is_null( $oTypeAssigneeU ) ) {
-                    throw new \Exception("ID_DOES_NOT_CORRESPOND");
+            $sql = "SELECT TU_RELATION, USR_UID, TAS_UID, TU_TYPE FROM TASK_USER WHERE TAS_UID = ? AND USR_UID = ?";
+            $arrParameters = array($sTaskUID, $sProcessUID);
+
+            $results = $this->objMsql->_query ($sql, $arrParameters);
+
+            if ( !empty ($results) )
+            {
+                foreach ($results as $aRow) {
+                    $iRelation = $aRow['TU_RELATION'];
                 }
-                if (is_null( $oTypeAssigneeG ) && ! is_null( $oTypeAssigneeU) ) {
-                    $type = "user";
-                    if ( $type != $assType ) {
-                        throw new Exception("ID_DOES_NOT_CORRESPOND");
-                    }
-                }
-                if (! is_null( $oTypeAssigneeG ) && is_null( $oTypeAssigneeU ) ) {
-                    $type = "group";
-                    if ( $type != $assType ) {
-                        throw new \Exception("ID_DOES_NOT_CORRESPOND");
-                    }
-                }
-                $oTaskUser = new \TaskUser();
-                if ( $assType == "user" ) {
-                    $oTaskUser->create(array('TAS_UID' => $sTaskUID,
-                                             'USR_UID' => $sAssigneeUID,
-                                             'TU_TYPE' => $iType,
-                                             'TU_RELATION' => 1));
-                } else {
-                    $oTaskUser->create(array('TAS_UID' => $sTaskUID,
-                                             'USR_UID' => $sAssigneeUID,
-                                             'TU_TYPE' => $iType,
-                                             'TU_RELATION' => 2));
+
+                $oTaskUser = $this->retrieveByPK ($sTaskUID, $sAssigneeUID, $iType, $iRelation);
+
+                if ( !is_null ($oTaskUser) )
+                {
+                    throw new \Exception ("ID_ALREADY_ASSIGNED");
                 }
             }
-        } catch ( \Exception $e ) {
+
+            $oTypeAssigneeG = (new Team())->getGroup ($sAssigneeUID);
+            $oTypeAssigneeU = (new UsersFactory())->getUser ($sAssigneeUID);
+
+
+            if ( $oTypeAssigneeU === false && $oTypeAssigneeG === false )
+            {
+                throw new \Exception ("ID_DOES_NOT_CORRESPOND");
+            }
+
+
+            if ( $oTypeAssigneeG === false && $oTypeAssigneeU !== false )
+            {
+                $type = 1;
+
+                if ( $type != $assType )
+                {
+                    throw new Exception ("ID_DOES_NOT_CORRESPOND");
+                }
+            }
+            if ( $oTypeAssigneeG !== false && $oTypeAssigneeU === false )
+            {
+                $type = 2;
+                if ( $type != $assType )
+                {
+                    throw new \Exception ("ID_DOES_NOT_CORRESPOND");
+                }
+            }
+
+            $oTaskUser = new \TaskUser();
+            if ( $assType == 1 )
+            {
+                $oTaskUser->create (array('TAS_UID' => $sTaskUID,
+                    'USR_UID' => $sAssigneeUID,
+                    'TU_TYPE' => $iType,
+                    'TU_RELATION' => 1));
+            }
+            else
+            {
+                $oTaskUser->create (array('TAS_UID' => $sTaskUID,
+                    'USR_UID' => $sAssigneeUID,
+                    'TU_TYPE' => $iType,
+                    'TU_RELATION' => 2));
+            }
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -117,12 +179,7 @@ public function addTaskAssignee($sProcessUID, $sTaskUID, $sAssigneeUID, $assType
             $filterName = "filter";
             if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"]) )
             {
-                $arrayAux = array(
-                    "" => "filter",
-                    "LEFT" => "lfilter",
-                    "RIGHT" => "rfilter"
-                );
-                $filterName = $arrayAux[(isset ($arrayFilterData["filterOption"])) ? $arrayFilterData["filterOption"] : ""];
+                $filterName = isset ($arrayFilterData["filterOption"]) ? $arrayFilterData["filterOption"] : "";
             }
             //Get data
             if ( !is_null ($limit) && $limit . "" == "0" )
@@ -138,15 +195,16 @@ public function addTaskAssignee($sProcessUID, $sTaskUID, $sAssigneeUID, $assType
             }
             //Verify data
             (new Process())->throwExceptionIfNotExistsProcess ($processUid);
-            $this->throwExceptionIfNotExistsTask ($processUid, $taskUid, "act_uid");
+            $this->throwExceptionIfNotExistsTask ($processUid, $taskUid);
+
             //Set variables
             $numRecTotalGroup = 0;
             $numRecTotalUser = 0;
             switch ($option) {
                 case "ASSIGNEE":
                     break;
-                case "AVAILABLE":
-                    $task = new \Tasks();
+                case "AVAILIABLE":
+                    $task = new \Task();
                     $arrayGroupUid = array();
                     foreach ($task->getGroupsOfTask ($taskUid, $taskUserType) as $value) {
                         $arrayGroupUid[] = $value['GRP_UID'];
@@ -158,53 +216,51 @@ public function addTaskAssignee($sProcessUID, $sTaskUID, $sAssigneeUID, $assType
                     break;
             }
 
+            $arrParameters = array();
+
+            $joinType = $option === "AVAILIABLE" ? "LEFT" : "INNER";
+
             //Groups
             //Query
             if ( empty ($type) || $type == "group" )
             {
-                $select = "SELECT USR_UID, t.team_name  ";
-                $sql = "FROM workflow.TASK_USER
-                        LEFT JOIN user_management.poms_users u ON u.team_id = p.USR_UID
+                $TeamSelect = "SELECT u.usrid, t.team_name, t.team_id  ";
+                $teamSql = "FROM user_management.poms_users u
+                        " . $joinType . " JOIN workflow.TASK_USER p ON u.team_id = p.USR_UID AND p.TU_RELATION = 2
                          LEFT JOIN user_management.teams t ON t.team_id = u.team_id
                          WHERE 1=1";
 
                 switch ($option) {
                     case "ASSIGNEE":
 
-                        $sql .= " AND p.TAS_UID = ? AND p.TU_RELATION = 2";
+                        $teamSql .= " AND p.TAS_UID = ? AND p.TU_RELATION = 2";
                         $arrParameters = array($taskUid);
                         break;
-                    case "AVAILABLE":
-                        $sql .= " AND t.team_id NOT IN (" . implode (",", $arrayGroupUid) . ")";
+                    case "AVAILIABLE":
+                        if ( !empty ($arrayGroupUid) )
+                        {
+                            $teamSql .= " AND t.team_id NOT IN (" . implode (",", $arrayGroupUid) . ")";
+                        }
+
                         break;
                 }
 
                 if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"]) && trim ($arrayFilterData["filter"]) != "" )
                 {
-                    $arraySearch = array(
-                        "" => "%" . $arrayFilterData["filter"] . "%",
-                        "LEFT" => $arrayFilterData["filter"] . "%",
-                        "RIGHT" => "%" . $arrayFilterData["filter"]
-                    );
                     $search = isset ($arrayFilterData["filterOption"]) ? $arrayFilterData["filterOption"] : "";
-                    $sql .= " AND t.team_name LIKE '%" . $search . "%'";
+                    $teamSql .= " AND t.team_name LIKE '%" . $search . "%'";
                 }
 
-                $sql .= " AND t.status = 1";
+                $teamSql .= " AND t.status = 1";
 
-                $selectCount = "COUNT(team_id) AS NUM_REC";
+                $teamQuery = $TeamSelect . $teamSql;
 
-                /* switch ($option) {
-                  case "ASSIGNEE":
-                  $rsCriteriaCount = \TaskUserPeer::doSelectRS ($criteriaCount);
-                  break;
-                  case "AVAILABLE":
-                  $rsCriteriaCount = \GroupwfPeer::doSelectRS ($criteriaCount);
-                  break;
-                  } */
+                $selectCount = "SELECT COUNT(t.team_id) AS NUM_REC ";
 
-                $count = $selectCount . $sql;
-                $countResult = $this->objMsql->_query ($count, $arrParameters);
+
+                $selectCount .= $teamSql;
+
+                $countResult = $this->objMsql->_query ($selectCount, $arrParameters);
 
                 $numRecTotalGroup = (int) ($countResult[0]["NUM_REC"]);
                 $numRecTotal = $numRecTotal + $numRecTotalGroup;
@@ -213,41 +269,37 @@ public function addTaskAssignee($sProcessUID, $sTaskUID, $sAssigneeUID, $assType
             //Query
             if ( empty ($type) || $type == "user" )
             {
-                $sqlSelect = "SELECT u.usrid, u.username, u.firstName, u.lastName FROM workflow.step_permission";
-                $sql = "LEFT JOIN user_management.poms_users u ON u.usrid = p.USR_UID";
+                $userSelect = "SELECT u.usrid, u.username, u.firstName, u.lastName ";
+                $userSql = "FROM user_management.poms_users u
+                        " . $joinType . " JOIN workflow.TASK_USER p ON u.usrid = p.USR_UID AND p.TU_RELATION = 1
+                        WHERE 1 = 1";
 
                 switch ($option) {
                     case "ASSIGNEE":
-                        $sql .= " WHERE TAS_UID = ? AND TASK_RELATION = 1";
+                        $userSql .= " AND TAS_UID = ? AND TASK_RELATION = 1";
 
                         $arrParameters = array($taskUid);
 
                         break;
-                    case "AVAILABLE":
-                        $sql .= " WHERE u.usrid NOT IN (" . implode (",", $arrayUserUid) . ")";
+                    case "AVAILIABLE":
+                        if ( !empty ($arrayUserUid) )
+                        {
+                            $userSql .= " AND u.usrid NOT IN (" . implode (",", $arrayUserUid) . ")";
+                        }
+
                         break;
                 }
                 if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"]) && trim ($arrayFilterData["filter"]) != "" )
                 {
                     $search = isset ($arrayFilterData["filterOption"]) ? $arrayFilterData["filterOption"] : "";
 
-                    $sql .= " AND (u.username LIKE '%" . $search . "%' OR u.firstName LIKE '%" . $search . "%' OR lastName LIKE '%" . $search . "%')";
+                    $userSql .= " AND (u.username LIKE '%" . $search . "%' OR u.firstName LIKE '%" . $search . "%' OR lastName LIKE '%" . $search . "%')";
                 }
 
-                $sql .= " AND u.status = 1";
+                $userSql .= " AND u.status = 1";
                 //Number records total
-                $sqlCount = "SELECT COUNT(u,usrid) AS NUM_REC ";
-                $sqlCount .= $sql;
-
-
-                /* switch ($option) {
-                  case "ASSIGNEE":
-                  $rsCriteriaCount = \TaskUserPeer::doSelectRS ($criteriaCount);
-                  break;
-                  case "AVAILABLE":
-                  $rsCriteriaCount = \UsersPeer::doSelectRS ($criteriaCount);
-                  break;
-                  } */
+                $sqlCount = "SELECT COUNT(u.usrid) AS NUM_REC ";
+                $sqlCount .= $userSql;
 
                 $countResult = $this->objMsql->_query ($sqlCount, $arrParameters);
 
@@ -256,42 +308,39 @@ public function addTaskAssignee($sProcessUID, $sTaskUID, $sAssigneeUID, $assType
             }
             //Groups
             //Query
+
+
+
             if ( empty ($type) || $type == "group" )
             {
-                $sql .= " ORDER BY t.team_name ASC";
+                $teamSql .= " GROUP BY u.team_id";
+
+                $teamSql .= " ORDER BY t.team_name ASC";
 
                 if ( !is_null ($limit) )
                 {
-                   $sql .= " LIMIT ". (int) $limit;
+                    $teamSql .= " LIMIT " . (int) $limit;
                 }
 
                 if ( !is_null ($start) )
                 {
-                    $sql .= " OFFSET ". (int) $start;
+                    $teamSql .= " OFFSET " . (int) $start;
                 }
 
-                /*switch ($option) {
-                    case "ASSIGNEE":
-                        $rsCriteriaGroup = \TaskUserPeer::doSelectRS ($criteriaGroup);
-                        break;
-                    case "AVAILABLE":
-                        $rsCriteriaGroup = \GroupwfPeer::doSelectRS ($criteriaGroup);
-                        break;
-                }*/
-                
-                $results = $this->objMsql->_query($sql, $arrParameters);
-     
+                $fullTeamQuery = $TeamSelect . $teamSql;
+
+                $results = $this->objMsql->_query ($fullTeamQuery, $arrParameters);
+
                 $numRecGroup = 0;
-                foreach($results as $row){
-                    
-                    
-                    $sql2 = "SELECT COUNT(team_id) AS NUM_REM FROM user_management.teams WHERE team_id = ".$row["team_id"];
-                    
-                    
-                    $result2 = $this->objMysql->_query($sql2);
-                    
+                foreach ($results as $row) {
+
+                    $sql2 = "SELECT COUNT(team_id) AS NUM_REM FROM user_management.teams WHERE team_id = " . $row["team_id"];
+
+                    $result2 = $this->objMsql->_query ($sql2);
+
                     $row2 = $result2[0];
-                    $row["GRP_TITLE"] = $row["GRP_TITLE"] . " (" . $row2["NUM_MEM"] . " " . \G::LoadTranslation (((int) ($row2["NUM_MEM"]) == 1) ? "ID_USER" : "ID_USERS") . ")";
+
+                    $row["GRP_TITLE"] = $row["team_name"] . " (" . $row2["NUM_REM"] . " " . (int) $row2["NUM_REM"] == 1 ? "ID_USER" : "ID_USERS" . ")";
                     $arrayAssignee[] = $this->getTaskAssigneeDataFromRecord (
                             array(
                         $row["team_id"],
@@ -308,6 +357,8 @@ public function addTaskAssignee($sProcessUID, $sTaskUID, $sAssigneeUID, $assType
             //Query
             if ( empty ($type) || $type == "user" )
             {
+                $userSql .= " GROUP BY u.usrid";
+
                 $flagUser = true;
                 if ( $numRecTotalGroup > 0 )
                 {
@@ -322,7 +373,7 @@ public function addTaskAssignee($sProcessUID, $sTaskUID, $sAssigneeUID, $assType
                             }
                             else
                             {
-                                $flagUser = false;
+                                //$flagUser = false;
                             }
                         }
                         else
@@ -339,29 +390,24 @@ public function addTaskAssignee($sProcessUID, $sTaskUID, $sAssigneeUID, $assType
                 {
                     //Users
                     //Query
-                    $sql .= " ORDER BY u.firstName ASC";
-                    
+                    $userSql .= " ORDER BY u.firstName ASC";
+
                     if ( !is_null ($limit) )
                     {
-                        $sql .= " LIMIT " . (int) $limit;
+                        $userSql .= " LIMIT " . (int) $limit;
                     }
-                    
+
                     if ( !is_null ($start) )
                     {
-                        $sql .= " OFFSET " . (int) $start;
+                        $userSql .= " OFFSET " . (int) $start;
                     }
-                    
-                    /*switch ($option) {
-                        case "ASSIGNEE":
-                            $rsCriteriaUser = \TaskUserPeer::doSelectRS ($criteriaUser);
-                            break;
-                        case "AVAILABLE":
-                            $rsCriteriaUser = \UsersPeer::doSelectRS ($criteriaUser);
-                            break;
-                    }*/
-                    $results = $this->objMysql->_query($sql, $arrParameters);
-                    foreach($results as $row){
-                        
+
+                    $fullUserQuery = $userSelect . $userSql;
+
+                    $results = $this->objMsql->_query ($fullUserQuery, $arrParameters);
+
+                    foreach ($results as $row) {
+
                         $arrayAssignee[] = $this->getTaskAssigneeDataFromRecord (
                                 array(
                             $row["usrid"],
@@ -374,6 +420,7 @@ public function addTaskAssignee($sProcessUID, $sTaskUID, $sAssigneeUID, $assType
                     }
                 }
             }
+
             //Return
             return array(
                 "total" => $numRecTotal,
@@ -386,8 +433,44 @@ public function addTaskAssignee($sProcessUID, $sTaskUID, $sAssigneeUID, $assType
             throw $e;
         }
     }
-    
-      /**
+
+    /**
+     * Get data of a Task-Assignee from a record
+     *
+     * @param array $record       Record
+     * @param int   $taskUserType
+     *
+     * return array Return an array with data Task-Assignee
+     */
+    public function getTaskAssigneeDataFromRecord (array $record, $taskUserType)
+    {
+        try {
+            switch ($taskUserType) {
+                case 1:
+                    return array(
+                        "aas_uid" => $record[0],
+                        "aas_name" => $record[1],
+                        "aas_lastname" => $record[2],
+                        "aas_username" => $record[3],
+                        "aas_type" => $record[4]
+                    );
+                    break;
+                case 2:
+                    return array(
+                        "ada_uid" => $record[0],
+                        "ada_name" => $record[1],
+                        "ada_lastname" => $record[2],
+                        "ada_username" => $record[3],
+                        "ada_type" => $record[4]
+                    );
+                    break;
+            }
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
      * Return a list of assignees of an activity
      *
      * @param string $sProcessUID {@min 32} {@max 32}
@@ -401,345 +484,126 @@ public function addTaskAssignee($sProcessUID, $sTaskUID, $sAssigneeUID, $assType
      *
      * @access public
      */
-    public function getTaskAssigneesAll($sProcessUID, $sTaskUID, $filter, $start, $limit, $type)
+    public function getTaskAssigneesAll ($sProcessUID, $sTaskUID, $filter, $start, $limit, $type)
     {
         try {
-            Validator::proUid($sProcessUID, '$prj_uid');
-            $this->validateActUid($sTaskUID);
+            Validator::proUid ($sProcessUID, '$prj_uid');
+            $this->validateActUid ($sTaskUID);
             $aUsers = array();
             $oTasks = new \Tasks();
-            $aAux = $oTasks->getGroupsOfTask($sTaskUID, 1);
+            $aAux = $oTasks->getGroupsOfTask ($sTaskUID, 1);
             $aGroupUids = array();
             foreach ($aAux as $aGroup) {
                 $aGroupUids[] = $aGroup['GRP_UID'];
             }
             foreach ($aGroupUids as $results) {
-                
-                $sql =_"Select usrid from user_management.poms_users":
-                
+
+                $sql = "Select usrid from user_management.poms_users";
+
                 //$oCriteria->add(\GroupUserPeer::GRP_UID, $results);
-                $results = $this->objMysql->_query($sql);
-              
-                foreach($results as $aGroupRow){
-   
-                   $sl2 =_"select username, usrid, firstNamre, lastName";
-                    $oGroupCriteria->addSelectColumn(\UsersPeer::USR_UID);
-                    $oGroupCriteria->addSelectColumn(\UsersPeer::USR_FIRSTNAME);
-                    $oGroupCriteria->addSelectColumn(\UsersPeer::USR_LASTNAME);
-                    $oGroupCriteria->addSelectColumn(\UsersPeer::USR_USERNAME);
-                    if ($filter != '') {
-                        $oGroupCriteria->add($oGroupCriteria->getNewCriterion(\UsersPeer::USR_USERNAME, "%$filter%", \Criteria::LIKE)
-                                             ->addOr($oGroupCriteria->getNewCriterion(\UsersPeer::USR_FIRSTNAME, "%$filter%", \Criteria::LIKE))
-                                             ->addOr($oGroupCriteria->getNewCriterion(\UsersPeer::USR_LASTNAME, "%$filter%", \Criteria::LIKE)));
+                $results = $this->objMysql->_query ($sql);
+
+                foreach ($results as $aGroupRow) {
+
+                    $sqll2 = "select username, usrid, firstNamre, lastName FROM user_management.poms_users";
+                    $oGroupCriteria->addSelectColumn (\UsersPeer::USR_UID);
+                    $oGroupCriteria->addSelectColumn (\UsersPeer::USR_FIRSTNAME);
+                    $oGroupCriteria->addSelectColumn (\UsersPeer::USR_LASTNAME);
+                    $oGroupCriteria->addSelectColumn (\UsersPeer::USR_USERNAME);
+                    if ( $filter != '' )
+                    {
+                        $oGroupCriteria->add ($oGroupCriteria->getNewCriterion (\UsersPeer::USR_USERNAME, "%$filter%", \Criteria::LIKE)
+                                        ->addOr ($oGroupCriteria->getNewCriterion (\UsersPeer::USR_FIRSTNAME, "%$filter%", \Criteria::LIKE))
+                                        ->addOr ($oGroupCriteria->getNewCriterion (\UsersPeer::USR_LASTNAME, "%$filter%", \Criteria::LIKE)));
                     }
-                    $oGroupCriteria->add(\UsersPeer::USR_UID, $aGroupRow["USR_UID"]);
-                    $oUserDataset = \UsersPeer::doSelectRS($oGroupCriteria);
-                    $oUserDataset->setFetchmode(\ResultSet::FETCHMODE_ASSOC);
-                    $oUserDataset->next();
-                    while ($aUserRow = $oUserDataset->getRow()) {
-                         $aUsers[] = array('aas_uid' => $aUserRow['USR_UID'],
-                                           'aas_name' => $aUserRow['USR_FIRSTNAME'],
-                                           'aas_lastname' => $aUserRow['USR_LASTNAME'],
-                                           'aas_username' => $aUserRow['USR_USERNAME'],
-                                           'aas_type' => "user" );
-                         $oUserDataset->next();
+                    $oGroupCriteria->add (\UsersPeer::USR_UID, $aGroupRow["USR_UID"]);
+                    $oUserDataset = \UsersPeer::doSelectRS ($oGroupCriteria);
+                    $oUserDataset->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
+                    $oUserDataset->next ();
+                    while ($aUserRow = $oUserDataset->getRow ()) {
+                        $aUsers[] = array('aas_uid' => $aUserRow['USR_UID'],
+                            'aas_name' => $aUserRow['USR_FIRSTNAME'],
+                            'aas_lastname' => $aUserRow['USR_LASTNAME'],
+                            'aas_username' => $aUserRow['USR_USERNAME'],
+                            'aas_type' => "user");
+                        $oUserDataset->next ();
                     }
                 }
             }
-            $oCriteria = new \Criteria('workflow');
-            $oCriteria->addSelectColumn(\UsersPeer::USR_UID);
-            $oCriteria->addSelectColumn(\UsersPeer::USR_FIRSTNAME);
-            $oCriteria->addSelectColumn(\UsersPeer::USR_LASTNAME);
-            $oCriteria->addSelectColumn(\UsersPeer::USR_USERNAME);
-            if ($filter != '') {
-                $oCriteria->add($oCriteria->getNewCriterion(\UsersPeer::USR_USERNAME, "%$filter%", \Criteria::LIKE)
-                                ->addOr($oCriteria->getNewCriterion(\UsersPeer::USR_FIRSTNAME, "%$filter%", \Criteria::LIKE))
-                                ->addOr($oCriteria->getNewCriterion(\UsersPeer::USR_LASTNAME, "%$filter%", \Criteria::LIKE )));
+            $oCriteria = new \Criteria ('workflow');
+            $oCriteria->addSelectColumn (\UsersPeer::USR_UID);
+            $oCriteria->addSelectColumn (\UsersPeer::USR_FIRSTNAME);
+            $oCriteria->addSelectColumn (\UsersPeer::USR_LASTNAME);
+            $oCriteria->addSelectColumn (\UsersPeer::USR_USERNAME);
+            if ( $filter != '' )
+            {
+                $oCriteria->add ($oCriteria->getNewCriterion (\UsersPeer::USR_USERNAME, "%$filter%", \Criteria::LIKE)
+                                ->addOr ($oCriteria->getNewCriterion (\UsersPeer::USR_FIRSTNAME, "%$filter%", \Criteria::LIKE))
+                                ->addOr ($oCriteria->getNewCriterion (\UsersPeer::USR_LASTNAME, "%$filter%", \Criteria::LIKE)));
             }
-            $oCriteria->addJoin(\TaskUserPeer::USR_UID, \UsersPeer::USR_UID, \Criteria::LEFT_JOIN);
-            $oCriteria->add(\TaskUserPeer::TAS_UID, $sTaskUID);
-            $oCriteria->add(\TaskUserPeer::TU_TYPE, 1);
-            $oCriteria->add(\TaskUserPeer::TU_RELATION, 1);
-            $oDataset = \TaskUserPeer::doSelectRS($oCriteria);
-            $oDataset->setFetchmode(\ResultSet::FETCHMODE_ASSOC);
-            $oDataset->next();
-            while ($aRow = $oDataset->getRow()) {
-                if ($type == '' || $type == 'user') {
+            $oCriteria->addJoin (\TaskUserPeer::USR_UID, \UsersPeer::USR_UID, \Criteria::LEFT_JOIN);
+            $oCriteria->add (\TaskUserPeer::TAS_UID, $sTaskUID);
+            $oCriteria->add (\TaskUserPeer::TU_TYPE, 1);
+            $oCriteria->add (\TaskUserPeer::TU_RELATION, 1);
+            $oDataset = \TaskUserPeer::doSelectRS ($oCriteria);
+            $oDataset->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
+            $oDataset->next ();
+            while ($aRow = $oDataset->getRow ()) {
+                if ( $type == '' || $type == 'user' )
+                {
                     $aUsers[] = array('aas_uid' => $aRow['USR_UID'],
-                                      'aas_name' => $aRow['USR_FIRSTNAME'],
-                                      'aas_lastname' => $aRow['USR_LASTNAME'],
-                                      'aas_username' => $aRow['USR_USERNAME'],
-                                      'aas_type' => "user" );
+                        'aas_name' => $aRow['USR_FIRSTNAME'],
+                        'aas_lastname' => $aRow['USR_LASTNAME'],
+                        'aas_username' => $aRow['USR_USERNAME'],
+                        'aas_type' => "user");
                 }
-                $oDataset->next();
+                $oDataset->next ();
             }
             $aUsersGroups = array();
             $exclude = array("");
-            for ($i = 0; $i<=count($aUsers)-1; $i++) {
-                if (!in_array(trim($aUsers[$i]["aas_uid"]) ,$exclude)) {
+            for ($i = 0; $i <= count ($aUsers) - 1; $i++) {
+                if ( !in_array (trim ($aUsers[$i]["aas_uid"]), $exclude) )
+                {
                     $aUsersGroups[] = $aUsers[$i];
-                    $exclude[] = trim($aUsers[$i]["aas_uid"]);
+                    $exclude[] = trim ($aUsers[$i]["aas_uid"]);
                 }
             }
-            if ($start) {
-                if ($start < 0) {
-                    throw new \Exception(\G::LoadTranslation("ID_INVALID_START"));
+            if ( $start )
+            {
+                if ( $start < 0 )
+                {
+                    throw new \Exception (\G::LoadTranslation ("ID_INVALID_START"));
                 }
-            } else {
+            }
+            else
+            {
                 $start = 0;
             }
-            if (isset($limit)) {
-                if ($limit < 0) {
-                    throw new \Exception(\G::LoadTranslation("ID_INVALID_LIMIT"));
-                } else {
-                    if ($limit == 0) {
+            if ( isset ($limit) )
+            {
+                if ( $limit < 0 )
+                {
+                    throw new \Exception (\G::LoadTranslation ("ID_INVALID_LIMIT"));
+                }
+                else
+                {
+                    if ( $limit == 0 )
+                    {
                         return array();
                     }
                 }
-            } else {
-                $limit = count($aUsersGroups) + 1;
             }
-            $aUsersGroups = $this->arrayPagination($aUsersGroups, $start, $limit);
+            else
+            {
+                $limit = count ($aUsersGroups) + 1;
+            }
+            $aUsersGroups = $this->arrayPagination ($aUsersGroups, $start, $limit);
             return $aUsersGroups;
         } catch (\Exception $e) {
             throw $e;
         }
     }
-      /**
-     * Return a list of assignees of an activity
-     *
-     * @param string $sProcessUID {@min 32} {@max 32}
-     * @param string $sTaskUID {@min 32} {@max 32}
-     * @param string $filter
-     * @param int    $start
-     * @param int    $limit
-     * @param string $type
-     *
-     * return array
-     *
-     * @access public
-     */
-    public function getTaskAssigneesAll($sProcessUID, $sTaskUID, $filter, $start, $limit, $type)
-    {
-        try {
-            Validator::proUid($sProcessUID, '$prj_uid');
-            $this->validateActUid($sTaskUID);
-            $aUsers = array();
-            $oTasks = new \Tasks();
-            $aAux = $oTasks->getGroupsOfTask($sTaskUID, 1);
-            $aGroupUids = array();
-            foreach ($aAux as $aGroup) {
-                $aGroupUids[] = $aGroup['GRP_UID'];
-            }
-            foreach ($aGroupUids as $results) {
-                $oCriteria = new \Criteria('workflow');
-                $oCriteria->addSelectColumn('USR_UID');
-                $oCriteria->add(\GroupUserPeer::GRP_UID, $results);
-                $oGroupDataset = \GroupUserPeer::doSelectRS($oCriteria);
-                $oGroupDataset->setFetchmode(\ResultSet::FETCHMODE_ASSOC);
-                while ($oGroupDataset->next()) {
-                    $aGroupRow = $oGroupDataset->getRow();
-                    $oGroupCriteria = new \Criteria('workflow');
-                    $oGroupCriteria->addSelectColumn(\UsersPeer::USR_UID);
-                    $oGroupCriteria->addSelectColumn(\UsersPeer::USR_FIRSTNAME);
-                    $oGroupCriteria->addSelectColumn(\UsersPeer::USR_LASTNAME);
-                    $oGroupCriteria->addSelectColumn(\UsersPeer::USR_USERNAME);
-                    if ($filter != '') {
-                        $oGroupCriteria->add($oGroupCriteria->getNewCriterion(\UsersPeer::USR_USERNAME, "%$filter%", \Criteria::LIKE)
-                                             ->addOr($oGroupCriteria->getNewCriterion(\UsersPeer::USR_FIRSTNAME, "%$filter%", \Criteria::LIKE))
-                                             ->addOr($oGroupCriteria->getNewCriterion(\UsersPeer::USR_LASTNAME, "%$filter%", \Criteria::LIKE)));
-                    }
-                    $oGroupCriteria->add(\UsersPeer::USR_UID, $aGroupRow["USR_UID"]);
-                    $oUserDataset = \UsersPeer::doSelectRS($oGroupCriteria);
-                    $oUserDataset->setFetchmode(\ResultSet::FETCHMODE_ASSOC);
-                    $oUserDataset->next();
-                    while ($aUserRow = $oUserDataset->getRow()) {
-                         $aUsers[] = array('aas_uid' => $aUserRow['USR_UID'],
-                                           'aas_name' => $aUserRow['USR_FIRSTNAME'],
-                                           'aas_lastname' => $aUserRow['USR_LASTNAME'],
-                                           'aas_username' => $aUserRow['USR_USERNAME'],
-                                           'aas_type' => "user" );
-                         $oUserDataset->next();
-                    }
-                }
-            }
-            $oCriteria = new \Criteria('workflow');
-            $oCriteria->addSelectColumn(\UsersPeer::USR_UID);
-            $oCriteria->addSelectColumn(\UsersPeer::USR_FIRSTNAME);
-            $oCriteria->addSelectColumn(\UsersPeer::USR_LASTNAME);
-            $oCriteria->addSelectColumn(\UsersPeer::USR_USERNAME);
-            if ($filter != '') {
-                $oCriteria->add($oCriteria->getNewCriterion(\UsersPeer::USR_USERNAME, "%$filter%", \Criteria::LIKE)
-                                ->addOr($oCriteria->getNewCriterion(\UsersPeer::USR_FIRSTNAME, "%$filter%", \Criteria::LIKE))
-                                ->addOr($oCriteria->getNewCriterion(\UsersPeer::USR_LASTNAME, "%$filter%", \Criteria::LIKE )));
-            }
-            $oCriteria->addJoin(\TaskUserPeer::USR_UID, \UsersPeer::USR_UID, \Criteria::LEFT_JOIN);
-            $oCriteria->add(\TaskUserPeer::TAS_UID, $sTaskUID);
-            $oCriteria->add(\TaskUserPeer::TU_TYPE, 1);
-            $oCriteria->add(\TaskUserPeer::TU_RELATION, 1);
-            $oDataset = \TaskUserPeer::doSelectRS($oCriteria);
-            $oDataset->setFetchmode(\ResultSet::FETCHMODE_ASSOC);
-            $oDataset->next();
-            while ($aRow = $oDataset->getRow()) {
-                if ($type == '' || $type == 'user') {
-                    $aUsers[] = array('aas_uid' => $aRow['USR_UID'],
-                                      'aas_name' => $aRow['USR_FIRSTNAME'],
-                                      'aas_lastname' => $aRow['USR_LASTNAME'],
-                                      'aas_username' => $aRow['USR_USERNAME'],
-                                      'aas_type' => "user" );
-                }
-                $oDataset->next();
-            }
-            $aUsersGroups = array();
-            $exclude = array("");
-            for ($i = 0; $i<=count($aUsers)-1; $i++) {
-                if (!in_array(trim($aUsers[$i]["aas_uid"]) ,$exclude)) {
-                    $aUsersGroups[] = $aUsers[$i];
-                    $exclude[] = trim($aUsers[$i]["aas_uid"]);
-                }
-            }
-            if ($start) {
-                if ($start < 0) {
-                    throw new \Exception(\G::LoadTranslation("ID_INVALID_START"));
-                }
-            } else {
-                $start = 0;
-            }
-            if (isset($limit)) {
-                if ($limit < 0) {
-                    throw new \Exception(\G::LoadTranslation("ID_INVALID_LIMIT"));
-                } else {
-                    if ($limit == 0) {
-                        return array();
-                    }
-                }
-            } else {
-                $limit = count($aUsersGroups) + 1;
-            }
-            $aUsersGroups = $this->arrayPagination($aUsersGroups, $start, $limit);
-            return $aUsersGroups;
-        } catch (\Exception $e) {
-            throw $e;
-        }
-    }
-    
- /**
-     * Return a list of assignees of an activity
-     *
-     * @param string $sProcessUID {@min 32} {@max 32}
-     * @param string $sTaskUID {@min 32} {@max 32}
-     * @param string $filter
-     * @param int    $start
-     * @param int    $limit
-     * @param string $type
-     *
-     * return array
-     *
-     * @access public
-     */
-    public function getTaskAssigneesAll($sProcessUID, $sTaskUID, $filter, $start, $limit, $type)
-    {
-        try {
-            Validator::proUid($sProcessUID, '$prj_uid');
-            $this->validateActUid($sTaskUID);
-            $aUsers = array();
-            $oTasks = new \Tasks();
-            $aAux = $oTasks->getGroupsOfTask($sTaskUID, 1);
-            $aGroupUids = array();
-            foreach ($aAux as $aGroup) {
-                $aGroupUids[] = $aGroup['GRP_UID'];
-            }
-            foreach ($aGroupUids as $results) {
-                $oCriteria = new \Criteria('workflow');
-                $oCriteria->addSelectColumn('USR_UID');
-                $oCriteria->add(\GroupUserPeer::GRP_UID, $results);
-                $oGroupDataset = \GroupUserPeer::doSelectRS($oCriteria);
-                $oGroupDataset->setFetchmode(\ResultSet::FETCHMODE_ASSOC);
-                while ($oGroupDataset->next()) {
-                    $aGroupRow = $oGroupDataset->getRow();
-                    $oGroupCriteria = new \Criteria('workflow');
-                    $oGroupCriteria->addSelectColumn(\UsersPeer::USR_UID);
-                    $oGroupCriteria->addSelectColumn(\UsersPeer::USR_FIRSTNAME);
-                    $oGroupCriteria->addSelectColumn(\UsersPeer::USR_LASTNAME);
-                    $oGroupCriteria->addSelectColumn(\UsersPeer::USR_USERNAME);
-                    if ($filter != '') {
-                        $oGroupCriteria->add($oGroupCriteria->getNewCriterion(\UsersPeer::USR_USERNAME, "%$filter%", \Criteria::LIKE)
-                                             ->addOr($oGroupCriteria->getNewCriterion(\UsersPeer::USR_FIRSTNAME, "%$filter%", \Criteria::LIKE))
-                                             ->addOr($oGroupCriteria->getNewCriterion(\UsersPeer::USR_LASTNAME, "%$filter%", \Criteria::LIKE)));
-                    }
-                    $oGroupCriteria->add(\UsersPeer::USR_UID, $aGroupRow["USR_UID"]);
-                    $oUserDataset = \UsersPeer::doSelectRS($oGroupCriteria);
-                    $oUserDataset->setFetchmode(\ResultSet::FETCHMODE_ASSOC);
-                    $oUserDataset->next();
-                    while ($aUserRow = $oUserDataset->getRow()) {
-                         $aUsers[] = array('aas_uid' => $aUserRow['USR_UID'],
-                                           'aas_name' => $aUserRow['USR_FIRSTNAME'],
-                                           'aas_lastname' => $aUserRow['USR_LASTNAME'],
-                                           'aas_username' => $aUserRow['USR_USERNAME'],
-                                           'aas_type' => "user" );
-                         $oUserDataset->next();
-                    }
-                }
-            }
-            $oCriteria = new \Criteria('workflow');
-            $oCriteria->addSelectColumn(\UsersPeer::USR_UID);
-            $oCriteria->addSelectColumn(\UsersPeer::USR_FIRSTNAME);
-            $oCriteria->addSelectColumn(\UsersPeer::USR_LASTNAME);
-            $oCriteria->addSelectColumn(\UsersPeer::USR_USERNAME);
-            if ($filter != '') {
-                $oCriteria->add($oCriteria->getNewCriterion(\UsersPeer::USR_USERNAME, "%$filter%", \Criteria::LIKE)
-                                ->addOr($oCriteria->getNewCriterion(\UsersPeer::USR_FIRSTNAME, "%$filter%", \Criteria::LIKE))
-                                ->addOr($oCriteria->getNewCriterion(\UsersPeer::USR_LASTNAME, "%$filter%", \Criteria::LIKE )));
-            }
-            $oCriteria->addJoin(\TaskUserPeer::USR_UID, \UsersPeer::USR_UID, \Criteria::LEFT_JOIN);
-            $oCriteria->add(\TaskUserPeer::TAS_UID, $sTaskUID);
-            $oCriteria->add(\TaskUserPeer::TU_TYPE, 1);
-            $oCriteria->add(\TaskUserPeer::TU_RELATION, 1);
-            $oDataset = \TaskUserPeer::doSelectRS($oCriteria);
-            $oDataset->setFetchmode(\ResultSet::FETCHMODE_ASSOC);
-            $oDataset->next();
-            while ($aRow = $oDataset->getRow()) {
-                if ($type == '' || $type == 'user') {
-                    $aUsers[] = array('aas_uid' => $aRow['USR_UID'],
-                                      'aas_name' => $aRow['USR_FIRSTNAME'],
-                                      'aas_lastname' => $aRow['USR_LASTNAME'],
-                                      'aas_username' => $aRow['USR_USERNAME'],
-                                      'aas_type' => "user" );
-                }
-                $oDataset->next();
-            }
-            $aUsersGroups = array();
-            $exclude = array("");
-            for ($i = 0; $i<=count($aUsers)-1; $i++) {
-                if (!in_array(trim($aUsers[$i]["aas_uid"]) ,$exclude)) {
-                    $aUsersGroups[] = $aUsers[$i];
-                    $exclude[] = trim($aUsers[$i]["aas_uid"]);
-                }
-            }
-            if ($start) {
-                if ($start < 0) {
-                    throw new \Exception(\G::LoadTranslation("ID_INVALID_START"));
-                }
-            } else {
-                $start = 0;
-            }
-            if (isset($limit)) {
-                if ($limit < 0) {
-                    throw new \Exception(\G::LoadTranslation("ID_INVALID_LIMIT"));
-                } else {
-                    if ($limit == 0) {
-                        return array();
-                    }
-                }
-            } else {
-                $limit = count($aUsersGroups) + 1;
-            }
-            $aUsersGroups = $this->arrayPagination($aUsersGroups, $start, $limit);
-            return $aUsersGroups;
-        } catch (\Exception $e) {
-            throw $e;
-        }
-    }
+
     /**
      * Update properties of an Task
      * @var string $prj_uid. Uid for Workflow
