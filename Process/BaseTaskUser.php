@@ -1,4 +1,4 @@
-abstract class BaseTaskUser extends BaseObject implements Persistent
+abstract class BaseTaskUser implements Persistent
 {
      /**
      * The value for the tas_uid field.
