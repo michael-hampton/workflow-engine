@@ -196,19 +196,6 @@ class WorkflowStep
 
     /*     * *********** Save Methods ************************ */
 
-    public function assignUserToStep ($objMike, Users $objUser, $arrFormData)
-    {
-        if ( !isset ($arrFormData['claimed']) || !isset ($arrFormData['dateCompleted']) )
-        {
-            return false;
-        }
-
-        if ( $this->completeWorkflowObject ($objMike, $objUser, $arrFormData, false) === false )
-        {
-            return false;
-        }
-    }
-
     public function save ($objMike, array $arrFormData, Users $objUser, $arrEmailAddresses = array())
     {
         $parentId = null;
