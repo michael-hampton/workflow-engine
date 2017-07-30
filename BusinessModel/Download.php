@@ -229,11 +229,10 @@
         try {
             $oAppDocument = \AppDocumentPeer::retrieveByPK( $inputDocumentUid, 1 );
             if (is_null( $oAppDocument ) || $oAppDocument->getAppDocStatus() == 'DELETED') {
-                throw new \Exception(\G::LoadTranslation("ID_CASES_INPUT_DOES_NOT_EXIST", array($inputDocumentUid)));
+                throw new \Exception("ID_CASES_INPUT_DOES_NOT_EXIST");
             }
-            \G::LoadClass('wsBase');
-            $ws = new \wsBase();
-            $ws->removeDocument($inputDocumentUid);
+            
+            $this->removeDocument($inputDocumentUid);
         } catch (\Exception $e) {
             throw $e;
         }
@@ -250,11 +249,9 @@
         try {
             $oAppDocument = new AppDocument();
             $oAppDocument->remove( $appDocUid, 1 ); //always send version 1
-            $result = new wsResponse( 0, " $appDocUid" );
-            return $result;
+      
         } catch (Exception $e) {
-            $result = new wsResponse( 100, $e->getMessage() );
-            return $result;
+            throw $e;
         }
     }
 }
