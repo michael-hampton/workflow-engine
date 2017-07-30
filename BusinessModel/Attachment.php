@@ -47,6 +47,8 @@ class Attachment
             }
             else
             {
+                
+                $objVersioning = new \DocumentVersion();
                 $objVersioning->create (array("filename" => $arrData['filename'], "document_id" => 1, "app_uid" => $this->projectId), $objUser);
                 $this->upload ($arrData['source_id'], $arrResponse['prf_uid']);
             }
