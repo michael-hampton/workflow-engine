@@ -154,12 +154,12 @@ class TaskUser extends BaseTaskUser
         $sql = "SELECT TAS_UID, USR_UID, TU_TYPE, TU_RELATION, t,team_name
         FROM workflow.TASK_USER tu
         LEFT JOIN user_management.teams t on t.team_id = tu.USR_UID
-        WHERE TAS_UID = ? AND TU_TYPE = ? AND TU_RELATION = 2
+        WHERE TAS_UID = ? AND TU_TYPE = ? AND TU_RELATION = 2";
         
         $results = $this->objMysql->_query($sql);
        
         foreach($results as $result){
-            $usersTask[] = $result
+            $usersTask[] = $result;
         }
         
         $result = new stdClass();

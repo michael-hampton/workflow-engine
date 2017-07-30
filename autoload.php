@@ -141,6 +141,8 @@ require_once HOME_DIR . '/core/app/library/BusinessModel/NotificationsFactory.ph
 require_once HOME_DIR . '/core/app/library/BusinessModel/EmailTemplate.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/Notification.php';
 
+require_once HOME_DIR . '/core/app/library/BusinessModel/FilesManager.php';
+
 require_once HOME_DIR . '/core/app/library/BusinessModel/EmailServer.php';
 require_once HOME_DIR . '/core/app/library/Notifications/BaseEmailServer.php';
 require_once HOME_DIR . '/core/app/library/Notifications/EmailServer.php';
