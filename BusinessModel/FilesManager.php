@@ -245,14 +245,9 @@ class FilesManager
                     $sEditable = false;
                     if ( $extention == '.exe' )
                     {
-                        throw new \Exception (\G::LoadTranslation ('ID_FILE_UPLOAD_INCORRECT_EXTENSION'));
+                        throw new \Exception ('ID_FILE_UPLOAD_INCORRECT_EXTENSION');
                     }
-                    if ( \Bootstrap::getDisablePhpUploadExecution () === 1 && $extention === '.php' && !$isImport )
-                    {
-                        $message = \G::LoadTranslation ('THE_UPLOAD_OF_PHP_FILES_WAS_DISABLED');
-                        \Bootstrap::registerMonologPhpUploadExecution ('phpUpload', 550, $message, $aData['prf_filename']);
-                        throw new \Exception ($message);
-                    }
+
                     break;
                 default:
                     $sDirectory = PATH_DATA_MAILTEMPLATES . $objWorkflow->getWorkflowId () . PATH_SEP . $sSubDirectory . $aData['prf_filename'];
@@ -310,83 +305,7 @@ class FilesManager
                 'prf_editable' => $oProcessFiles->getPrfEditable (),
                 'prf_create_date' => $oProcessFiles->getPrfCreateDate (),
                 'prf_content' => $content);
-
-            echo "<pre>";
-            print_r ($oProcessFile);
-            die;
-
             return $oProcessFile;
-        } catch (Exception $e) {
-            throw $e;
-        }
-    }
-
-    /**
-     * @param $aData
-     * @throws Exception
-     * @throws \Exception
-     */
-    public function addProcessFilesManagerInDb ($aData)
-    {
-        try {
-            $oProcessFiles = new \ProcessFiles();
-            $aData = array_change_key_case ($aData, CASE_UPPER);
-            $oProcessFiles->fromArray ($aData, \BasePeer::TYPE_FIELDNAME);
-            $path = $aData['PRF_PATH'];
-            $allDirectories = pathinfo ($path);
-            $path = explode ('/', $allDirectories['dirname']);
-            $fileDirectory = $path[count ($path) - 2];
-            switch ($fileDirectory) {
-                case 'mailTemplates':
-                    $sDirectory = PATH_DATA_MAILTEMPLATES . $aData['PRO_UID'] . PATH_SEP . basename ($aData['PRF_PATH']);
-                    break;
-                case 'public':
-                    $sDirectory = PATH_DATA_PUBLIC . $aData['PRO_UID'] . PATH_SEP . basename ($aData['PRF_PATH']);
-                    break;
-                default:
-                    if ( strtoupper (substr (PHP_OS, 0, 3)) !== 'WIN' )
-                    {
-                        error_log (\G::LoadTranslation ("ID_INVALID_VALUE_FOR", array($aData['PRF_PATH'])));
-                    }
-                    return;
-                    break;
-            }
-            $oProcessFiles->setPrfPath ($sDirectory);
-            if ( $this->existsProcessFile ($aData['PRF_UID']) )
-            {
-                $sPkProcessFiles = \G::generateUniqueID ();
-                $oProcessFiles->setPrfUid ($sPkProcessFiles);
-                $emailEvent = new \ProcessMaker\BusinessModel\EmailEvent();
-                $emailEvent->updatePrfUid ($aData['PRF_UID'], $sPkProcessFiles, $aData['PRO_UID']);
-            }
-            $result = $oProcessFiles->save ();
-        } catch (Exception $e) {
-            throw $e;
-        }
-    }
-
-    /**
-     * @param $aData
-     * @throws Exception
-     */
-    public function updateProcessFilesManagerInDb ($aData)
-    {
-        try {
-            //update database
-            if ( $this->existsProcessFile ($aData['prf_uid']) )
-            {
-                $aData = array_change_key_case ($aData, CASE_UPPER);
-                $oProcessFiles = \ProcessFilesPeer::retrieveByPK ($aData['PRF_UID']);
-                $sDate = date ('Y-m-d H:i:s');
-                $oProcessFiles->setPrfUpdateDate ($sDate);
-                $oProcessFiles->setProUid ($aData['PRO_UID']);
-                $oProcessFiles->setPrfPath ($aData['PRF_PATH']);
-                $oProcessFiles->save ();
-            }
-            else
-            {
-                $this->addProcessFilesManagerInDb ($aData);
-            }
         } catch (Exception $e) {
             throw $e;
         }
@@ -395,7 +314,7 @@ class FilesManager
     public function existsProcessFile ($prfUid)
     {
         try {
-            $obj = (new \ProcessFile())->retrieveByPk($prfUid);
+            $obj = (new \ProcessFile())->retrieveByPk ($prfUid);
             return (!is_null ($obj)) ? true : false;
         } catch (\Exception $e) {
             throw $e;
@@ -406,54 +325,47 @@ class FilesManager
      * Return the Process Files Manager
      *
      * @param string $prjUid {@min 32} {@max 32}
-     * @param string $prfUid {@min 32} {@max 32}
+     * @param string path
      *
      *
      * @access public
      */
-    public function uploadProcessFilesManager ($prjUid, $prfUid)
+    public function uploadProcessFilesManager ($path, $arrFiles, \Workflow $objWorkflow, \Users $objUser)
     {
         try {
-           $path = '';
-
-            $result = $this->objMysql->_select ("task_manager.attachments", ["file_destination"], ["id" => $prfUid]);
-
-            if ( !isset ($result[0]) || empty ($result[0]) )
-            {
-                return false;
-            }
-
-            $path = $result[0]['file_destination'];
 
             if ( $path == '' )
             {
                 throw new \Exception ("ID_INVALID_VALUE_FOR");
             }
-            
-            $extention = strstr ($_FILES['prf_file']['name'], '.');
-            
+
+            $extention = strstr ($arrFiles['FileUpload']['name'], '.');
+
             if ( !$extention )
             {
                 $extention = '.html';
-                $_FILES['prf_file']['name'] = $_FILES['prf_file']['name'] . $extention;
+                $arrFiles['FileUpload']['name'] = $arrFiles['FileUpload']['name'] . $extention;
             }
-            $file = end (explode ("/", $path));
-            
+
+            $file = explode ("/", $path);
+            $file = end ($file);
+
             if ( strpos ($file, "\\") > 0 )
             {
                 $file = str_replace ('\\', '/', $file);
-                $file = end (explode ("/", $file));
+                $file = explode ("/", $file);
+                $file = end ($file);
             }
-            
+
             $path = str_replace ($file, '', $path);
-            
-            if ( $file == $_FILES['prf_file']['name'] )
+
+            if ( $file == $arrFiles['FileUpload']['name'] )
             {
-                if ( $_FILES['prf_file']['error'] != 1 )
+                if ( $arrFiles['FileUpload']['error'] != 1 )
                 {
-                    if ( $_FILES['prf_file']['tmp_name'] != '' )
+                    if ( $arrFiles['FileUpload']['tmp_name'] != '' )
                     {
-                        (new FileUpload())->uploadFile ($_FILES['prf_file']['tmp_name'], $path, $_FILES['prf_file']['name']);
+                        (new FileUpload())->uploadFile ($arrFiles['FileUpload']['tmp_name'], $path, $arrFiles['FileUpload']['name']);
                     }
                 }
             }
@@ -461,9 +373,12 @@ class FilesManager
             {
                 throw new \Exception ('ID_PMTABLE_UPLOADING_FILE_PROBLEM');
             }
-            
-            $oProcessFile = array('prf_uid' => $prfUid);
-            return $oProcessFile;
+
+
+            $this->addProcessFilesManagerInDb ($objWorkflow, $objUser, array("PRF_PATH" => $path,
+                "prf_filename" => $arrFiles['FileUpload']['name']));
+
+            return true;
         } catch (Exception $e) {
             throw $e;
         }
@@ -636,7 +551,10 @@ class FilesManager
                 throw new \Exception ("ID_INVALID_VALUE_FOR");
             }
 
-            $sFile = end (explode (DIRECTORY_SEPARATOR, $path));
+            $sFile = explode ("/", $path);
+
+            $sFile = end ($sFile);
+
             $path = PATH_DATA_MAILTEMPLATES . $objWorkflow->getWorkflowId () . DIRECTORY_SEPARATOR . $sFile;
 
             if ( file_exists ($path) && !is_dir ($path) )
@@ -686,9 +604,10 @@ class FilesManager
                 throw new \Exception ("ID_INVALID_VALUE_FOR");
             }
 
-            $sFile = end (explode ("/", str_replace ('\\', '/', $path)));
+            $sFile = explode ("/", str_replace ('\\', '/', $path));
+            $sFile = end ($sFile);
             $sPath = str_replace ($sFile, '', $path);
-            $sSubDirectory = substr (str_replace ($objWorkflow->getWorkflowId (), '', substr ($sPath, (strpos ($sPath, $sProcessUID)))), 0, -1);
+            $sSubDirectory = substr (str_replace ($objWorkflow->getWorkflowId (), '', substr ($sPath, (strpos ($sPath, $objWorkflow->getWorkflowId ())))), 0, -1);
             $sMainDirectory = str_replace (substr ($sPath, strpos ($sPath, $objWorkflow->getWorkflowId ())), '', $sPath);
 
             if ( $sMainDirectory == PATH_DATA_MAILTEMPLATES )
@@ -729,9 +648,10 @@ class FilesManager
         }
         if ( file_exists ($sDirectory . $sFile) )
         {
-            (new FileUpload())->streamFile($sDirectory . $sFile, true);
+            (new FileUpload())->streamFile ($sDirectory . $sFile, true);
         }
     }
+
     /**
      *
      * @param string $sProcessUID {@min 32} {@max 32}
@@ -776,4 +696,58 @@ class FilesManager
             throw $e;
         }
     }
+
+    /**
+     * @param $aData
+     * @throws Exception
+     * @throws \Exception
+     */
+    public function addProcessFilesManagerInDb (\Workflow $objWorkflow, \Users $objUser, $aData)
+    {
+        try {
+            $path = $aData['PRF_PATH'];
+            $allDirectories = pathinfo ($path);
+            $path = explode ('/', $allDirectories['dirname']);
+
+            $fileDirectory = $path[count ($path) - 1];
+
+            switch ($fileDirectory) {
+                case 'templates':
+                    $sDirectory = PATH_DATA_MAILTEMPLATES . basename ($aData['PRF_PATH']) . "/" . $aData['prf_filename'];
+                    break;
+                case 'public':
+                    $sDirectory = PATH_DATA_PUBLIC . $objWorkflow->getWorkflowId () . PATH_SEP . basename ($aData['PRF_PATH']);
+                    break;
+                default:
+                    if ( strtoupper (substr (PHP_OS, 0, 3)) !== 'WIN' )
+                    {
+                        error_log ("ID_INVALID_VALUE_FOR");
+                    }
+                    return;
+                    break;
+            }
+
+            if ( isset ($aData['PRF_UID']) && $this->existsProcessFile ($aData['PRF_UID']) )
+            {
+                //$oProcessFiles->setPrfUid ($sPkProcessFiles);
+                //$emailEvent = new \ProcessMaker\BusinessModel\EmailEvent();
+                //$emailEvent->updatePrfUid ($aData['PRF_UID'], $sPkProcessFiles, $aData['PRO_UID']);
+            }
+
+            $oProcessFiles = new \ProcessFile();
+            $sDate = date ('Y-m-d H:i:s');
+            $oProcessFiles->setProUid ($objWorkflow->getWorkflowId ());
+            $oProcessFiles->setUsrUid ($objUser->getUsername ());
+            $oProcessFiles->setPrfUpdateUsrUid ('');
+            $oProcessFiles->setPrfPath ($sDirectory);
+            $oProcessFiles->setPrfType ('file');
+            $oProcessFiles->setPrfEditable ('true');
+            $oProcessFiles->setPrfCreateDate ($sDate);
+            $oProcessFiles->setPrfFielname ($aData['prf_filename']);
+            $oProcessFiles->save ();
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
 }
