@@ -32,7 +32,7 @@ class FilesManager
      *
      * @access public
      */
-    public function getProcessFilesManager ($sProcessUID)
+    public function getProcessFilesManager ()
     {
         try {
             $aDirectories[] = array('name' => "templates",
@@ -85,7 +85,7 @@ class FilesManager
                     $sDirectory = PATH_DATA_PUBLIC . $sProcessUID . PATH_SEP . $sSubDirectory;
                     break;
                 default:
-                    throw new \Exception (\G::LoadTranslation ("ID_INVALID_VALUE_FOR", array('path')));
+                    throw new \Exception ("ID_INVALID_VALUE_FOR " . $sMainDirectory);
                     break;
             }
             (new FileUpload())->verifyPath ($sDirectory, true);
@@ -258,7 +258,6 @@ class FilesManager
 
             if ( file_exists ($sDirectory) )
             {
-                $directory = $sMainDirectory . PATH_SEP . $sSubDirectory . $aData['prf_filename'];
                 throw new \Exception ("ID_EXISTS_FILE");
             }
 
@@ -532,7 +531,7 @@ class FilesManager
      *
      * @access public
      */
-    public function deleteProcessFilesManager (\Workflow $objWorkflow, $prfUid, $verifyingRelationship = false)
+    public function deleteProcessFilesManager (\Workflow $objWorkflow, $prfUid)
     {
         try {
             $path = '';

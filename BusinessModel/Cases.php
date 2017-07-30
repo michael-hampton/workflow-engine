@@ -1967,7 +1967,7 @@ class Cases
      * @param string $sUserUID Unique id of User
      * @return object
      */
-    public function getAllUploadedDocumentsCriteria ($sProcessUID, \Elements $objElement, $sTasKUID, \Users $objUser)
+    public function getAllUploadedDocumentsCriteria (\Elements $objElement, $sTasKUID, \Users $objUser)
     {
         if ( $this->objMysql === null )
         {
@@ -2127,9 +2127,9 @@ class Cases
     public function getAllObjects (\Elements $objElement, $TAS_UID, \Users $objUser, $delIndex = 0)
     {
 
-        $ACTIONS = Array('RO', 'master', 'INPUT'); //TO COMPLETE
-        $MAIN_OBJECTS = Array();
-        $RESULT_OBJECTS = Array();
+        $ACTIONS = array('RO', 'master', 'INPUT'); //TO COMPLETE
+        $MAIN_OBJECTS = array();
+        $RESULT_OBJECTS = array();
 
         foreach ($ACTIONS as $action) {
             $MAIN_OBJECTS[$action] = $this->getAllObjectsFrom ($objElement->getSource_id (), $objElement->getId (), $TAS_UID, $objUser, $action, $delIndex);
