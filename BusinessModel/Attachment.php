@@ -47,131 +47,9 @@ class Attachment
             }
             else
             {
-                $aData = array(
-                    "prf_path" => "uploads",
-                    "prf_filename" => $arrData['filename']
-                );
-
-                $arrResponse = $this->addProcessFilesManager ($arrData['source_id'], $arrData['uploaded_by'], $aData);
+                $objVersioning->create (array("filename" => $arrData['filename'], "document_id" => 1, "app_uid" => $this->projectId), $objUser);
                 $this->upload ($arrData['source_id'], $arrResponse['prf_uid']);
             }
-        }
-    }
-
-    public function addProcessFilesManager ($sProcessUID, $userUID, $aData)
-    {
-        try {
-            $aData['prf_path'] = rtrim ($aData['prf_path'], '/') . '/';
-
-            if ( !$aData['prf_filename'] )
-            {
-                throw new \Exception ("ID_INVALID_VALUE_FOR");
-            }
-
-            $extention = strstr ($aData['prf_filename'], '.');
-
-            if ( !$extention )
-            {
-                $extention = '.html';
-                $aData['prf_filename'] = $aData['prf_filename'] . $extention;
-            }
-            if ( $extention == '.docx' || $extention == '.doc' || $extention == '.html' || $extention == '.php' || $extention == '.jsp' ||
-                    $extention == '.xlsx' || $extention == '.xls' || $extention == '.js' || $extention == '.css' || $extention == '.txt' )
-            {
-                $sEditable = true;
-            }
-            else
-            {
-                $sEditable = false;
-            }
-
-
-            $sMainDirectory = current (explode ("/", $aData['prf_path']));
-
-            if ( $sMainDirectory != 'uploads' && $sMainDirectory != 'templates' )
-            {
-                throw new \Exception ("ID_INVALID_PRF_PATH");
-            }
-
-            if ( strstr ($aData['prf_path'], '/') )
-            {
-                $sSubDirectory = substr ($aData['prf_path'], strpos ($aData['prf_path'], "/") + 1);
-            }
-            else
-            {
-                $sSubDirectory = '';
-            }
-
-            switch ($sMainDirectory) {
-                case 'templates':
-
-                    break;
-                case 'uploads':
-                    $sDirectory = PATH_DATA_PUBLIC . $sMainDirectory . "/" . $sProcessUID . PATH_SEP . $sSubDirectory . $aData['prf_filename'];
-                    $sCheckDirectory = PATH_DATA_PUBLIC . $sMainDirectory . "/" . $sProcessUID . PATH_SEP . $sSubDirectory;
-                    $sEditable = false;
-
-                    if ( $extention == '.exe' )
-                    {
-                        throw new \Exception ('ID_FILE_UPLOAD_INCORRECT_EXTENSION');
-                    }
-                    break;
-                default:
-                    break;
-            }
-            if ( file_exists ($sDirectory) )
-            {
-                $directory = $sMainDirectory . PATH_SEP . $sSubDirectory . $aData['prf_filename'];
-                //throw new Exception ("ID_EXISTS_FILE");
-            }
-
-            if ( !file_exists ($sCheckDirectory) )
-            {
-//                $oProcessFiles = new \ProcessFile();
-//                $sDate = date ('Y-m-d H:i:s');
-//                $oProcessFiles->setProUid ($sProcessUID);
-//                $oProcessFiles->setUsrUid ($userUID);
-//                $oProcessFiles->setPrfUpdateUsrUid ('');
-//                $oProcessFiles->setPrfPath ($sCheckDirectory);
-//                $oProcessFiles->setPrfType ('folder');
-//                $oProcessFiles->setPrfEditable ('');
-//                $oProcessFiles->setPrfCreateDate ($sDate);
-//                $oProcessFiles->save ();
-//                $oProcessFiles->setPrfFielname ('test');
-            }
-
-
-
-            $oProcessFiles = new \ProcessFile();
-            $sDate = date ('Y-m-d H:i:s');
-            $oProcessFiles->setProUid ($sProcessUID);
-            $oProcessFiles->setUsrUid ($userUID);
-            $oProcessFiles->setPrfUpdateUsrUid ('');
-            $oProcessFiles->setPrfPath ($sDirectory);
-            $oProcessFiles->setPrfType ('file');
-            $oProcessFiles->setPrfEditable ($sEditable);
-            $oProcessFiles->setPrfCreateDate ($sDate);
-            $oProcessFiles->setPrfFielname ($aData['prf_filename']);
-
-            if ( isset ($aData['file_type']) )
-            {
-                $oProcessFiles->setFileType ($aData['file_type']);
-            }
-
-            $oProcessFiles->save ();
-
-            $oProcessFile = array('prf_uid' => $oProcessFiles->getId (),
-                'prf_filename' => $aData['prf_filename'],
-                'usr_uid' => $oProcessFiles->getUsrUid (),
-                'prf_update_usr_uid' => $oProcessFiles->getPrfUpdateUsrUid (),
-                'prf_path' => $sMainDirectory . PATH_SEP . $sSubDirectory,
-                'prf_type' => $oProcessFiles->getPrfType (),
-                'prf_editable' => $oProcessFiles->getPrfEditable (),
-                'prf_create_date' => $oProcessFiles->getPrfCreateDate ());
-
-            return $oProcessFile;
-        } catch (Exception $e) {
-            throw $e;
         }
     }
 
@@ -318,15 +196,6 @@ class Attachment
             }
 
             $this->object['file_destination'] = $destination;
-
-            $aData = array(
-                "prf_path" => "uploads",
-                "prf_filename" => $filename,
-                "file_type" => $arrData['file_type']
-            );
-
-            // save document
-            $arrResponse = $this->addProcessFilesManager ($arrData['source_id'], $arrData['uploaded_by'], $aData);
             
             // update version
             $objVersioning->create (array("filename" => $originalFilename, "document_id" => $this->documentId, "app_uid" => $this->projectId), $objUser);
