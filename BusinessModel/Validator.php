@@ -477,4 +477,30 @@ trait Validator
         return $result;
     }
 
+    public function arrayDiff ($array1, $array2)
+    {
+        if ( !is_array ($array1) )
+        {
+            $array1 = (array) $array1;
+        }
+
+        if ( !is_array ($array2) )
+        {
+            $array2 = (array) $array2;
+        }
+
+        // This wrapper for array_diff rekeys the array returned
+        $valid_array = array_diff ($array1, $array2);
+
+        // reinstantiate $array1 variable
+        $array1 = array();
+
+        // loop through the validated array and move elements to $array1
+        // this is necessary because the array_diff function returns arrays that retain their original keys
+        foreach ($valid_array as $valid) {
+            $array1[] = $valid;
+        }
+        return $array1;
+    }
+
 }

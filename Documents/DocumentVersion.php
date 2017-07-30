@@ -78,20 +78,27 @@ class DocumentVersion extends BaseDocumentVersion
 
         $result = $this->objMysql->_select ("task_manager.document_version", [], $arrWhere);
 
-        if ( isset ($result[0]) && !empty ($result[0]) )
+        if ( !isset ($result[0]) || empty ($result[0]) )
         {
-            if ( $returnArray === true )
-            {
-                return $result[0];
-            }
-
-            $this->setAppDocCreateDate ($result[0]['date_created']);
-            $this->setDocUid ($result[0]['document_id']);
-            $this->setAppDocUid ($result[0]['id']);
-            $this->setAppDocFilename ($result[0]['filename']);
-
-            return $this;
+            return false;
         }
+
+
+        if ( $returnArray === true )
+        {
+            return $result[0];
+        }
+
+        $this->setAppDocCreateDate ($result[0]['date_created']);
+        $this->setDocUid ($result[0]['document_id']);
+        $this->setAppDocUid ($result[0]['id']);
+        $this->setAppDocFilename ($result[0]['filename']);
+        $this->setUsrUid($result[0]['user_id']);
+        $this->setAppDocType($result[0]['document_type']);
+        $this->setDocVersion($result[0]['document_version']);
+
+        return $this;
+
 
         return false;
     }
@@ -111,10 +118,11 @@ class DocumentVersion extends BaseDocumentVersion
 
             $objVersioning = new DocumentVersion();
             $objVersioning->setDocVersion ($docVersion);
-            $objVersioning->setUsrUid ($objUser->getUserId());
+            $objVersioning->setUsrUid ($objUser->getUserId ());
             $objVersioning->setDocUid ($aData['document_id']);
             $objVersioning->setAppDocCreateDate (date ("Y-m-d H:i:s"));
             $objVersioning->setAppDocFilename ($aData['filename']);
+            $objVersioning->setAppUid ($aData['app_uid']);
 
             $docType = isset ($aData['document_type']) ? $aData['document_type'] : 'INPUT';
 

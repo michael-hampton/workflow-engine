@@ -448,7 +448,7 @@ class WorkflowStep
                 $step = $this->nextTask;
                 $step2 = $this->nextStep;
                 $arrWorkflow['current_step'] = $this->nextStep;
-
+                
                 (new \Log (LOG_FILE))->log (
                         array(
                     "message" => "STEP COMPLETED",
@@ -459,10 +459,10 @@ class WorkflowStep
                     'step_id' => $this->nextStep
                         ), \Log::NOTICE);
             }
-            $arrWorkflow['status'] = "STEP COMPLETED";
+            $arrWorkflow['status'] = "STEP COMPLETED";            
         }
         else
-        {
+        {            
             $step = $this->currentTask;
             $step2 = $this->_workflowStepId;
             $arrWorkflow['current_step'] = $this->_workflowStepId;
@@ -481,13 +481,13 @@ class WorkflowStep
             $step = $this->currentTask;
             $step2 = $this->_stepId;
         }
-
+        
         /*         * ******************** Get due date for Task ********************** */
         $objAppDelegation = new AppDelegation();
         $objTask = new Task();
         $objTask->setTasUid ($step);
         $objTask->setStepId ($step2);
-
+        
         try {
             if ( !isset ($this->objAudit['elements'][$this->elementId]['steps'][$step]) )
             {

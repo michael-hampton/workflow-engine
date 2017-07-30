@@ -27,6 +27,7 @@ class Attachment
 
     public function loadObject ($arrData, \Users $objUser)
     {
+        
         if ( isset ($arrData['files']) )
         {
             if ( isset ($arrData['step']) && !$arrData['step'] instanceof \WorkflowStep )
@@ -326,9 +327,9 @@ class Attachment
 
             // save document
             $arrResponse = $this->addProcessFilesManager ($arrData['source_id'], $arrData['uploaded_by'], $aData);
-
+            
             // update version
-            $objVersioning->create (array("filename" => $originalFilename, "document_id" => $this->documentId), $objUser);
+            $objVersioning->create (array("filename" => $originalFilename, "document_id" => $this->documentId, "app_uid" => $this->projectId), $objUser);
             $arrUploadedFiles[] = $arrResponse['prf_uid'];
 
             $intCount++;

@@ -138,7 +138,7 @@ require_once HOME_DIR . '/core/app/library/Notifications/BaseNotification.php';
 require_once HOME_DIR . '/core/app/library/Notifications/Notification.php';
 require_once HOME_DIR . '/core/app/library/Notifications/SendNotification.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/NotificationsFactory.php';
-require_once HOME_DIR . '/core/app/library/BusinessModel/EmailTemplate.php';
+//require_once HOME_DIR . '/core/app/library/BusinessModel/EmailTemplate.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/Notification.php';
 
 require_once HOME_DIR . '/core/app/library/BusinessModel/FilesManager.php';

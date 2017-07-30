@@ -1605,9 +1605,9 @@ class Cases
             $numRecTotal = 0;
             //Set variables
             $stepId = $objStep->getStepId ();
-            
+
             echo $stepId;
-            
+
             $workflowId = $objStep->getWorkflowId ();
             //Set variables
             $filterName = 'filter';
@@ -1956,6 +1956,205 @@ class Cases
                 break;
         }
         return $return;
+    }
+
+    /**
+     * get all upload document that they have send it
+     *
+     * @param string $sProcessUID Unique id of Process
+     * @param string $sApplicationUID Unique id of Case
+     * @param string $sTasKUID Unique id of Activity
+     * @param string $sUserUID Unique id of User
+     * @return object
+     */
+    public function getAllUploadedDocumentsCriteria ($sProcessUID, \Elements $objElement, $sTasKUID, \Users $objUser)
+    {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        $result = $this->objMysql->_select ("workflow.status_mapping", [], ["id" => $objElement->getCurrentStepId ()]);
+
+        if ( !isset ($result[0]) || empty ($result[0]) )
+        {
+            return false;
+        }
+
+        $taskId = $result[0]['TAS_UID'];
+
+        $aObjectPermissions = $this->getAllObjects ($objElement, $taskId, $objUser);
+
+        if ( !is_array ($aObjectPermissions) )
+        {
+            $aObjectPermissions = array(
+                'DYNAFORMS' => array(-1),
+                'INPUT_DOCUMENTS' => array(-1),
+                'OUTPUT_DOCUMENTS' => array(-1)
+            );
+        }
+
+        if ( !isset ($aObjectPermissions['DYNAFORMS']) )
+        {
+            $aObjectPermissions['DYNAFORMS'] = array(-1);
+        }
+        else
+        {
+            if ( !is_array ($aObjectPermissions['DYNAFORMS']) )
+            {
+                $aObjectPermissions['DYNAFORMS'] = array(-1);
+            }
+        }
+
+        if ( !isset ($aObjectPermissions['INPUT_DOCUMENTS']) )
+        {
+            $aObjectPermissions['INPUT_DOCUMENTS'] = array(-1);
+        }
+        else
+        {
+            if ( !is_array ($aObjectPermissions['INPUT_DOCUMENTS']) )
+            {
+                $aObjectPermissions['INPUT_DOCUMENTS'] = array(-1);
+            }
+        }
+        if ( !isset ($aObjectPermissions['OUTPUT_DOCUMENTS']) )
+        {
+            $aObjectPermissions['OUTPUT_DOCUMENTS'] = array(-1);
+        }
+        else
+        {
+            if ( !is_array ($aObjectPermissions['OUTPUT_DOCUMENTS']) )
+            {
+                $aObjectPermissions['OUTPUT_DOCUMENTS'] = array(-1);
+            }
+        }
+
+        $oAppDocument = new \DocumentVersion();
+
+        $sql = "SELECT * FROM task_manager.document_version 
+                WHERE app_id = ?
+                AND document_type IN ('INPUT') AND status IN('ACTIVE')
+                ORDER BY id ASC";
+        $arrParameters = array($objElement->getSource_id ());
+
+        $results = $this->objMysql->_query ($sql, $arrParameters);
+
+        if ( !isset ($results[0]) || empty ($results[0]) )
+        {
+            return false;
+        }
+
+        $aInputDocuments = array();
+        $aInputDocuments[] = array(
+            'APP_DOC_UID' => 'char',
+            'DOC_UID' => 'char',
+            'APP_DOC_COMMENT' => 'char',
+            'APP_DOC_FILENAME' => 'char', 'APP_DOC_INDEX' => 'integer'
+        );
+
+        foreach ($results as $result) {
+            $aTask = (new \Task ($taskId))->retrieveByPk ($taskId);
+
+            if ( $aTask === false )
+            {
+                $aTask = array('TAS_TITLE' => '(TASK DELETED)');
+            }
+
+            $aAux = (new \DocumentVersion())->load ($result['document_id'], $result['document_version'], $result['id'], false);
+            $lastVersion = $oAppDocument->getLastDocVersionByFilename ($result['filename']);
+
+            if ( $aAux->getUsrUid () !== "-1" )
+            {
+                try {
+                    $aAux1 = (new \BusinessModel\UsersFactory())->getUser ($aAux->getUsrUid ());
+                    $sUser = $this->usersNameFormatBySetParameters ("@lastName, @firstName (@userName)", $aAux1->getUsername (), $aAux1->getFirstName (), $aAux1->getLastName ());
+                } catch (Exception $oException) {
+                    $sUser = '***';
+                }
+            }
+            else
+            {
+                $sUser = '***';
+            }
+
+            $aFields = array(
+                'APP_DOC_UID' => $aAux->getAppDocUid (),
+                'DOC_UID' => $aAux->getDocUid (),
+                'APP_DOC_FILENAME' => $aAux->getAppDocFilename (),
+                'TYPE' => $aAux->getAppDocType (),
+                'CREATE_DATE' => $aAux->getAppDocCreateDate (),
+                'CREATED_BY' => $sUser
+            );
+            if ( $aFields['APP_DOC_FILENAME'] != '' )
+            {
+                $aFields['TITLE'] = $aFields['APP_DOC_FILENAME'];
+            }
+            else
+            {
+                $aFields['TITLE'] = $aFields['APP_DOC_COMMENT'];
+            }
+
+            //$aFields['POSITION'] = $_SESSION['STEP_POSITION'];
+            $aFields['CONFIRM'] = 'ID_CONFIRM_DELETE_ELEMENT';
+
+            if ( (int) $aObjectPermissions['INPUT_DOCUMENTS'][0] === 1 )
+            {
+                $aFields['ID_DELETE'] = 'ID_DELETE';
+            }
+            $aFields['DOWNLOAD_LABEL'] = 'ID_DOWNLOAD';
+            $aFields['DOWNLOAD_LINK'] = "cases/cases_ShowDocument?a=" . $aAux->getAppDocUid () . "&v=" . $aAux->getDocVersion ();
+            $aFields['DOC_VERSION'] = $aAux->getDocVersion ();
+
+            if ( $lastVersion == $aAux->getDocVersion () )
+            {
+                //Show only last version
+                $aInputDocuments[] = $aFields;
+            }
+        }
+
+        return $aInputDocuments;
+    }
+
+    /**
+     * Obtain all user permits for Dynaforms, Input and output documents
+     *
+     * function getAllObjects ($PRO_UID, $APP_UID, $TAS_UID, $USR_UID)
+     * @author Erik Amaru Ortiz <erik@colosa.com>
+     * @access public
+     * @param  Process ID, Application ID, Task ID and User ID
+     * @return Array within all user permitions all objects' types
+     */
+    public function getAllObjects (\Elements $objElement, $TAS_UID, \Users $objUser, $delIndex = 0)
+    {
+
+        $ACTIONS = Array('RO', 'master', 'INPUT'); //TO COMPLETE
+        $MAIN_OBJECTS = Array();
+        $RESULT_OBJECTS = Array();
+
+        foreach ($ACTIONS as $action) {
+            $MAIN_OBJECTS[$action] = $this->getAllObjectsFrom ($objElement->getSource_id (), $objElement->getId (), $TAS_UID, $objUser, $action, $delIndex);
+        }
+
+        /* ADDITIONAL OPERATIONS */
+        /*         * * BETWEN VIEW AND BLOCK** */
+        $RESULT_OBJECTS['DYNAFORMS'] = $this->arrayDiff (
+                $MAIN_OBJECTS['RO']['DYNAFORMS'], $MAIN_OBJECTS['master']['DYNAFORMS']
+        );
+        $RESULT_OBJECTS['INPUT_DOCUMENTS'] = $this->arrayDiff (
+                $MAIN_OBJECTS['RO']['INPUT_DOCUMENTS'], $MAIN_OBJECTS['master']['INPUT_DOCUMENTS']
+        );
+        $RESULT_OBJECTS['OUTPUT_DOCUMENTS'] = array_merge_recursive (
+                $this->arrayDiff ($MAIN_OBJECTS['RO']['OUTPUT_DOCUMENTS'], $MAIN_OBJECTS['master']['OUTPUT_DOCUMENTS'])
+        );
+        $RESULT_OBJECTS['CASES_NOTES'] = $this->arrayDiff (
+                $MAIN_OBJECTS['RO']['CASES_NOTES'], $MAIN_OBJECTS['master']['CASES_NOTES']
+        );
+        array_push ($RESULT_OBJECTS["DYNAFORMS"], -1, -2);
+        array_push ($RESULT_OBJECTS['INPUT_DOCUMENTS'], -1);
+        array_push ($RESULT_OBJECTS['OUTPUT_DOCUMENTS'], -1);
+        array_push ($RESULT_OBJECTS['CASES_NOTES'], -1);
+
+        return $RESULT_OBJECTS;
     }
 
 }

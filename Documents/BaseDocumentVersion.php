@@ -40,6 +40,18 @@ class BaseDocumentVersion implements Persistent
     protected $app_doc_type = '';
 
     /**
+     * The value for the app_uid field.
+     * @var        string
+     */
+    protected $app_uid = '';
+
+    /**
+     * The value for the app_doc_status field.
+     * @var        string
+     */
+    protected $app_doc_status = 'ACTIVE';
+
+    /**
      * The value for the app_doc_create_date field.
      * @var        int
      */
@@ -115,6 +127,26 @@ class BaseDocumentVersion implements Persistent
     {
 
         return $this->app_doc_type;
+    }
+
+    /**
+     * Get the [app_uid] column value.
+     * 
+     * @return     string
+     */
+    public function getAppUid ()
+    {
+        return $this->app_uid;
+    }
+
+    /**
+     * Get the [app_doc_status] column value.
+     * 
+     * @return     string
+     */
+    public function getAppDocStatus ()
+    {
+        return $this->app_doc_status;
     }
 
     /**
@@ -259,6 +291,46 @@ class BaseDocumentVersion implements Persistent
         }
     }
 
+    /**
+     * Set the value of [app_doc_status] column.
+     * 
+     * @param      string $v new value
+     * @return     void
+     */
+    public function setAppDocStatus ($v)
+    {
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ( $v !== null && !is_string ($v) )
+        {
+            $v = (string) $v;
+        }
+        if ( $this->app_doc_status !== $v || $v === 'ACTIVE' )
+        {
+            $this->app_doc_status = $v;
+        }
+    }
+
+    /**
+     * Set the value of [app_uid] column.
+     * 
+     * @param      string $v new value
+     * @return     void
+     */
+    public function setAppUid ($v)
+    {
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ( $v !== null && !is_string ($v) )
+        {
+            $v = (string) $v;
+        }
+        if ( $this->app_uid !== $v || $v === '' )
+        {
+            $this->app_uid = $v;
+        }
+    }
+
     public function getAppDocCreateDate ()
     {
         return $this->app_doc_create_date;
@@ -339,16 +411,20 @@ class BaseDocumentVersion implements Persistent
             $this->getConnection ();
         }
 
-        $this->objMysql->_insert (
+        $id = $this->objMysql->_insert (
                 "task_manager.document_version", array(
             "document_version" => $this->doc_version,
             "user_id" => $this->usr_uid,
             "document_id" => $this->doc_uid,
             "date_created" => $this->app_doc_create_date,
             "filename" => $this->app_doc_filename,
-            "document_type" => $this->app_doc_type
+            "document_type" => $this->app_doc_type,
+            "app_id" => $this->app_uid,
+            "status" => $this->app_doc_status
                 )
         );
+        
+        return $id;
     }
 
     /**

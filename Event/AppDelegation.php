@@ -162,7 +162,7 @@ class AppDelegation
 
         $calendar = new \BusinessModel\Calendar();
         $arrayCalendarData = $calendar->getCalendarData ($aCalendarUID);
-
+        
         if ( $calendar->pmCalendarUid == "" )
         {
             $calendar->getCalendar (null, $this->getProUid (), $this->getTasUid ());
