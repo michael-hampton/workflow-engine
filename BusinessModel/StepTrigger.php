@@ -146,13 +146,11 @@ class StepTrigger
 
                     if ( $triggerType === "sendMail" )
                     {
-                        switch ($arrTrigger["event_type"]) {
-                            case "claimCase":
-                                $template = PATH_DATA_MAILTEMPLATES . "claimCase.html";
-                                $content = file_get_contents ($template);
-                                $subject = "CASE HAS BEEN CLAIMED BY [USER]";
-                                break;
-                        }
+                        $templateName = str_replace (" ", "_", $arrTrigger['template_name']);
+                        $template = PATH_DATA_MAILTEMPLATES . $templateName . ".html";
+
+                        $content = file_get_contents ($template);
+                        $subject = "CASE HAS BEEN " . $arrTrigger['event_type'] . " BY [USER]";
 
                         $objSendNotification = new \SendNotification();
                         $objSendNotification->setProjectId ($this->parentId);
@@ -468,7 +466,7 @@ class StepTrigger
     public function getTriggerCriteria ()
     {
         try {
-            $criteria = "SELECT title, event_type, description, id, workflow_id, workflow_to, trigger_type, step_to, step_id, workflow_from FROM workflow.step_trigger";
+            $criteria = "SELECT title, event_type, description, template_name, id, workflow_id, workflow_to, trigger_type, step_to, step_id, workflow_from FROM workflow.step_trigger";
             return $criteria;
         } catch (Exception $e) {
             throw $e;

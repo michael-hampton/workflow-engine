@@ -257,19 +257,33 @@ class WorkflowStep
 
     //completeAuditObject (Users $objUser, array $arrCompleteData = [])
 
+    /**
+     * Puts a task into review state if(incorrect data given or report_to task assign type is set
+     * @param type $arrFormData
+     * @param Users $objUser
+     * @param type $objMike
+     * @return boolean
+     */
     private function validateWorkflowStep ($arrFormData, Users $objUser, $objMike)
     {
         $objValidate = new FieldValidator ($this->_stepId);
         $arrErrorsCodes = $objValidate->validate ($arrFormData);
 
-        if ( !empty ($arrErrorsCodes) )
+        $objTask = (new Task())->retrieveByPk ($this->_stepId);
+
+
+        if ( !empty ($arrErrorsCodes) || trim ($objTask->getTasAssignType ()) === "REPORT_TO" )
         {
             // put into review if incorrect data
 
-            if ( $this->searchArray ($arrErrorsCodes, "message", "incorrect_data") !== false )
+            if ( $this->searchArray ($arrErrorsCodes, "message", "incorrect_data") !== false || trim ($objTask->getTasAssignType ()) === "REPORT_TO" )
             {
-
                 $this->elementId = $objMike->getId ();
+
+                $objDepartment = (new \BusinessModel\Department())->getDepartment ($objUser->getDept_id ());
+
+                $departmentManager = $objDepartment->getDeptManagerUsername ();
+                $isProcessSupervisor = (new BusinessModel\ProcessSupervisor())->isUserProcessSupervisor (new Workflow ($this->workflowId), $objUser);
 
                 if ( method_exists ($objMike, "getParentId") )
                 {
@@ -284,22 +298,32 @@ class WorkflowStep
                 $arrWorkflowData = $this->getWorkflowData ();
                 $this->objAudit = json_decode ($arrWorkflowData[0]['audit_data'], true);
 
-                $this->completeAuditObject ($objUser, array("dateCompleted" => date ("Y-m-d H:i:s"), "status" => "IN REVIEW"));
-
-                $strAudit = json_encode ($this->objAudit);
-
-                if ( !empty ($arrWorkflowData) )
+                if ( (trim ($objUser->getUsername ()) !== trim ($departmentManager)) || $isProcessSupervisor === true )
                 {
-                    $this->objMysql->_update ("workflow.workflow_data", ["audit_data" => $strAudit], ["id" => $this->objectId]);
+                    if ( trim ($objTask->getTasAssignType ()) === "REPORT_TO" )
+                    {
+                        // notify department manager
+                    }
+                }
+                else
+                {
+                    $this->completeAuditObject ($objUser, array("dateCompleted" => date ("Y-m-d H:i:s"), "status" => "IN REVIEW"));
 
-                    $this->blReview = true;
+                    $strAudit = json_encode ($this->objAudit);
+
+                    if ( !empty ($arrWorkflowData) )
+                    {
+                        $this->objMysql->_update ("workflow.workflow_data", ["audit_data" => $strAudit], ["id" => $this->objectId]);
+
+                        $this->blReview = true;
+                        $this->fieldValidation = $arrErrorsCodes;
+                        return true;
+                    }
+
                     $this->fieldValidation = $arrErrorsCodes;
-                    return true;
+                    return false;
                 }
             }
-
-            $this->fieldValidation = $arrErrorsCodes;
-            return false;
         }
         return true;
     }
@@ -499,6 +523,7 @@ class WorkflowStep
                 $taskType = isset ($arrCompleteData['status']) ? $arrCompleteData['status'] : '';
             }
 
+            $blProcessSupervisor = (new \BusinessModel\ProcessSupervisor())->isUserProcessSupervisor ((new Workflow ($this->workflowId)), $objUser);
 
             $this->completeAuditObject ($objUser, $arrCompleteData, $blIsParralelTask);
             if ( $complete === true || in_array ($taskType, array("HELD", "ABANDONED", "CLAIMED")) )
@@ -539,7 +564,6 @@ class WorkflowStep
                     case "HELD";
                     case "ABANDONED":
                         $blHasValidUser = false;
-
                         foreach ($arrUsers as $arrUser) {
                             if ( trim ($arrUser['aas_username']) === trim ($arrCompleteData['claimed']) )
                             {
@@ -547,7 +571,7 @@ class WorkflowStep
                             }
                         }
 
-                        if ( $blHasValidUser !== true )
+                        if ( $blHasValidUser !== true && $blProcessSupervisor !== true )
                         {
                             $arrWorkflow['current_step'] = $this->_workflowStepId;
                             throw new Exception ("Invalid task user");

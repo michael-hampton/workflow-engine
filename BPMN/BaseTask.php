@@ -18,7 +18,7 @@ abstract class BaseTask implements Persistent
         'TAS_SELFSERVICE_TIME' => array('accessor' => 'getTasSelfserviceTime', 'mutator' => 'setTasSelfserviceTime', 'type' => 'string', 'required' => 'false'),
         'TAS_SELFSERVICE_TIME_UNIT' => array('accessor' => 'getTasSelfserviceTimeUnit', 'mutator' => 'setTasSelfserviceTimeUnit', 'type' => 'string', 'required' => 'false'),
         'TAS_SELFSERVICE_TRIGGER_UID' => array('accessor' => 'getTasSelfserviceTriggerUid', 'mutator' => 'setTasSelfserviceTriggerUid', 'type' => 'string', 'required' => 'false'),
-        'TAS_SELFSERVICE_EXECUTION' => array('accessor' => 'getTasSelfserviceExecution', 'mutator' => 'setTasSelfserviceExecution', 'type' => 'string', 'required' => 'true'),
+        'TAS_SELFSERVICE_EXECUTION' => array('accessor' => 'getTasSelfserviceExecution', 'mutator' => 'setTasSelfserviceExecution', 'type' => 'string', 'required' => 'false'),
         'name' => array('accessor' => 'getTasTitle', 'mutator' => 'setTasTitle', 'type' => 'string', 'required' => 'false'),
         'TAS_DEF_MESSAGE' => array('accessor' => 'getTasDefMessage', 'mutator' => 'setTasDefMessage', 'type' => 'string', 'required' => 'false'),
         'TAS_DEF_SUBJECT_MESSAGE' => array('accessor' => 'getTasDefSubjectMessage', 'mutator' => 'setTasDefSubjectMessage', 'type' => 'string', 'required' => 'false'),
@@ -772,7 +772,7 @@ abstract class BaseTask implements Persistent
         {
             $v = (string) $v;
         }
-        
+
         if ( $this->tas_uid !== $v || $v === '' )
         {
             $this->tas_uid = $v;
@@ -1560,7 +1560,7 @@ abstract class BaseTask implements Persistent
                 'TAS_TRANSFER_FLY' => $this->tas_transfer_fly,
                 "step_name" => $this->tas_title,
                 'TAS_SELFSERVICE_TRIGGER_UID' => $this->tas_selfservice_trigger_uid]);
-            
+
             return $id;
         }
         else
