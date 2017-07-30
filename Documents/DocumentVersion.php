@@ -167,5 +167,47 @@ class DocumentVersion extends BaseDocumentVersion
             throw ($ex);
         }
     }
-
+    
+    
+    /**
+     * Remove the application document registry by changing status only
+     * Modified by Hugo Loza hugo@colosa.com
+     *
+     * @param array $aData
+     * @return string
+     *
+     */
+    public function remove ($sAppDocUid, $iVersion = 1)
+    {
+        try {
+            $oAppDocument = AppDocumentPeer::retrieveByPK( $sAppDocUid, $iVersion );
+            if (! is_null( $oAppDocument )) {
+                $arrayDocumentsToDelete = array ();
+                if ($oAppDocument->getAppDocType() == "INPUT") {
+                    $oCriteria = new Criteria( 'workflow' );
+                    $oCriteria->add( AppDocumentPeer::APP_DOC_UID, $sAppDocUid );
+                    $oDataset = AppDocumentPeer::doSelectRS( $oCriteria );
+                    $oDataset->setFetchmode( ResultSet::FETCHMODE_ASSOC );
+                    $oDataset->next();
+                    while ($aRow = $oDataset->getRow()) {
+                        $arrayDocumentsToDelete[] = array ('sAppDocUid' => $aRow['APP_DOC_UID'],'iVersion' => $aRow['DOC_VERSION']
+                        );
+                        $oDataset->next();
+                    }
+                } else {
+                    $arrayDocumentsToDelete[] = array ('sAppDocUid' => $sAppDocUid,'iVersion' => $iVersion
+                    );
+                }
+                foreach ($arrayDocumentsToDelete as $key => $docToDelete) {
+                    $aFields = array ('APP_DOC_UID' => $docToDelete['sAppDocUid'],'DOC_VERSION' => $docToDelete['iVersion'],'APP_DOC_STATUS' => 'DELETED'
+                    );
+                    $oAppDocument->update( $aFields );
+                }
+            } else {
+                throw (new Exception( 'This row doesn\'t exist!' ));
+            }
+        } catch (Exception $oError) {
+            throw ($oError);
+        }
+    }
 }
