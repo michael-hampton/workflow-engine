@@ -286,33 +286,6 @@ class Attachment
     }
 
     /**
-     * @param $aData
-     * @throws Exception
-     */
-    public function updateProcessFilesManagerInDb ($aData)
-    {
-        try {
-            //update database
-            if ( $this->existsProcessFile ($aData['prf_uid']) )
-            {
-                $oProcessFiles = new \ProcessFile();
-                $sDate = date ('Y-m-d H:i:s');
-                $oProcessFiles->setPrfUpdateDate ($sDate);
-                $oProcessFiles->setProUid ($aData['PRO_UID']);
-                $oProcessFiles->setPrfPath ($aData['PRF_PATH']);
-                $oProcessFiles->setId ($aData['prf_uid']);
-                $oProcessFiles->save ();
-            }
-            else
-            {
-                //$this->addProcessFilesManagerInDb($aData);
-            }
-        } catch (Exception $e) {
-            throw $e;
-        }
-    }
-
-    /**
      * 
      * @param type $id
      * @return type
