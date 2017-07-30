@@ -238,3 +238,23 @@
             throw $e;
         }
     }
+
+  /**
+     * remove document
+     *
+     * @param string $appDocUid
+     * @return $result will return an object
+     */
+    public function removeDocument ($appDocUid)
+    {
+        try {
+            $oAppDocument = new AppDocument();
+            $oAppDocument->remove( $appDocUid, 1 ); //always send version 1
+            $result = new wsResponse( 0, " $appDocUid" );
+            return $result;
+        } catch (Exception $e) {
+            $result = new wsResponse( 100, $e->getMessage() );
+            return $result;
+        }
+    }
+}
