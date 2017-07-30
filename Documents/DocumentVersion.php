@@ -61,6 +61,21 @@ class DocumentVersion extends BaseDocumentVersion
             throw ($oError);
         }
     }
+    
+        /**
+     * Retrieve object using using composite pkey values.
+     * @param string $app_doc_uid
+       * @param int $doc_version
+        * @param      Connection $con
+     * @return     AppDocument
+     */
+    public static function retrieveByPK($app_doc_uid, $doc_version)
+    {
+        $result = $this->objMysql->_select("task_manager.document_version", [], ["document_version" => $doc_version, "id" => $app_doc_uid]);
+        
+        return isset($result[0] && !empty($result[0]) ? $result[0] : null;
+    }
+}
 
     public function load ($documentId, $documentVersion, $id = null, $returnArray = true)
     {
