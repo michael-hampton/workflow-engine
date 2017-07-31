@@ -16,6 +16,7 @@ abstract class BaseTrigger
     private $triggerId;
     private $New;
     private $eventType;
+    private $template;
 
     /**
      *
@@ -162,6 +163,19 @@ abstract class BaseTrigger
         return $this->triggerId;
     }
 
+    /**
+     * @return mixed
+     */
+    public function getTemplate()
+    {
+        return $this->template;
+    }
+
+    public function setTemplate($template)
+    {
+        $this->template = $template;
+    }
+
     public function setTriggerId ($triggerId)
     {
         $this->triggerId = $triggerId;
@@ -209,7 +223,8 @@ abstract class BaseTrigger
                 "step_id" => $this->id,
                 "title" => $this->title,
                 "description" => $this->description,
-                "event_type" => $this->eventType
+                "event_type" => $this->eventType,
+                "template_name" => $this->template
             ));
             
              $this->triggerId = $id;
@@ -224,7 +239,8 @@ abstract class BaseTrigger
                 "step_id" => $this->id,
                 "title" => $this->title,
                 "description" => $this->description,
-                "event_type" => $this->eventType
+                "event_type" => $this->eventType,
+                "template_name" => $this->template
                     ), array(
                 "id" => $this->triggerId
             ));
