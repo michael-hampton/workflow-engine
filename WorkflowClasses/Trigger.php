@@ -20,6 +20,7 @@ class Trigger extends BaseTrigger
             $this->setNew (TRUE);
 
             $triDescription = isset ($aData['description']) ? $aData['description'] : '';
+            $template = isset($aData['template_name']) ? $aData['template_name'] : '';
             $this->setDescription ($triDescription);
 
             $this->setStepTo ($aData['step_to']);
@@ -28,6 +29,7 @@ class Trigger extends BaseTrigger
             $this->setTriggerType ($aData['trigger_type']);
             $this->setEventType ($aData['event_type']);
             $this->setWorkflowTo ($aData['workflow_id']);
+            $this->setTemplate($template);
             if ( $this->validate () )
             {
                 $result = $this->save ();
@@ -49,8 +51,10 @@ class Trigger extends BaseTrigger
             $this->setTitle ($triTitle);
 
             $triDescription = isset ($fields['description']) ? $fields['description'] : '';
-            $this->setDescription ($triDescription);
+            $template = isset($aData['template_name']) ? $aData['template_name'] : '';
 
+            $this->setTemplate($template);
+            $this->setDescription ($triDescription);
             $this->setId ($fields['step_id']);
             $this->setTriggerType ($fields['trigger_type']);
             $this->setWorkflowId ($fields['workflow_id']);
