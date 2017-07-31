@@ -309,7 +309,7 @@ class Download
                 throw new \Exception("ID_CASES_INPUT_DOES_NOT_EXIST");
             }
 
-            $this->removeDocument($inputDocumentUid);
+            $oAppDocument->remove($inputDocumentUid);
         } catch (\Exception $e) {
             throw $e;
         }
