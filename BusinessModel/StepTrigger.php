@@ -147,31 +147,7 @@ class StepTrigger
                     if ( $triggerType === "sendMail" )
                     {
                         $templateName = str_replace (" ", "_", $arrTrigger['template_name']);
-                        $template = PATH_DATA_MAILTEMPLATES . $templateName . ".html";
-
-                        $content = file_get_contents ($template);
-                        $subject = "CASE HAS BEEN " . $arrTrigger['event_type'] . " BY [USER]";
-
-                        $objSendNotification = new \SendNotification();
-                        $objSendNotification->setProjectId ($this->parentId);
-                        $recipients = $objSendNotification->getTaskUsers ();
-
-                        if ( empty ($recipients) )
-                        {
-                            return false;
-                        }
-
-                        $recipients = implode (",", $recipients);
-
-                        $Fields = $objCase->getCaseVariables ((int) $this->elementId, (int) $this->parentId, (int) $this->currentStep);
-
-                        if ( trim ($content) !== "" && trim ($subject) !== "" )
-                        {
-                            $subject = $objCase->replaceDataField ($subject, $Fields);
-                            $body = $objCase->replaceDataField ($content, $Fields);
-
-                            $objSendNotification->notificationEmail ($recipients, $subject, $body);
-                        }
+                        $this->executeSendMail($templateName);
                     }
 
                     if ( $arrTrigger !== false && !empty ($arrTrigger) )
@@ -487,5 +463,42 @@ class StepTrigger
 
         return $triggerArray;
     }
+    
+    public function executeSendMail($templateName = null, $id = null)
+        {
+        if($templateName === null && $id === null) {
+            return false;
+            }
+        
+        if($templateName === null && $id !== null) {
+            $arrTrigger = $this->getDataTrigger($id);
+            }
+        
+             $template = PATH_DATA_MAILTEMPLATES . $templateName . ".html";
+
+                        $content = file_get_contents ($template);
+                        $subject = "CASE HAS BEEN " . $arrTrigger['event_type'] . " BY [USER]";
+
+                        $objSendNotification = new \SendNotification();
+                        $objSendNotification->setProjectId ($this->parentId);
+                        $recipients = $objSendNotification->getTaskUsers ();
+
+                        if ( empty ($recipients) )
+                        {
+                            return false;
+                        }
+
+                        $recipients = implode (",", $recipients);
+
+                        $Fields = $objCase->getCaseVariables ((int) $this->elementId, (int) $this->parentId, (int) $this->currentStep);
+
+                        if ( trim ($content) !== "" && trim ($subject) !== "" )
+                        {
+                            $subject = $objCase->replaceDataField ($subject, $Fields);
+                            $body = $objCase->replaceDataField ($content, $Fields);
+
+                            $objSendNotification->notificationEmail ($recipients, $subject, $body);
+                        }
+        }
 
 }
