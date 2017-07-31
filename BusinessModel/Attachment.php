@@ -49,8 +49,8 @@ class Attachment
             {
                 
                 $objVersioning = new \DocumentVersion();
-                $objVersioning->create (array("filename" => $arrData['filename'], "document_id" => 1, "app_uid" => $this->projectId), $objUser);
-                $this->upload ($arrData['source_id'], $arrResponse['prf_uid']);
+                $id = $objVersioning->create (array("filename" => $arrData['filename'], "document_id" => 1, "app_uid" => $this->projectId), $objUser);
+                $this->upload ($arrData['source_id'], $id);
             }
         }
     }
@@ -200,8 +200,8 @@ class Attachment
             $this->object['file_destination'] = $destination;
             
             // update version
-            $objVersioning->create (array("filename" => $originalFilename, "document_id" => $this->documentId, "app_uid" => $this->projectId), $objUser);
-            $arrUploadedFiles[] = $arrResponse['prf_uid'];
+            $id = $objVersioning->create (array("filename" => $originalFilename, "document_id" => $this->documentId, "app_uid" => $this->projectId), $objUser);
+            $arrUploadedFiles[] = $id;
 
             $intCount++;
         }
@@ -328,7 +328,6 @@ class Attachment
     public function deleteProcessFilesManager ($sProcessUID, $prfUid)
     {
         try {
-            $path = '';
 
             $result = $this->retrieveByPK ($prfUid);
 
