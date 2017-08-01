@@ -460,7 +460,7 @@ abstract class BaseProcessFile implements Persistent
 
     public function retrieveByPk ($pk)
     {
-        $result = $this->objMysql->_select ("task_manager.attachments", [], ["id" => $pk]);
+        $result = $this->objMysql->_select ("task_manager.PROCESS_FILES", [], ["id" => $pk]);
 
         if ( !isset ($result[0]) || empty ($result[0]) )
         {
@@ -482,7 +482,7 @@ abstract class BaseProcessFile implements Persistent
     private function doUpdate ()
     {
         
-        $this->objMysql->_update ("task_manager.attachments", array(
+        $this->objMysql->_update ("task_manager.PROCESS_FILES", array(
             "prf_editable" => $this->PrfEditable,
             "date_updated" => $this->prf_update_date,
             "updated_user" => $this->PrfUpdateUsrUid
@@ -492,8 +492,7 @@ abstract class BaseProcessFile implements Persistent
 
     private function doInsert ()
     {
-        $id = $this->objMysql->_insert ("task_manager.attachments", array(
-            "source_id" => $this->ProUid,
+        $id = $this->objMysql->_insert ("task_manager.PROCESS_FILES", array(
             "date_uploaded" => $this->PrfCreateDate,
             "uploaded_by" => $this->UsrUid,
             "file_destination" => $this->PrfPath,
@@ -568,7 +567,7 @@ abstract class BaseProcessFile implements Persistent
             throw new Exception ("Invalid id given");
         }
 
-        $this->objMysql->_delete ("task_manager.attachments", array("id" => $this->id));
+        $this->objMysql->_delete ("task_manager.PROCESS_FILES", array("id" => $this->id));
     }
 
 }
