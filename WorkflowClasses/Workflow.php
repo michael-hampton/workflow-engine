@@ -10,36 +10,29 @@ class Workflow extends BaseProcess
     private $sort;
     private $dir;
 
-    public function __construct ($workflowId = null, $objMike = null)
+    public function __construct($workflowId = null, $objMike = null)
     {
         $this->intWorkflowId = $workflowId;
         $this->objMike = $objMike;
         $this->objMysql = new Mysql2();
 
-        if ( $objMike !== null )
-        {
-            $this->getWorkflowObject ();
+        if ($objMike !== null) {
+            $this->getWorkflowObject();
         }
     }
 
-    public function getNextStep ()
+    public function getNextStep()
     {
-        if ( $this->objMike !== null )
-        {
-            $workflowCollection = $this->getWorkflowObject ();
+        if ($this->objMike !== null) {
+            $workflowCollection = $this->getWorkflowObject();
 
             return new WorkflowStep ($workflowCollection['current_step']);
-        }
-        else
-        {
-            $result = $this->objMysql->_select ("workflow.status_mapping", array("id"), array("workflow_id" => $this->intWorkflowId, "first_step" => 1));
+        } else {
+            $result = $this->objMysql->_select("workflow.status_mapping", array("id"), array("workflow_id" => $this->intWorkflowId, "first_step" => 1));
 
-            if ( !empty ($result) )
-            {
+            if (!empty ($result)) {
                 $intStartingWorkflowStepId = $result[0]['id'];
-            }
-            else
-            {
+            } else {
                 return false;
             }
 
@@ -47,37 +40,32 @@ class Workflow extends BaseProcess
         }
     }
 
-    public function getWorkflowObject ()
+    public function getWorkflowObject()
     {
-        $parentId = $this->objMike->getId ();
-        $id = $this->objMike->getId ();
+        $parentId = $this->objMike->getId();
+        $id = $this->objMike->getId();
 
 
-        if ( method_exists ($this->objMike, "getParentId") && $this->objMike->getParentId () != "" )
-        {
-            $parentId = $this->objMike->getSource_id ();
+        if (method_exists($this->objMike, "getParentId") && $this->objMike->getParentId() != "") {
+            $parentId = $this->objMike->getSource_id();
         }
 
-        $result = $this->objMysql->_select ("workflow.workflow_data", array("workflow_data"), array("object_id" => $parentId));
+        $result = $this->objMysql->_select("workflow.workflow_data", array("workflow_data"), array("object_id" => $parentId));
 
-        if ( !isset ($result[0]) )
-        {
+        if (!isset ($result[0])) {
             //return false;
         }
 
-        $workflowData = json_decode ($result[0]['workflow_data'], true);
+        $workflowData = json_decode($result[0]['workflow_data'], true);
 
-        if ( is_numeric ($id) )
-        {
-            if ( isset ($workflowData['elements'][$id]) )
-            {
+        if (is_numeric($id)) {
+            if (isset ($workflowData['elements'][$id])) {
                 $workflowData = $workflowData['elements'][$id];
             }
         }
 
 
-        if ( empty ($workflowData) )
-        {
+        if (empty ($workflowData)) {
             return FALSE;
         }
 
@@ -87,9 +75,9 @@ class Workflow extends BaseProcess
         return $workflowData;
     }
 
-    public function getStepsForWorkflow ()
+    public function getStepsForWorkflow()
     {
-        $arrResult = $this->objMysql->_query ("SELECT t.*, t.TAS_UID AS step_id, m.step_condition, m.first_step, m.step_from, m.order_id, m.step_to, m.id FROM workflow.status_mapping m
+        $arrResult = $this->objMysql->_query("SELECT t.*, t.TAS_UID AS step_id, m.step_condition, m.first_step, m.step_from, m.order_id, m.step_to, m.id FROM workflow.status_mapping m
                                                 INNER JOIN workflow.task t ON t.TAS_UID = m.TAS_UID
                                                 WHERE m.workflow_id = ?
                                                 ORDER BY m.order_id ASC", [0 => $this->intWorkflowId]);
@@ -103,38 +91,34 @@ class Workflow extends BaseProcess
         return $arrSteps;
     }
 
-    public function getWorkflowId ()
+    public function getWorkflowId()
     {
         return $this->intWorkflowId;
     }
 
-    public function getPreviousStatus ()
+    public function getPreviousStatus()
     {
-        $arrResult = $this->objMysql->_select ("workflow.status_mapping", array(), array("step_to" => $this->status, "workflow_id" => $this->workflow));
-        if ( !empty ($arrResult) )
-        {
+        $arrResult = $this->objMysql->_select("workflow.status_mapping", array(), array("step_to" => $this->status, "workflow_id" => $this->workflow));
+        if (!empty ($arrResult)) {
             return $arrResult;
-        }
-        else
-        {
-            $this->objMysql->_select ("workflow.status_mapping", array(), array("step_to" => $this->status));
+        } else {
+            $this->objMysql->_select("workflow.status_mapping", array(), array("step_to" => $this->status));
         }
     }
 
-    public function deleteWorkflow ()
+    public function deleteWorkflow()
     {
-        $arrResult = $this->objMysql->_select ("workflow.status_mapping", array("workflow_id"), array("workflow_id" => $this->intWorkflowId));
+        $arrResult = $this->objMysql->_select("workflow.status_mapping", array("workflow_id"), array("workflow_id" => $this->intWorkflowId));
 
-        if ( empty ($arrResult) )
-        {
-            $this->objMysql->_delete ("workflow.status_mapping", array("workflow_id" => $this->intWorkflowId));
-            $this->objMysql->_delete ("workflow.workflows", array("workflow_id" => $this->intWorkflowId));
-            $this->objMysql->_delete ("workflow.workflow_mapping", array("workflow.from" => $this->intWorkflowId));
-            $this->objMysql->_delete ("workflow.workflow_mapping", array("workflow_to" => $this->intWorkflowId));
+        if (empty ($arrResult)) {
+            $this->objMysql->_delete("workflow.status_mapping", array("workflow_id" => $this->intWorkflowId));
+            $this->objMysql->_delete("workflow.workflows", array("workflow_id" => $this->intWorkflowId));
+            $this->objMysql->_delete("workflow.workflow_mapping", array("workflow.from" => $this->intWorkflowId));
+            $this->objMysql->_delete("workflow.workflow_mapping", array("workflow_to" => $this->intWorkflowId));
         }
     }
 
-    public function getAllProcesses ($start = 0, $limit = 25, $sort = 'request_id', $dir = 'ASC', $category = null, $processName = null, $counters = true, $userLogged = "")
+    public function getAllProcesses($start = 0, $limit = 25, $sort = 'request_id', $dir = 'ASC', $category = null, $processName = null, $counters = true, $userLogged = "")
     {
         $this->sort = $sort;
         $this->dir = $dir;
@@ -158,71 +142,61 @@ class Workflow extends BaseProcess
                 INNER JOIN workflow.request_types r ON r.request_id = w.request_id
                 WHERE 1=1";
 
-        if ( isset ($category) )
-        {
+        if (isset ($category)) {
             $sql .= " AND r.request_id = ?";
             $arrParameters[] = $category;
         }
 
-        if ( $userLogged != "" )
-        {
+        if ($userLogged != "") {
             $sql .= " AND w.created_by = ?";
             $arrParameters[] = $userLogged;
         }
 
         $sql .= " GROUP BY w.workflow_id";
 
-        if ( $sort == "PRO_CREATE_DATE" )
-        {
-            if ( $dir == "DESC" )
-            {
+        if ($sort == "PRO_CREATE_DATE") {
+            if ($dir == "DESC") {
                 $sql .= " ORDER BY w.date_created DESC";
-            }
-            else
-            {
+            } else {
                 $sql .= " ORDER BY w.date_created ASC";
             }
         }
 
         //execute a query to obtain numbers, how many cases there are by process
-        if ( $counters )
-        {
-            $casesCnt = $this->getCasesCountInAllProcesses ();
+        if ($counters) {
+            $casesCnt = $this->getCasesCountInAllProcesses();
         }
 
         //execute the query
-        $results = $this->objMysql->_query ($sql, $arrParameters);
+        $results = $this->objMysql->_query($sql, $arrParameters);
 
         $processes = array();
         $uids = array();
 
         foreach ($results as $row) {
             $processes[] = $row;
-            $uids[] = $processes[sizeof ($processes) - 1]['workflow_id'];
+            $uids[] = $processes[sizeof($processes) - 1]['workflow_id'];
         }
 
         foreach ($processes as $process) {
 
             $proTitle = isset ($process['workflow_name']) ? $process['workflow_name'] : '';
-            $proDescription = isset ($process['description']) ? htmlspecialchars ($process['description']) : '';
+            $proDescription = isset ($process['description']) ? htmlspecialchars($process['description']) : '';
 
             //filtering by $processName
-            if ( isset ($processName) && $processName != '' && stripos ($proTitle, $processName) === false )
-            {
+            if (isset ($processName) && $processName != '' && stripos($proTitle, $processName) === false) {
                 continue;
             }
-            if ( $counters )
-            {
+            if ($counters) {
                 $casesCountTotal = 0;
-                if ( isset ($casesCnt[$process['workflow_id']]) )
-                {
+                if (isset ($casesCnt[$process['workflow_id']])) {
                     $casesCountTotal += $casesCnt[$process['workflow_id']];
                 }
             }
 
             $userOwner = $process['firstName'] . ' ' . $process['lastName'];
 
-            $process['PRO_CATEGORY_LABEL'] = trim ($process['request_type']) != '' ? $process['request_type'] : '- ' . "No Category" . ' -';
+            $process['PRO_CATEGORY_LABEL'] = trim($process['request_type']) != '' ? $process['request_type'] : '- ' . "No Category" . ' -';
             $process['PRO_TITLE'] = $proTitle;
             $process['PRO_DESCRIPTION'] = $proDescription;
             $process['PRO_STATUS_LABEL'] = "ACTIVE";
@@ -240,30 +214,24 @@ class Workflow extends BaseProcess
             $aProcesses[] = $process;
         }
 
-        if ( $limit == '' )
-        {
-            $limit = count ($aProcesses);
+        if ($limit == '') {
+            $limit = count($aProcesses);
         }
 
-        if ( $sort != "PRO_CREATE_DATE" )
-        {
-            if ( $dir == "ASC" )
-            {
-                usort ($aProcesses, array($this, "ordProcessAsc"));
-            }
-            else
-            {
-                usort ($aProcesses, array($this, "ordProcessDesc"));
+        if ($sort != "PRO_CREATE_DATE") {
+            if ($dir == "ASC") {
+                usort($aProcesses, array($this, "ordProcessAsc"));
+            } else {
+                usort($aProcesses, array($this, "ordProcessDesc"));
             }
         }
 
-        if ( is_numeric ($start) && is_numeric ($limit) )
-        {
-            $aProcesses = $this->paginate ($aProcesses, $limit, $start);
+        if (is_numeric($start) && is_numeric($limit)) {
+            $aProcesses = $this->paginate($aProcesses, $limit, $start);
         }
-        
+
         $arrWorkflows = [];
-        
+
         foreach ($aProcesses as $aProcess) {
             $objProcess = new Workflow();
             $objProcess->setId($aProcess['workflow_id']);
@@ -275,83 +243,70 @@ class Workflow extends BaseProcess
             $objProcess->setCategoryName($aProcess['PRO_CATEGORY_LABEL']);
             $objProcess->setProStatus($aProcess['PRO_STATUS_LABEL']);
             $objProcess->setProCreateUser($aProcess['PRO_CREATE_USER_LABEL']);
-            
+
             $arrWorkflows[$aProcess['workflow_id']] = $objProcess;
         }
 
         return $arrWorkflows;
     }
 
-    private function paginate ($array, $intPageLimit, $page = 1)
+    private function paginate($array, $intPageLimit, $page = 1)
     {
-        $intPageLimit = (int) $intPageLimit;
-        $page = (int) $page;
-        $totalRows = (int) count ($array);
+        $intPageLimit = (int)$intPageLimit;
+        $page = (int)$page;
+        $totalRows = (int)count($array);
         $_SESSION["pagination"]["current_page"] = $page;
 
         $page = $page < 1 ? 1 : $page + 1;
 
         $start = ($page - 1) * $intPageLimit;
 
-        $_SESSION["pagination"]["total_pages"] = (int) ceil (($totalRows / $intPageLimit));
+        $_SESSION["pagination"]["total_pages"] = (int)ceil(($totalRows / $intPageLimit));
         $_SESSION["pagination"]["total_counter"] = $totalRows;
 
-        return array_slice ($array, $start, $intPageLimit);
+        return array_slice($array, $start, $intPageLimit);
     }
 
-    public function ordProcessAsc ($a, $b)
+    public function ordProcessAsc($a, $b)
     {
-        if ( ($this->sort) == '' )
-        {
+        if (($this->sort) == '') {
             $this->sort = 'PRO_TITLE';
         }
-        if ( strtolower ($a[$this->sort]) > strtolower ($b[$this->sort]) )
-        {
+        if (strtolower($a[$this->sort]) > strtolower($b[$this->sort])) {
             return 1;
-        }
-        elseif ( strtolower ($a[$this->sort]) < strtolower ($b[$this->sort]) )
-        {
-            return - 1;
-        }
-        else
-        {
+        } elseif (strtolower($a[$this->sort]) < strtolower($b[$this->sort])) {
+            return -1;
+        } else {
             return 0;
         }
     }
 
-    public function ordProcessDesc ($a, $b)
+    public function ordProcessDesc($a, $b)
     {
-        if ( ($this->sort) == '' )
-        {
+        if (($this->sort) == '') {
             $this->sort = 'PRO_TITLE';
         }
-        if ( strtolower ($a[$this->sort]) > strtolower ($b[$this->sort]) )
-        {
-            return - 1;
-        }
-        elseif ( strtolower ($a[$this->sort]) < strtolower ($b[$this->sort]) )
-        {
+        if (strtolower($a[$this->sort]) > strtolower($b[$this->sort])) {
+            return -1;
+        } elseif (strtolower($a[$this->sort]) < strtolower($b[$this->sort])) {
             return 1;
-        }
-        else
-        {
+        } else {
             return 0;
         }
     }
 
-    public function getCasesCountInAllProcesses ()
+    public function getCasesCountInAllProcesses()
     {
-        $results = $this->objMysql->_select ("workflow.workflow_data");
+        $results = $this->objMysql->_select("workflow.workflow_data");
         $arrCounts = array();
 
         foreach ($results as $result) {
-            $workflowData = json_decode ($result['workflow_data'], true);
+            $workflowData = json_decode($result['workflow_data'], true);
 
-            if ( isset ($workflowData['elements']) && !empty ($workflowData['elements']) )
-            {
+            if (isset ($workflowData['elements']) && !empty ($workflowData['elements'])) {
                 foreach ($workflowData['elements'] as $element) {
 
-                    $arrCounts[$element['workflow_id']] = isset ($arrCounts[$element['workflow_id']]) ? $arrCounts[$element['workflow_id']] ++ : 1;
+                    $arrCounts[$element['workflow_id']] = isset ($arrCounts[$element['workflow_id']]) ? $arrCounts[$element['workflow_id']]++ : 1;
                 }
             }
         }
@@ -359,7 +314,7 @@ class Workflow extends BaseProcess
         return $arrCounts;
     }
 
-    public function getCasesCountForProcess ($pro_uid)
+    public function getCasesCountForProcess($pro_uid)
     {
 //        $oCriteria = new Criteria ('workflow');
 //        $oCriteria->addSelectColumn ('COUNT(*) AS TOTAL_CASES');
@@ -371,9 +326,9 @@ class Workflow extends BaseProcess
 //        return (int) $cases['TOTAL_CASES'];
     }
 
-    public function getAllProcessesByCategory ()
+    public function getAllProcessesByCategory()
     {
-        $results = $this->objMysql->_query ("SELECT request_id, COUNT(*) AS CNT FROM workflow.workflows GROUP BY request_id");
+        $results = $this->objMysql->_query("SELECT request_id, COUNT(*) AS CNT FROM workflow.workflows GROUP BY request_id");
 
         $aProc = array();
         foreach ($results as $row) {
@@ -389,21 +344,53 @@ class Workflow extends BaseProcess
      *
      * return array Return an array with data of a Process
      */
-    public function getProcess ()
+    public function getProcess()
     {
         try {
             $process = new \BusinessModel\Process();
-            $process->throwExceptionIfNotExistsProcess ($this->intWorkflowId);
-            $result = $this->objMysql->_select ("workflow.workflows", array(), array("workflow_id" => $this->intWorkflowId));
+            $process->throwExceptionIfNotExistsProcess($this->intWorkflowId);
+            $result = $this->objMysql->_select("workflow.workflows", array(), array("workflow_id" => $this->intWorkflowId));
 
-            if ( !isset ($result[0]) || empty ($result[0]) )
-            {
+            if (!isset ($result[0]) || empty ($result[0])) {
                 return [];
             }
 
             return $result;
         } catch (Exception $ex) {
-            
+
+        }
+    }
+
+    public function setWorkflowId($workflowId)
+    {
+        $this->intWorkflowId = $workflowId;
+    }
+
+    /**
+     * Load the Process row specified in [pro_id] column value.
+     *
+     * @param string $ProUid the uid of the Prolication
+     * @return array $Fields the fields
+     */
+    public function load($ProUid)
+    {
+        try {
+            $this->setWorkflowId($ProUid);
+            $aProcess = $this->getProcess();
+
+            if (!empty($aProcess) && $aProcess !== false) {
+                $objWorkflow = new Workflow($ProUid);
+                $objWorkflow->setDescription($aProcess[0]['description']);
+                $objWorkflow->setParentId($aProcess[0]['parent_id']);
+                $objWorkflow->setProCreateDate($aProcess[0]['date_created']);
+                $objWorkflow->setProCreateUser($aProcess[0]['created_by']);
+                $objWorkflow->setRequestId($aProcess[0]['request_id']);
+                $objWorkflow->setWorkflowName($aProcess[0]['workflow_name']);
+
+                return $objWorkflow;
+            }
+        } catch (Exception $oError) {
+            throw ($oError);
         }
     }
 
@@ -416,20 +403,17 @@ class Workflow extends BaseProcess
      * $aData['PRO_CATEGORY'] the id category
      * @return string
      */
-    public function create ($aData)
+    public function create($aData)
     {
         try {
-            $this->loadObject ($aData);
+            $this->loadObject($aData);
 
-            if ( $this->validate () )
-            {
-                $id = $this->save ();
+            if ($this->validate()) {
+                $id = $this->save();
                 return $id;
-            }
-            else
-            {
+            } else {
                 $msg = '';
-                foreach ($this->getArrValidationErrors () as $strMessage) {
+                foreach ($this->getArrValidationErrors() as $strMessage) {
                     $msg .= $strMessage . "<br/>";
                 }
                 throw (new Exception ('The row cannot be created! ' . $msg));
@@ -439,20 +423,17 @@ class Workflow extends BaseProcess
         }
     }
 
-    public function update ($arrData)
+    public function update($arrData)
     {
         try {
 
-            $this->loadObject ($arrData);
+            $this->loadObject($arrData);
 
-            if ( $this->validate () )
-            {
-                $this->save ();
-            }
-            else
-            {
+            if ($this->validate()) {
+                $this->save();
+            } else {
                 $msg = '';
-                foreach ($this->getArrValidationErrors () as $strMessage) {
+                foreach ($this->getArrValidationErrors() as $strMessage) {
                     $msg .= $strMessage . "<br/>";
                 }
                 throw (new Exception ('The row cannot be created! ' . $msg));
@@ -462,9 +443,9 @@ class Workflow extends BaseProcess
         }
     }
 
-    public function delete ()
+    public function delete()
     {
-        $this->deleteWorkflow ();
+        $this->deleteWorkflow();
     }
 
 }
