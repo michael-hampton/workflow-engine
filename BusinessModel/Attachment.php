@@ -232,7 +232,7 @@ class Attachment
     public function getAllAttachments ($sourceId)
     {
         $objMysql = new \Mysql2();
-        $arrAttachments = $objMysql->_select ("task_manager.attachments", array(), array("source_id" => $sourceId));
+        $arrAttachments = $objMysql->_select ("task_manager.PROCESS_FILES", array(), array("source_id" => $sourceId));
 
         $aFields = array();
 
