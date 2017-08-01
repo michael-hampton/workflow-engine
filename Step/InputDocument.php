@@ -32,7 +32,7 @@ class InputDocument
      *
      * return void Throw exception the user does not have permission to delete
      */
-    public function throwExceptionIfHaventPermissionToDelete ($projectUid, \Users $objUser, $arrAttachment)
+    public function throwExceptionIfHaventPermissionToDelete ($projectUid, \Users $objUser, $documentId)
     {
         try {
 
@@ -44,8 +44,6 @@ class InputDocument
             //Verify data inbox
             $case = new \BusinessModel\Cases();
             $application = $case->getCaseInfo ($projectUid, $applicationUid);
-
-            $documentId = $arrAttachment[0]['file_type'];
 
             $inputDocument = new \BusinessModel\InputDocument();
             $inputDocument->throwExceptionIfNotExistsInputDocument ($documentId);
@@ -115,11 +113,10 @@ class InputDocument
 
             if ( $flagPermission == 0 && $flagSupervisor == 0 )
             {
-                throw new \Exception ("ID_USER_NOT_HAVE_PERMISSION_DELETE_INPUT_DOCUMENT");
+                return false;
             }
 
-            $objAttachment = new \BusinessModel\Attachment();
-            $objAttachment->deleteProcessFilesManager ($application->getWorkflow_id (), $arrAttachment[0]['id']);
+            return true;
         } catch (\Exception $e) {
             throw $e;
         }

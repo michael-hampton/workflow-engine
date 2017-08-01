@@ -1,7 +1,10 @@
 <?php
 
+namespace BusinessModel;
+
 class Download
 {
+
     /**
      * Download InputDocument
      *
@@ -10,58 +13,65 @@ class Download
      * @param $version
      * @throws \Exception
      */
-    public function downloadInputDocument($app_uid, $app_doc_uid = null, $version = null)
+    public function downloadInputDocument ($app_uid = null, $app_doc_uid = null, $version = null)
     {
         try {
             $oAppDocument = new \DocumentVersion();
-            if ($version == 0) {
-                $docVersion = $oAppDocument->getLastDocVersion($app_doc_uid);
-            } else {
+            if ( $version == 0 )
+            {
+                $docVersion = $oAppDocument->getLastDocVersion ($app_doc_uid);
+            }
+            else
+            {
                 $docVersion = $version;
             }
 
-            $fields = $oAppDocument->load($app_doc_uid, $docVersion, $app_uid);
+            $fields = $oAppDocument->load ($app_doc_uid, $docVersion, $app_uid, false);
 
-            $objInput = (new \BusinessModel\InputDocument())->getInputDocument($oAppDocument->getDocUid());
-            $inputDestination = $objInput->setDestinationPath();
+            $objInput = (new \BusinessModel\InputDocument())->getInputDocument ($oAppDocument->getDocUid ());
+            $destinationPath = $objInput[$oAppDocument->getDocUid ()]->getDestinationPath ();
 
-            $sAppDocUid = $fields->getAppDocUid();
-            $iDocVersion = $fields->getDocVersion();
-            $info = pathinfo($fields->getAppDocFilename());
+            $sAppDocUid = $fields->getAppDocUid ();
+            $iDocVersion = $fields->getDocVersion ();
+            $info = pathinfo ($fields->getAppDocFilename ());
 
-            $app_uid = $this->getPathFromUIDPlain($fields->getAppUid());
-            $file = $this->getPathFromFileUIDPlain($fields->getAppUid(), $sAppDocUid);
-            $ext = (isset($info['extension']) ? $info['extension'] : '');
+            $app_uid = $this->getPathFromUIDPlain ($fields->getAppUid ());
+            $file = $this->getPathFromFileUIDPlain ($fields->getAppUid (), $sAppDocUid);
+            $ext = (isset ($info['extension']) ? $info['extension'] : '');
 
-            $realPath = PATH_DOCUMENT . $app_uid . '/' . $file[0] . $file[1] . '_' . $iDocVersion . '.' . $ext;
-            $realPath1 = PATH_DOCUMENT . $app_uid . '/' . $file[0] . $file[1] . '.' . $ext;
+            $realPath = UPLOADS_DIR . $oAppDocument->getAppUid () . '/' . $file[0] . $file[1] . '_' . $iDocVersion . '.' . $ext;
 
-            if (!file_exists($realPath) && file_exists($realPath1)) {
+            $realPath1 = UPLOADS_DIR . $destinationPath . "/" . $oAppDocument->getAppDocFilename ();
+
+            if ( !file_exists ($realPath) && file_exists ($realPath1) )
+            {
                 $realPath = $realPath1;
             }
 
             $filename = $info['basename'];
-            $mimeType = $this->mime_content_type($filename);
+            $mimeType = $this->mime_content_type ($filename);
 
-            header('HTTP/1.0 206');
-            header('Pragma: public');
-            header('Expires: -1');
-            header('Cache-Control: public, must-revalidate, post-check=0, pre-check=0');
-            header('Content-Transfer-Encoding: binary');
-            header("Content-Disposition: attachment; filename=\"$filename\"");
-            header("Content-Length: " . filesize($realPath));
-            header("Content-Type: $mimeType");
-            header("Content-Description: File Transfer");
+            header ('Pragma: public');
+            header ('Expires: -1');
+            header ('Cache-Control: public, must-revalidate, post-check=0, pre-check=0');
+            header ('Content-Transfer-Encoding: binary');
+            header ("Content-Disposition: attachment; filename=\"$filename\"");
+            header ("Content-Length: " . filesize ($realPath));
+            header ("Content-Type: $mimeType");
+            header ("Content-Description: File Transfer");
 
-            if ($fp = fopen($realPath, 'rb')) {
-                ob_end_clean();
-                while (!feof($fp) and (connection_status() == 0)) {
-                    print(fread($fp, 8192));
-                    flush();
+            if ( $fp = fopen ($realPath, 'rb') )
+            {
+
+                ob_end_clean ();
+                while (!feof ($fp) and ( connection_status () == 0)) {
+                    print(fread ($fp, 8192));
+                    flush ();
                 }
-                @fclose($fp);
+                @fclose ($fp);
             }
-
+            exit;
+            
         } catch (\Exception $e) {
             throw $e;
         }
@@ -75,21 +85,25 @@ class Download
      * @param int $pieces
      * @return array index:0 got the path, index:1 got the filename
      */
-    public function getPathFromFileUIDPlain($appUid, $fileUid, $splitSize = 3, $pieces = 3)
+    public function getPathFromFileUIDPlain ($appUid, $fileUid, $splitSize = 3, $pieces = 3)
     {
         $response = array();
-        if ($appUid == $this->getBlackHoleDir()) {
+        if ( $appUid == $this->getBlackHoleDir () )
+        {
             $dirArray = array();
-            if (is_string($fileUid) && strlen($fileUid) >= 32) {
+            if ( is_string ($fileUid) && strlen ($fileUid) >= 32 )
+            {
                 for ($i = 0; $i < $pieces; $i++) {
-                    $dirArray[] = substr($fileUid, 0, $splitSize);
-                    $len = strlen($fileUid);
-                    $fileUid = substr($fileUid, $splitSize, $len);
+                    $dirArray[] = substr ($fileUid, 0, $splitSize);
+                    $len = strlen ($fileUid);
+                    $fileUid = substr ($fileUid, $splitSize, $len);
                 }
             }
-            $response[] = implode($dirArray, '/') . '/';
+            $response[] = implode ($dirArray, '/') . '/';
             $response[] = $fileUid;
-        } else {
+        }
+        else
+        {
             $response[] = '';
             $response[] = $fileUid;
         }
@@ -99,7 +113,7 @@ class Download
     /**
      * Get the default blank directory 0 for external files
      */
-    public function getBlackHoleDir()
+    public function getBlackHoleDir ()
     {
         //len32:12345678901234567890123456789012
         return "00000000000000000000000000000000";
@@ -112,26 +126,27 @@ class Download
      * @param int $pieces
      * @return string xxx/xxx/xxx/xxxxxxxxxxxxxxxxxxxxx
      */
-    public function getPathFromUIDPlain($uid, $splitSize = 3, $pieces = 3)
+    public function getPathFromUIDPlain ($uid, $splitSize = 3, $pieces = 3)
     {
         $dirArray = array();
-        if (is_string($uid) && strlen($uid) >= 32 && $uid != $this->getBlackHoleDir()) {
+        if ( is_string ($uid) && strlen ($uid) >= 32 && $uid != $this->getBlackHoleDir () )
+        {
             for ($i = 0; $i < $pieces; $i++) {
-                $dirArray[] = substr($uid, 0, $splitSize);
-                $len = strlen($uid);
-                $uid = substr($uid, $splitSize, $len);
+                $dirArray[] = substr ($uid, 0, $splitSize);
+                $len = strlen ($uid);
+                $uid = substr ($uid, $splitSize, $len);
             }
         }
         $dirArray[] = $uid;
-        $newfileStructure = implode($dirArray, '/');
+        $newfileStructure = implode ($dirArray, '/');
         return $newfileStructure;
     }
 
-    public function mime_content_type($filename)
+    public function mime_content_type ($filename)
     {
-        $idx = explode('.', $filename);
-        $count_explode = count($idx);
-        $idx = strtolower($idx[$count_explode - 1]);
+        $idx = explode ('.', $filename);
+        $count_explode = count ($idx);
+        $idx = strtolower ($idx[$count_explode - 1]);
         $mimet = array(
             'ai' => 'application/postscript',
             'aif' => 'audio/x-aiff',
@@ -287,9 +302,12 @@ class Download
             'xyz' => 'chemical/x-xyz',
             'zip' => 'application/zip'
         );
-        if (isset($mimet[$idx])) {
+        if ( isset ($mimet[$idx]) )
+        {
             return $mimet[$idx];
-        } else {
+        }
+        else
+        {
             return 'application/octet-stream';
         }
     }
@@ -301,15 +319,16 @@ class Download
      *
      * return array Return an array with data of an InputDocument
      */
-    public function removeInputDocument($inputDocumentUid)
+    public function removeInputDocument ($inputDocumentUid)
     {
         try {
-            $oAppDocument = (new DocumentVersion())->retrieveByPK($inputDocumentUid, 1);
-            if (is_null($oAppDocument) || $oAppDocument->getAppDocStatus() == 'DELETED') {
-                throw new \Exception("ID_CASES_INPUT_DOES_NOT_EXIST");
+            $oAppDocument = (new \DocumentVersion())->retrieveByPK ($inputDocumentUid, 1);
+            if ( is_null ($oAppDocument) || $oAppDocument->getAppDocStatus () == 'DELETED' )
+            {
+                throw new \Exception ("ID_CASES_INPUT_DOES_NOT_EXIST");
             }
 
-            $oAppDocument->remove($inputDocumentUid);
+            $oAppDocument->remove ($inputDocumentUid);
         } catch (\Exception $e) {
             throw $e;
         }

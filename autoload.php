@@ -22,6 +22,7 @@ require_once HOME_DIR . '/core/app/library/class.configuration.php';
 
 
 require_once HOME_DIR . '/core/app/library/BusinessModel/Validator.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/Download.php';
 require_once HOME_DIR . '/core/app/library/config.php';
 require_once HOME_DIR . '/core/app/library/Mysql.php';
 require_once HOME_DIR . '/core/app/library/BaseVariable.php';

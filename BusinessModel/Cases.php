@@ -946,7 +946,7 @@ class Cases
     {
         try {
             $outputID = $outputDocumentUid;
-
+            
             $oOutputDocument = new \OutputDocument();
             $aOD = $oOutputDocument->retrieveByPk($outputID);
 
@@ -958,8 +958,9 @@ class Cases
             $lastDocVersion = $objDocumentVersion->getLastDocVersionByFilename($sFilename);
 
             if (($aOD->getOutDocVersioning())) {
+            
                 $lastDocVersion++;
-                $objDocumentVersion->create(array("filename" => $sFilename, "document_id" => $aOD->getOutDocUid(), "document_type" => "OUTPUT"), $objUser);
+                $objDocumentVersion->create(array("filename" => $sFilename, "app_uid" => $projectId, "document_id" => $aOD->getOutDocUid(), "document_type" => "OUTPUT"), $objUser);
             }
 
             $sFilename = $aOD->getOutDocUid() . "_" . $lastDocVersion;
@@ -993,7 +994,7 @@ class Cases
             if (trim($aOD->getOutDocReportGenerator()) !== "") {
                 $aProperties['report_generator'] = $aOD->getOutDocReportGenerator();
             }
-
+            
             $aOD->generate($outputID, $Fields, $pathOutput, $sFilename, $aOD->getOutDocTemplate(), (boolean)$aOD->getOutDocLandscape(), $aOD->getOutDocGenerate(), $aProperties);
         } catch (Exception $ex) {
             throw $ex;
@@ -1097,7 +1098,7 @@ class Cases
         $arrSteps = (new Step())->getSteps($objTask->getTasUid());
 
         $aOutputDocuments = array();
-
+        
         foreach ($arrSteps as $aRow) {
 
             $oAppDocument = new \DocumentVersion();
@@ -1105,7 +1106,7 @@ class Cases
             $lastVersion = $oAppDocument->getLastDocVersion($aRow->getStepUidObj());
 
             if ($aRow->getStepTypeObj() == "OUTPUT_DOCUMENT") {
-
+                                
                 $this->addCasesOutputDocument($sProcessUID, $sApplicationUID, $objTask->getTasUid(), $aRow->getStepUidObj(), $objUser);
 
                 $aAux = $oAppDocument->load($aRow->getStepUidObj(), $lastVersion);
@@ -1830,12 +1831,6 @@ class Cases
         }
 
         $aInputDocuments = array();
-        $aInputDocuments[] = array(
-            'APP_DOC_UID' => 'char',
-            'DOC_UID' => 'char',
-            'APP_DOC_COMMENT' => 'char',
-            'APP_DOC_FILENAME' => 'char', 'APP_DOC_INDEX' => 'integer'
-        );
 
         foreach ($results as $result) {
             $aTask = (new \Task ($taskId))->retrieveByPk($taskId);
@@ -1879,7 +1874,7 @@ class Cases
                 $aFields['ID_DELETE'] = 'ID_DELETE';
             }
             $aFields['DOWNLOAD_LABEL'] = 'ID_DOWNLOAD';
-            $aFields['DOWNLOAD_LINK'] = "cases/cases_ShowDocument?a=" . $aAux->getAppDocUid() . "&v=" . $aAux->getDocVersion();
+            $aFields['DOWNLOAD_LINK'] = "/FormBuilder/attachments/cases_ShowDocument?a=" . $aAux->getAppDocUid() . "&v=" . $aAux->getDocVersion();
             $aFields['DOC_VERSION'] = $aAux->getDocVersion();
 
             if ($lastVersion == $aAux->getDocVersion()) {

@@ -3,7 +3,7 @@
 abstract class BaseProcess implements Persistent
 {
 
-    protected $objMysql;
+    private $objMysql;
 
     /**
      * The value for the pro_title field.

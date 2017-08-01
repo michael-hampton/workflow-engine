@@ -191,8 +191,6 @@ class FileUpload
      */
     public function streamFile ($file, $download = false, $downloadFileName = '')
     {
-
-
         $typearray = explode ('.', basename ($file));
         $typefile = $typearray[count ($typearray) - 1];
         $filename = $file;
