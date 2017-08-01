@@ -386,6 +386,8 @@ class Workflow extends BaseProcess
                 $objWorkflow->setProCreateUser($aProcess[0]['created_by']);
                 $objWorkflow->setRequestId($aProcess[0]['request_id']);
                 $objWorkflow->setWorkflowName($aProcess[0]['workflow_name']);
+                $objWorkflow->setId($ProUid);
+                $objWorkflow->setSystemId($aProcess[0]['system_id']);
 
                 return $objWorkflow;
             }

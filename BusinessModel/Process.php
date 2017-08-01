@@ -1,7 +1,8 @@
 <?php
+
 namespace BusinessModel;
 
-class Process 
+class Process
 {
 
     private $objMysql;
@@ -136,9 +137,6 @@ class Process
         }
     }
 
-   
-
-
     /**
      * Create/Update Process
      *
@@ -178,13 +176,20 @@ class Process
                     throw (new \Exception ("Process category data do not exist"));
                 }
 
+                if ( isset ($arrayProcessData["PRO_TITLE"]) && $this->existsTitle ($arrayProcessData["PRO_TITLE"]) )
+                {
+                    throw (new \Exception ("ID_PROCESSTITLE_ALREADY_EXISTS"));
+                }
+
                 $arrayProcessData['PRO_DATE_CREATED'] = date ("Y-m-d H:i:s");
                 break;
             case "UPDATE":
                 //Verify data
-                $this->throwExceptionIfNotExistsProcess ($processUid);
+
+                $this->throwExceptionIfNotExistsProcess ($arrayProcessData['PRO_UID']);
                 break;
         }
+
         if ( isset ($arrayProcessData["PRO_TITLE"]) )
         {
             $arrayProcessData["PRO_TITLE"] = trim ($arrayProcessData["PRO_TITLE"]);
@@ -193,10 +198,6 @@ class Process
         {
             $arrayProcessData["PRO_DESCRIPTION"] = trim ($arrayProcessData["PRO_DESCRIPTION"]);
         }
-        if ( isset ($arrayProcessData["PRO_TITLE"]) && $this->existsTitle ($arrayProcessData["PRO_TITLE"]) )
-        {
-            throw (new \Exception ("ID_PROCESSTITLE_ALREADY_EXISTS"));
-        }
 
         if ( isset ($arrayProcessData["PRO_CATEGORY"]) && $arrayProcessData["PRO_CATEGORY"] . "" != "" )
         {
@@ -204,46 +205,57 @@ class Process
         }
 
         $trigger = new \BusinessModel\StepTrigger();
-            
+
         /**
-             * Try catch block is added to escape the exception and continue editing
-             * the properties of the process, otherwise there is no way to edit
-             * the properties that the exception is thrown: trigger nonexistent.
-             * The same goes for the similar blocks.
-             */
-            if (isset($arrayData["PRO_TRI_DELETED"]) && $arrayData["PRO_TRI_DELETED"] . "" != "") {
-                try {
-                    $trigger->throwExceptionIfNotExistsTrigger($arrayData["PRO_TRI_DELETED"], $processUid, $this->arrayFieldNameForException["processTriDeleted"]);
-                } catch (\Exception $e) {
-                }
+         * Try catch block is added to escape the exception and continue editing
+         * the properties of the process, otherwise there is no way to edit
+         * the properties that the exception is thrown: trigger nonexistent.
+         * The same goes for the similar blocks.
+         */
+        if ( isset ($arrayData["PRO_TRI_DELETED"]) && $arrayData["PRO_TRI_DELETED"] . "" != "" )
+        {
+            try {
+                $trigger->throwExceptionIfNotExistsTrigger ($arrayData["PRO_TRI_DELETED"], $processUid, $this->arrayFieldNameForException["processTriDeleted"]);
+            } catch (\Exception $e) {
+                
             }
-            if (isset($arrayData["PRO_TRI_CANCELED"]) && $arrayData["PRO_TRI_CANCELED"] . "" != "") {
-                try {
-                    $trigger->throwExceptionIfNotExistsTrigger($arrayData["PRO_TRI_CANCELED"], $processUid, $this->arrayFieldNameForException["processTriCanceled"]);
-                } catch (\Exception $e) {
-                }
+        }
+        if ( isset ($arrayData["PRO_TRI_CANCELED"]) && $arrayData["PRO_TRI_CANCELED"] . "" != "" )
+        {
+            try {
+                $trigger->throwExceptionIfNotExistsTrigger ($arrayData["PRO_TRI_CANCELED"], $processUid, $this->arrayFieldNameForException["processTriCanceled"]);
+            } catch (\Exception $e) {
+                
             }
-            if (isset($arrayData["PRO_TRI_PAUSED"]) && $arrayData["PRO_TRI_PAUSED"] . "" != "") {
-                try {
-                    $trigger->throwExceptionIfNotExistsTrigger($arrayData["PRO_TRI_PAUSED"], $processUid, $this->arrayFieldNameForException["processTriPaused"]);
-                } catch (\Exception $e) {
-                }
+        }
+        if ( isset ($arrayData["PRO_TRI_PAUSED"]) && $arrayData["PRO_TRI_PAUSED"] . "" != "" )
+        {
+            try {
+                $trigger->throwExceptionIfNotExistsTrigger ($arrayData["PRO_TRI_PAUSED"], $processUid, $this->arrayFieldNameForException["processTriPaused"]);
+            } catch (\Exception $e) {
+                
             }
-            if (isset($arrayData["PRO_TRI_UNPAUSED"]) && $arrayData["PRO_TRI_UNPAUSED"] . "" != "") {
-                try {
-                    $trigger->throwExceptionIfNotExistsTrigger($arrayData["PRO_TRI_UNPAUSED"], $processUid, $this->arrayFieldNameForException["processTriUnpaused"]);
-                } catch (\Exception $e) {
-                }
+        }
+        if ( isset ($arrayData["PRO_TRI_UNPAUSED"]) && $arrayData["PRO_TRI_UNPAUSED"] . "" != "" )
+        {
+            try {
+                $trigger->throwExceptionIfNotExistsTrigger ($arrayData["PRO_TRI_UNPAUSED"], $processUid, $this->arrayFieldNameForException["processTriUnpaused"]);
+            } catch (\Exception $e) {
+                
             }
-            if (isset($arrayData["PRO_TRI_REASSIGNED"]) && $arrayData["PRO_TRI_REASSIGNED"] . "" != "") {
-                try {
-                    $trigger->throwExceptionIfNotExistsTrigger($arrayData["PRO_TRI_REASSIGNED"], $processUid, $this->arrayFieldNameForException["processTriReassigned"]);
-                } catch (\Exception $e) {
-                }
+        }
+        if ( isset ($arrayData["PRO_TRI_REASSIGNED"]) && $arrayData["PRO_TRI_REASSIGNED"] . "" != "" )
+        {
+            try {
+                $trigger->throwExceptionIfNotExistsTrigger ($arrayData["PRO_TRI_REASSIGNED"], $processUid, $this->arrayFieldNameForException["processTriReassigned"]);
+            } catch (\Exception $e) {
+                
             }
-            if (isset($arrayData["PRO_PARENT"])) {
-                $this->throwExceptionIfNotExistsProcess($arrayData["PRO_PARENT"], $this->arrayFieldNameForException["processParent"]);
-            }
+        }
+        if ( isset ($arrayData["PRO_PARENT"]) )
+        {
+            $this->throwExceptionIfNotExistsProcess ($arrayData["PRO_PARENT"], $this->arrayFieldNameForException["processParent"]);
+        }
 
         if ( isset ($arrayProcessData["PRO_CREATE_USER"]) && $arrayProcessData["PRO_CREATE_USER"] . "" != "" )
         {
@@ -271,7 +283,7 @@ class Process
         if ( isset ($arrayDefineProcessData['routes']) )
         {
             $objProcessRoute = new \ProcessRoute();
-            
+
             if ( $arrayDefineProcessData['routes']['position'] == "last" )
             {
                 $result = $this->objMysql->_query ("SELECT m.workflow_from FROM workflow.workflow_mapping m
@@ -379,10 +391,11 @@ class Process
      *
      * @access public
      */
-    public function updateProcess ($processUid, $userUid, $arrayDefineProcessData)
+    public function updateProcess (\Workflow $objWorkflow, \Users $objUser, $arrayDefineProcessData)
     {
-        $arrayDefineProcessData["process"]["PRO_UID"] = $processUid;
-        $arrayDefineProcessData["process"]["USR_UID"] = $userUid;
+
+        $arrayDefineProcessData["process"]["PRO_UID"] = $objWorkflow->getWorkflowId ();
+        $arrayDefineProcessData["process"]["USR_UID"] = $objUser->getUserId ();
 
         return $this->defineProcess ("UPDATE", $arrayDefineProcessData);
     }
