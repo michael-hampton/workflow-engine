@@ -898,7 +898,7 @@ class Cases
     {
         try {
 
-            if (isset(($objElements->arrElement)) && !empty($objElements->arrElement)) {
+            if (isset($objElements->arrElement) && !empty($objElements->arrElement)) {
                 foreach ($objElements->arrElement as $elementName => $elementValue) {
                     $caseVariable[$elementName] = $elementValue;
                 }
@@ -917,7 +917,7 @@ class Cases
                     }
                 }
             }
-            
+
             if (!empty ($caseVariables)) {
                 foreach ($caseVariables as $variableName => $functionName) {
                     if (trim($functionName) !== "") {
@@ -1817,7 +1817,7 @@ class Cases
 
         $oAppDocument = new \DocumentVersion();
 
-        $sql = "SELECT * FROM task_manager.document_version 
+        $sql = "SELECT * FROM task_manager.APP_DOCUMENT
                 WHERE app_id = ?
                 AND document_type IN ('INPUT') AND status IN('ACTIVE')
                 ORDER BY id ASC";
