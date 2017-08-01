@@ -376,7 +376,7 @@ class BaseDocumentVersion implements Persistent
 
         if (trim($this->app_doc_uid) === "") {
             $id = $this->objMysql->_insert(
-                "task_manager.document_version", array(
+                "task_manager.APP_DOCUMENT", array(
                     "document_version" => $this->doc_version,
                     "user_id" => $this->usr_uid,
                     "document_id" => $this->doc_uid,
@@ -390,7 +390,7 @@ class BaseDocumentVersion implements Persistent
 
             return $id;
         } else {
-            $this->objMysql->_update("task_manager.document_version",
+            $this->objMysql->_update("task_manager.APP_DOCUMENT",
                 [
                     "status" => $this->app_doc_status,
                     "document_version" => $this->doc_version
