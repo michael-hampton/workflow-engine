@@ -21,7 +21,7 @@ class DocumentVersion extends BaseDocumentVersion
     {
         try {
 
-            $result = $this->objMysql->_query("SELECT MAX(document_version) AS VERSION FROM task_manager.document_version WHERE filename = ?", [$filename]);
+            $result = $this->objMysql->_query("SELECT MAX(document_version) AS VERSION FROM task_manager.APP_DOCUMENT WHERE filename = ?", [$filename]);
 
             if (isset ($result[0]['VERSION']) && trim($result[0]['VERSION']) != "") {
                 return $result[0]['VERSION'];
@@ -44,7 +44,7 @@ class DocumentVersion extends BaseDocumentVersion
     {
         try {
 
-            $result = $this->objMysql->_query("SELECT MAX(document_version) AS VERSION FROM task_manager.document_version WHERE document_id = ?", [$docId]);
+            $result = $this->objMysql->_query("SELECT MAX(document_version) AS VERSION FROM task_manager.APP_DOCUMENT WHERE document_id = ?", [$docId]);
 
             if (isset ($result[0]['VERSION']) && trim($result[0]['VERSION']) != "") {
                 return $result[0]['VERSION'];
@@ -65,7 +65,7 @@ class DocumentVersion extends BaseDocumentVersion
      */
     public function retrieveByPK($app_doc_uid, $doc_version)
     {
-        $result = $this->objMysql->_select("task_manager.document_version", [], ["document_version" => $doc_version, "id" => $app_doc_uid]);
+        $result = $this->objMysql->_select("task_manager.APP_DOCUMENT", [], ["document_version" => $doc_version, "id" => $app_doc_uid]);
 
         if (!isset($result[0]) || empty($result[0])) {
             return null;
@@ -95,7 +95,7 @@ class DocumentVersion extends BaseDocumentVersion
             $arrWhere['document_version'] = $documentVersion;
         }
 
-        $result = $this->objMysql->_select("task_manager.document_version", [], $arrWhere);
+        $result = $this->objMysql->_select("task_manager.APP_DOCUMENT", [], $arrWhere);
 
         if (!isset ($result[0]) || empty ($result[0])) {
             return false;
@@ -192,7 +192,7 @@ class DocumentVersion extends BaseDocumentVersion
             if (!is_null($oAppDocument)) {
                 $arrayDocumentsToDelete = array();
                 if ($oAppDocument->getAppDocType() == "INPUT") {
-                    $results = $this->objMysql->_select("task_manager.document_version", [], ["id" => $sAppDocUid]);
+                    $results = $this->objMysql->_select("task_manager.APP_DOCUMENT", [], ["id" => $sAppDocUid]);
 
                     foreach ($results as $result) {
                         $arrayDocumentsToDelete[] = array('sAppDocUid' => $result['id'], 'iVersion' => $result['document_version']);
