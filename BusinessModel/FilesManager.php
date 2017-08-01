@@ -404,7 +404,7 @@ class FilesManager
             $baseName2 = $path[count ($path) - 2] . "/" . $path[count ($path) - 1];
 
             $sql = "SELECT id
-                    FROM task_manager.attachments pf
+                    FROM task_manager.PROCESS_FILES pf
                     INNER JOIN workflow.workflows w ON w.workflow_id = pf.PRO_UID
                     WHERE (file_destination LIKE '%" . $baseName . "%' OR file_destination LIKE '%" . $baseName2 . "%')
                     ";
@@ -447,7 +447,7 @@ class FilesManager
         try {
             $path = '';
 
-            $result = $this->objMysql->_select ("task_manager.attachments", ["file_destination"], ["id" => $prfUid]);
+            $result = $this->objMysql->_select ("task_manager.PROCESS_FILES", ["file_destination"], ["id" => $prfUid]);
 
             if ( !isset ($result[0]) || empty ($result[0]) )
             {
@@ -536,7 +536,7 @@ class FilesManager
         try {
             $path = '';
 
-            $result = $this->objMysql->_select ("task_manager.attachments", ["file_destination"], ["id" => $prfUid]);
+            $result = $this->objMysql->_select ("task_manager.PROCESS_FILES", ["file_destination"], ["id" => $prfUid]);
 
             if ( !isset ($result[0]) || empty ($result[0]) )
             {
@@ -589,7 +589,7 @@ class FilesManager
     {
         try {
             $path = '';
-            $result = $this->objMysql->_select ("task_manager.attachments", ["file_destination"], ["id" => $prfUid]);
+            $result = $this->objMysql->_select ("task_manager.PROCESS_FILES", ["file_destination"], ["id" => $prfUid]);
 
             if ( !isset ($result[0]) || empty ($result[0]) )
             {
