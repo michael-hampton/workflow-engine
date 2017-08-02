@@ -212,49 +212,49 @@ class Process
          * the properties that the exception is thrown: trigger nonexistent.
          * The same goes for the similar blocks.
          */
-        if ( isset ($arrayData["PRO_TRI_DELETED"]) && $arrayData["PRO_TRI_DELETED"] . "" != "" )
+        if ( isset ($arrayProcessData["PRO_TRI_DELETED"]) && $arrayProcessData["PRO_TRI_DELETED"] . "" != "" )
         {
             try {
-                $trigger->throwExceptionIfNotExistsTrigger ($arrayData["PRO_TRI_DELETED"], $processUid, $this->arrayFieldNameForException["processTriDeleted"]);
+                $trigger->throwExceptionIfNotExistsTrigger ($arrayProcessData["PRO_TRI_DELETED"], $arrayProcessData['PRO_UID']);
             } catch (\Exception $e) {
                 
             }
         }
-        if ( isset ($arrayData["PRO_TRI_CANCELED"]) && $arrayData["PRO_TRI_CANCELED"] . "" != "" )
+        if ( isset ($arrayProcessData["PRO_TRI_CANCELED"]) && $arrayProcessData["PRO_TRI_CANCELED"] . "" != "" )
         {
             try {
-                $trigger->throwExceptionIfNotExistsTrigger ($arrayData["PRO_TRI_CANCELED"], $processUid, $this->arrayFieldNameForException["processTriCanceled"]);
+                $trigger->throwExceptionIfNotExistsTrigger ($arrayProcessData["PRO_TRI_CANCELED"], $arrayProcessData['PRO_UID']);
             } catch (\Exception $e) {
                 
             }
         }
-        if ( isset ($arrayData["PRO_TRI_PAUSED"]) && $arrayData["PRO_TRI_PAUSED"] . "" != "" )
+        if ( isset ($arrayProcessData["PRO_TRI_PAUSED"]) && $arrayProcessData["PRO_TRI_PAUSED"] . "" != "" )
         {
             try {
-                $trigger->throwExceptionIfNotExistsTrigger ($arrayData["PRO_TRI_PAUSED"], $processUid, $this->arrayFieldNameForException["processTriPaused"]);
+                $trigger->throwExceptionIfNotExistsTrigger ($arrayProcessData["PRO_TRI_PAUSED"], $arrayProcessData['PRO_UID']);
             } catch (\Exception $e) {
                 
             }
         }
-        if ( isset ($arrayData["PRO_TRI_UNPAUSED"]) && $arrayData["PRO_TRI_UNPAUSED"] . "" != "" )
+        if ( isset ($arrayProcessData["PRO_TRI_UNPAUSED"]) && $arrayProcessData["PRO_TRI_UNPAUSED"] . "" != "" )
         {
             try {
-                $trigger->throwExceptionIfNotExistsTrigger ($arrayData["PRO_TRI_UNPAUSED"], $processUid, $this->arrayFieldNameForException["processTriUnpaused"]);
+                $trigger->throwExceptionIfNotExistsTrigger ($arrayProcessData["PRO_TRI_UNPAUSED"], $arrayProcessData['PRO_UID']);
             } catch (\Exception $e) {
                 
             }
         }
-        if ( isset ($arrayData["PRO_TRI_REASSIGNED"]) && $arrayData["PRO_TRI_REASSIGNED"] . "" != "" )
+        if ( isset ($arrayProcessData["PRO_TRI_REASSIGNED"]) && $arrayProcessData["PRO_TRI_REASSIGNED"] . "" != "" )
         {
             try {
-                $trigger->throwExceptionIfNotExistsTrigger ($arrayData["PRO_TRI_REASSIGNED"], $processUid, $this->arrayFieldNameForException["processTriReassigned"]);
+                $trigger->throwExceptionIfNotExistsTrigger ($arrayProcessData["PRO_TRI_REASSIGNED"], $arrayProcessData['PRO_UID']);
             } catch (\Exception $e) {
                 
             }
         }
-        if ( isset ($arrayData["PRO_PARENT"]) )
+        if ( isset ($arrayProcessData["PRO_PARENT"]) )
         {
-            $this->throwExceptionIfNotExistsProcess ($arrayData["PRO_PARENT"], $this->arrayFieldNameForException["processParent"]);
+            $this->throwExceptionIfNotExistsProcess ($arrayProcessData["parent_id"]);
         }
 
         if ( isset ($arrayProcessData["PRO_CREATE_USER"]) && $arrayProcessData["PRO_CREATE_USER"] . "" != "" )
@@ -262,6 +262,11 @@ class Process
             $this->throwExceptionIfNotExistsUser ($arrayProcessData["PRO_CREATE_USER"]);
         }
 
+        if ( isset ($arrayProcessData['PRO_SUBPROCESS']) && trim ($arrayProcessData['PRO_SUBPROCESS']) !== "" )
+        {
+            $arrayProcessData['PRO_SUBPROCESS'] = (int) $arrayProcessData['PRO_SUBPROCESS'];
+        }
+        
         $process = new \Workflow();
 
         switch ($option) {

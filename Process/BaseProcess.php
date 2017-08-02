@@ -139,7 +139,18 @@ abstract class BaseProcess implements Persistent
         "PRO_CATEGORY" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getRequestId", "mutator" => "setRequestId"),
         "PRO_TITLE" => array("type" => "string", "required" => true, "empty" => true, "accessor" => "getWorkflowName", "mutator" => "setWorkflowName"),
         "PRO_DESCRIPTION" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getDescription", "mutator" => "setDescription"),
-        "PRO_DATE_CREATED" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getProCreateDate", "mutator" => "setProCreateDate")
+        "PRO_DATE_CREATED" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getProCreateDate", "mutator" => "setProCreateDate"),
+        "PRO_DYNAFORMS" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getProShowDynaform", "mutator" => "setProShowDynaform"),
+        "PRO_SUBPROCESS" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getProSubprocess", "mutator" => "setProSubprocess"),
+        "PRO_TRI_CREATE" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getProTriCreate", "mutator" => "setProTriCreate"),
+        "PRO_TRI_DELETED" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getProTriDeleted", "mutator" => "setProTriDeleted"),
+        "PRO_TRI_CANCELED" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getProTriCanceled", "mutator" => "setProTriCanceled"),
+        "PRO_TRI_PAUSED" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getProTriPaused", "mutator" => "setProTriPaused"),
+        "PRO_TRI_UNPAUSED" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getProTriUnpaused", "mutator" => "setProTriUnpaused"),
+        "PRO_TRI_REASSIGNED" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getProTriReassigned", "mutator" => "setProTriReassigned"),
+        "PRO_TRI_OPEN" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getProTriOpen", "mutator" => "setProTriOpen"),
+        "pro_type_process" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getProTypeProcess", "mutator" => "setProTypeProcess"),
+        "parent_id" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getParentId", "mutator" => "setParentId"),
     );
 
     public function __construct ()
@@ -868,7 +879,7 @@ abstract class BaseProcess implements Persistent
                 "PRO_TRI_REASSIGNED" => $this->pro_tri_reassigned,
                 "PRO_TRI_UNPAUSED" => $this->pro_tri_unpaused,
                 "PRO_TYPE_PROCESS" => $this->pro_type_process,
-                "PRO_DYNAFORMS" => $this->pro_dynaforms
+                "PRO_DYNAFORMS" => $this->pro_show_dynaform,
                     ), ["workflow_id" => $this->workflowId]
             );
         }

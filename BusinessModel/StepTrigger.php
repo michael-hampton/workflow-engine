@@ -31,7 +31,7 @@ class StepTrigger
      * 
      * @return boolean
      */
-    public function getTriggers ()
+    public function getAllTriggers ()
     {
         $arrTriggers = $this->getAllTriggersForStep ();
 
@@ -72,6 +72,47 @@ class StepTrigger
         {
             //$result = $objMysql->_select ("task_manager.projects", array("workflow_data", "audit_data"), array("id" => $this->id));
         }
+    }
+
+    /**
+     * List of Triggers in process
+     * @var string $sProcessUID. Uid for Process
+     *
+     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
+     * @copyright Colosa - Bolivia
+     *
+     * @return array
+     */
+    public function getTriggerList ($sProcessUID = '')
+    {
+        $arrWhere = [];
+
+        if ( $sProcessUID !== "" )
+        {
+            $arrWhere = array("workflow_id" => $sProcessUID);
+        }
+
+        $results = $this->objMysql->_select ("workflow.step_trigger", [], $arrWhere, ["title" => "ASC"]);
+
+        if ( !isset ($results[0]) || empty ($results[0]) )
+        {
+            return false;
+        }
+
+        $arrTriggers = [];
+
+        foreach ($results as $result) {
+            $objTrigger = new \Trigger();
+            $objTrigger->setDescription ($result['description']);
+            $objTrigger->setTitle ($result['title']);
+            $objTrigger->setWorkflowId ($result['workflow_id']);
+            $objTrigger->setTriggerType ($result['trigger_type']);
+            $objTrigger->setId ($result['id']);
+
+            $arrTriggers[] = $objTrigger;
+        }
+
+        return $arrTriggers;
     }
 
     /**
@@ -147,7 +188,7 @@ class StepTrigger
                     if ( $triggerType === "sendMail" )
                     {
                         $templateName = str_replace (" ", "_", $arrTrigger['template_name']);
-                        $this->executeSendMail($templateName);
+                        $this->executeSendMail ($templateName);
                     }
 
                     if ( $arrTrigger !== false && !empty ($arrTrigger) )
@@ -463,42 +504,78 @@ class StepTrigger
 
         return $triggerArray;
     }
-    
-    public function executeSendMail($templateName = null, $id = null)
+
+    public function executeSendMail ($templateName = null, $id = null)
+    {
+        if ( $templateName === null && $id === null )
         {
-        if($templateName === null && $id === null) {
             return false;
-            }
-        
-        if($templateName === null && $id !== null) {
-            $arrTrigger = $this->getDataTrigger($id);
-            }
-        
-             $template = PATH_DATA_MAILTEMPLATES . $templateName . ".html";
-
-                        $content = file_get_contents ($template);
-                        $subject = "CASE HAS BEEN " . $arrTrigger['event_type'] . " BY [USER]";
-
-                        $objSendNotification = new \SendNotification();
-                        $objSendNotification->setProjectId ($this->parentId);
-                        $recipients = $objSendNotification->getTaskUsers ();
-
-                        if ( empty ($recipients) )
-                        {
-                            return false;
-                        }
-
-                        $recipients = implode (",", $recipients);
-
-                        $Fields = $objCase->getCaseVariables ((int) $this->elementId, (int) $this->parentId, (int) $this->currentStep);
-
-                        if ( trim ($content) !== "" && trim ($subject) !== "" )
-                        {
-                            $subject = $objCase->replaceDataField ($subject, $Fields);
-                            $body = $objCase->replaceDataField ($content, $Fields);
-
-                            $objSendNotification->notificationEmail ($recipients, $subject, $body);
-                        }
         }
+
+        if ( $templateName === null && $id !== null )
+        {
+            $arrTrigger = $this->getDataTrigger ($id);
+        }
+
+        $template = PATH_DATA_MAILTEMPLATES . $templateName . ".html";
+
+        $content = file_get_contents ($template);
+        $subject = "CASE HAS BEEN " . $arrTrigger['event_type'] . " BY [USER]";
+
+        $objSendNotification = new \SendNotification();
+        $objSendNotification->setProjectId ($this->parentId);
+        $recipients = $objSendNotification->getTaskUsers ();
+
+        if ( empty ($recipients) )
+        {
+            return false;
+        }
+
+        $recipients = implode (",", $recipients);
+
+        $Fields = $objCase->getCaseVariables ((int) $this->elementId, (int) $this->parentId, (int) $this->currentStep);
+
+        if ( trim ($content) !== "" && trim ($subject) !== "" )
+        {
+            $subject = $objCase->replaceDataField ($subject, $Fields);
+            $body = $objCase->replaceDataField ($content, $Fields);
+
+            $objSendNotification->notificationEmail ($recipients, $subject, $body);
+        }
+    }
+
+    /**
+     * Verify if doesn't exists the Trigger in table TRIGGERS
+     *
+     * @param string $triggerUid            Unique id of Trigger
+     * @param string $processUid            Unique id of Process
+     *
+     * return void Throw exception if doesn't exists the Trigger in table TRIGGERS
+     */
+    public function throwExceptionIfNotExistsTrigger ($triggerUid, $processUid)
+    {
+        try {
+  
+            $sql = "SELECT id FROM workflow.step_trigger";
+            
+             $sql .= " WHERE id = ? ";
+             $arrParameters = array($triggerUid);
+            
+            if ( $processUid != "" )
+            {
+                $sql .= "AND workflow_id = ?";
+                $arrParameters[] = $processUid;
+            }
+          
+            $results = $this->objMysql->_query($sql, $arrParameters);
+            
+           if(!isset($results[0]) || empty($results[0]))
+            {
+                throw new \Exception ("ID_TRIGGER_DOES_NOT_EXIST " . $triggerUid);
+            }
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
 
 }

@@ -1,5 +1,7 @@
 <?php
+
 namespace BusinessModel;
+
 class Form extends FieldFactory
 {
 
@@ -15,10 +17,11 @@ class Form extends FieldFactory
      */
     public function __construct (\Task $objTask = null, \Workflow $objWorkflow = null)
     {
-        if($objTask !== null) {
+        if ( $objTask !== null )
+        {
             $this->stepId = $objTask->getStepId ();
         }
-        
+
         $this->objMysql = new \Mysql2();
 
         if ( $objWorkflow !== null )
@@ -89,7 +92,7 @@ class Form extends FieldFactory
     public function save ($arrData, $arrFormData, $checked)
     {
         $arrFields = json_decode ($arrData, true);
-        
+
 
         $objFieldFactory = new \BusinessModel\FieldFactory();
 
@@ -229,7 +232,7 @@ class Form extends FieldFactory
     {
         $objCases = new \BusinessModel\Cases();
         $objCase = $objCases->getCaseInfo ($projectId, $elementId);
-        
+
 
         $currentStepId = $objCase->getCurrentStepId ();
         $workflowId = $objWorkflowStep->getWorkflowId ();
@@ -240,14 +243,14 @@ class Form extends FieldFactory
         $html = '';
 
         $userPermissions = $objCases->getAllObjectsFrom ($projectId, $elementId, $objWorkflowStep->getStepId (), $objUser);
-        
+
         $objProcessSupervisor = new \BusinessModel\ProcessSupervisor();
         $blProcessSupervisor = $objProcessSupervisor->isUserProcessSupervisor (new \Workflow ($workflowId), $objUser);
 
         $objAttachments = new \BusinessModel\Attachment();
         $arrAttachments = $objAttachments->getAllAttachments ($projectId);
         $attachmentHTML = $objFormBuilder->buildAttachments ($arrAttachments);
-        
+
         /*         * ************** Fields ************************* */
         $arrFields = $objWorkflowStep->getFields ();
 
@@ -321,9 +324,9 @@ class Form extends FieldFactory
             $buildSummary = true;
             $objFormBuilder->buildForm ($arrFields);
         }
-        
+
         $objStep = new \Step();
-        $objStep->setTasUid($objWorkflowStep->getCurrentTask());
+        $objStep->setTasUid ($objWorkflowStep->getCurrentTask ());
 
         $objStepDocument = new \BusinessModel\InputDocument (new \Task ($taskId));
         $arrDocuments = $objStepDocument->getInputDocumentForStep ($objStep);
@@ -340,7 +343,7 @@ class Form extends FieldFactory
         }
 
         $outPutDocuments = $objCases->getAllGeneratedDocumentsCriteria ($projectId, $elementId, new \Task ($stepId), $objUser);
-  
+
         if ( !empty ($outPutDocuments) )
         {
             foreach ($outPutDocuments as $key => $outPutDocument) {
@@ -358,8 +361,8 @@ class Form extends FieldFactory
 
         return $html;
     }
-    
-     /**
+
+    /**
      * Verify if doesn't exists the DynaForm in table DYNAFORM
      *
      * @param string $dynaFormUid           Unique id of DynaForm
@@ -368,7 +371,7 @@ class Form extends FieldFactory
      *
      * return void Throw exception if doesn't exists the DynaForm in table DYNAFORM
      */
-    public function throwExceptionIfNotExistsDynaForm($dynaFormUid)
+    public function throwExceptionIfNotExistsDynaForm ($dynaFormUid)
     {
         try {
             $sql = "SELECT * FROM workflow.step s
@@ -376,17 +379,47 @@ class Form extends FieldFactory
                     WHERE s.TAS_UID = ? ";
             $arrParameters = array($dynaFormUid);
 
-           $result = $this->objMysql->_query($sql, $arrParameters);
+            $result = $this->objMysql->_query ($sql, $arrParameters);
 
-            if (!isset($result[0]) || empty($result[0])) {
-                $this->throwExceptionDynaFormDoesNotExist();
+            if ( !isset ($result[0]) || empty ($result[0]) )
+            {
+                $this->throwExceptionDynaFormDoesNotExist ();
             }
         } catch (\Exception $e) {
             throw $e;
         }
     }
-    
-     /**
+
+    public function getDynaforms ($sProcessUid = '', $firstStep = true)
+    {
+        $sql = "SELECT t.step_name, t.TAS_UID, w.workflow_id FROM workflow.step s 
+                INNER JOIN workflow.task t ON t.TAS_UID = s.TAS_UID
+                INNER JOIN workflow.status_mapping sm ON sm.TAS_UID = s.TAS_UID
+                INNER JOIN workflow.step_fields sf ON sf.step_id = s.STEP_UID
+                INNER JOIN workflow.workflows w ON w.workflow_id = sm.workflow_id
+                WHERE s.`STEP_TYPE_OBJ` = 'DYNAFORM'";
+
+        if ( $firstStep === true )
+        {
+            $sql .= " AND sm.first_step = 1";
+        }
+        
+        $arrParameters = [];
+        
+        if($sProcessUid !== '') {
+            $sql .= " AND w.workflow_id = ?";
+            $arrParameters[] = $sProcessUid;
+        }
+
+        $sql .= " GROUP BY s.STEP_UID
+                ORDER BY t.step_name ASC";
+
+        $results = $this->objMysql->_query ($sql, $arrParameters);
+
+        return $results;
+    }
+
+    /**
      * Throw the exception "The DynaForm doesn't exist"
      *
      * @param string $dynaFormUid           Unique id of DynaForm
@@ -394,8 +427,9 @@ class Form extends FieldFactory
      *
      * @return void
      */
-    private function throwExceptionDynaFormDoesNotExist()
+    private function throwExceptionDynaFormDoesNotExist ()
     {
-        throw new \Exception('ID_DYNAFORM_DOES_NOT_EXIST');
+        throw new \Exception ('ID_DYNAFORM_DOES_NOT_EXIST');
     }
+
 }
