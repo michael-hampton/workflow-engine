@@ -31,7 +31,7 @@ class StepTrigger
      * 
      * @return boolean
      */
-    public function getAllTriggers ()
+    public function getTriggers ()
     {
         $arrTriggers = $this->getAllTriggersForStep ();
 
@@ -515,8 +515,9 @@ class StepTrigger
         if ( $templateName === null && $id !== null )
         {
             $arrTrigger = $this->getDataTrigger ($id);
+            $templateName = $arrTrigger['template_name'];
         }
-
+        
         $template = PATH_DATA_MAILTEMPLATES . $templateName . ".html";
 
         $content = file_get_contents ($template);
@@ -530,6 +531,8 @@ class StepTrigger
         {
             return false;
         }
+        
+        $objCase = new \BusinessModel\Cases();
 
         $recipients = implode (",", $recipients);
 
@@ -539,7 +542,6 @@ class StepTrigger
         {
             $subject = $objCase->replaceDataField ($subject, $Fields);
             $body = $objCase->replaceDataField ($content, $Fields);
-
             $objSendNotification->notificationEmail ($recipients, $subject, $body);
         }
     }

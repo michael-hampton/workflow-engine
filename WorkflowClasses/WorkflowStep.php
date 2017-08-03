@@ -23,6 +23,7 @@ class WorkflowStep
     private $nextTask;
     private $currentTask;
     private $blReview = false;
+    private $currentStatus;
 
     public function __construct ($intWorkflowStepId = null, $objMike = null)
     {
@@ -137,7 +138,7 @@ class WorkflowStep
         {
             $parentId = $id;
         }
-        $result = $this->objMysql->_select ("workflow.workflow_data", array("workflow_data"), array("object_id" => $parentId));
+        $result = $this->objMysql->_select ("workflow.workflow_data", array("workflow_data", "audit_data"), array("object_id" => $parentId));
         if ( !isset ($result[0]) )
         {
             //return false;
@@ -155,6 +156,11 @@ class WorkflowStep
         {
             $this->_workflowStepId = $workflowData['current_step'];
         }
+        
+         $arrAudit = json_decode($result[0]['audit_data'], true);
+            
+         $this->currentStatus = end($arrAudit['elements'][$id]['steps'])['status'];
+   
         return $workflowData;
     }
 
@@ -185,6 +191,7 @@ class WorkflowStep
             {
                 return false;
             }
+            
             $this->objectId = $result[0]['id'];
             return $result;
         }
@@ -448,7 +455,7 @@ class WorkflowStep
                 $step = $this->nextTask;
                 $step2 = $this->nextStep;
                 $arrWorkflow['current_step'] = $this->nextStep;
-                
+
                 (new \Log (LOG_FILE))->log (
                         array(
                     "message" => "STEP COMPLETED",
@@ -459,10 +466,10 @@ class WorkflowStep
                     'step_id' => $this->nextStep
                         ), \Log::NOTICE);
             }
-            $arrWorkflow['status'] = "STEP COMPLETED";            
+            $arrWorkflow['status'] = "STEP COMPLETED";
         }
         else
-        {            
+        {
             $step = $this->currentTask;
             $step2 = $this->_workflowStepId;
             $arrWorkflow['current_step'] = $this->_workflowStepId;
@@ -481,13 +488,13 @@ class WorkflowStep
             $step = $this->currentTask;
             $step2 = $this->_stepId;
         }
-        
+
         /*         * ******************** Get due date for Task ********************** */
         $objAppDelegation = new AppDelegation();
         $objTask = new Task();
         $objTask->setTasUid ($step);
         $objTask->setStepId ($step2);
-        
+
         try {
             if ( !isset ($this->objAudit['elements'][$this->elementId]['steps'][$step]) )
             {
@@ -539,8 +546,7 @@ class WorkflowStep
                 }
 
                 $arrUsers = (new \BusinessModel\Task())->getTaskAssigneesAll ($this->workflowId, $this->_stepId, '', 0, 100, "user");
-
-                //      die($arrCompleteData['status']);
+                $objProcess = (new Workflow ($this->workflowId))->load ($this->workflowId);
 
                 switch ($taskType) {
                     case "PARALLEL":
@@ -575,6 +581,20 @@ class WorkflowStep
                         {
                             $arrWorkflow['current_step'] = $this->_workflowStepId;
                             throw new Exception ("Invalid task user");
+                        }
+
+                        if ( $taskType === "ABANDONED" && trim ($objProcess->getProTriCanceled ()) !== "" )
+                        {
+                            $objTrigger->executeSendMail (null, $objProcess->getProTriCanceled ());
+                        }
+
+                        if ( $taskType === "HELD" && trim ($objProcess->getProTriPaused ()) !== "" )
+                        {
+                            $objTrigger->executeSendMail (null, $objProcess->getProTriPaused ());
+                        }
+                        
+                        if(trim($this->currentStatus) === "HELD" && trim($objProcess->getProTriUnpaused ()) !== "NONE") {
+                             $objTrigger->executeSendMail (null, $objProcess->getProTriUnpaused ());
                         }
 
                         break;

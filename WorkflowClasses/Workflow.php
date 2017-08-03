@@ -140,7 +140,7 @@ class Workflow extends BaseProcess
                 FROM workflow.workflows w
                 LEFT JOIN user_management.poms_users u ON u.username = created_by
                 INNER JOIN workflow.request_types r ON r.request_id = w.request_id
-                WHERE 1=1";
+                WHERE w.PRO_SUBPROCESS != 1";
 
         if (isset ($category)) {
             $sql .= " AND r.request_id = ?";
@@ -388,6 +388,14 @@ class Workflow extends BaseProcess
                 $objWorkflow->setWorkflowName($aProcess[0]['workflow_name']);
                 $objWorkflow->setId($ProUid);
                 $objWorkflow->setSystemId($aProcess[0]['system_id']);
+                $objWorkflow->setProDynaforms($aProcess[0]['PRO_DYNAFORMS']);
+                $objWorkflow->setProTriCanceled($aProcess[0]['PRO_TRI_CANCELED']);
+                $objWorkflow->setProTriDeleted($aProcess[0]['PRO_TRI_DELETED']);
+                $objWorkflow->setProTriCreate($aProcess[0]['PRO_TRI_CREATE']);
+                $objWorkflow->setProTriOpen($aProcess[0]['PRO_TRI_OPEN']);
+                $objWorkflow->setProTriPaused($aProcess[0]['PRO_TRI_PAUSED']);
+                $objWorkflow->setProTriReassigned($aProcess[0]['PRO_TRI_REASSIGNED']);
+                $objWorkflow->setProTriUnpaused($aProcess[0]['PRO_TRI_UNPAUSED']);
 
                 return $objWorkflow;
             }

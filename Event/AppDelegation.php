@@ -27,6 +27,291 @@ class AppDelegation
         $this->objMysql = new Mysql2();
     }
 
+    /**
+     * create an application delegation
+     *
+     * @param $sProUid process Uid
+     * @param $sAppUid Application Uid
+     * @param $sTasUid Task Uid
+     * @param $sUsrUid User Uid
+     * @param $iPriority delegation priority
+     * @param $isSubprocess is a subprocess inside a process?
+     * @return delegation index of the application delegation.
+     */
+    public function createAppDelegation ($sProUid, $sAppUid, $sTasUid, $sUsrUid, $sAppThread, $iPriority = 3, $isSubprocess = false, $sPrevious = -1, $sNextTasParam = null, $flagControl = false, $flagControlMulInstance = false, $delPrevious = 0, $appNumber = 0, $taskId = 0, $userId = 0, $proId = 0)
+    {
+        if ( !isset ($sProUid) || strlen ($sProUid) == 0 )
+        {
+            throw (new Exception ('Column "PRO_UID" cannot be null.'));
+        }
+        if ( !isset ($sAppUid) || strlen ($sAppUid) == 0 )
+        {
+            throw (new Exception ('Column "APP_UID" cannot be null.'));
+        }
+        if ( !isset ($sTasUid) || strlen ($sTasUid) == 0 )
+        {
+            throw (new Exception ('Column "TAS_UID" cannot be null.'));
+        }
+        if ( !isset ($sUsrUid) /* || strlen($sUsrUid ) == 0 */ )
+        {
+            throw (new Exception ('Column "USR_UID" cannot be null.'));
+        }
+        if ( !isset ($sAppThread) || strlen ($sAppThread) == 0 )
+        {
+            throw (new Exception ('Column "APP_THREAD" cannot be null.'));
+        }
+        $this->delegation_id = null;
+        //Get max DEL_INDEX
+        $criteria = new Criteria ("workflow");
+        $criteria->add (AppDelegationPeer::APP_UID, $sAppUid);
+        $criteria->add (AppDelegationPeer::DEL_LAST_INDEX, 1);
+        $criteria->addDescendingOrderByColumn (AppDelegationPeer::DEL_INDEX);
+        $criteriaIndex = clone $criteria;
+        $rs = AppDelegationPeer::doSelectRS ($criteriaIndex);
+        $rs->setFetchmode (ResultSet::FETCHMODE_ASSOC);
+        $delIndex = 1;
+        $delPreviusUsrUid = $sUsrUid;
+        $delPreviousFather = $sPrevious;
+        if ( $rs->next () )
+        {
+            $row = $rs->getRow ();
+            $delIndex = (isset ($row["DEL_INDEX"])) ? $row["DEL_INDEX"] + 1 : 1;
+            $delPreviusUsrUid = $row["USR_UID"];
+            $delPreviousFather = $row["DEL_PREVIOUS"];
+        }
+        else
+        {
+            $criteriaDelIndex = new Criteria ("workflow");
+            $criteriaDelIndex->addSelectColumn (AppDelegationPeer::DEL_INDEX);
+            $criteriaDelIndex->addSelectColumn (AppDelegationPeer::DEL_DELEGATE_DATE);
+            $criteriaDelIndex->add (AppDelegationPeer::APP_UID, $sAppUid);
+            $criteriaDelIndex->addDescendingOrderByColumn (AppDelegationPeer::DEL_DELEGATE_DATE);
+            $rsCriteriaDelIndex = AppDelegationPeer::doSelectRS ($criteriaDelIndex);
+            $rsCriteriaDelIndex->setFetchmode (ResultSet::FETCHMODE_ASSOC);
+            if ( $rsCriteriaDelIndex->next () )
+            {
+                $row = $rsCriteriaDelIndex->getRow ();
+                $delIndex = (isset ($row["DEL_INDEX"])) ? $row["DEL_INDEX"] + 1 : 1;
+            }
+        }
+        //Verify successors: parrallel submit in the same time
+        if ( $flagControl )
+        {
+            $nextTaskUid = $sTasUid;
+            $index = $this->getAllTasksBeforeSecJoin ($nextTaskUid, $sAppUid, $delPreviousFather);
+            if ( $this->createThread ($index, $sAppUid) )
+            {
+                return 0;
+            }
+        }
+        if ( $flagControlMulInstance )
+        {
+            $nextTaskUid = $sTasUid;
+            $index = $this->getAllTheardMultipleInstance ($delPreviousFather, $sAppUid);
+            if ( $this->createThread ($index, $sAppUid, $sUsrUid) )
+            {
+                return 0;
+            }
+        }
+        //Update set
+        $criteriaUpdate = new Criteria ('workflow');
+        $criteriaUpdate->add (AppDelegationPeer::DEL_LAST_INDEX, 0);
+        BasePeer::doUpdate ($criteria, $criteriaUpdate, Propel::getConnection ('workflow'));
+        $this->setAppUid ($sAppUid);
+        $this->setProUid ($sProUid);
+        $this->setTasUid ($sTasUid);
+        $this->setDelIndex ($delIndex);
+        $this->setDelLastIndex (1);
+        $this->setDelPrevious ($sPrevious == - 1 ? 0 : $sPrevious );
+        $this->setUsrUid ($sUsrUid);
+        $this->setDelType ('NORMAL');
+        $this->setDelPriority (($iPriority != '' ? $iPriority : '3'));
+        $this->setDelThread ($sAppThread);
+        $this->setDelThreadStatus ('OPEN');
+        $this->setDelDelegateDate ('now');
+        $this->setAppNumber ($appNumber);
+        $this->setTasId ($taskId);
+        $this->setUsrId ($userId);
+        $this->setProId ($proId);
+        //The function return an array now.  By JHL
+        $delTaskDueDate = $this->calculateDueDate ($sNextTasParam);
+        $delRiskDate = $this->calculateRiskDate ($sNextTasParam, $this->getRisk ());
+        //$this->setDelTaskDueDate( $delTaskDueDate['DUE_DATE'] ); // Due date formatted
+        $this->setDelTaskDueDate ($delTaskDueDate);
+        $this->setDelRiskDate ($delRiskDate);
+        if ( (defined ("DEBUG_CALENDAR_LOG")) && (DEBUG_CALENDAR_LOG) )
+        {
+            //$this->setDelData( $delTaskDueDate['DUE_DATE_LOG'] ); // Log of actions made by Calendar Engine
+            $this->setDelData ($delTaskDueDate);
+        }
+        else
+        {
+            $this->setDelData ('');
+        }
+        // this condition assures that an internal delegation like a subprocess dont have an initial date setted
+        if ( $delIndex == 1 && !$isSubprocess )
+        {
+            //the first delegation, init date this should be now for draft applications, in other cases, should be null.
+            $this->setDelInitDate ('now');
+        }
+        if ( $this->validate () )
+        {
+            try {
+                $res = $this->save ();
+            } catch (PropelException $e) {
+                error_log ($e->getMessage ());
+                return;
+            }
+        }
+        else
+        {
+            // Something went wrong. We can now get the validationFailures and handle them.
+            $msg = '';
+            $validationFailuresArray = $this->getValidationFailures ();
+            foreach ($validationFailuresArray as $objValidationFailure) {
+                $msg .= $objValidationFailure->getMessage () . "<br/>";
+            }
+            throw (new Exception ('Failed Data validation. ' . $msg));
+        }
+        $delIndex = $this->getDelIndex ();
+        // Hook for the trigger PM_CREATE_NEW_DELEGATION
+        if ( defined ('PM_CREATE_NEW_DELEGATION') )
+        {
+            $bpmn = new \ProcessMaker\Project\Bpmn();
+            $flagActionsByEmail = true;
+            $arrayAppDelegationPrevious = $this->getPreviousDelegationValidTask ($sAppUid, $delIndex);
+            $data = new stdclass();
+            $data->TAS_UID = $sTasUid;
+            $data->APP_UID = $sAppUid;
+            $data->DEL_INDEX = $delIndex;
+            $data->USR_UID = $sUsrUid;
+            $data->PREVIOUS_USR_UID = ($arrayAppDelegationPrevious !== false) ? $arrayAppDelegationPrevious['USR_UID'] : $delPreviusUsrUid;
+            if ( $bpmn->exists ($sProUid) )
+            {
+                /* ----------------------------------********--------------------------------- */
+                /* ----------------------------------********--------------------------------- */
+            }
+            if ( $flagActionsByEmail )
+            {
+                $oPluginRegistry = &PMPluginRegistry::getSingleton ();
+                $oPluginRegistry->executeTriggers (PM_CREATE_NEW_DELEGATION, $data);
+            }
+        }
+        return $delIndex;
+    }
+
+    /**
+     * Load the Application Delegation row specified in [app_id] column value.
+     *
+     * @param string $AppUid the uid of the application
+     * @return array $Fields the fields
+     */
+    public function Load ($AppUid, $sDelIndex)
+    {
+        $con = Propel::getConnection (AppDelegationPeer::DATABASE_NAME);
+        try {
+            $oAppDel = AppDelegationPeer::retrieveByPk ($AppUid, $sDelIndex);
+            if ( is_object ($oAppDel) && get_class ($oAppDel) == 'AppDelegation' )
+            {
+                $aFields = $oAppDel->toArray (BasePeer::TYPE_FIELDNAME);
+                $this->fromArray ($aFields, BasePeer::TYPE_FIELDNAME);
+                return $aFields;
+            }
+            else
+            {
+                throw (new Exception ("The row '$AppUid, $sDelIndex' in table AppDelegation doesn't exist!"));
+            }
+        } catch (Exception $oError) {
+            throw ($oError);
+        }
+    }
+
+    /**
+     * Update the application row
+     *
+     * @param array $aData
+     * @return variant
+     *
+     */
+    public function update ($aData)
+    {
+        $con = Propel::getConnection (AppDelegationPeer::DATABASE_NAME);
+        try {
+            $con->begin ();
+            $oApp = AppDelegationPeer::retrieveByPK ($aData['APP_UID'], $aData['DEL_INDEX']);
+            if ( is_object ($oApp) && get_class ($oApp) == 'AppDelegation' )
+            {
+                $oApp->fromArray ($aData, BasePeer::TYPE_FIELDNAME);
+                if ( $oApp->validate () )
+                {
+                    $res = $oApp->save ();
+                    $con->commit ();
+                    return $res;
+                }
+                else
+                {
+                    $msg = '';
+                    foreach ($this->getValidationFailures () as $objValidationFailure) {
+                        $msg .= $objValidationFailure->getMessage () . "<br/>";
+                    }
+                    throw (new PropelException ('The row cannot be created!', new PropelException ($msg)));
+                }
+            }
+            else
+            {
+                $con->rollback ();
+                throw (new Exception ("This AppDelegation row doesn't exist!"));
+            }
+        } catch (Exception $oError) {
+            throw ($oError);
+        }
+    }
+
+    public function remove ($sApplicationUID, $iDelegationIndex)
+    {
+        $oConnection = Propel::getConnection (StepTriggerPeer::DATABASE_NAME);
+        try {
+            $oConnection->begin ();
+            $oApp = AppDelegationPeer::retrieveByPK ($sApplicationUID, $iDelegationIndex);
+            if ( is_object ($oApp) && get_class ($oApp) == 'AppDelegation' )
+            {
+                $result = $oApp->delete ();
+            }
+            $oConnection->commit ();
+            return $result;
+        } catch (Exception $e) {
+            $oConnection->rollback ();
+            throw ($e);
+        }
+    }
+
+    public function getCurrentTask ($appUid)
+    {
+        $oCriteria = new Criteria();
+        $oCriteria->addSelectColumn (AppDelegationPeer::TAS_UID);
+        $oCriteria->add (AppDelegationPeer::APP_UID, $appUid);
+        $oCriteria->addDescendingOrderByColumn (AppDelegationPeer::DEL_INDEX);
+        $oRuleSet = AppDelegationPeer::doSelectRS ($oCriteria);
+        $oRuleSet->setFetchmode (ResultSet::FETCHMODE_ASSOC);
+        $oRuleSet->next ();
+        $data = $oRuleSet->getRow ();
+        return $data['TAS_UID'];
+    }
+
+    public function getCurrentUsers ($appUid, $index)
+    {
+        $oCriteria = new Criteria();
+        $oCriteria->addSelectColumn (AppDelegationPeer::USR_UID);
+        $oCriteria->add (AppDelegationPeer::APP_UID, $appUid);
+        $oCriteria->add (AppDelegationPeer::DEL_THREAD_STATUS, 'OPEN');
+        $oCriteria->add (AppDelegationPeer::DEL_INDEX, $index);
+        $oRuleSet = AppDelegationPeer::doSelectRS ($oCriteria);
+        $oRuleSet->setFetchmode (ResultSet::FETCHMODE_ASSOC);
+        $oRuleSet->next ();
+        $data = $oRuleSet->getRow ();
+        return $data;
+    }
+
     public function getRisk ()
     {
         try {
@@ -146,11 +431,11 @@ class AppDelegation
 
     public function calculateDueDate (Task $objTask)
     {
-        
+
         $aData['TAS_DURATION'] = $objTask->getTasDuration ();
         $aData['TAS_TIMEUNIT'] = $objTask->getTasTimeunit ();
         $aData['TAS_TYPE_DAY'] = $objTask->getTasTypeDay ();
-        
+
         if ( trim ($objTask->getCalendarUid ()) !== "" )
         {
             $aCalendarUID = $objTask->getCalendarUid ();
@@ -162,7 +447,7 @@ class AppDelegation
 
         $calendar = new \BusinessModel\Calendar();
         $arrayCalendarData = $calendar->getCalendarData ($aCalendarUID);
-        
+
         if ( $calendar->pmCalendarUid == "" )
         {
             $calendar->getCalendar (null, $this->getProUid (), $this->getTasUid ());
@@ -174,7 +459,7 @@ class AppDelegation
         $timezone = 'Europe/London';
         $date->setTimezone (new DateTimeZone ($timezone)); // +04
         $timezone = $date->format ('Y-m-d H:i:s');
-        
+
         $dueDate = $calendar->dashCalculateDate ($initDate, $aData["TAS_DURATION"], $aData["TAS_TIMEUNIT"], $arrayCalendarData);
 
         return $dueDate;
@@ -183,14 +468,13 @@ class AppDelegation
     public function test ()
     {
         $objTask = new Task();
-        $objTask->setTasDuration(5);
+        $objTask->setTasDuration (5);
         $objTask->setTasTimeunit ("DAYS");
         $objTask->setTasTypeDay ("CALENDAR DAYS");
         $objTask->setCalendarUid (15);
 
         $delTaskDueDate = $this->calculateDueDate ($objFlow);
         $delRiskDate = $this->calculateRiskDate ($objFlow, date ("Y-m-d H:i:s"), $this->getRisk ());
-
     }
 
     public function calculateDuration ()
@@ -225,7 +509,7 @@ class AppDelegation
                     $calculatedValues = $this->getValuesToStoreForCalculateDuration (array("case_id" => $caseId, "parentId" => $parentId, "TASK" => $result['step_condition']), $calendar, $calData, $now);
                     $calculatedValues['elementId'] = $caseId;
                     $calculatedValues['parentId'] = $parentId;
-                    
+
                     return $calculatedValues;
 
                     $arrValues[] = $calculatedValues;
