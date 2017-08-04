@@ -63,7 +63,7 @@ require_once HOME_DIR . '/core/app/library/Event/BaseWebEntryEvent.php';
 require_once HOME_DIR . '/core/app/library/Event/WebEntryEvent.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/WebEntryEvent.php';
 
-require_once HOME_DIR . '/core/app/library/Event/BaseAppDelegation.php';
+require_once HOME_DIR . '/core/app/library/WorkflowClasses/BaseAppDelegation.php';
 require_once HOME_DIR . '/core/app/library/Event/AppDelegation.php';
 
 require_once HOME_DIR . '/core/app/library/Event/BaseMessageTypeVariable.php';

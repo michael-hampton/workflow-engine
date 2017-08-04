@@ -994,7 +994,6 @@ abstract class BaseAppDelegation implements Persistent
         if ( $this->del_init_date !== $ts )
         {
             $this->del_init_date = $ts;
-            $this->modifiedColumns[] = AppDelegationPeer::DEL_INIT_DATE;
         }
     }
 
@@ -1317,32 +1316,11 @@ abstract class BaseAppDelegation implements Persistent
      * @throws     PropelException
      * @see        save()
      */
-    protected function save ()
+    public function save ()
     {
-        $affectedRows = 0; // initialize var to track total num of affected rows
-        if ( !$this->alreadyInSave )
-        {
-            $this->alreadyInSave = true;
-            // If this object has been modified, then save it to the database.
-            if ( $this->isModified () )
-            {
-                if ( $this->isNew () )
-                {
-                    $pk = AppDelegationPeer::doInsert ($this, $con);
-                    $affectedRows += 1; // we are assuming that there is only 1 row per doInsert() which
-                    // should always be true here (even though technically
-                    // BasePeer::doInsert() can insert multiple rows).
-                    $this->setNew (false);
-                }
-                else
-                {
-                    $affectedRows += AppDelegationPeer::doUpdate ($this, $con);
-                }
-                $this->resetModified (); // [HL] After being saved an object is no longer 'modified'
-            }
-            $this->alreadyInSave = false;
-        }
-        return $affectedRows;
+      echo $this->usr_uid . " ";
+      echo $this->pro_uid . " ";
+      echo $this->tas_uid . " ";
     }
 
 // doSave()
@@ -1403,18 +1381,8 @@ abstract class BaseAppDelegation implements Persistent
      */
     protected function doValidate ($columns = null)
     {
-        if ( !$this->alreadyInValidation )
-        {
-            $this->alreadyInValidation = true;
-            $retval = null;
-            $failureMap = array();
-            if ( ($retval = AppDelegationPeer::doValidate ($this, $columns)) !== true )
-            {
-                $failureMap = array_merge ($failureMap, $retval);
-            }
-            $this->alreadyInValidation = false;
-        }
-        return (!empty ($failureMap) ? $failureMap : true);
+       
+        return true;
     }
 
 }

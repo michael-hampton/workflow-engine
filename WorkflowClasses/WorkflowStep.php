@@ -156,11 +156,11 @@ class WorkflowStep
         {
             $this->_workflowStepId = $workflowData['current_step'];
         }
-        
-         $arrAudit = json_decode($result[0]['audit_data'], true);
-            
-         $this->currentStatus = end($arrAudit['elements'][$id]['steps'])['status'];
-   
+
+        $arrAudit = json_decode ($result[0]['audit_data'], true);
+
+        $this->currentStatus = end ($arrAudit['elements'][$id]['steps'])['status'];
+
         return $workflowData;
     }
 
@@ -191,7 +191,7 @@ class WorkflowStep
             {
                 return false;
             }
-            
+
             $this->objectId = $result[0]['id'];
             return $result;
         }
@@ -498,7 +498,7 @@ class WorkflowStep
         try {
             if ( !isset ($this->objAudit['elements'][$this->elementId]['steps'][$step]) )
             {
-                $arrCompleteData['due_date'] = $objAppDelegation->calculateDueDate ((new Task ($this->_stepId))->retrieveByPk ($step));
+                //$arrCompleteData['due_date'] = $objAppDelegation->calculateDueDate ((new Task ($this->_stepId))->retrieveByPk ($step));
             }
             else
             {
@@ -592,9 +592,10 @@ class WorkflowStep
                         {
                             $objTrigger->executeSendMail (null, $objProcess->getProTriPaused ());
                         }
-                        
-                        if(trim($this->currentStatus) === "HELD" && trim($objProcess->getProTriUnpaused ()) !== "NONE") {
-                             $objTrigger->executeSendMail (null, $objProcess->getProTriUnpaused ());
+
+                        if ( trim ($this->currentStatus) === "HELD" && trim ($objProcess->getProTriUnpaused ()) !== "NONE" )
+                        {
+                            $objTrigger->executeSendMail (null, $objProcess->getProTriUnpaused ());
                         }
 
                         break;
@@ -693,6 +694,9 @@ class WorkflowStep
         $objectId = isset ($this->parentId) && is_numeric ($this->parentId) ? $this->parentId : $this->elementId;
 
         $strWorkflow = json_encode ($this->objWorkflow);
+
+        (new AppDelegation())->createAppDelegation ($this, $objMike, $objUser, $step);
+        die;
 
         if ( !empty ($arrWorkflowData) )
         {
