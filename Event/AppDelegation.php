@@ -88,7 +88,7 @@ class AppDelegation extends BaseAppDelegation
 
         $this->setAppUid ($objElement->getSource_id());
         $this->setProUid ($objWorkflowStep->getWorkflowId ());
-        $this->setTasUid ($objWorkflowStep->getNextTask ());
+        $this->setTasUid ($step);
         $this->setDelIndex ($delIndex);
         $this->setDelLastIndex (1);
         $this->setDelPrevious ($sPrevious == - 1 ? 0 : $sPrevious );
@@ -97,7 +97,7 @@ class AppDelegation extends BaseAppDelegation
         $this->setDelPriority (($iPriority != '' ? $iPriority : '3'));
         $this->setDelThreadStatus ('OPEN');
         $this->setDelDelegateDate ('now');
-        $this->setTasId ($objWorkflowStep->getNextTask ());
+        $this->setTasId ($step);
         $this->setUsrId ($objUser->getUserId());
         $this->setProId ($objWorkflowStep->getWorkflowId ());
         //The function return an array now.  By JHL
