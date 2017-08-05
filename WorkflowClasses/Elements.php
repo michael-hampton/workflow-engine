@@ -646,6 +646,14 @@ class Elements
             $this->getConnection ();
         }
 
+        $id = $this->id;
+        $this->getProjectById ();
+
+        if ( trim ($id) !== "" )
+        {
+            $this->setId ($id);
+        }
+
         if ( $this->id == "" )
         {
             $id = $this->buildObjectId ($this->source_id, $this->workflow_id);
@@ -668,6 +676,9 @@ class Elements
 
             $this->objMysql->_update ("task_manager.projects", array("step_data" => json_encode ($this->JSON)), array("id" => $this->source_id));
         }
+
+        (new \Log (LOG_FILE))->log (
+                $this->JSON['elements'][$id], \Log::NOTICE);
 
         $additionalTables = new AdditionalTables();
         $additionalTables->updateReportTables ($this);

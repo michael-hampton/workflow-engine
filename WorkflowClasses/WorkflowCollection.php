@@ -100,12 +100,12 @@ class WorkflowCollection extends BaseWorkflowCollection
                 INNER JOIN workflow.request_types r ON r.request_id = w.`request_id`";
 
 
-        $sql .= " WHERE parent_id = ?";
+        $sql .= " WHERE parent_id = ? OR workflow_id = ?";
+        $arrParameters[] = $this->requestId;
         $arrParameters[] = $this->requestId;
 
-
-
-        $arrResult = $this->objMysql->_query ($sql, array($this->requestId));
+        $arrResult = $this->objMysql->_query ($sql, $arrParameters);
+        
 
         return $arrResult;
     }

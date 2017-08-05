@@ -107,6 +107,12 @@ abstract class BaseAppDelegation implements Persistent
     protected $del_finish_date;
 
     /**
+     * The value for the audit_status field.
+     * @var        int
+     */
+    protected $auditStatus;
+
+    /**
      * The value for the del_task_due_date field.
      * @var        int
      */
@@ -185,6 +191,24 @@ abstract class BaseAppDelegation implements Persistent
     protected $tas_id = 0;
 
     /**
+     * The value for the request_id field.
+     * @var        int
+     */
+    protected $requestId;
+
+    /**
+     * The value for the hasEvent field.
+     * @var        int
+     */
+    protected $hasEvent;
+
+    /**
+     * The value for the status field.
+     * @var        int
+     */
+    protected $status;
+
+    /**
      * Flag to prevent endless save loop, if this object is referenced
      * by another object which falls in this transaction.
      * @var        boolean
@@ -200,6 +224,11 @@ abstract class BaseAppDelegation implements Persistent
     private $objMysql;
 
     public function __construct ()
+    {
+        $this->objMysql = new Mysql2();
+    }
+
+    private function getConnection ()
     {
         $this->objMysql = new Mysql2();
     }
@@ -250,6 +279,36 @@ abstract class BaseAppDelegation implements Persistent
     }
 
     /**
+     * Get the [request_id] column value.
+     * 
+     * @return     int
+     */
+    public function getRequestId ()
+    {
+        return $this->requestId;
+    }
+
+    /**
+     * Get the [hasEvent] column value.
+     * 
+     * @return     int
+     */
+    public function getHasEvent ()
+    {
+        return $this->hasEvent;
+    }
+
+    /**
+     * Get the [status] column value.
+     * 
+     * @return     string
+     */
+    public function getStatus ()
+    {
+        return $this->status;
+    }
+
+    /**
      * Get the [del_previous] column value.
      * 
      * @return     int
@@ -257,6 +316,16 @@ abstract class BaseAppDelegation implements Persistent
     public function getDelPrevious ()
     {
         return $this->del_previous;
+    }
+
+    /**
+     * Get the [auditStatus] column value.
+     * 
+     * @return     int
+     */
+    public function getAuditStatus ()
+    {
+        return $this->auditStatus;
     }
 
     /**
@@ -679,7 +748,26 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-// setAppUid()
+    /**
+     * Set the value of [audit_status] column.
+     * 
+     * @param      string $v new value
+     * @return     void
+     */
+    public function setAuditStatus ($v)
+    {
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ( $v !== null && !is_string ($v) )
+        {
+            $v = (string) $v;
+        }
+        if ( $this->auditStatus !== $v || $v === '' )
+        {
+            $this->auditStatus = $v;
+        }
+    }
+
     /**
      * Set the value of [del_index] column.
      * 
@@ -700,7 +788,6 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-// setDelIndex()
     /**
      * Set the value of [delegation_id] column.
      * 
@@ -721,7 +808,6 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-// setDelegationId()
     /**
      * Set the value of [app_number] column.
      * 
@@ -742,7 +828,46 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-// setAppNumber()
+    /**
+     * Set the value of [app_number] column.
+     * 
+     * @param      int $v new value
+     * @return     void
+     */
+    public function setCollectionId ($v)
+    {
+        // Since the native PHP type for this column is integer,
+        // we will cast the input value to an int (if it is not).
+        if ( $v !== null && !is_int ($v) && is_numeric ($v) )
+        {
+            $v = (int) $v;
+        }
+        if ( $this->requestId !== $v || $v === 0 )
+        {
+            $this->requestId = $v;
+        }
+    }
+
+    /**
+     * Set the value of [hasEvent] column.
+     * 
+     * @param      int $v new value
+     * @return     void
+     */
+    public function setHasEvent ($v)
+    {
+        // Since the native PHP type for this column is integer,
+        // we will cast the input value to an int (if it is not).
+        if ( $v !== null && !is_int ($v) && is_numeric ($v) )
+        {
+            $v = (int) $v;
+        }
+        if ( $this->hasEvent !== $v || $v === 0 )
+        {
+            $this->hasEvent = $v;
+        }
+    }
+
     /**
      * Set the value of [del_previous] column.
      * 
@@ -763,7 +888,6 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-// setDelPrevious()
     /**
      * Set the value of [del_last_index] column.
      * 
@@ -784,7 +908,6 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-// setDelLastIndex()
     /**
      * Set the value of [pro_uid] column.
      * 
@@ -805,7 +928,26 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-// setProUid()
+    /**
+     * Set the value of [status] column.
+     * 
+     * @param      string $v new value
+     * @return     void
+     */
+    public function setStatus ($v)
+    {
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ( $v !== null && !is_string ($v) )
+        {
+            $v = (string) $v;
+        }
+        if ( $this->status !== $v || $v === '' )
+        {
+            $this->status = $v;
+        }
+    }
+
     /**
      * Set the value of [tas_uid] column.
      * 
@@ -826,7 +968,6 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-// setTasUid()
     /**
      * Set the value of [usr_uid] column.
      * 
@@ -847,7 +988,6 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-// setUsrUid()
     /**
      * Set the value of [del_type] column.
      * 
@@ -868,7 +1008,6 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-// setDelType()
     /**
      * Set the value of [del_thread] column.
      * 
@@ -889,7 +1028,6 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-// setDelThread()
     /**
      * Set the value of [del_thread_status] column.
      * 
@@ -910,7 +1048,6 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-// setDelThreadStatus()
     /**
      * Set the value of [del_priority] column.
      * 
@@ -931,7 +1068,6 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-// setDelPriority()
     /**
      * Set the value of [del_delegate_date] column.
      * 
@@ -964,7 +1100,6 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-// setDelDelegateDate()
     /**
      * Set the value of [del_init_date] column.
      * 
@@ -997,7 +1132,6 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-// setDelInitDate()
     /**
      * Set the value of [del_finish_date] column.
      * 
@@ -1030,7 +1164,6 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-// setDelFinishDate()
     /**
      * Set the value of [del_task_due_date] column.
      * 
@@ -1059,11 +1192,10 @@ abstract class BaseAppDelegation implements Persistent
         }
         if ( $this->del_task_due_date !== $ts )
         {
-            $this->del_task_due_date = $ts;
+            $this->del_task_due_date = date ("Y-m-d H:i:s", $ts);
         }
     }
 
-// setDelTaskDueDate()
     /**
      * Set the value of [del_risk_date] column.
      * 
@@ -1092,11 +1224,10 @@ abstract class BaseAppDelegation implements Persistent
         }
         if ( $this->del_risk_date !== $ts )
         {
-            $this->del_risk_date = $ts;
+            $this->del_risk_date = date ("Y-m-d H:i:s", $ts);
         }
     }
 
-// setDelRiskDate()
     /**
      * Set the value of [del_duration] column.
      * 
@@ -1111,7 +1242,6 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-// setDelDuration()
     /**
      * Set the value of [del_queue_duration] column.
      * 
@@ -1126,7 +1256,6 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-// setDelQueueDuration()
     /**
      * Set the value of [del_delay_duration] column.
      * 
@@ -1141,7 +1270,6 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-// setDelDelayDuration()
     /**
      * Set the value of [del_started] column.
      * 
@@ -1162,7 +1290,6 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-// setDelStarted()
     /**
      * Set the value of [del_finished] column.
      * 
@@ -1183,7 +1310,6 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-// setDelFinished()
     /**
      * Set the value of [del_delayed] column.
      * 
@@ -1204,7 +1330,6 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-// setDelDelayed()
     /**
      * Set the value of [del_data] column.
      * 
@@ -1225,7 +1350,6 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-// setDelData()
     /**
      * Set the value of [app_overdue_percentage] column.
      * 
@@ -1240,7 +1364,6 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-// setAppOverduePercentage()
     /**
      * Set the value of [usr_id] column.
      * 
@@ -1261,7 +1384,6 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-// setUsrId()
     /**
      * Set the value of [pro_id] column.
      * 
@@ -1282,7 +1404,6 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-// setProId()
     /**
      * Set the value of [tas_id] column.
      * 
@@ -1303,7 +1424,22 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-// setTasId()
+    public function getObjectIfExists ()
+    {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        $result = $this->objMysql->_select ("workflow.workflow_data", ["workflow_data", "audit_data"], ["object_id" => $this->app_uid]);
+
+        if ( $result === false || !isset ($result[0]) || empty ($result[0]) )
+        {
+            return false;
+        }
+
+        return $result;
+    }
 
     /**
      * Stores the object in the database.
@@ -1318,12 +1454,75 @@ abstract class BaseAppDelegation implements Persistent
      */
     public function save ()
     {
-      echo $this->usr_uid . " ";
-      echo $this->pro_uid . " ";
-      echo $this->tas_uid . " ";
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        $workflowData = $this->getObjectIfExists ();
+
+        if ( $workflowData !== false )
+        {
+            $workflowObject = json_decode ($workflowData['0']['workflow_data'], true);
+            $auditObject = json_decode ($workflowData[0]['audit_data'], true);
+        }
+
+        $workflowObject['elements'][$this->app_number]['request_id'] = $this->requestId;
+        $workflowObject['elements'][$this->app_number]['current_step'] = $this->tas_uid;
+        $workflowObject['elements'][$this->app_number]['status'] = $this->status;
+
+        if ( !isset ($workflowObject['elements'][$this->app_number]['workflow_id']) )
+        {
+            $workflowObject['elements'][$this->app_number]['workflow_id'] = $this->pro_uid;
+        }
+
+        $workflowObject['elements'][$this->app_number]['hasEvent'] = $this->hasEvent;
+
+        // Thread
+        $workflowObject['elements'][$this->app_number]['del_type'] = $this->del_type;
+        $workflowObject['elements'][$this->app_number]['del_thread'] = $this->del_thread;
+        $workflowObject['elements'][$this->app_number]['del_priority'] = $this->del_priority;
+        $workflowObject['elements'][$this->app_number]['del_thread_status'] = $this->del_thread_status;
+        $workflowObject['elements'][$this->app_number]['del_duration'] = $this->del_duration;
+        $workflowObject['elements'][$this->app_number]['del_delay_duration'] = $this->del_delay_duration;
+        $workflowObject['elements'][$this->app_number]['del_delayed'] = $this->del_delayed;
+        $workflowObject['elements'][$this->app_number]['app_overdue_percentage'] = $this->app_overdue_percentage;
+
+        $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['claimed'] = $this->usr_id;
+        $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['dateCompleted'] = $this->del_delegate_date;
+        $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['status'] = $this->auditStatus;
+        $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['due_date'] = $this->del_task_due_date;
+        $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['risk_date'] = $this->del_risk_date;
+
+        if ( $workflowData === false )
+        {
+            $id = $this->objMysql->_insert ("workflow.workflow_data", [
+                "workflow_data" => json_encode ($workflowObject),
+                "audit_data" => json_encode ($auditObject),
+                "object_id" => $this->app_uid,
+                "DEL_LAST_INDEX" => $this->del_last_index,
+                "DEL_INDEX" => $this->del_index,
+                "USR_UID" => $this->usr_uid,
+                "DEL_DELEGATE_DATE" => $this->del_delegate_date,
+                "DEL_PREVIOUS" => $this->del_previous
+                    ]
+            );
+
+            return $id;
+        }
+
+        $this->objMysql->_update ("workflow.workflow_data", [
+            "workflow_data" => json_encode ($workflowObject),
+            "audit_data" => json_encode ($auditObject),
+            "DEL_LAST_INDEX" => $this->del_last_index,
+            "DEL_INDEX" => $this->del_index,
+            "USR_UID" => $this->usr_uid,
+            "DEL_DELEGATE_DATE" => $this->del_delegate_date,
+            "DEL_PREVIOUS" => $this->del_previous
+                ], ["object_id" => $this->app_uid]
+        );
     }
 
-// doSave()
     /**
      * Array of ValidationFailed objects.
      * @var        array ValidationFailed[]
@@ -1381,7 +1580,7 @@ abstract class BaseAppDelegation implements Persistent
      */
     protected function doValidate ($columns = null)
     {
-       
+
         return true;
     }
 

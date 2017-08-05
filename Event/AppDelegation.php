@@ -37,38 +37,58 @@ class AppDelegation extends BaseAppDelegation
      * @param $isSubprocess is a subprocess inside a process?
      * @return delegation index of the application delegation.
      */
-    public function createAppDelegation (WorkflowStep $objWorkflowStep, Elements $objElement, Users $objUser, $step, $iPriority = 3, $isSubprocess = false, $sPrevious = -1, $sNextTasParam = null, $flagControl = false, $flagControlMulInstance = false, $delPrevious = 0, $appNumber = 0, $taskId = 0, $userId = 0, $proId = 0)
+    public function createAppDelegation (
+            WorkflowStep $objWorkflowStep, 
+            $objElement, 
+            Users $objUser, 
+            Task $objTask, 
+            $step, 
+            $iPriority = 3, 
+            $isSubprocess = false, 
+            $sPrevious = -1, 
+            $sNextTasParam = null, 
+            $hasEvent = null, 
+            $flagControlMulInstance = false, 
+            $status, 
+            $status2, 
+            $delPrevious = 0, $taskId = 0, $userId = 0, $proId = 0)
     {
         if ( strlen ($objWorkflowStep->getWorkflowId ()) == 0 )
         {
             throw (new Exception ('Column "PRO_UID" cannot be null.'));
         }
-        if (strlen ($objElement->getSource_id()) == 0 )
+        if ( method_exists ($objElement, "getSource_id") && strlen ($objElement->getSource_id ()) == 0 )
         {
             throw (new Exception ('Column "APP_UID" cannot be null.'));
         }
+        elseif ( method_exists ($objElement, "getId") && strlen ($objElement->getId ()) == 0 )
+        {
+            throw (new Exception ('Column "APP_UID" cannot be null.'));
+        }
+
         if ( strlen ($objWorkflowStep->getCurrentTask ()) == 0 )
         {
             throw (new Exception ('Column "TAS_UID" cannot be null.'));
         }
-        if ( trim ($objUser->getUserId()) === "" )
+        if ( trim ($objUser->getUserId ()) === "" )
         {
             throw (new Exception ('Column "USR_UID" cannot be null.'));
         }
-       
+
         $this->delegation_id = null;
         //Get max DEL_INDEX
-        
-        $sql = "SELECT * FROM workflow.workflow_data WHERE object_id = ? AND DEL_LAST_INDEX = 1 ORDER BY DEL_INDEX DESC";
-        $arrParameters = array($objElement->getSource_id());
 
-        $results = $this->objMysql->_query($sql, $arrParameters);
-        
+        $sql = "SELECT * FROM workflow.workflow_data WHERE object_id = ? AND DEL_LAST_INDEX = 1 ORDER BY DEL_INDEX DESC";
+        $objectId = method_exists($objElement, "getSource_id") ? $objElement->getSource_id() : $objElement->getId();
+        $arrParameters = array($objectId);
+
+        $results = $this->objMysql->_query ($sql, $arrParameters);
+
         $delIndex = 1;
-        $delPreviusUsrUid = $objUser->getUserId();
+        $delPreviusUsrUid = $objUser->getUserId ();
         $delPreviousFather = $sPrevious;
-        
-        if ( isset($results[0]) && !empty($results[0]) )
+
+        if ( isset ($results[0]) && !empty ($results[0]) )
         {
             $delIndex = (isset ($results[0]["DEL_INDEX"])) ? $results[0]["DEL_INDEX"] + 1 : 1;
             $delPreviusUsrUid = $results[0]["USR_UID"];
@@ -77,38 +97,49 @@ class AppDelegation extends BaseAppDelegation
         else
         {
             $sql2 = "SELECT DEL_INDEX, DEL_DELEGATE_DATE, object_id WHERE object_id = ? ORDER BY DEL_DELEGATE_DATE DESC";
-    
-            $results2 = $this->objMysql->_query($sql2, $arrParameters);
-            
-            if ( isset($results2[0]) && !empty($results2[0]) )
+
+            $results2 = $this->objMysql->_query ($sql2, $arrParameters);
+
+            if ( isset ($results2[0]) && !empty ($results2[0]) )
             {
                 $delIndex = (isset ($results2[0]["DEL_INDEX"])) ? $results2[0]["DEL_INDEX"] + 1 : 1;
             }
         }
 
-        $this->setAppUid ($objElement->getSource_id());
+        $this->setAppUid (method_exists ($objElement, "getSource_id") ? $objElement->getSource_id () : $objElement->getId ());
         $this->setProUid ($objWorkflowStep->getWorkflowId ());
-        $this->setTasUid ($step);
+        $this->setTasUid ($sNextTasParam);
         $this->setDelIndex ($delIndex);
         $this->setDelLastIndex (1);
         $this->setDelPrevious ($sPrevious == - 1 ? 0 : $sPrevious );
-        $this->setUsrUid ($objUser->getUserId());
+        $this->setUsrUid ($objUser->getUserId ());
         $this->setDelType ('NORMAL');
         $this->setDelPriority (($iPriority != '' ? $iPriority : '3'));
         $this->setDelThreadStatus ('OPEN');
         $this->setDelDelegateDate ('now');
-        $this->setTasId ($step);
-        $this->setUsrId ($objUser->getUserId());
+        $this->setTasId ($sNextTasParam);
+        $this->setCollectionId ((int) $objWorkflowStep->getCollectionId ());
+        $this->setHasEvent ((int) $hasEvent);
+        $this->setUsrId ($objUser->getUsername ());
         $this->setProId ($objWorkflowStep->getWorkflowId ());
-        //The function return an array now.  By JHL
-        $delTaskDueDate = $this->calculateDueDate ((new Task ($objWorkflowStep->getStepId ()))->retrieveByPk ($step));
+        $this->setStatus ($status);
+        $this->setAppNumber ($objElement->getId ());
+        $this->setAuditStatus ($status2);
 
-        $delRiskDate = $this->calculateRiskDate ((new Task ($objWorkflowStep->getStepId ()))->retrieveByPk ($step), $this->getRisk ());
-        
-        //$this->setDelTaskDueDate( $delTaskDueDate['DUE_DATE'] ); // Due date formatted
-        $this->setDelTaskDueDate ($delTaskDueDate);
-        $this->setDelRiskDate ($delRiskDate);
-        
+        // Must allow task to move even if calendar not set. Calendar can throw exception.
+        try {
+            //The function return an array now.  By JHL
+            $delTaskDueDate = $this->calculateDueDate ($objTask);
+            $delRiskDate = $this->calculateRiskDate ($objTask, $this->getRisk ());
+
+            //$this->setDelTaskDueDate( $delTaskDueDate['DUE_DATE'] ); // Due date formatted
+            $this->setDelTaskDueDate ($delTaskDueDate);
+            $this->setDelRiskDate ($delRiskDate);
+        } catch (Exception $ex) {
+            
+        }
+
+
         if ( (defined ("DEBUG_CALENDAR_LOG")) && (DEBUG_CALENDAR_LOG) )
         {
             //$this->setDelData( $delTaskDueDate['DUE_DATE_LOG'] ); // Log of actions made by Calendar Engine
@@ -372,7 +403,7 @@ class AppDelegation extends BaseAppDelegation
     public function calculateRiskDate (Task $objTask, $risk)
     {
         try {
-            
+
             $data = array();
             $data['TAS_DURATION'] = $objTask->getTasDuration ();
             $data['TAS_TIMEUNIT'] = $objTask->getTasTimeUnit ();
@@ -388,7 +419,7 @@ class AppDelegation extends BaseAppDelegation
                 $calendar->getCalendar ($objTask->getCalendarUid ());
                 $arrayCalendarData = $calendar->getCalendarData ($objTask->getCalendarUid ());
             }
-            
+
             $this->setDelDelegateDate ('now');
 
             //Risk date
@@ -402,7 +433,6 @@ class AppDelegation extends BaseAppDelegation
 
     public function calculateDueDate (Task $objTask)
     {
-
         $aData['TAS_DURATION'] = $objTask->getTasDuration ();
         $aData['TAS_TIMEUNIT'] = $objTask->getTasTimeunit ();
         $aData['TAS_TYPE_DAY'] = $objTask->getTasTypeDay ();
@@ -432,7 +462,7 @@ class AppDelegation extends BaseAppDelegation
         $timezone = $date->format ('Y-m-d H:i:s');
 
         $dueDate = $calendar->dashCalculateDate ($initDate, $aData["TAS_DURATION"], $aData["TAS_TIMEUNIT"], $arrayCalendarData);
-                        
+
         return $dueDate;
     }
 

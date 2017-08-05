@@ -55,6 +55,11 @@ class WorkflowStep
         return $this->_workflowStepId;
     }
 
+    public function setWorkflowId ($workflowId)
+    {
+        $this->workflowId = $workflowId;
+    }
+
     public function getNextStepId ()
     {
         return $this->nextStep;
@@ -83,6 +88,11 @@ class WorkflowStep
     public function getCurrentTask ()
     {
         return $this->currentTask;
+    }
+
+    public function getCollectionId ()
+    {
+        return $this->collectionId;
     }
 
     public function setStepInformation ()
@@ -226,6 +236,10 @@ class WorkflowStep
         {
             return false;
         }
+
+        (new \Log (LOG_FILE))->log (
+                "NUMBER 2", \Log::NOTICE);
+
         if ( $objMike->save ($objUser) === false )
         {
             return false;
@@ -262,7 +276,32 @@ class WorkflowStep
         return false;
     }
 
-    //completeAuditObject (Users $objUser, array $arrCompleteData = [])
+    private function completeAuditObject (Users $objUser, array $arrCompleteData = [], $isParallel = false)
+    {
+        if ( $isParallel === true && !isset ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers']) )
+        {
+            $arrUsers = (new \BusinessModel\Task())->getTaskAssigneesAll ($this->workflowId, $this->_stepId, '', 0, 100, "user");
+            $parallelUsers = [];
+            foreach ($arrUsers as $key => $user) {
+                $parallelUsers[$key]['username'] = $user['aas_username'];
+            }
+            $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers'] = $parallelUsers;
+        }
+
+        if ( $isParallel === true && isset ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers']) )
+        {
+            if ( isset ($arrCompleteData['claimed']) && trim ($arrCompleteData['claimed']) !== "" )
+            {
+                foreach ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers'] as $key => $parallelUser) {
+                    if ( trim ($parallelUser['username']) === trim ($arrCompleteData['claimed']) )
+                    {
+                        $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers'][$key]['dateCompleted'] = date ("Y-m-d H:i:s");
+                    }
+                }
+            }
+        }
+        return true;
+    }
 
     /**
      * Puts a task into review state if(incorrect data given or report_to task assign type is set
@@ -277,7 +316,6 @@ class WorkflowStep
         $arrErrorsCodes = $objValidate->validate ($arrFormData);
 
         $objTask = (new Task())->retrieveByPk ($this->_stepId);
-
 
         if ( !empty ($arrErrorsCodes) || trim ($objTask->getTasAssignType ()) === "REPORT_TO" )
         {
@@ -351,66 +389,11 @@ class WorkflowStep
         $objNotifications->buildEmail ($objStep);
     }
 
-    private function completeAuditObject (Users $objUser, array $arrCompleteData = [], $isParallel = false)
-    {
-        $claimed = trim ($objUser->getUsername ()) !== "" ? $objUser->getUsername () : $arrCompleteData['claimed'];
-
-        if ( $isParallel === true && !isset ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers']) )
-        {
-            $arrUsers = (new \BusinessModel\Task())->getTaskAssigneesAll ($this->workflowId, $this->_stepId, '', 0, 100, "user");
-
-            $parallelUsers = [];
-
-            foreach ($arrUsers as $key => $user) {
-                $parallelUsers[$key]['username'] = $user['aas_username'];
-            }
-
-            $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers'] = $parallelUsers;
-        }
-
-        if ( is_numeric ($this->parentId) && is_numeric ($this->elementId) )
-        {
-            $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['claimed'] = $claimed;
-            $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['dateCompleted'] = $arrCompleteData['dateCompleted'];
-            $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['status'] = $arrCompleteData['status'];
-
-            if ( isset ($arrCompleteData['due_date']) )
-            {
-                $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['due_date'] = $arrCompleteData['due_date'];
-            }
-        }
-        else
-        {
-            $this->objAudit['claimed'] = $claimed;
-            $this->objAudit['dateCompleted'] = $arrCompleteData['dateCompleted'];
-            $this->objAudit['status'] = $arrCompleteData['status'];
-
-            if ( isset ($arrCompleteData['due_date']) )
-            {
-                $this->objAudit['due_date'] = $arrCompleteData['due_date'];
-            }
-        }
-
-        if ( $isParallel === true && isset ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers']) )
-        {
-            if ( isset ($arrCompleteData['claimed']) && trim ($arrCompleteData['claimed']) !== "" )
-            {
-                foreach ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers'] as $key => $parallelUser) {
-                    if ( trim ($parallelUser['username']) === trim ($arrCompleteData['claimed']) )
-                    {
-                        $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers'][$key]['dateCompleted'] = date ("Y-m-d H:i:s");
-                    }
-                }
-            }
-        }
-
-        return true;
-    }
-
     private function completeWorkflowObject ($objMike, Users $objUser, $arrCompleteData, $complete = false, $arrEmailAddresses = array())
     {
         $this->elementId = $objMike->getId ();
         $arrWorkflow = array();
+
         if ( method_exists ($objMike, "getParentId") )
         {
             $this->parentId = $objMike->getParentId ();
@@ -429,7 +412,7 @@ class WorkflowStep
 
         if ( !isset ($arrCompleteData['status']) || trim ($arrCompleteData['status']) !== "REJECT" )
         {
-            $blHasTrigger = $objTrigger->checkTriggers ($objMike, $objUser);
+            $blHasTrigger = $objTrigger->checkTriggers ($this, $objMike, $objUser);
         }
 
         // reload
@@ -437,26 +420,26 @@ class WorkflowStep
         {
             $arrWorkflowData = $this->getWorkflowData ();
             $arrWorkflowObject = json_decode ($arrWorkflowData[0]['workflow_data'], true);
+
+            (new \Log (LOG_FILE))->log (
+                    "NUMBER 3", \Log::NOTICE);
         }
 
         $this->objAudit = json_decode ($arrWorkflowData[0]['audit_data'], true);
-
         if ( $complete === true && $this->nextStep !== 0 && $this->nextStep != "" )
         {
-
             if ( $blHasTrigger === true )
             {
                 $arrWorkflowObject = $objTrigger->arrWorkflowObject;
-                $step = $arrWorkflowObject['current_step'];
-            }
 
+                $step2 = $arrWorkflowObject['elements'][$this->elementId]['current_step'];
+            }
             if ( $objTrigger->blMove === true || $blHasTrigger === false )
             {
                 $blHasTrigger = false;
                 $step = $this->nextTask;
-                $step2 = $this->nextStep;
+                $step2 = trim ($step2) === "" ? $this->nextStep : $step2;
                 $arrWorkflow['current_step'] = $this->nextStep;
-
                 (new \Log (LOG_FILE))->log (
                         array(
                     "message" => "STEP COMPLETED",
@@ -467,59 +450,39 @@ class WorkflowStep
                     'step_id' => $this->nextStep
                         ), \Log::NOTICE);
             }
-            $arrWorkflow['status'] = "STEP COMPLETED";
+
+            $status = "STEP COMPLETED";
         }
         else
         {
             $step = $this->currentTask;
-            $step2 = $this->_workflowStepId;
+            $step2 = isset($step2) && trim ($step2) !== "" ? $step2 : $this->_workflowStepId;
             $arrWorkflow['current_step'] = $this->_workflowStepId;
             if ( $this->nextStep == 0 || $this->nextStep == "" )
             {
-                $arrWorkflow['status'] = "WORKFLOW COMPLETE";
+                $status = "WORKFLOW COMPLETE";
             }
             else
             {
-                $arrWorkflow['status'] = "SAVED";
+                $status = "SAVED";
             }
         }
 
         if ( !isset ($step) || !isset ($step2) )
         {
             $step = $this->currentTask;
-            $step2 = $this->_stepId;
+             $step2 = trim($step2) === "" ? $this->_stepId : $step2;
         }
-
         /*         * ******************** Get due date for Task ********************** */
-        $objAppDelegation = new AppDelegation();
         $objTask = new Task();
         $objTask->setTasUid ($step);
         $objTask->setStepId ($step2);
-
-        try {
-            if ( !isset ($this->objAudit['elements'][$this->elementId]['steps'][$step]) )
-            {
-                //$arrCompleteData['due_date'] = $objAppDelegation->calculateDueDate ((new Task ($this->_stepId))->retrieveByPk ($step));
-            }
-            else
-            {
-                if ( isset ($this->objAudit['elements'][$this->elementId]['steps'][$step]['due_date']) )
-                {
-                    $arrCompleteData['due_date'] = $this->objAudit['elements'][$this->elementId]['steps'][$step]['due_date'];
-                }
-                else
-                {
-                    $arrCompleteData['due_date'] = "";
-                }
-            }
-        } catch (Exception $ex) {
-            
-        }
+        $blIsParralelTask = false;
 
         if ( isset ($arrCompleteData['dateCompleted']) && isset ($arrCompleteData['claimed']) )
         {
             $objTask = $objTask->retrieveByPk ($this->_stepId);
-            $blIsParralelTask = false;
+
 
             if ( in_array ($objTask->getTasAssignType (), array("MULTIPLE_INSTANCE", "MULTIPLE_INSTANCE_VALUE_BASED")) )
             {
@@ -532,8 +495,8 @@ class WorkflowStep
             }
 
             $blProcessSupervisor = (new \BusinessModel\ProcessSupervisor())->isUserProcessSupervisor ((new Workflow ($this->workflowId)), $objUser);
-
             $this->completeAuditObject ($objUser, $arrCompleteData, $blIsParralelTask);
+
             if ( $complete === true || in_array ($taskType, array("HELD", "ABANDONED", "CLAIMED")) )
             {
                 if ( trim ($taskType) === "" )
@@ -552,20 +515,17 @@ class WorkflowStep
                 switch ($taskType) {
                     case "PARALLEL":
                         $blTaskUsersCompleted = 0;
-
                         foreach ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers'] as $key => $parallelUser) {
                             if ( isset ($parallelUser['dateCompleted']) && trim ($parallelUser['dateCompleted']) !== "" )
                             {
                                 $blTaskUsersCompleted++;
                             }
                         }
-
                         if ( count ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers']) !== $blTaskUsersCompleted )
                         {
-                            $arrWorkflow['current_step'] = $this->_workflowStepId;
+                            $step2 = $this->_workflowStepId;
                         }
                         break;
-
                     case "AUTO_ASSIGN":
                     case "COMPLETE":
                     case "HELD";
@@ -580,10 +540,11 @@ class WorkflowStep
 
                         if ( $blHasValidUser !== true && $blProcessSupervisor !== true )
                         {
-                            $arrWorkflow['current_step'] = $this->_workflowStepId;
+//                            $arrWorkflow['current_step'] = $this->_workflowStepId;
                             throw new Exception ("Invalid task user");
                         }
 
+                        /*                         * ************************** Process Triggers ********************************************* */
                         if ( $taskType === "ABANDONED" && trim ($objProcess->getProTriCanceled ()) !== "" )
                         {
                             $objTrigger->executeSendMail (null, $objProcess->getProTriCanceled ());
@@ -600,7 +561,6 @@ class WorkflowStep
                         }
 
                         break;
-
                     case "CLAIMED":
                         foreach ($arrUsers as $arrUser) {
                             if ( trim ($arrUser['aas_username']) === trim ($arrCompleteData['claimed']) )
@@ -608,27 +568,21 @@ class WorkflowStep
                                 $blHasValidUser = true;
                             }
                         }
-
                         if ( $blHasValidUser !== true )
                         {
                             unset ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]);
                         }
-
-                        $arrWorkflow['current_step'] = $this->_workflowStepId;
-
+                       $step2 = trim ($step2) === "" ? $this->_workflowStepId : $step2;
                         break;
                 }
             }
         }
-
         if ( isset ($arrCompleteData['status']) && $arrCompleteData['status'] === "AUTO_ASSIGN" )
         {
-
             if ( !isset ($arrCompleteData['claimed']) )
                 $arrUsers = (new \BusinessModel\Task())->getTaskAssigneesAll ($this->workflowId, $this->_stepId, '', 0, 100, "user");
         }
 
-        $arrWorkflow['workflow_id'] = $this->workflowId;
         if ( !empty ($arrWorkflowData) )
         {
             $this->objWorkflow = $arrWorkflowObject;
@@ -637,30 +591,23 @@ class WorkflowStep
         {
             $this->objWorkflow = $arrWorkflow;
         }
-
         if ( is_numeric ($this->parentId) && is_numeric ($this->elementId) && $blHasTrigger !== true )
         {
             $this->objWorkflow['elements'][$this->elementId] = $arrWorkflow;
         }
-
         /*         * ***************** Check events for task ************************** */
         $hasEvent = isset ($arrCompleteData['hasEvent']) ? 'true' : 'false';
-        $this->objWorkflow['elements'][$this->parentId]['hasEvent'] = $hasEvent;
-        $this->objWorkflow['elements'][$this->elementId]['hasEvent'] = $hasEvent;
 
         if ( $hasEvent !== 'true' )
         {
             $this->checkEvents ($objUser);
         }
-
         if ( ($this->nextStep == 0 || $this->nextStep == "") && $complete === true && $arrCompleteData['status'] == "COMPLETE" )
         {
             $arrCompleteData['status'] = "COMPLETE";
-            $this->objWorkflow['elements'][$this->elementId]['status'] = "WORKFLOW COMPLETE";
+            $status = "WORKFLOW COMPLETE";
         }
-
         /*         * ****************** Validate User ****************** */
-
         if ( isset ($arrCompleteData['status']) && trim ($arrCompleteData['status']) === "CLAIMED" )
         {
             $claimFlag = true;
@@ -669,7 +616,6 @@ class WorkflowStep
         {
             $claimFlag = false;
         }
-
         // check permissions
         $objCase = new \BusinessModel\Cases();
         $isValidUser = $objCase->doPostReassign (
@@ -690,37 +636,36 @@ class WorkflowStep
         }
 
         // Update workflow and audit object
-        $strAudit = json_encode ($this->objAudit);
 
-        $objectId = isset ($this->parentId) && is_numeric ($this->parentId) ? $this->parentId : $this->elementId;
-
-        $strWorkflow = json_encode ($this->objWorkflow);
-
-        (new AppDelegation())->createAppDelegation ($this, $objMike, $objUser, $step);
-        die;
-
-        if ( !empty ($arrWorkflowData) )
+        if ( $blIsParralelTask === true )
         {
-            $this->objMysql->_update ("workflow.workflow_data", array(
-                "workflow_data" => $strWorkflow,
-                "audit_data" => $strAudit), array(
-                "object_id" => $objectId
-                    ), array(
-                "id" => $this->objectId
-                    )
-            );
+            $strAudit = json_encode ($this->objAudit);
+            $objectId = isset ($this->parentId) && is_numeric ($this->parentId) ? $this->parentId : $this->elementId;
+
+            if ( !empty ($arrWorkflowData) )
+            {
+                $this->objMysql->_update ("workflow.workflow_data", array(
+                    "audit_data" => $strAudit), array(
+                    "object_id" => $objectId
+                        ), array(
+                    "id" => $this->objectId
+                        )
+                );
+            }
+            else
+            {
+                $this->objMysql->_insert ("workflow.workflow_data", array(
+                    "audit_data" => $strAudit,
+                    "object_id" => $objectId)
+                );
+            }
         }
-        else
-        {
-            $this->objMysql->_insert ("workflow.workflow_data", array(
-                "workflow_data" => $strWorkflow,
-                "audit_data" => $strAudit,
-                "object_id" => $objectId)
-            );
-        }
+
+        $auditStatus = isset ($arrCompleteData['status']) ? $arrCompleteData['status'] : '';
+
+        (new AppDelegation())->createAppDelegation ($this, $objMike, $objUser, $objTask, $this->_stepId, 3, false, -1, $step2, $hasEvent, $blIsParralelTask, $status, $auditStatus);
 
         $this->sendNotification ($objMike, $arrCompleteData, $arrEmailAddresses);
-
         $this->nextTask = $step;
     }
 
