@@ -447,6 +447,7 @@ class WorkflowStep
             if ( $blHasTrigger === true )
             {
                 $arrWorkflowObject = $objTrigger->arrWorkflowObject;
+                $step = $arrWorkflowObject['current_step'];
             }
 
             if ( $objTrigger->blMove === true || $blHasTrigger === false )
