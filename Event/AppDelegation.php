@@ -46,7 +46,6 @@ class AppDelegation extends BaseAppDelegation
             $iPriority = 3, 
             $isSubprocess = false, 
             $sPrevious = -1, 
-            $sNextTasParam = null, 
             $hasEvent = null, 
             $flagControlMulInstance = false, 
             $status, 
@@ -108,7 +107,7 @@ class AppDelegation extends BaseAppDelegation
 
         $this->setAppUid (method_exists ($objElement, "getSource_id") ? $objElement->getSource_id () : $objElement->getId ());
         $this->setProUid ($objWorkflowStep->getWorkflowId ());
-        $this->setTasUid ($sNextTasParam);
+        $this->setTasUid ($objTask->getStepId());
         $this->setDelIndex ($delIndex);
         $this->setDelLastIndex (1);
         $this->setDelPrevious ($sPrevious == - 1 ? 0 : $sPrevious );
@@ -117,7 +116,7 @@ class AppDelegation extends BaseAppDelegation
         $this->setDelPriority (($iPriority != '' ? $iPriority : '3'));
         $this->setDelThreadStatus ('OPEN');
         $this->setDelDelegateDate ('now');
-        $this->setTasId ($sNextTasParam);
+        $this->setTasId ($objTask->getStepId());
         $this->setCollectionId ((int) $objWorkflowStep->getCollectionId ());
         $this->setHasEvent ((int) $hasEvent);
         $this->setUsrId ($objUser->getUsername ());

@@ -92,7 +92,21 @@ class WorkflowCollection extends BaseWorkflowCollection
         }
     }
 
-    public function getMappedWorkflows ($blParent)
+    public function getWorkflowsByCategory ()
+    {
+        $sql = "SELECT w.* FROM workflow.workflows w
+                INNER JOIN workflow.request_types r ON r.request_id = w.`request_id`";
+
+
+        $sql .= " WHERE r.request_id = ?";
+        $arrParameters[] = $this->requestId;
+
+        $arrResult = $this->objMysql->_query ($sql, $arrParameters);
+
+        return $arrResult;
+    }
+
+    public function getMappedWorkflows ()
     {
         $arrParameters = [];
 
@@ -105,7 +119,6 @@ class WorkflowCollection extends BaseWorkflowCollection
         $arrParameters[] = $this->requestId;
 
         $arrResult = $this->objMysql->_query ($sql, $arrParameters);
-        
 
         return $arrResult;
     }

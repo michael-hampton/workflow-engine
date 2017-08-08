@@ -218,7 +218,8 @@ class StepTrigger
                             if ( $triggerType == "step" )
                             {
                                 $objTask = (new \Task())->retrieveByPk ($objWorkflowStep->getStepId ());
-                                (new \AppDelegation())->createAppDelegation ($objWorkflowStep, new \Save ($this->parentId), $objUser, $objTask, $objWorkflowStep->getStepId (), 3, false, -1, $arrTrigger['step_to'], null, false, "STEP_COMPLETE", "COMPLETE");
+                                $objTask->setStepId ($arrTrigger['step_to']);
+                                (new \AppDelegation())->createAppDelegation ($objWorkflowStep, new \Save ($this->parentId), $objUser, $objTask, $objWorkflowStep->getStepId (), 3, false, -1, null, false, "STEP_COMPLETE", "COMPLETE");
 
                                 (new \Log (LOG_FILE))->log (
                                         array(
@@ -542,31 +543,34 @@ class StepTrigger
             $templateName = $arrTrigger['template_name'];
         }
 
-        $template = PATH_DATA_MAILTEMPLATES . $templateName . ".html";
-
-        $content = file_get_contents ($template);
-        $subject = "CASE HAS BEEN " . $arrTrigger['event_type'] . " BY [USER]";
-
-        $objSendNotification = new \SendNotification();
-        $objSendNotification->setProjectId ($this->parentId);
-        $recipients = $objSendNotification->getTaskUsers ();
-
-        if ( empty ($recipients) )
+        if ( !empty ($arrTrigger) )
         {
-            return false;
-        }
+            $template = PATH_DATA_MAILTEMPLATES . $templateName . ".html";
 
-        $objCase = new \BusinessModel\Cases();
+            $content = file_get_contents ($template);
+            $subject = "CASE HAS BEEN " . $arrTrigger['event_type'] . " BY [USER]";
 
-        $recipients = implode (",", $recipients);
+            $objSendNotification = new \SendNotification();
+            $objSendNotification->setProjectId ($this->parentId);
+            $recipients = $objSendNotification->getTaskUsers ();
 
-        $Fields = $objCase->getCaseVariables ((int) $this->elementId, (int) $this->parentId, (int) $this->currentStep);
+            if ( empty ($recipients) )
+            {
+                return false;
+            }
 
-        if ( trim ($content) !== "" && trim ($subject) !== "" )
-        {
-            $subject = $objCase->replaceDataField ($subject, $Fields);
-            $body = $objCase->replaceDataField ($content, $Fields);
-            $objSendNotification->notificationEmail ($recipients, $subject, $body);
+            $objCase = new \BusinessModel\Cases();
+
+            $recipients = implode (",", $recipients);
+
+            $Fields = $objCase->getCaseVariables ((int) $this->elementId, (int) $this->parentId, (int) $this->currentStep);
+
+            if ( trim ($content) !== "" && trim ($subject) !== "" )
+            {
+                $subject = $objCase->replaceDataField ($subject, $Fields);
+                $body = $objCase->replaceDataField ($content, $Fields);
+                $objSendNotification->notificationEmail ($recipients, $subject, $body);
+            }
         }
     }
 
