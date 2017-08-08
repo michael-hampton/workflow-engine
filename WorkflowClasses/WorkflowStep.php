@@ -392,7 +392,6 @@ class WorkflowStep
     private function completeWorkflowObject ($objMike, Users $objUser, $arrCompleteData, $complete = false, $arrEmailAddresses = array())
     {
         $this->elementId = $objMike->getId ();
-        $arrWorkflow = array();
 
         if ( method_exists ($objMike, "getParentId") )
         {
@@ -404,10 +403,7 @@ class WorkflowStep
         }
 
         /*         * ************** Determine next step if there is one else stay at current step ********************** */
-        $arrWorkflowData = $this->getWorkflowData ();
-        $arrWorkflowObject = json_decode ($arrWorkflowData[0]['workflow_data'], true);
         $blHasTrigger = false;
-        $arrWorkflow['request_id'] = $this->collectionId;
         $objTrigger = new \BusinessModel\StepTrigger ($this->_workflowStepId, $this->nextStep);
 
         if ( !isset ($arrCompleteData['status']) || trim ($arrCompleteData['status']) !== "REJECT" )
@@ -415,23 +411,11 @@ class WorkflowStep
             $blHasTrigger = $objTrigger->checkTriggers ($this, $objMike, $objUser);
         }
 
-        // reload
-        if ( $objTrigger->blAddedCase )
-        {
-            $arrWorkflowData = $this->getWorkflowData ();
-            $arrWorkflowObject = json_decode ($arrWorkflowData[0]['workflow_data'], true);
-
-            (new \Log (LOG_FILE))->log (
-                    "NUMBER 3", \Log::NOTICE);
-        }
-
-        $this->objAudit = json_decode ($arrWorkflowData[0]['audit_data'], true);
         if ( $complete === true && $this->nextStep !== 0 && $this->nextStep != "" )
         {
             if ( $blHasTrigger === true )
             {
                 $arrWorkflowObject = $objTrigger->arrWorkflowObject;
-
                 $step2 = $arrWorkflowObject['elements'][$this->elementId]['current_step'];
             }
             if ( $objTrigger->blMove === true || $blHasTrigger === false )
@@ -439,7 +423,7 @@ class WorkflowStep
                 $blHasTrigger = false;
                 $step = $this->nextTask;
                 $step2 = trim ($step2) === "" ? $this->nextStep : $step2;
-                $arrWorkflow['current_step'] = $this->nextStep;
+
                 (new \Log (LOG_FILE))->log (
                         array(
                     "message" => "STEP COMPLETED",
@@ -457,7 +441,7 @@ class WorkflowStep
         {
             $step = $this->currentTask;
             $step2 = isset($step2) && trim ($step2) !== "" ? $step2 : $this->_workflowStepId;
-            $arrWorkflow['current_step'] = $this->_workflowStepId;
+
             if ( $this->nextStep == 0 || $this->nextStep == "" )
             {
                 $status = "WORKFLOW COMPLETE";
@@ -582,19 +566,7 @@ class WorkflowStep
             if ( !isset ($arrCompleteData['claimed']) )
                 $arrUsers = (new \BusinessModel\Task())->getTaskAssigneesAll ($this->workflowId, $this->_stepId, '', 0, 100, "user");
         }
-
-        if ( !empty ($arrWorkflowData) )
-        {
-            $this->objWorkflow = $arrWorkflowObject;
-        }
-        else
-        {
-            $this->objWorkflow = $arrWorkflow;
-        }
-        if ( is_numeric ($this->parentId) && is_numeric ($this->elementId) && $blHasTrigger !== true )
-        {
-            $this->objWorkflow['elements'][$this->elementId] = $arrWorkflow;
-        }
+        
         /*         * ***************** Check events for task ************************** */
         $hasEvent = isset ($arrCompleteData['hasEvent']) ? 'true' : 'false';
 
@@ -602,11 +574,13 @@ class WorkflowStep
         {
             $this->checkEvents ($objUser);
         }
+        
         if ( ($this->nextStep == 0 || $this->nextStep == "") && $complete === true && $arrCompleteData['status'] == "COMPLETE" )
         {
             $arrCompleteData['status'] = "COMPLETE";
             $status = "WORKFLOW COMPLETE";
         }
+        
         /*         * ****************** Validate User ****************** */
         if ( isset ($arrCompleteData['status']) && trim ($arrCompleteData['status']) === "CLAIMED" )
         {
@@ -616,6 +590,7 @@ class WorkflowStep
         {
             $claimFlag = false;
         }
+        
         // check permissions
         $objCase = new \BusinessModel\Cases();
         $isValidUser = $objCase->doPostReassign (
@@ -637,29 +612,29 @@ class WorkflowStep
 
         // Update workflow and audit object
 
-        if ( $blIsParralelTask === true )
-        {
-            $strAudit = json_encode ($this->objAudit);
-            $objectId = isset ($this->parentId) && is_numeric ($this->parentId) ? $this->parentId : $this->elementId;
-
-            if ( !empty ($arrWorkflowData) )
-            {
-                $this->objMysql->_update ("workflow.workflow_data", array(
-                    "audit_data" => $strAudit), array(
-                    "object_id" => $objectId
-                        ), array(
-                    "id" => $this->objectId
-                        )
-                );
-            }
-            else
-            {
-                $this->objMysql->_insert ("workflow.workflow_data", array(
-                    "audit_data" => $strAudit,
-                    "object_id" => $objectId)
-                );
-            }
-        }
+//        if ( $blIsParralelTask === true )
+//        {
+//            $strAudit = json_encode ($this->objAudit);
+//            $objectId = isset ($this->parentId) && is_numeric ($this->parentId) ? $this->parentId : $this->elementId;
+//
+//            if ( !empty ($arrWorkflowData) )
+//            {
+//                $this->objMysql->_update ("workflow.workflow_data", array(
+//                    "audit_data" => $strAudit), array(
+//                    "object_id" => $objectId
+//                        ), array(
+//                    "id" => $this->objectId
+//                        )
+//                );
+//            }
+//            else
+//            {
+//                $this->objMysql->_insert ("workflow.workflow_data", array(
+//                    "audit_data" => $strAudit,
+//                    "object_id" => $objectId)
+//                );
+//            }
+//        }
 
         $auditStatus = isset ($arrCompleteData['status']) ? $arrCompleteData['status'] : '';
 

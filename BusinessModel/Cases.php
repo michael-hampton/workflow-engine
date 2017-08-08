@@ -624,7 +624,7 @@ class Cases
                 if (isset ($variables['form']['description']) && trim($variables['form']['description']) !== "") {
                     $objElements->setOriginalDescription($variables['form']['description']);
                 }
-
+                
                 $validation = $objStep->save($objElements, $variables['form'], $objUser);
                 $caseId = $objElements->getId();
 

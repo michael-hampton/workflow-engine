@@ -646,12 +646,19 @@ class Elements
             $this->getConnection ();
         }
 
-        $id = $this->id;
-        $this->getProjectById ();
-
-        if ( trim ($id) !== "" )
+        if ( trim ($this->source_id) !== "" )
         {
-            $this->setId ($id);
+            $result = $this->objMysql->_select ("task_manager.projects", [], ["id" => $this->source_id]);
+
+            if ( isset ($result[0]) && !empty ($result[0]) )
+            {
+                $data = json_decode ($result[0]['step_data'], true);
+            }
+
+            if ( isset ($data['elements']) )
+            {
+                $this->JSON['elements'] = $data['elements'];
+            }
         }
 
         if ( $this->id == "" )
@@ -678,7 +685,7 @@ class Elements
         }
 
         (new \Log (LOG_FILE))->log (
-                $this->JSON['elements'][$id], \Log::NOTICE);
+                $this->JSON['elements'][$this->id], \Log::NOTICE);
 
         $additionalTables = new AdditionalTables();
         $additionalTables->updateReportTables ($this);
