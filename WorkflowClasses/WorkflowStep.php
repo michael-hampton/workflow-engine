@@ -237,9 +237,6 @@ class WorkflowStep
             return false;
         }
 
-        (new \Log (LOG_FILE))->log (
-                "NUMBER 2", \Log::NOTICE);
-
         if ( $objMike->save ($objUser) === false )
         {
             return false;
@@ -506,9 +503,6 @@ class WorkflowStep
 
             $blProcessSupervisor = (new \BusinessModel\ProcessSupervisor())->isUserProcessSupervisor ((new Workflow ($this->workflowId)), $objUser);
 
-            //$this->completeAuditObject ($objUser, $arrCompleteData, $blIsParralelTask);
-
-
             if ( $complete === true || in_array ($taskType, array("HELD", "ABANDONED", "CLAIMED")) )
             {
                 if ( trim ($taskType) === "" )
@@ -643,31 +637,6 @@ class WorkflowStep
         {
             //throw new Exception ("Invalid user given. Cannot complete workflow step " . $step . " - " . $this->workflowId);
         }
-
-        // Update workflow and audit object
-//        if ( $blIsParralelTask === true )
-//        {
-//            $strAudit = json_encode ($this->objAudit);
-//            $objectId = isset ($this->parentId) && is_numeric ($this->parentId) ? $this->parentId : $this->elementId;
-//
-//            if ( !empty ($arrWorkflowData) )
-//            {
-//                $this->objMysql->_update ("workflow.workflow_data", array(
-//                    "audit_data" => $strAudit), array(
-//                    "object_id" => $objectId
-//                        ), array(
-//                    "id" => $this->objectId
-//                        )
-//                );
-//            }
-//            else
-//            {
-//                $this->objMysql->_insert ("workflow.workflow_data", array(
-//                    "audit_data" => $strAudit,
-//                    "object_id" => $objectId)
-//                );
-//            }
-//        }
 
         $auditStatus = isset ($arrCompleteData['status']) ? $arrCompleteData['status'] : '';
 
