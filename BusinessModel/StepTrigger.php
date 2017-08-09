@@ -170,20 +170,7 @@ class StepTrigger
                     $workflowTo = $arrTrigger['workflow_to'];
 
                     $objWorkflow = new \Workflow ($workflowTo);
-                    $arrCase = $objCase->addCase ($objWorkflow, $objUser, array(), array(), false, $projectId, true);
-
-//                    $this->objMysql->_insert ("workflow.APP_EVENT", [
-//                        "APP_UID" => $this->parentId,
-//                        "DEL_INDEX" => 1,
-//                        "APP_EVN_ACTION_DATE" => date ("Y-m-d H:i:s"),
-//                        "APP_EVN_ATTEMPTS" => 1,
-//                        "APP_EVN_LAST_EXECUTION_DATE" => date ("Y-m-d H:i:s"),
-//                        "APP_EVN_STATUS" => "OPEN"
-//                            ]
-//                    );
-
-                    (new \Log (LOG_FILE))->log (
-                            array("NUMBER" => 1), \Log::NOTICE);
+                    $arrCase = $objCase->addCase ($objWorkflow, $objUser, array(), array(), false, $projectId, true)
                     $this->blAddedCase = true;
 
                     (new \Log (LOG_FILE))->log (
