@@ -38,19 +38,7 @@ class AppDelegation extends BaseAppDelegation
      * @return delegation index of the application delegation.
      */
     public function createAppDelegation (
-            WorkflowStep $objWorkflowStep, 
-            $objElement, 
-            Users $objUser, 
-            Task $objTask, 
-            $step, 
-            $iPriority = 3, 
-            $isSubprocess = false, 
-            $sPrevious = -1, 
-            $hasEvent = null, 
-            $flagControlMulInstance = false, 
-            $status, 
-            $status2, 
-            $delPrevious = 0, $taskId = 0, $userId = 0, $proId = 0)
+    WorkflowStep $objWorkflowStep, $objElement, Users $objUser, Task $objTask, $step, $iPriority = 3, $isSubprocess = false, $sPrevious = -1, $hasEvent = null, $flagControlMulInstance = false, $status, $status2, $delPrevious = 0, $taskId = 0, $userId = 0, $proId = 0)
     {
         if ( strlen ($objWorkflowStep->getWorkflowId ()) == 0 )
         {
@@ -78,7 +66,7 @@ class AppDelegation extends BaseAppDelegation
         //Get max DEL_INDEX
 
         $sql = "SELECT * FROM workflow.workflow_data WHERE object_id = ? AND DEL_LAST_INDEX = 1 ORDER BY DEL_INDEX DESC";
-        $objectId = method_exists($objElement, "getSource_id") ? $objElement->getSource_id() : $objElement->getId();
+        $objectId = method_exists ($objElement, "getSource_id") ? $objElement->getSource_id () : $objElement->getId ();
         $arrParameters = array($objectId);
 
         $results = $this->objMysql->_query ($sql, $arrParameters);
@@ -107,7 +95,7 @@ class AppDelegation extends BaseAppDelegation
 
         $this->setAppUid (method_exists ($objElement, "getSource_id") ? $objElement->getSource_id () : $objElement->getId ());
         $this->setProUid ($objWorkflowStep->getWorkflowId ());
-        $this->setTasUid ($objTask->getStepId());
+        $this->setTasUid ($objTask->getStepId ());
         $this->setDelIndex ($delIndex);
         $this->setDelLastIndex (1);
         $this->setDelPrevious ($sPrevious == - 1 ? 0 : $sPrevious );
@@ -116,7 +104,7 @@ class AppDelegation extends BaseAppDelegation
         $this->setDelPriority (($iPriority != '' ? $iPriority : '3'));
         $this->setDelThreadStatus ('OPEN');
         $this->setDelDelegateDate ('now');
-        $this->setTasId ($objTask->getStepId());
+        $this->setTasId ($objTask->getStepId ());
         $this->setCollectionId ((int) $objWorkflowStep->getCollectionId ());
         $this->setHasEvent ((int) $hasEvent);
         $this->setUsrId ($objUser->getUsername ());
@@ -599,6 +587,41 @@ class AppDelegation extends BaseAppDelegation
             'dNow' => $nowDate,
             'row' => $row
         );
+    }
+
+    /*
+
+     * With this we can change the status to CLOSED in APP_DELEGATION
+
+     *
+
+     * @name CloseCurrentDelegation
+
+     * @param string $sAppUid
+
+     * @param string $iDelIndex
+
+     * @return Fields
+
+     */
+
+    public function CloseCurrentDelegation ($objMike, WorkflowStep $objWorkflowStep)
+    {
+
+        try {
+            $this->setDelFinishDate ('now');
+            $this->setDelThreadStatus ("CLOSED");
+            $this->setAppNumber ($objMike->getId ());
+            $this->setAppUid ($objMike->getSource_id ());
+            $this->setTasUid ($objWorkflowStep->getCurrentStep ());
+
+            if ( $this->validate () )
+            {
+                $this->completeAudit ();
+            }
+        } catch (Exception $ex) {
+            throw $ex;
+        }
     }
 
 }

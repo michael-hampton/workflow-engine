@@ -84,6 +84,11 @@ class WorkflowStep
     {
         return $this->nextTask;
     }
+    
+    public function getCurrentStep ()
+    {
+        return $this->currentStep;
+    }
 
     public function getCurrentTask ()
     {
@@ -421,6 +426,8 @@ class WorkflowStep
                 $blHasTrigger = false;
                 $step = $this->nextTask;
                 $step2 = isset ($step2) && trim ($step2) !== "" ? $step2 : $this->nextStep;
+                
+                (new AppDelegation())->CloseCurrentDelegation($objMike, $this);
 
                 (new \Log (LOG_FILE))->log (
                         array(

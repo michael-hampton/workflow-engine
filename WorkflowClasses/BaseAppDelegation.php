@@ -522,7 +522,7 @@ abstract class BaseAppDelegation implements Persistent
         }
         if ( $format === null )
         {
-            return $ts;
+            return date ("Y-m-d H:i:s", $ts);
         }
         elseif ( strpos ($format, '%') !== false )
         {
@@ -1160,7 +1160,7 @@ abstract class BaseAppDelegation implements Persistent
         }
         if ( $this->del_finish_date !== $ts )
         {
-            $this->del_finish_date = $ts;
+            $this->del_finish_date = date ("Y-m-d H:i:s", $ts);
         }
     }
 
@@ -1493,6 +1493,11 @@ abstract class BaseAppDelegation implements Persistent
         $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['status'] = $this->auditStatus;
         $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['due_date'] = $this->del_task_due_date;
         $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['risk_date'] = $this->del_risk_date;
+        $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['del_duration'] = $this->del_duration;
+        $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['del_delay_duration'] = $this->del_delay_duration;
+        $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['del_delayed'] = $this->del_delayed;
+        $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['app_overdue_percentage'] = $this->app_overdue_percentage;
+        $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['finish_date'] = $this->del_finished;
 
         if ( $workflowData === false )
         {
@@ -1521,6 +1526,27 @@ abstract class BaseAppDelegation implements Persistent
             "DEL_PREVIOUS" => $this->del_previous
                 ], ["object_id" => $this->app_uid]
         );
+    }
+
+    public function completeAudit ()
+    {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        $workflowData = $this->getObjectIfExists ();
+
+        if ( $workflowData !== false )
+        {
+            $workflowObject = json_decode ($workflowData['0']['workflow_data'], true);
+            $auditObject = json_decode ($workflowData[0]['audit_data'], true);
+        }
+
+        $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['finish_date'] = $this->del_finish_date;
+        $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['status'] = $this->del_thread_status;
+
+        $this->objMysql->_update ("workflow.workflow_data", ['audit_data' => json_encode ($auditObject)], ['object_id' => $this->app_uid]);
     }
 
     /**
