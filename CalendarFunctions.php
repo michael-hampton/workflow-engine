@@ -508,4 +508,100 @@ class CalendarFunctions extends CalendarDefinition
         return $iniDate;
     }
 
+    public function validateCalendarInfo ($fields, $defaultCalendar)
+    {
+
+        try {
+            //Validate if Working days are Correct
+            //Minimun 3 ?
+            $workingDays = explode ('|', $fields['CALENDAR_WORK_DAYS']);
+            if ( count ($workingDays) < 3 )
+            {
+                throw (new \Exception ('You must define at least 3 Working Days!'));
+            }
+            //Validate that all Working Days have Bussines Hours
+            if ( count ($fields ['BUSINESS_DAY']) < 1 )
+            {
+                throw (new \Exception ('You must define at least one Business Day for all days'));
+            }
+            $workingDaysOK = array();
+            foreach ($workingDays as $day) {
+                $workingDaysOK[$day] = false;
+            }
+            $sw_all = false;
+            foreach ($fields ['BUSINESS_DAY'] as $businessHours) {
+                if ( ($businessHours['CALENDAR_BUSINESS_DAY'] == 7 ) )
+                {
+                    $sw_all = true;
+                }
+                elseif ( (in_array ($businessHours['CALENDAR_BUSINESS_DAY'], $workingDays) ) )
+                {
+                    $workingDaysOK[$businessHours['CALENDAR_BUSINESS_DAY']] = true;
+                }
+            }
+            $sw_days = true;
+
+            foreach ($workingDaysOK as $day => $sw_day) {
+                $sw_days = $sw_days && $sw_day;
+            }
+
+
+            if ( !($sw_all || $sw_days) )
+            {
+                throw (new \Exception ('Not all working days have their correspondent business day'));
+            }
+            //Validate Holidays
+            return $fields;
+        } catch (Exception $e) {
+            //print $e->getMessage();
+            //$this->addCalendarLog('!!!!!!! BAD CALENDAR DEFINITION. '.$e->getMessage());
+            $defaultCalendar ['CALENDAR_WORK_DAYS'] = '1|2|3|4|5';
+            $defaultCalendar ['CALENDAR_WORK_DAYS_A'] = explode ('|', '1|2|3|4|5');
+            return $defaultCalendar;
+        }
+    }
+
+    public function calculateDuration ()
+    {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        $results = $this->objMysql->_query ("SELECT ca.*, m.step_condition FROM calendar.`calendar_assignees` ca
+                                            INNER JOIN workflow.status_mapping M ON m.id = ca.USER_UID
+                                            WHERE OBJECT_TYPE = 'task'");
+
+
+        $arrDone = array();
+        $arrValues = [];
+
+        foreach ($results as $result) {
+
+            $objCases = new BusinessModel\Cases();
+            $arrCases = $objCases->getCasesForTask (new Flow ($result['USER_UID']));
+
+            $now = new DateTime();
+            $calendar = new \BusinessModel\Calendar();
+
+            foreach ($arrCases['rows'] as $parentId => $caseId) {
+
+                if ( !in_array ($result['USER_UID'], $arrDone) )
+                {
+                    $calendar->getCalendar ($result['CALENDAR_UID']);
+                    $calData = (new CalendarFunctions)->getCalendarData ($result['CALENDAR_UID']);
+                    $calculatedValues = $this->getValuesToStoreForCalculateDuration (array("case_id" => $caseId, "parentId" => $parentId, "TASK" => $result['step_condition']), $calendar, $calData, $now);
+                    $calculatedValues['elementId'] = $caseId;
+                    $calculatedValues['parentId'] = $parentId;
+
+                    return $calculatedValues;
+
+                    $arrValues[] = $calculatedValues;
+                }
+            }
+
+            $arrDone[] = $result['USER_UID'];
+        }
+    }
+
 }

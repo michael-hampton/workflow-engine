@@ -350,7 +350,6 @@ class Calendar
         }
     }
 
-    
     /**
      * Get data of a Calendar from a record
      *
@@ -557,56 +556,4 @@ class Calendar
         }
     }
 
-    public function validateCalendarInfo ($fields, $defaultCalendar)
-    {
-
-        try {
-            //Validate if Working days are Correct
-            //Minimun 3 ?
-            $workingDays = explode ('|', $fields['CALENDAR_WORK_DAYS']);
-            if ( count ($workingDays) < 3 )
-            {
-                throw (new \Exception ('You must define at least 3 Working Days!'));
-            }
-            //Validate that all Working Days have Bussines Hours
-            if ( count ($fields ['BUSINESS_DAY']) < 1 )
-            {
-                throw (new \Exception ('You must define at least one Business Day for all days'));
-            }
-            $workingDaysOK = array();
-            foreach ($workingDays as $day) {
-                $workingDaysOK[$day] = false;
-            }
-            $sw_all = false;
-            foreach ($fields ['BUSINESS_DAY'] as $businessHours) {
-                if ( ($businessHours['CALENDAR_BUSINESS_DAY'] == 7 ) )
-                {
-                    $sw_all = true;
-                }
-                elseif ( (in_array ($businessHours['CALENDAR_BUSINESS_DAY'], $workingDays) ) )
-                {
-                    $workingDaysOK[$businessHours['CALENDAR_BUSINESS_DAY']] = true;
-                }
-            }
-            $sw_days = true;
-
-            foreach ($workingDaysOK as $day => $sw_day) {
-                $sw_days = $sw_days && $sw_day;
-            }
-
-
-            if ( !($sw_all || $sw_days) )
-            {
-                throw (new \Exception ('Not all working days have their correspondent business day'));
-            }
-            //Validate Holidays
-            return $fields;
-        } catch (Exception $e) {
-            //print $e->getMessage();
-            //$this->addCalendarLog('!!!!!!! BAD CALENDAR DEFINITION. '.$e->getMessage());
-            $defaultCalendar ['CALENDAR_WORK_DAYS'] = '1|2|3|4|5';
-            $defaultCalendar ['CALENDAR_WORK_DAYS_A'] = explode ('|', '1|2|3|4|5');
-            return $defaultCalendar;
-        }
-    }
 }

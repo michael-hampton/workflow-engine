@@ -477,49 +477,6 @@ class AppDelegation extends BaseAppDelegation
         $delRiskDate = $this->calculateRiskDate ($objFlow, date ("Y-m-d H:i:s"), $this->getRisk ());
     }
 
-    public function calculateDuration ()
-    {
-        if ( $this->objMysql === null )
-        {
-            $this->getConnection ();
-        }
-
-        $results = $this->objMysql->_query ("SELECT ca.*, m.step_condition FROM calendar.`calendar_assignees` ca
-                                            INNER JOIN workflow.status_mapping M ON m.id = ca.USER_UID
-                                            WHERE OBJECT_TYPE = 'task'");
-
-
-        $arrDone = array();
-        $arrValues = [];
-
-        foreach ($results as $result) {
-
-            $objCases = new BusinessModel\Cases();
-            $arrCases = $objCases->getCasesForTask (new Flow ($result['USER_UID']));
-
-            $now = new DateTime();
-            $calendar = new \BusinessModel\Calendar();
-
-            foreach ($arrCases['rows'] as $parentId => $caseId) {
-
-                if ( !in_array ($result['USER_UID'], $arrDone) )
-                {
-                    $calendar->getCalendar ($result['CALENDAR_UID']);
-                    $calData = (new CalendarFunctions)->getCalendarData ($result['CALENDAR_UID']);
-                    $calculatedValues = $this->getValuesToStoreForCalculateDuration (array("case_id" => $caseId, "parentId" => $parentId, "TASK" => $result['step_condition']), $calendar, $calData, $now);
-                    $calculatedValues['elementId'] = $caseId;
-                    $calculatedValues['parentId'] = $parentId;
-
-                    return $calculatedValues;
-
-                    $arrValues[] = $calculatedValues;
-                }
-            }
-
-            $arrDone[] = $result['USER_UID'];
-        }
-    }
-
     public function getValuesToStoreForCalculateDuration ($row, $calendar, $calData, $nowDate)
     {
         if ( $this->objMysql === null )
