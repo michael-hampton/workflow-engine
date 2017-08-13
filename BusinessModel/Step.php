@@ -291,7 +291,7 @@ class Step
      *
      * return array Return an array with all Steps of a Task
      */
-    public function getSteps ($taskUid)
+    public function getSteps ($taskUid, $type = '')
     {
         try {
 
@@ -309,7 +309,7 @@ class Step
             $results = $this->objMysql->_select ("workflow.step", [], ["TAS_UID" => $taskUid], ["STEP_UID" => "ASC"]);
 
             foreach ($results as $row) {
-                $arrayData = $step->getStep ($row["STEP_UID"]);
+                $arrayData = $step->getStep ($row["STEP_UID"], $type);
                 
                 if ( count ($arrayData) > 0 )
                 {
@@ -331,7 +331,7 @@ class Step
      *
      * return array Return an array with data of a Step
      */
-    public function getStep ($stepUid)
+    public function getStep ($stepUid, $type = '')
     {
         try {
 
@@ -344,16 +344,25 @@ class Step
 
             //Verify data
             $this->throwExceptionIfNotExistsStep ($stepUid);
-
+           
             //Get data
-
-            $results = $this->objMysql->_select ("workflow.step", [], ["STEP_UID" => $stepUid]);
+            $arrWhere = array("STEP_UID" => $stepUid);
+            
+            if($type !== "") {
+                $arrWhere['STEP_TYPE_OBJ'] = $type;
+            }
+            
+            $results = $this->objMysql->_select ("workflow.step", [], $arrWhere);
 
             $arrayStep = array();
             $titleObj = '';
             $descriptionObj = '';
 
             foreach ($results as $row) {
+                
+                echo "<pre>";
+                print_r($row);
+                
                 switch ($row["STEP_TYPE_OBJ"]) {
                     case "DYNAFORM":
                         //$dynaform = new \Dynaform();

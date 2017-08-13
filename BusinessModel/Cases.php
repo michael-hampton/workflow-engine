@@ -1095,7 +1095,7 @@ class Cases
             }
         }
 
-        $arrSteps = (new Step())->getSteps($objTask->getTasUid());
+        $arrSteps = (new Step())->getSteps($objTask->getTasUid(), "OUTPUT_DOCUMENT");
 
         $aOutputDocuments = array();
         

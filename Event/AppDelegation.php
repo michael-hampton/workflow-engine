@@ -285,33 +285,6 @@ class AppDelegation extends BaseAppDelegation
         }
     }
 
-    public function getCurrentTask ($appUid)
-    {
-        $oCriteria = new Criteria();
-        $oCriteria->addSelectColumn (AppDelegationPeer::TAS_UID);
-        $oCriteria->add (AppDelegationPeer::APP_UID, $appUid);
-        $oCriteria->addDescendingOrderByColumn (AppDelegationPeer::DEL_INDEX);
-        $oRuleSet = AppDelegationPeer::doSelectRS ($oCriteria);
-        $oRuleSet->setFetchmode (ResultSet::FETCHMODE_ASSOC);
-        $oRuleSet->next ();
-        $data = $oRuleSet->getRow ();
-        return $data['TAS_UID'];
-    }
-
-    public function getCurrentUsers ($appUid, $index)
-    {
-        $oCriteria = new Criteria();
-        $oCriteria->addSelectColumn (AppDelegationPeer::USR_UID);
-        $oCriteria->add (AppDelegationPeer::APP_UID, $appUid);
-        $oCriteria->add (AppDelegationPeer::DEL_THREAD_STATUS, 'OPEN');
-        $oCriteria->add (AppDelegationPeer::DEL_INDEX, $index);
-        $oRuleSet = AppDelegationPeer::doSelectRS ($oCriteria);
-        $oRuleSet->setFetchmode (ResultSet::FETCHMODE_ASSOC);
-        $oRuleSet->next ();
-        $data = $oRuleSet->getRow ();
-        return $data;
-    }
-
     public function getRisk ()
     {
         try {
