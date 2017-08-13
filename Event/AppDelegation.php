@@ -411,7 +411,7 @@ class AppDelegation extends BaseAppDelegation
             $riskTime = $data['TAS_DURATION'] - ($data['TAS_DURATION'] * $risk);
 
             //Calendar - Use the dates class to calculate dates
-            $calendar = new \BusinessModel\Calendar();
+            $calendar = new CalendarFunctions();
             $arrayCalendarData = array();
             if ( $calendar->pmCalendarUid == "" )
             {
@@ -445,7 +445,7 @@ class AppDelegation extends BaseAppDelegation
             $aCalendarUID = '';
         }
 
-        $calendar = new \BusinessModel\Calendar();
+        $calendar = new CalendarFunctions();
         $arrayCalendarData = $calendar->getCalendarData ($aCalendarUID);
 
         if ( $calendar->pmCalendarUid == "" )
@@ -505,7 +505,7 @@ class AppDelegation extends BaseAppDelegation
                 if ( !in_array ($result['USER_UID'], $arrDone) )
                 {
                     $calendar->getCalendar ($result['CALENDAR_UID']);
-                    $calData = $calendar->getCalendarData ($result['CALENDAR_UID']);
+                    $calData = (new CalendarFunctions)->getCalendarData ($result['CALENDAR_UID']);
                     $calculatedValues = $this->getValuesToStoreForCalculateDuration (array("case_id" => $caseId, "parentId" => $parentId, "TASK" => $result['step_condition']), $calendar, $calData, $now);
                     $calculatedValues['elementId'] = $caseId;
                     $calculatedValues['parentId'] = $parentId;
@@ -563,7 +563,6 @@ class AppDelegation extends BaseAppDelegation
         );
 
         $arrMike['dFinishDate'] = trim ($rowValues['dFinishDate']) !== "" ? $rowValues['dFinishDate']->format ('Y-m-d H:i:s') : date ("Y-m-d H:i:s", strtotime ("+2 days"));
-        ;
 
 
         return Array(
