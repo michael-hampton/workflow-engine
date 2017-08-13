@@ -170,7 +170,7 @@ class StepTrigger
                     $workflowTo = $arrTrigger['workflow_to'];
 
                     $objWorkflow = new \Workflow ($workflowTo);
-                    $arrCase = $objCase->addCase ($objWorkflow, $objUser, array(), array(), false, $projectId, true)
+                    $arrCase = $objCase->addCase ($objWorkflow, $objUser, array(), array(), false, $projectId, true);
                     $this->blAddedCase = true;
 
                     (new \Log (LOG_FILE))->log (

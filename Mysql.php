@@ -267,8 +267,7 @@ class Mysql2 extends D
                 $this->logInfo ($this->parms ($query, $arrParameters));
                 return $this->db->lastInsertId ();
             } catch (Exception $e) {
-                echo $this->parms($query, $arrParameters);
-                die($e->getMessage());
+               
                 $this->setLog ($e, $this->parms ($query, $arrParameters));
             }
         }

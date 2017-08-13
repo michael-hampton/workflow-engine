@@ -273,19 +273,8 @@ class WorkflowStep
         return false;
     }
 
-    private function completeAuditObject (Users $objUser, array $arrCompleteData = [], $isParallel = false)
+    private function validateParallelUsers (Users $objUser, array $arrCompleteData = [], $isParallel = false)
     {
-
-        if ( isset ($arrCompleteData['status']) )
-        {
-            $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['status'] = $arrCompleteData['status'];
-        }
-
-        if ( isset ($arrCompleteData['dateCompleted']) )
-        {
-            $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['dateCompleted'] = $arrCompleteData['dateCompleted'];
-        }
-
         if ( $isParallel === true && !isset ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers']) )
         {
             $arrUsers = (new \BusinessModel\Task())->getTaskAssigneesAll ($this->workflowId, $this->_stepId, '', 0, 100, "user");
@@ -362,10 +351,9 @@ class WorkflowStep
                 }
                 else
                 {
-                    $this->completeAuditObject ($objUser, array("dateCompleted" => date ("Y-m-d H:i:s"), "status" => "IN REVIEW"));
-
+                    $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['status'] = "IN REVIEW";
+                    $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['dateCompleted'] = date ("Y-m-d H:i:s");
                     $strAudit = json_encode ($this->objAudit);
-
 
                     $this->objMysql->_update ("workflow.workflow_data", ["audit_data" => $strAudit], ["id" => $this->objectId]);
 
@@ -490,7 +478,7 @@ class WorkflowStep
                     $this->objAudit = json_decode ($arrData[0]['audit_data'], true);
                 }
 
-                $this->completeAuditObject ($objUser, $arrCompleteData, $blIsParralelTask);
+                $this->validateParallelUsers ($objUser, $arrCompleteData, $blIsParralelTask);
 
                 $strAudit = json_encode ($this->objAudit);
 
@@ -521,7 +509,7 @@ class WorkflowStep
                 switch ($taskType) {
                     case "PARALLEL":
                         $blTaskUsersCompleted = 0;
-                        
+
                         foreach ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers'] as $key => $parallelUser) {
                             if ( isset ($parallelUser['dateCompleted']) && trim ($parallelUser['dateCompleted']) !== "" )
                             {
@@ -532,7 +520,7 @@ class WorkflowStep
                         if ( count ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers']) !== $blTaskUsersCompleted )
                         {
                             $step2 = $this->_workflowStepId;
-                            $objTask->setStepId($this->_workflowStepId);
+                            $objTask->setStepId ($this->_workflowStepId);
                         }
                         break;
                     case "AUTO_ASSIGN":
@@ -747,7 +735,9 @@ class WorkflowStep
                 $objFlow->setStepFrom ($this->_workflowStepId);
 
                 $objMessageApplication = new \BusinessModel\MessageApplication();
-                $objMessageApplication->create ($objFlow, $this->elementId, $this->parentId, $this->objWorkflow);
+                $arrWorkflowData = $this->getWorkflowData();
+                $objWorkflow = json_decode($arrWorkflowData[0]['workflow_data'], true);
+                $objMessageApplication->create ($objFlow, $this->elementId, $this->parentId, $objWorkflow);
             }
 
             if ( isset ($arrConditions['receiveNotification']) && trim (strtolower ($arrConditions['receiveNotification'])) == "yes" )
