@@ -360,9 +360,6 @@ class Step
 
             foreach ($results as $row) {
                 
-                echo "<pre>";
-                print_r($row);
-                
                 switch ($row["STEP_TYPE_OBJ"]) {
                     case "DYNAFORM":
                         //$dynaform = new \Dynaform();
