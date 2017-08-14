@@ -1,0 +1,7 @@
+To: bluetiger_uan@yahoo.com,  bluetiger_uan@yahoo.com
+Subject: [DEBUG:DEV]  Project NAME has been assigned to admin
+<  Michael Hampton>michael.hampton@kondor.co.uk
+X-Mailer: PHP/5.6.14 CC:  bluetiger_uan@yahoo.com
+BCC:  bluetiger_uan@yahoo.com
+
+PROJECT <span style="font-weight: bold; text-decoration-line: underline;">DETAILS </span>id: 1168 project name: NAME status [PROJECT_STATUS]  Element Details Id: 1 Name: NAME Status: IN PROGRESS Step: Start

@@ -1,0 +1,7 @@
+To: bluetiger_uan@yahoo.com
+Subject: [DEBUG:DEV]Project NAME has been rejected by [REJECTED]
+<Michael Hampton>bluetiger_uan@yahoo.com
+X-Mailer: PHP/5.6.14 CC: bluetiger_uan@yahoo.com
+BCC: bluetiger_uan@yahoo.com
+
+Project NAME has been rejected by [REJECTED]. Reason: [REJECTION_REASON]

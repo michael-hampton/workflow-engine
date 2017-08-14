@@ -54,13 +54,55 @@ try {
     /*     * *************** Load Classes **************** */
     define ("HOME_DIR", PATH_HOME);
     define ("DEBUG_LOCATION", HOME_DIR . "/core/app/logs/debug.log");
+    require_once 'BusinessModel/Validator.php';
 
+    define ("HOME_DIR", "C:/xampp/htdocs/");
+    define ("PATH_DATA_PUBLIC", HOME_DIR . "FormBuilder/public/");
+    define ("PATH_SEP", "/");
+    define ("UPLOADS_DIR", PATH_DATA_PUBLIC . "uploads/");
+    define ("OUTPUT_DOCUMENTS", UPLOADS_DIR . "OutputDocuments/");
+    define ("PATH_IMAGES_ENVIRONMENT_USERS", HOME_DIR . PATH_DATA_PUBLIC . "img/users");
+    
+    require_once HOME_DIR . "/core/app/config/config.php";
     require_once 'Persistent.php';
     require_once 'config.php';
     require_once 'registry.php';
     require_once "Mysql.php";
-     require_once 'BPMN/Flow.php';
+    require_once 'BPMN/Flow.php';
+    require_once 'BPMN/BaseTask.php';
+    require_once HOME_DIR . '/core/app/library/Fields/Field.php';
+    require_once HOME_DIR . '/core/app/library/BusinessModel/FieldFactory.php';
+    require_once HOME_DIR . '/core/app/library/BusinessModel/Form.php';
+
+    require_once HOME_DIR . '/core/app/library/Tables/SaveReport.php';
+    require_once HOME_DIR . '/core/app/library/Tables/pmTable.php';
+    require_once HOME_DIR . '/core/app/library/Tables/BaseAdditionalTable.php';
+    require_once HOME_DIR . '/core/app/library/Tables/AdditionalTables.php';
+    require_once HOME_DIR . '/core/app/library/Tables/BaseReportField.php';
+    require_once HOME_DIR . '/core/app/library/Tables/ReportField.php';
+    require_once HOME_DIR . '/core/app/library/BusinessModel/ReportTable.php';
+    require_once HOME_DIR . '/core/app/library/BusinessModel/Table.php';
+
+
     require_once 'BPMN/Task.php';
+
+    define ("LOG_FILE", "C:/xampp/htdocs/core/app/logs/easyflow.log");
+
+    require_once 'BusinessModel/Task.php';
+
+    require_once 'WorkflowClasses/BaseAppDelegation.php';
+    require_once 'Event/AppDelegation.php';
+    require_once 'Log.php';
+
+    require_once 'Calendar/BaseCalendarAssignment.php';
+    require_once 'Calendar/CalendarAssignment.php';
+
+    require_once 'Calendar/BaseCalendarBusinessHours.php';
+    require_once 'Calendar/CalendarBusinessHours.php';
+
+    require_once 'Calendar/BaseCalendarDefinition.php';
+    require_once 'Calendar/CalendarDefinition.php';
+    require_once 'CalendarFunctions.php';
 
     require_once 'BusinessModel/Validator.php';
     require_once 'UserClasses/BaseUser.php';
@@ -79,11 +121,11 @@ try {
     require_once 'BaseVariable.php';
     require_once 'Variable.php';
     require_once 'BusinessModel/StepVariable.php';
-    require_once 'BusinessModel/StepPermissions.php';
+    require_once 'BusinessModel/StepPermission.php';
     require_once 'BusinessModel/ProcessSupervisor.php';
     require_once 'BusinessModel/StepTrigger.php';
     require_once 'Notifications/BaseNotification.php';
-    require_once 'Notifications/Notifications.php';
+    require_once 'Notifications/Notification.php';
     require_once 'Notifications/SendNotification.php';
     require_once 'Fields/FieldValidator.php';
     require_once 'WorkflowClasses/Workflow.php';
@@ -134,7 +176,7 @@ try {
 
                 $messageApplication = new \BusinessModel\MessageApplication();
 
-                $objUser = (new BusinessModel\UsersFactory())->getUser($_SESSION['user']['usrid']);
+                $objUser = (new BusinessModel\UsersFactory())->getUser ($_SESSION['user']['usrid']);
 
 
                 $messageApplication->catchMessageEvent ($objUser);

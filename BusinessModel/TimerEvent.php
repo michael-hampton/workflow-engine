@@ -900,7 +900,7 @@ class TimerEvent
                         
                         $objUser = (new UsersFactory())->getUser ($_SESSION['user']['usrid']);
                         $variables = array("name" => "NAME", "description" => "DESCRIPTION");
-                        $arrCase = $case->addCase ($arrayTimerEventData['workflow_id'], $objUser, array("form" => $variables), [], true, null, true);
+                        $arrCase = $case->addCase (new \Workflow ($arrayTimerEventData['workflow_id']), $objUser, array("form" => $variables), [], true, null, true);
 
                         $this->log ("CREATED-NEW-CASE", "Case #" . $arrCase['case_id'] . " created, PRO_UID: " . $arrCase['project_id']);
 
@@ -945,12 +945,12 @@ class TimerEvent
                 }
                 else
                 {
-
-                   $arrCases = $case->getCasesForTask(new \Flow($$result['EVN_UID']));
+                   $arrCases = $case->getCasesForTask(new \Flow($result['EVN_UID']));
+                   
                    $total = $arrCases['total'];
                    $dates = $arrCases['dates'];
                    $rows = $arrCases['rows'];
-           
+
                     $counter = 0;
                     $flagRecord = false;
 
