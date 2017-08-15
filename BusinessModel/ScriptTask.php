@@ -53,7 +53,7 @@ class ScriptTask
                     $scriptTasObjUid = $row["SCRTAS_OBJ_UID"];
 
                     $trigger = (new StepTrigger())->getDataTrigger ($scriptTasObjUid);
-                    
+
                     if ( !is_null ($trigger) )
                     {
                         $pmScript = new \ScriptFunctions();
@@ -407,13 +407,16 @@ class ScriptTask
     public function getScriptTaskDataFromRecord (array $record)
     {
         try {
-            return array(
-                $this->getFieldNameByFormatFieldName ("SCRTAS_UID") => $record["SCRTAS_UID"],
-                $this->getFieldNameByFormatFieldName ("PRJ_UID") => $record["PRJ_UID"],
-                $this->getFieldNameByFormatFieldName ("ACT_UID") => $record["ACT_UID"],
-                $this->getFieldNameByFormatFieldName ("SCRTAS_OBJ_TYPE") => $record["SCRTAS_OBJ_TYPE"],
-                $this->getFieldNameByFormatFieldName ("SCRTAS_OBJ_UID") => $record["SCRTAS_OBJ_UID"]
-            );
+
+            $objScript = new \ScriptTask();
+
+            $objScript->setActUid ($record["ACT_UID"]);
+            $objScript->setPrjUid ($record["PRJ_UID"]);
+            $objScript->setScrtasObjType ($record["SCRTAS_OBJ_TYPE"]);
+            $objScript->setScrtasObjUid ($record["SCRTAS_OBJ_UID"]);
+            $objScript->setScrtasUid ($record["SCRTAS_UID"]);
+
+            return $objScript;
         } catch (\Exception $e) {
             throw $e;
         }

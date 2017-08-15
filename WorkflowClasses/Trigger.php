@@ -37,6 +37,8 @@ class Trigger extends BaseTrigger
             }
             else
             {
+                print_r($this->getArrayValidationErrors());
+                die;
                 throw (new Exception ("Failed Validation in class " . get_class ($this) . "."));
             }
         } catch (Exception $e) {

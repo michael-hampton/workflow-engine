@@ -381,6 +381,7 @@ class StepTrigger
             {
                 $oTrigger->create ($stepUid, $dataTrigger);
                 $dataTrigger['TRI_UID'] = $oTrigger->getTriggerId ();
+                return $dataTrigger;
             }
             else
             {

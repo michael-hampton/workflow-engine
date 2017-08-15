@@ -166,6 +166,7 @@ require_once HOME_DIR . '/core/app/library/BPMN/Message.php';
 require_once HOME_DIR . '/core/app/library/BPMN/Flow.php';
 
 require_once HOME_DIR . '/core/app/library/ScriptFunctions.php';
+require_once HOME_DIR . '/core/app/library/Event/BaseScriptTask.php';
 require_once HOME_DIR . '/core/app/library/Event/ScriptTask.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/ScriptTask.php';
 

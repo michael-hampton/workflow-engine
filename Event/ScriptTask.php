@@ -11,7 +11,7 @@
  *
  * @author michael.hampton
  */
-class ScriptTask
+class ScriptTask extends BaseScriptTask
 {
 
     public function retrieveByPK($pk)
