@@ -1628,7 +1628,7 @@ class Cases
             if ($doReassign === true) {
                 $appDelegation = $this->objMysql->_select("workflow.workflow_data", [], ["object_id" => $val['parentId']]);
                 $existDelegation = $this->validateReassignData($objTask, $appDelegation, $val, 'DELEGATION_NOT_EXISTS');
-
+                
                 if (!$existDelegation) {
                     return false;
                 }
@@ -1643,10 +1643,7 @@ class Cases
                 if ($flagPaused && $flagSameUser) {
                     return true;
                 }
-
-                return false;
             }
-
 
             if (!isset ($val['user']) || !is_a($val['user'], "Users")) {
                 throw new \Exception ("No user provided");

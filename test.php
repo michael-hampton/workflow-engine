@@ -62,7 +62,7 @@ try {
     define ("UPLOADS_DIR", PATH_DATA_PUBLIC . "uploads/");
     define ("OUTPUT_DOCUMENTS", UPLOADS_DIR . "OutputDocuments/");
     define ("PATH_IMAGES_ENVIRONMENT_USERS", HOME_DIR . PATH_DATA_PUBLIC . "img/users");
-    
+
     require_once HOME_DIR . "/core/app/config/config.php";
     require_once 'Persistent.php';
     require_once 'config.php';
@@ -207,3 +207,52 @@ try {
     
 }
 
+/**
+ * isHttpRequest
+ *
+ * @return boolean true or false
+ */
+function isHttpRequest ()
+{
+    if ( isset ($_SERVER['SERVER_SOFTWARE']) && strpos (strtolower ($_SERVER['SERVER_SOFTWARE']), 'apache') !== false )
+    {
+        return true;
+    }
+    return false;
+}
+
+function eprintln ($s = "", $c = null)
+{
+    if ( isHttpRequest () )
+    {
+        if ( isset ($c) )
+        {
+            echo "<pre style='color:$c'>$s</pre>";
+        }
+        else
+        {
+            echo "<pre>$s</pre>";
+        }
+    }
+    else
+    {
+        if ( isset ($c) && (PHP_OS != 'WINNT') )
+        {
+            switch ($c) {
+                case 'green':
+                    printf ("\033[0;35;32m$s\033[0m\n");
+                    return;
+                    break;
+                case 'red':
+                    printf ("\033[0;35;31m$s\033[0m\n");
+                    return;
+                    break;
+                case 'blue':
+                    printf ("\033[0;35;34m$s\033[0m\n");
+                    return;
+                    break;
+            }
+        }
+        print "$s\n";
+    }
+}

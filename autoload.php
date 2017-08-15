@@ -36,6 +36,9 @@ require_once HOME_DIR . '/core/app/library/Step.php';
 
 require_once HOME_DIR . '/core/app/library/BusinessModel/Step.php';
 
+require_once HOME_DIR . '/core/app/library/ScriptFunctions.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/ScriptTask.php';
+
 /* * *********************** Events ******************************************** */
 require_once HOME_DIR . '/core/app/library/Event/BaseMessageApplication.php';
 require_once HOME_DIR . '/core/app/library/Event/BaseMessageEventRelation.php';

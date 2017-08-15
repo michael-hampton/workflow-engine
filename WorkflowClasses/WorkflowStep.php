@@ -589,6 +589,12 @@ class WorkflowStep
             if ( !isset ($arrCompleteData['claimed']) )
                 $arrUsers = (new \BusinessModel\Task())->getTaskAssigneesAll ($this->workflowId, $this->_stepId, '', 0, 100, "user");
         }
+        
+        $objScriptTask = new BusinessModel\ScriptTask();
+        $fields = (new BusinessModel\Cases())->getCaseInfo($this->parentId, $this->elementId);
+        
+        $fields = is_object($fields) ? $fields->arrElement : []; 
+        $objScriptTask->execScriptByActivityUid($objTask, $fields);
 
         /*         * ***************** Check events for task ************************** */
         $hasEvent = isset ($arrCompleteData['hasEvent']) ? 'true' : 'false';
@@ -630,7 +636,7 @@ class WorkflowStep
 
         if ( $isValidUser === false )
         {
-            //throw new Exception ("Invalid user given. Cannot complete workflow step " . $step . " - " . $this->workflowId);
+            throw new Exception ("Invalid user given. Cannot complete workflow step " . $step . " - " . $this->workflowId);
         }
 
         $auditStatus = isset ($arrCompleteData['status']) ? $arrCompleteData['status'] : '';
