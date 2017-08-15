@@ -53,12 +53,12 @@ class ScriptTask
                     $scriptTasObjUid = $row["SCRTAS_OBJ_UID"];
 
                     $trigger = (new StepTrigger())->getDataTrigger ($scriptTasObjUid);
-
+                    
                     if ( !is_null ($trigger) )
                     {
                         $pmScript = new \ScriptFunctions();
                         $pmScript->setFields ($arrayApplicationData);
-                        $pmScript->setScript (array($trigger['template_name']));
+                        $pmScript->setScript ($trigger['template_name']);
 
                         $result = $pmScript->execute ();
 

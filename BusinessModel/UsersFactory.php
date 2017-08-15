@@ -679,7 +679,6 @@ class UsersFactory
 
     public function checkPermission (\BaseUser $objUser, $permissionCode)
     {
-
         try {
 
             $flagPermission = false;
