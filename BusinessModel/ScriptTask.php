@@ -367,7 +367,7 @@ class ScriptTask
             foreach ($arrayCondition as $key => $value) {
                 if ( is_array ($value) )
                 {
-                    sql .= $key . " " . $value[0] . " " . $value[1];
+                    $sql .= $key . " " . $value[0] . " " . $value[1];
                 }
                 else
                 {

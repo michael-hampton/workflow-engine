@@ -356,6 +356,11 @@ class WorkflowStep
                 }
                 else
                 {
+                    if ( trim ($objTask->getTasAssignType ()) === "REPORT_TO" )
+                    {
+                        // notify department manager
+                    }
+                    
                     $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['status'] = "IN REVIEW";
                     $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['dateCompleted'] = date ("Y-m-d H:i:s");
                     $strAudit = json_encode ($this->objAudit);
