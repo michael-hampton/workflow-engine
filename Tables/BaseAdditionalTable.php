@@ -131,7 +131,7 @@ abstract class BaseAdditionalTables implements Persistent
         "DBS_UID" => array("accessor" => "getDbsUid", "mutator" => "setDbsUid", "required" => "true"),
         "PRO_UID" => array("accessor" => "getProUid", "mutator" => "setProUid", "required" => "true"),
         "ADD_TAB_TYPE" => array("accessor" => "getAddTabType", "mutator" => "setAddTabType", "required" => "true"),
-        "ADD_TAB_GRID" => array("accessor" => "getAddTabGrid", "mutator" => "setAddTabGrid", "required" => "true"),
+        "ADD_TAB_GRID" => array("accessor" => "getAddTabGrid", "mutator" => "setAddTabGrid", "required" => "false"),
     );
     
     public function __construct ()

@@ -172,7 +172,7 @@ class pmTable
         try {
             switch ($dbAdapter) {
                 case 'mysql':
-                    $sQuery = 'CREATE TABLE IF NOT EXISTS `' . $sTableName . '` (';
+                    $sQuery = 'CREATE TABLE IF NOT EXISTS `' . strtolower($sTableName) . '` (';
                     if ( $bDefaultFields )
                     {
                         $sQuery .= "`id` INT(11) NOT NULL AUTO_INCREMENT,`PRO_UID` INT(11) NOT NULL, `APP_UID` INT(11) NOT NULL,";
@@ -183,6 +183,10 @@ class pmTable
                         }
                     }
                     foreach ($aFields as $aField) {
+                        
+                        $aField['column_size'] = isset($aField['column_size']) ? $aField['column_size'] : $aField['field_size'];
+                        $aField['column_name'] = isset($aField['column_name']) ? $aField['column_name'] : $aField['field_name'];
+                        $aField['column_type'] = isset($aField['column_type']) ? $aField['column_type'] : $aField['field_type'];
 
                         if ( !in_array ($aField['column_name'], array("PRO_UID", "APP_UID")) )
                         {

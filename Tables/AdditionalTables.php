@@ -416,6 +416,7 @@ class AdditionalTables extends BaseAdditionalTables
         try {
             $oAdditionalTables = new AdditionalTables();
             $oAdditionalTables->loadObject ($aData);
+            
             if ( $oAdditionalTables->validate () )
             {
                 $iResult = $oAdditionalTables->save ();
@@ -426,6 +427,10 @@ class AdditionalTables extends BaseAdditionalTables
             {
                 $sMessage = '';
                 $aValidationFailures = $oAdditionalTables->getValidationFailures ();
+                
+                print_r($aValidationFailures);
+                die;
+                
                 foreach ($aValidationFailures as $oValidationFailure) {
                     $sMessage .= $oValidationFailure . '<br />';
                 }

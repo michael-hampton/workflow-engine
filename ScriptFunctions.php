@@ -37,6 +37,12 @@ class ScriptFunctions
      * Affected fields
      */
     public $affected_fields;
+    private $objMysql;
+
+    public function __construct ()
+    {
+        $this->objMysql = new Mysql2();
+    }
 
     /**
      * Constructor of the class PMScript
@@ -131,8 +137,8 @@ class ScriptFunctions
     public function executeAndCatchErrors ($sScript, $sCode)
     {
         try {
-            $sScript = str_replace("<?php", "", $sScript);
-            
+            $sScript = str_replace ("<?php", "", $sScript);
+
             set_error_handler ('handleErrors');
             $_SESSION['_CODE_'] = $sCode;
             eval ($sScript);
@@ -351,7 +357,7 @@ class ScriptFunctions
         $sScript = "try {\n" . $sScript . "\n} catch (Exception \$oException) {\n " . " \$this->aFields['__ERROR__'] = utf8_encode(\$oException->getMessage());\n}";
         //echo '<pre>-->'; print_r($this->aFields); echo '<---</pre>';
 
-       $this->executeAndCatchErrors ($sScript, $this->sScript);
+        $this->executeAndCatchErrors ($sScript, $this->sScript);
 
         $this->aFields["__VAR_CHANGED__"] = implode (",", $this->affected_fields);
         for ($i = 0; $i < count ($this->affected_fields); $i ++) {
@@ -590,13 +596,22 @@ class ScriptFunctions
     {
 
         $searchTypes = array('checkgroup', 'dropdown', 'suggest');
-        //$processVariables = $pmTablesProxy->getDynaformVariables ($_SESSION['PROCESS'], $searchTypes, false);
+        $pmTablesProxy = new reportTableCSV();
+        $variableModule = new \BusinessModel\StepVariable();
+        $processVariables = $pmTablesProxy->getDynaformVariables ($_SESSION['PROCESS'], $searchTypes, false);
+
+        $this->affected_fields[] = "location";
+        $this->affected_fields[] = "batch";
+
+        $this->aFields['location'][1] = array(0 => "test1", 1 => "location");
+        $this->aFields['batch'][1] = array(0 => "test2", 1 => "batch");
+
         $variables = $this->affected_fields;
         $variables = (is_array ($variables)) ? array_unique ($variables) : $variables;
         $newFields = array();
         $arrayValues = array();
         $arrayLabels = array();
-        
+
         if ( is_array ($variables) && is_array ($processVariables) )
         {
             foreach ($variables as $var) {
@@ -618,12 +633,14 @@ class ScriptFunctions
                                         $arrayLabels[] = $val[1];
                                     }
                                 }
+
                                 if ( sizeof ($arrayLabels) )
                                 {
                                     $varInfo = $variableModule->getVariableTypeByName ($_SESSION['PROCESS'], $var);
+
                                     if ( is_array ($varInfo) && sizeof ($varInfo) )
                                     {
-                                        $varType = $varInfo['VAR_FIELD_TYPE'];
+                                        $varType = $varInfo['validation_type'];
                                         switch ($varType) {
                                             case 'array':
                                                 $arrayLabels = '["' . implode ('","', $arrayLabels) . '"]';
@@ -644,32 +661,34 @@ class ScriptFunctions
                                 }
                             }
                         }
+
                         if ( isset ($this->aFields[$var]) && is_string ($this->aFields[$var]) )
                         {
                             $varInfo = $variableModule->getVariableTypeByName ($_SESSION['PROCESS'], $var);
-                            $options = G::json_decode ($varInfo["VAR_ACCEPTED_VALUES"]);
+                            $options = json_decode ($varInfo["accepted_values"]);
+
                             $no = count ($options);
+
                             for ($io = 0; $io < $no; $io++) {
                                 if ( $options[$io]->value === $this->aFields[$var] )
                                 {
                                     $this->aFields[$var . "_label"] = $options[$io]->label;
                                 }
                             }
-                            if ( $varInfo["VAR_DBCONNECTION"] !== "" && $varInfo["VAR_DBCONNECTION"] !== "none" && $varInfo["VAR_SQL"] !== "" )
+
+                            if ( $varInfo["db_connection"] !== "" && $varInfo["db_connection"] !== "none" && $varInfo["variation_sql"] !== "" )
                             {
                                 try {
-                                    $cnn = Propel::getConnection ($varInfo["VAR_DBCONNECTION"]);
-                                    $stmt = $cnn->createStatement ();
-                                    $sql = G::replaceDataField ($varInfo["VAR_SQL"], $this->aFields);
-                                    $rs = $stmt->executeQuery ($sql, \ResultSet::FETCHMODE_NUM);
-                                    while ($rs->next ()) {
-                                        $row = $rs->getRow ();
+                                    $sql = (new BusinessModel\Cases())->replaceDataField ($varInfo['variation_sql'], $this->aFields);
+                                    $results = $this->objMysql->_query ($sql);
+
+                                    foreach ($results as $row) {
                                         if ( $row[0] === $this->aFields[$var] )
                                         {
                                             $this->aFields[$var . "_label"] = isset ($row[1]) ? $row[1] : $row[0];
                                         }
                                     }
-                                } catch (Exception $e) {
+                                } catch (Exception $ex) {
                                     
                                 }
                             }
@@ -736,17 +755,9 @@ function pmToUrl ($vValue)
  */
 function pmSqlEscape ($vValue)
 {
-    return G::sqlEscape ($vValue);
+    return mysql_real_escape_string ($vValue);
 }
 
-//End - Private functions
-
-
-/* * *************************************************************************
- * Error handler
- * author: Julio Cesar Laura Avenda�o <juliocesar@colosa.com>
- * date: 2009-10-01
- * ************************************************************************* */
 /*
  * Convert to data base escaped string
  * @param string $errno
@@ -755,6 +766,7 @@ function pmSqlEscape ($vValue)
  * @param string $errline
  * @return void
  */
+
 function handleErrors ($errno, $errstr, $errfile, $errline)
 {
     if ( $errno != '' && ($errno != 8) && ($errno != 2048) )
@@ -763,14 +775,6 @@ function handleErrors ($errno, $errstr, $errfile, $errline)
         {
             $sCode = $_SESSION['_CODE_'];
             unset ($_SESSION['_CODE_']);
-            global $oPMScript;
-            if ( isset ($oPMScript) && isset ($_SESSION['APPLICATION']) )
-            {
-                G::LoadClass ('case');
-                $oCase = new Cases();
-                $oPMScript->aFields['__ERROR__'] = $errstr;
-                $oCase->updateCase ($_SESSION['APPLICATION'], array('APP_DATA' => $oPMScript->aFields));
-            }
             registerError (1, $errstr, $errline - 1, $sCode);
         }
     }
@@ -791,58 +795,6 @@ function handleFatalErrors ($buffer)
         $sCode = isset ($_SESSION['_CODE_']) ? $_SESSION['_CODE_'] : null;
         unset ($_SESSION['_CODE_']);
         registerError (2, $aAux[0], 0, $sCode);
-        if ( strpos ($_SERVER['REQUEST_URI'], '/cases/cases_Step') !== false )
-        {
-            if ( strpos ($_SERVER['REQUEST_URI'], '&ACTION=GENERATE') !== false )
-            {
-                $aNextStep = $oCase->getNextStep ($_SESSION['PROCESS'], $_SESSION['APPLICATION'], $_SESSION['INDEX'], $_SESSION['STEP_POSITION']);
-                if ( $_SESSION['TRIGGER_DEBUG']['ISSET'] )
-                {
-                    $_SESSION['TRIGGER_DEBUG']['TIME'] = G::toUpper (G::loadTranslation ('ID_AFTER'));
-                    $_SESSION['TRIGGER_DEBUG']['BREAKPAGE'] = $aNextStep['PAGE'];
-                    $aNextStep['PAGE'] = $aNextStep['PAGE'] . '&breakpoint=triggerdebug';
-                }
-                global $oPMScript;
-                if ( isset ($oPMScript) && isset ($_SESSION['APPLICATION']) )
-                {
-                    $oPMScript->aFields['__ERROR__'] = $aAux[0];
-                    $oCase->updateCase ($_SESSION['APPLICATION'], array('APP_DATA' => $oPMScript->aFields));
-                }
-                G::header ('Location: ' . $aNextStep['PAGE']);
-                die ();
-            }
-            $_SESSION['_NO_EXECUTE_TRIGGERS_'] = 1;
-            global $oPMScript;
-            if ( isset ($oPMScript) && isset ($_SESSION['APPLICATION']) )
-            {
-                $oPMScript->aFields['__ERROR__'] = $aAux[0];
-                $oCase->updateCase ($_SESSION['APPLICATION'], array('APP_DATA' => $oPMScript->aFields));
-            }
-            G::header ('Location: ' . $_SERVER['REQUEST_URI']);
-            die ();
-        }
-        else
-        {
-            $aNextStep = $oCase->getNextStep ($_SESSION['PROCESS'], $_SESSION['APPLICATION'], $_SESSION['INDEX'], $_SESSION['STEP_POSITION']);
-            if ( isset ($_SESSION['TRIGGER_DEBUG']['ISSET']) && $_SESSION['TRIGGER_DEBUG']['ISSET'] )
-            {
-                $_SESSION['TRIGGER_DEBUG']['TIME'] = G::toUpper (G::loadTranslation ('ID_AFTER'));
-                $_SESSION['TRIGGER_DEBUG']['BREAKPAGE'] = $aNextStep['PAGE'];
-                $aNextStep['PAGE'] = $aNextStep['PAGE'] . '&breakpoint=triggerdebug';
-            }
-            if ( strpos ($aNextStep['PAGE'], 'TYPE=ASSIGN_TASK&UID=-1') !== false )
-            {
-                G::SendMessageText ('Fatal error in trigger', 'error');
-            }
-            global $oPMScript;
-            if ( isset ($oPMScript) && isset ($_SESSION['APPLICATION']) )
-            {
-                $oPMScript->aFields['__ERROR__'] = $aAux[0];
-                $oCase->updateCase ($_SESSION['APPLICATION'], array('APP_DATA' => $oPMScript->aFields));
-            }
-            G::header ('Location: ' . $aNextStep['PAGE']);
-            die ();
-        }
     }
     return $buffer;
 }
@@ -860,130 +812,4 @@ function registerError ($iType, $sError, $iLine, $sCode)
 {
     $sType = ($iType == 1 ? 'ERROR' : 'FATAL');
     $_SESSION['TRIGGER_DEBUG']['ERRORS'][][$sType] = $sError . ($iLine > 0 ? ' (line ' . $iLine . ')' : '') . ':<br /><br />' . $sCode;
-}
-
-/**
- * Obtain engine Data Base name
- *
- * @param type $connection
- * @return type
- */
-function getEngineDataBaseName ($connection)
-{
-    $aDNS = $connection->getDSN ();
-    return $aDNS["phptype"];
-}
-
-/**
- * Execute Queries for Oracle Database
- *
- * @param type $sql
- * @param type $connection
- */
-function executeQueryOci ($sql, $connection, $aParameter = array(), $dbsEncode = "")
-{
-    $aDNS = $connection->getDSN ();
-
-    $sUsername = $aDNS["username"];
-    $sPassword = $aDNS["password"];
-    $sHostspec = $aDNS["hostspec"];
-    $sDatabse = $aDNS["database"];
-    $sPort = $aDNS["port"];
-
-    if ( $sPort != "1521" )
-    {
-        $flagTns = ($sDatabse == "" && ($sPort . "" == "" || $sPort . "" == "0")) ? 1 : 0;
-
-        if ( $flagTns == 0 )
-        {
-            // if not default port
-            $conn = oci_connect ($sUsername, $sPassword, $sHostspec . ":" . $sPort . "/" . $sDatabse, $dbsEncode);
-        }
-        else
-        {
-            $conn = oci_connect ($sUsername, $sPassword, $sHostspec, $dbsEncode);
-        }
-    }
-    else
-    {
-        $conn = oci_connect ($sUsername, $sPassword, $sHostspec . "/" . $sDatabse, $dbsEncode);
-    }
-
-    if ( !$conn )
-    {
-        $e = oci_error ();
-        trigger_error (htmlentities ($e['message'], ENT_QUOTES), E_USER_ERROR);
-        return $e;
-    }
-
-    switch (true) {
-        case preg_match ("/^(SELECT|SHOW|DESCRIBE|DESC|WITH)\s/i", $sql):
-            $stid = oci_parse ($conn, $sql);
-
-            if ( count ($aParameter) > 0 )
-            {
-                foreach ($aParameter as $key => $val) {
-                    oci_bind_by_name ($stid, $key, $val);
-                }
-            }
-            oci_execute ($stid, OCI_DEFAULT);
-
-            $result = Array();
-            $i = 1;
-            while ($row = oci_fetch_array ($stid, OCI_ASSOC + OCI_RETURN_NULLS)) {
-                $result[$i ++] = $row;
-            }
-            oci_free_statement ($stid);
-            oci_close ($conn);
-            return $result;
-            break;
-        case preg_match ("/^(INSERT|UPDATE|DELETE)\s/i", $sql):
-            $stid = oci_parse ($conn, $sql);
-            $isValid = true;
-            if ( count ($aParameter) > 0 )
-            {
-                foreach ($aParameter as $key => $val) {
-                    oci_bind_by_name ($stid, $key, $val);
-                }
-            }
-            $objExecute = oci_execute ($stid, OCI_DEFAULT);
-            $result = oci_num_rows ($stid);
-            if ( $objExecute )
-            {
-                oci_commit ($conn);
-            }
-            else
-            {
-                oci_rollback ($conn);
-                $isValid = false;
-            }
-            oci_free_statement ($stid);
-            oci_close ($conn);
-            if ( $isValid )
-            {
-                return $result;
-            }
-            else
-            {
-                return oci_error ();
-            }
-            break;
-        default:
-            // Stored procedures
-            $stid = oci_parse ($conn, $sql);
-            $aParameterRet = array();
-            if ( count ($aParameter) > 0 )
-            {
-                foreach ($aParameter as $key => $val) {
-                    $aParameterRet[$key] = $val;
-                    // The third parameter ($aParameterRet[$key]) returned a value by reference.
-                    oci_bind_by_name ($stid, $key, $aParameterRet[$key]);
-                }
-            }
-            $objExecute = oci_execute ($stid, OCI_DEFAULT);
-            oci_free_statement ($stid);
-            oci_close ($conn);
-            return $aParameterRet;
-            break;
-    }
 }

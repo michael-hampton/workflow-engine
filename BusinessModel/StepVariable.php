@@ -473,4 +473,21 @@ class StepVariable
         }
     }
 
+    public function getVariableTypeByName ($processUid, $variableName)
+    {
+        try {
+            $sql = "SELECT id, variable_name, validation_type, db_connection, variation_sql, accepted_values FROM workflow.workflow_variables WHERE variable_name = ?";
+            $results = $this->objMysql->_query ($sql, [$variableName]);
+
+            if ( !isset ($results[0]) || empty ($results[0]) )
+            {
+                return false;
+            }
+
+            return sizeof ($results[0]) ? $results[0] : false;
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
 }
