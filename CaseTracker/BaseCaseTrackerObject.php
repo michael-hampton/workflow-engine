@@ -63,6 +63,18 @@ abstract class BaseCaseTrackerObject implements Persistent
      * @var        boolean
      */
     protected $alreadyInValidation = false;
+    private $arrayFieldDefinition = array(
+        "CTO_TYPE_OBJ" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getCtoTypeObj", "mutator" => "setCtoTypeObj"),
+        "CTO_UID_OBJ" => array("type" => "string", "required" => true, "empty" => true, "accessor" => "getCtoUidObj", "mutator" => "setCtoUidObj"),
+        "CTO_POSITION" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getCtoPosition", "mutator" => "setCtoPosition"),
+        "PRO_UID" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getProUid", "mutator" => "setProUid"),
+    );
+    private $objMysql;
+
+    public function getConnection ()
+    {
+        $this->objMysql = new Mysql2();
+    }
 
     /**
      * Get the [cto_uid] column value.
@@ -255,7 +267,12 @@ abstract class BaseCaseTrackerObject implements Persistent
      */
     public function delete ()
     {
-        
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        $this->objMysql->_delete ("case_tracker_objects", ["PRO_UID" => $this->pro_uid]);
     }
 
     /**
@@ -270,7 +287,33 @@ abstract class BaseCaseTrackerObject implements Persistent
      */
     public function save ()
     {
-        
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        if ( trim ($this->cto_uid) === "" )
+        {
+            $id = $this->objMysql->_insert ("case_tracker_objects", [
+                "PRO_UID" => $this->pro_uid,
+                "CTO_TYPE_OBJ" => $this->cto_type_obj,
+                "CTO_UID_OBJ" => $this->cto_uid_obj,
+                "CTO_POSITION" => $this->cto_position
+                    ]
+            );
+
+            return $id;
+        }
+        else
+        {
+            $this->objMysql->_update ("case_tracker_objects", [
+                "PRO_UID" => $this->pro_uid,
+                "CTO_TYPE_OBJ" => $this->cto_type_obj,
+                "CTO_UID_OBJ" => $this->cto_uid_obj,
+                "CTO_POSITION" => $this->cto_position
+                    ], ["CTO_UID" => $this->cto_uid]
+            );
+        }
     }
 
     /**
@@ -302,14 +345,60 @@ abstract class BaseCaseTrackerObject implements Persistent
      * @see        doValidate()
      * @see        getValidationFailures()
      */
+
+    /**
+     * 
+     * @return boolean
+     */
     public function validate ()
     {
-        return true;
+        $errorCount = 0;
+
+        foreach ($this->arrayFieldDefinition as $fieldName => $arrField) {
+            if ( $arrField['required'] === true )
+            {
+                $accessor = $this->arrayFieldDefinition[$fieldName]['accessor'];
+
+                if ( trim ($this->$accessor ()) == "" )
+                {
+                    $this->arrValidationErrors[] = $fieldName . " Is empty. It is a required field";
+                    $errorCount++;
+                }
+            }
+        }
+
+        if ( $errorCount > 0 )
+        {
+            return FALSE;
+        }
+
+        return TRUE;
     }
 
+    /**
+     * 
+     * @param type $arrDocument
+     * @return boolean
+     */
     public function loadObject (array $arrData)
     {
-        
+        foreach ($arrData as $formField => $formValue) {
+
+            if ( isset ($this->arrayFieldDefinition[$formField]) )
+            {
+                $mutator = $this->arrayFieldDefinition[$formField]['mutator'];
+
+                if ( method_exists ($this, $mutator) && is_callable (array($this, $mutator)) )
+                {
+                    if ( isset ($this->arrayFieldDefinition[$formField]) && trim ($formValue) != "" )
+                    {
+                        call_user_func (array($this, $mutator), $formValue);
+                    }
+                }
+            }
+        }
+
+        return true;
     }
 
 }

@@ -15,6 +15,7 @@ namespace BusinessModel;
  */
 class CaseTrackerObject
 {
+
     use Validator;
 
     private $objMysql;
@@ -79,6 +80,13 @@ class CaseTrackerObject
             throw $e;
         }
     }
+    
+    public function deleteAllObjects($processUid)
+    {
+        $objCaseTracker = new \CaseTrackerObject();
+        $objCaseTracker->setProUid($processUid);
+        $objCaseTracker->delete();
+    }
 
     /**
      * Create Case Tracker Object for a Process
@@ -95,46 +103,46 @@ class CaseTrackerObject
             //Verify data
             $process = new Process();
             $process->throwExceptionIfNotExistsProcess ($processUid);
-           
+
             if ( !isset ($arrayData["CTO_TYPE_OBJ"]) )
             {
-                throw new \Exception  ("ID_UNDEFINED_VALUE_IS_REQUIRED " . strtolower ("CTO_TYPE_OBJ"));
+                throw new \Exception ("ID_UNDEFINED_VALUE_IS_REQUIRED " . strtolower ("CTO_TYPE_OBJ"));
             }
-            
+
             if ( !isset ($arrayData["CTO_UID_OBJ"]) )
             {
                 throw new \Exception ("ID_UNDEFINED_VALUE_IS_REQUIRED " . strtolower ("CTO_UID_OBJ"));
             }
-            
+
             $step = new \BusinessModel\Step();
-            
+
             $msg = $step->existsObjectUid ($arrayData["CTO_TYPE_OBJ"], $arrayData["CTO_UID_OBJ"]);
-            
+
             if ( $msg != "" )
             {
                 throw new \Exception ($msg);
             }
-            
+
             if ( $this->existsRecord ($processUid, $arrayData["CTO_TYPE_OBJ"], $arrayData["CTO_UID_OBJ"]) )
             {
                 throw new \Exception ("ID_RECORD_EXISTS_IN_TABLE " . $processUid . ", " . $arrayData["CTO_TYPE_OBJ"] . ", " . $arrayData["CTO_UID_OBJ"], "CASE_TRACKER_OBJECT");
             }
             
             $ctoPosition = $arrayData["CTO_POSITION"];
-            $criteria = new \Criteria ("workflow");
-            
+
             $sql = "SELECT COUNT(*) + 1 AS count FROM case_tracker_objects WHERE PRO_UID = ?";
-            $results = $this->objMysql->_query($sql, [$processUid]);
-            
+            $results = $this->objMysql->_query ($sql, [$processUid]);
+
             $arrayData["CTO_POSITION"] = $results[0]['count'];
-            
+
             //Create
             $caseTrackerObject = new \CaseTrackerObject();
+
             $arrayData["PRO_UID"] = $processUid;
             $caseTrackerObjectUid = $caseTrackerObject->create ($arrayData);
             $arrayData["CTO_POSITION"] = $ctoPosition;
             $arrayData["CTO_UID"] = $caseTrackerObjectUid;
-            $this->update ($caseTrackerObjectUid, $arrayData);
+            //$this->update ($caseTrackerObjectUid, $arrayData);
             //Return
             unset ($arrayData["PRO_UID"]);
             unset ($arrayData["cto_uid"]);
@@ -158,28 +166,28 @@ class CaseTrackerObject
             $caseTrackerObject = new \CaseTrackerObject();
             $arrayCaseTrackerObjectData = $caseTrackerObject->load ($caseTrackerObjectUid);
             //Uids
-            $processUid = $arrayCaseTrackerObjectData["PRO_UID"];
+            $processUid = $arrayCaseTrackerObjectData->getProUid ();
             //Verify data
             if ( !$caseTrackerObject->caseTrackerObjectExists ($caseTrackerObjectUid) )
             {
                 throw new \Exception ("ID_CASE_TRACKER_OBJECT_DOES_NOT_EXIST");
             }
-            
+
             if ( isset ($arrayData["CTO_TYPE_OBJ"]) && !isset ($arrayData["CTO_UID_OBJ"]) )
             {
                 throw new \Exception ("ID_UNDEFINED_VALUE_IS_REQUIRED " . strtolower ("CTO_UID_OBJ"));
             }
-            
+
             if ( !isset ($arrayData["CTO_TYPE_OBJ"]) && isset ($arrayData["CTO_UID_OBJ"]) )
             {
                 throw new \Exception ("ID_UNDEFINED_VALUE_IS_REQUIRED " . strtolower ("CTO_TYPE_OBJ"));
             }
-            
+
             if ( isset ($arrayData["CTO_TYPE_OBJ"]) && isset ($arrayData["CTO_UID_OBJ"]) )
             {
                 $step = new \BusinessModel\Step();
                 $msg = $step->existsObjectUid ($arrayData["CTO_TYPE_OBJ"], $arrayData["CTO_UID_OBJ"]);
-                
+
                 if ( $msg != "" )
                 {
                     throw new \Exception ($msg);
@@ -193,15 +201,17 @@ class CaseTrackerObject
             $flagDataOject = (isset ($arrayData["CTO_TYPE_OBJ"]) && isset ($arrayData["CTO_UID_OBJ"])) ? 1 : 0;
             $flagDataCondition = (isset ($arrayData["CTO_CONDITION"])) ? 1 : 0;
             $flagDataPosition = (isset ($arrayData["CTO_POSITION"])) ? 1 : 0;
-            
+
             //Update
-            $tempPosition = (isset ($arrayData["CTO_POSITION"])) ? $arrayData["CTO_POSITION"] : $arrayCaseTrackerObjectData["CTO_POSITION"];
-            $arrayData["CTO_POSITION"] = $arrayCaseTrackerObjectData["CTO_POSITION"];
+            $tempPosition = (isset ($arrayData["CTO_POSITION"])) ? $arrayData["CTO_POSITION"] : $arrayCaseTrackerObjectData->getCtoPosition ();
+            $arrayData["CTO_POSITION"] = $arrayCaseTrackerObjectData->getCtoPosition ();
             $arrayData["CTO_UID"] = $caseTrackerObjectUid;
-            $arrayData = array_merge ($arrayCaseTrackerObjectData, $arrayData);
+            $arrayData['PRO_UID'] = $arrayCaseTrackerObjectData->getProUid ();
+            $arrayData['CTO_TYPE_OBJ'] = $arrayCaseTrackerObjectData->getCtoTypeObj ();
+            $arrayData['CTO_UID_OBJ'] = $arrayCaseTrackerObjectData->getCtoUidObj ();
             $caseTrackerObject->update ($arrayData);
-            
-            if ( $tempPosition != $arrayCaseTrackerObjectData["CTO_POSITION"] )
+
+            if ( $tempPosition != $arrayCaseTrackerObjectData->getCtoPosition () )
             {
                 $this->moveCaseTrackerObject ($caseTrackerObjectUid, $arrayData['PRO_UID'], $tempPosition);
             }
@@ -326,22 +336,21 @@ class CaseTrackerObject
      */
     public function moveCaseTrackerObject ($cto_uid, $pro_uid, $cto_pos)
     {
-        $aCaseTrackerObject = (new CaseTracker())->getCaseTrackerObjects($pro_uid);
-        
+        $aCaseTrackerObject = (new CaseTracker())->getCaseTrackerObjects ($pro_uid);
+
         foreach ($aCaseTrackerObject as $dataCaseTracker) {
             if ( $dataCaseTracker['cto_uid'] == $cto_uid )
             {
                 $prStepPos = (int) $dataCaseTracker['cto_position'];
             }
         }
-        
+
         $seStepPos = $cto_pos;
         //Principal Step is up
         if ( $prStepPos == $seStepPos )
         {
             return true;
         }
-        
         elseif ( $prStepPos < $seStepPos )
         {
             $modPos = 'UP';
@@ -356,7 +365,7 @@ class CaseTrackerObject
             $iniPos = $seStepPos;
             $finPos = $prStepPos - 1;
         }
-        
+
         $range = range ($iniPos, $finPos);
         foreach ($aCaseTrackerObject as $dataCaseTracker) {
             if ( (in_array ($dataCaseTracker['cto_position'], $range)) && ($dataCaseTracker['cto_uid'] != $cto_uid) )

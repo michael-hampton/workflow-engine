@@ -14,6 +14,14 @@
 abstract class BaseCaseTracker implements Persistent
 {
 
+    private $arrayFieldDefinition = array(
+        "CT_MESSAGE_HISTORY" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getCtMessageHistory", "mutator" => "setCtMessageHistory"),
+        "CT_DERIVATION_HISTORY" => array("type" => "string", "required" => false, "empty" => true, "accessor" => "getCtDerivationHistory", "mutator" => "setCtDerivationHistory"),
+        "MAP_TYPE" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getCtMapType", "mutator" => "setCtMapType"),
+        "PROCESS_UID" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getProUid", "mutator" => "setProUid"),
+    );
+    private $objMysql;
+
     /**
      * The value for the pro_uid field.
      * @var        string
@@ -51,6 +59,11 @@ abstract class BaseCaseTracker implements Persistent
      * @var        boolean
      */
     protected $alreadyInValidation = false;
+
+    public function getConnection ()
+    {
+        $this->objMysql = new Mysql2();
+    }
 
     /**
      * Get the [pro_uid] column value.
@@ -196,9 +209,25 @@ abstract class BaseCaseTracker implements Persistent
      * @throws     PropelException
      * @see        doSave()
      */
-    public function save ($con = null)
+    public function save ()
     {
-        
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        $sql = "INSERT INTO case_tracker (PRO_UID, CT_MAP_TYPE, CT_DERIVATION_HISTORY, CT_MESSAGE_HISTORY) VALUES (?, ?, ?, ?)
+                    ON DUPLICATE KEY UPDATE CT_MAP_TYPE = ?, CT_DERIVATION_HISTORY = ?, CT_MESSAGE_HISTORY = ?;";
+
+        $this->objMysql->_query ($sql, [
+            $this->pro_uid,
+            $this->ct_map_type,
+            $this->ct_derivation_history,
+            $this->ct_message_history,
+            $this->ct_map_type,
+            $this->ct_derivation_history,
+            $this->ct_message_history]
+        );
     }
 
     /**
@@ -230,14 +259,60 @@ abstract class BaseCaseTracker implements Persistent
      * @see        doValidate()
      * @see        getValidationFailures()
      */
+
+    /**
+     * 
+     * @return boolean
+     */
     public function validate ()
     {
-        return true;
+        $errorCount = 0;
+
+        foreach ($this->arrayFieldDefinition as $fieldName => $arrField) {
+            if ( $arrField['required'] === true )
+            {
+                $accessor = $this->arrayFieldDefinition[$fieldName]['accessor'];
+
+                if ( trim ($this->$accessor ()) == "" )
+                {
+                    $this->arrValidationErrors[] = $fieldName . " Is empty. It is a required field";
+                    $errorCount++;
+                }
+            }
+        }
+
+        if ( $errorCount > 0 )
+        {
+            return FALSE;
+        }
+
+        return TRUE;
     }
 
+    /**
+     * 
+     * @param type $arrDocument
+     * @return boolean
+     */
     public function loadObject (array $arrData)
     {
-        
+        foreach ($arrData as $formField => $formValue) {
+
+            if ( isset ($this->arrayFieldDefinition[$formField]) )
+            {
+                $mutator = $this->arrayFieldDefinition[$formField]['mutator'];
+
+                if ( method_exists ($this, $mutator) && is_callable (array($this, $mutator)) )
+                {
+                    if ( isset ($this->arrayFieldDefinition[$formField]) && trim ($formValue) != "" )
+                    {
+                        call_user_func (array($this, $mutator), $formValue);
+                    }
+                }
+            }
+        }
+
+        return true;
     }
 
 }

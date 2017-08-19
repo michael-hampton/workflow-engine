@@ -77,6 +77,8 @@ class InputDocument extends BaseInputDocument
         if(isset($result[0]) && !empty($result[0])) {
             $objDoc = new InputDocument();
             $objDoc->setId($pk);
+            $objDoc->setTitle($result[0]['name']);
+            $objDoc->setDescription($result[0]['description']);
             
             return $objDoc;
         }

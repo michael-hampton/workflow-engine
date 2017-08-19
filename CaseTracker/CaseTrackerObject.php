@@ -28,9 +28,7 @@ class CaseTrackerObject extends BaseCaseTrackerObject
 
             if ( !is_null ($oRow) )
             {
-                $aFields = $this->fromArray ($oRow);
-                $this->setNew (false);
-                return $aFields;
+                return $oRow;
             }
             else
             {
@@ -185,6 +183,18 @@ class CaseTrackerObject extends BaseCaseTrackerObject
             $res[] = $row;
         }
         return $res;
+    }
+
+    public function retrieveByPK ($pk)
+    {
+        $result = $this->objMysql->_select ("case_tracker_objects", [], ["CTO_UID" => $pk]);
+
+        if ( !isset ($result[0]) || empty ($result[0]) )
+        {
+            return null;
+        }
+
+        return new CaseTrackerObject();
     }
 
 }

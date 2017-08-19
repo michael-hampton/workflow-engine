@@ -150,13 +150,18 @@ class CaseTracker
             $arrayCaseTrackerObject = array();
 
             //DynaForms
-            $sql = "SELECT t.step_name FROM workflow.`step` s
+            $sql = "SELECT t.step_name, s.STEP_UID_OBJ FROM workflow.`step` s
                     INNER JOIN workflow.task t ON t.TAS_UID = s.`TAS_UID`
                     INNER JOIN workflow.status_mapping sm ON sm.TAS_UID = t.TAS_UID
                     WHERE `STEP_TYPE_OBJ` = 'DYNAFORM'
-                    AND sm.workflow_id = ?
-                    AND s.`STEP_UID_OBJ` NOT IN(".implode(",", $arrayDynaFormUid).")
-                    GROUP BY s.TAS_UID";
+                    AND sm.workflow_id = ?";
+
+            if ( !empty ($arrayDynaFormUid) )
+            {
+                $sql .= " AND s.`STEP_UID_OBJ` NOT IN(" . implode (",", $arrayDynaFormUid) . ")";
+            }
+
+            $sql .= " GROUP BY s.TAS_UID";
 
             $results2 = $this->objMysql->_query ($sql, [$processUid]);
 
@@ -170,11 +175,20 @@ class CaseTracker
             }
 
             //InputDocuments
-            $results3 = $this->objMysql->_query ("SELECT d.`id`, `name`, `description` FROM `documents` d
+            $sql3 = "SELECT d.`id`, `name`, `description` FROM workflow.`documents` d
                                                 INNER JOIN workflow.step s ON s.STEP_TYPE_OBJ = 'INPUT_DOCUMENT'
                                                 INNER JOIN workflow.status_mapping m on m.TAS_UID = s.TAS_UID
-                                                WHERE m.workflow_id = ?
-                                                AND d.`id` NOT IN(" . implode (",", $arrayInputDocumentUid) . ")", [$processUid]);
+                                                WHERE m.workflow_id = ?";
+
+            if ( !empty ($arrayInputDocumentUid) )
+            {
+                $sql3 .= " AND d.`id` NOT IN(" . implode (",", $arrayInputDocumentUid) . ")";
+            }
+
+            $sql3 .= " GROUP BY d.id";
+
+            $results3 = $this->objMysql->_query ($sql3, [$processUid]);
+
 
             foreach ($results3 as $row) {
                 if ( $row["name"] . "" == "" )
@@ -193,12 +207,19 @@ class CaseTracker
             }
 
             //OutputDocuments
-            $results4 = $this->objMysql->_query ("SELECT d.`id`, `OUT_DOC_TITLE`, `OUT_DOC_DESCRIPTION` FROM workflow.output_document d
+            $sql4 = "SELECT d.`id`, `OUT_DOC_TITLE`, `OUT_DOC_DESCRIPTION` FROM workflow.output_document d
                     INNER JOIN workflow.step s ON s.STEP_TYPE_OBJ = 'OUTPUT_DOCUMENT'
                     INNER JOIN workflow.status_mapping m on m.TAS_UID = s.TAS_UID
-                    WHERE m.workflow_id = ?
-                    AND d.`id` NOT IN(" . implode (",", $arrayOutputDocumentUid) . ")", [$processUid]);
+                    WHERE m.workflow_id = ?";
 
+            if ( !empty ($arrayOutputDocumentUid) )
+            {
+
+                $sql4 .= " AND d.`id` NOT IN(" . implode (",", $arrayOutputDocumentUid) . ")";
+            }
+
+
+            $results4 = $this->objMysql->_query ($sql4, [$processUid]);
 
             foreach ($results4 as $row) {
                 $arrayCaseTrackerObject[] = array(
@@ -290,7 +311,7 @@ class CaseTracker
             //Verify data
             $process = new Process();
             $process->throwExceptionIfNotExistsProcess ($processUid, "prj_uid");
-            $dynaform = new \Dynaform();
+            $dynaform = new Form();
             $inputDocument = new \InputDocument();
             $outputDocument = new \OutputDocument();
             $arrayCaseTrackerObject = array();
@@ -306,18 +327,18 @@ class CaseTracker
                 switch ($row["CTO_TYPE_OBJ"]) {
                     case "DYNAFORM":
                         $arrayData = $dynaform->load ($row["CTO_UID_OBJ"]);
-                        $titleObj = $arrayData["DYN_TITLE"];
-                        $descriptionObj = $arrayData["DYN_DESCRIPTION"];
+                        $titleObj = $arrayData[0]["step_name"];
+                        $descriptionObj = $arrayData[0]["step_name"];
                         break;
                     case "INPUT_DOCUMENT":
-                        $arrayData = $inputDocument->getByUid ($row["CTO_UID_OBJ"]);
-                        $titleObj = $arrayData["name"];
-                        $descriptionObj = $arrayData["description"];
+                        $arrayData = $inputDocument->retrieveByPk ($row["CTO_UID_OBJ"]);
+                        $titleObj = $arrayData->getTitle ();
+                        $descriptionObj = $arrayData->getDescription ();
                         break;
                     case "OUTPUT_DOCUMENT":
                         $arrayData = $outputDocument->getByUid ($row["CTO_UID_OBJ"]);
-                        $titleObj = $arrayData["OUT_DOC_TITLE"];
-                        $descriptionObj = $arrayData["OUT_DOC_DESCRIPTION"];
+                        $titleObj = $arrayData->getOutDocTitle ();
+                        $descriptionObj = $arrayData->getOutDocDescription ();
                         break;
                 }
 
