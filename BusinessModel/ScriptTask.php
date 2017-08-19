@@ -389,7 +389,7 @@ class ScriptTask
     public function getScriptTaskCriteria ()
     {
         try {
-            $criteria = "SELECT SCRTAS_UID, PRJ_UID, ACT_UID, SCRTAS_OBJ_TYPE, SCRTAS_OBJ_UID FROM workflow.SCRIPT_TASK";
+            $criteria = "SELECT t.title, SCRTAS_UID, PRJ_UID, ACT_UID, SCRTAS_OBJ_TYPE, SCRTAS_OBJ_UID FROM workflow.SCRIPT_TASK st LEFT JOIN workflow.step_trigger t ON t.id = st.SCRTAS_OBJ_UID";
 
             return $criteria;
         } catch (\Exception $e) {
@@ -415,6 +415,7 @@ class ScriptTask
             $objScript->setScrtasObjType ($record["SCRTAS_OBJ_TYPE"]);
             $objScript->setScrtasObjUid ($record["SCRTAS_OBJ_UID"]);
             $objScript->setScrtasUid ($record["SCRTAS_UID"]);
+             $objScript->setTitle ($record["title"]);
 
             return $objScript;
         } catch (\Exception $e) {

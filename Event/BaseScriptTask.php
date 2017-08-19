@@ -21,6 +21,7 @@ abstract class BaseScriptTask implements Persistent
      * @var        string
      */
     protected $scrtas_uid = '';
+    protected $title;
 
     /**
      * The value for the prj_uid field.
@@ -63,7 +64,7 @@ abstract class BaseScriptTask implements Persistent
         "stepId" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getActUid", "mutator" => "setActUid"),
         "SCRTAS_OBJ_UID" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getScrtasObjUid", "mutator" => "setScrtasObjUid")
     );
-    
+
     private function getConnection ()
     {
         $this->objMysql = new Mysql2();
@@ -117,6 +118,16 @@ abstract class BaseScriptTask implements Persistent
     public function getScrtasObjUid ()
     {
         return $this->scrtas_obj_uid;
+    }
+
+    /**
+     * Get the [title] column value.
+     * 
+     * @return     string
+     */
+    public function getTitle ()
+    {
+        return $this->title;
     }
 
     /**
@@ -176,6 +187,26 @@ abstract class BaseScriptTask implements Persistent
         if ( $this->act_uid !== $v || $v === '' )
         {
             $this->act_uid = $v;
+        }
+    }
+
+    /**
+     * Set the value of title column.
+     * 
+     * @param      string $v new value
+     * @return     void
+     */
+    public function setTitle ($v)
+    {
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ( $v !== null && !is_string ($v) )
+        {
+            $v = (string) $v;
+        }
+        if ( $this->title !== $v || $v === '' )
+        {
+            $this->title = $v;
         }
     }
 
