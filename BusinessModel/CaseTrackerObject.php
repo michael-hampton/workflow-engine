@@ -80,12 +80,12 @@ class CaseTrackerObject
             throw $e;
         }
     }
-    
-    public function deleteAllObjects($processUid)
+
+    public function deleteAllObjects ($processUid)
     {
         $objCaseTracker = new \CaseTrackerObject();
-        $objCaseTracker->setProUid($processUid);
-        $objCaseTracker->delete();
+        $objCaseTracker->setProUid ($processUid);
+        $objCaseTracker->delete ();
     }
 
     /**
@@ -127,7 +127,7 @@ class CaseTrackerObject
             {
                 throw new \Exception ("ID_RECORD_EXISTS_IN_TABLE " . $processUid . ", " . $arrayData["CTO_TYPE_OBJ"] . ", " . $arrayData["CTO_UID_OBJ"], "CASE_TRACKER_OBJECT");
             }
-            
+
             $ctoPosition = $arrayData["CTO_POSITION"];
 
             $sql = "SELECT COUNT(*) + 1 AS count FROM case_tracker_objects WHERE PRO_UID = ?";
@@ -150,6 +150,23 @@ class CaseTrackerObject
         } catch (\Exception $e) {
             throw $e;
         }
+    }
+
+    public function getCurrentValues ($processUid)
+    {
+        $results = $this->objMysql->_query ("SELECT `CTO_TYPE_OBJ`, GROUP_CONCAT(`CTO_UID_OBJ`) AS ids FROM `case_tracker_objects` WHERE `PRO_UID` = ? GROUP BY  `CTO_TYPE_OBJ`", [$processUid]);
+
+        $arrObjects = [];
+        
+        if(!isset($results[0]) || empty($results[0])) {
+            return false;
+        }
+        
+        foreach ($results as $result) {
+            $arrObjects[$result['CTO_TYPE_OBJ']] = explode(",", $result['ids']);
+        }
+        
+        return $arrObjects;
     }
 
     /**
