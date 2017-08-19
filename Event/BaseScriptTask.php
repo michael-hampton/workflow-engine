@@ -319,4 +319,23 @@ abstract class BaseScriptTask implements Persistent
         return TRUE;
     }
 
+    public function delete ()
+    {
+        try {
+            if ( $this->objMysql === null )
+            {
+                $this->getConnection ();
+            }
+
+            if ( trim ($this->scrtas_uid) === "" )
+            {
+                return false;
+            }
+
+            $this->objMysql->_delete ("workflow.SCRIPT_TASK", ["SCRTAS_UID" => $this->scrtas_uid]);
+        } catch (Exception $ex) {
+            throw $ex;
+        }
+    }
+
 }

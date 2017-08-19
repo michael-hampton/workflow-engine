@@ -345,6 +345,9 @@ class ScriptTask
         try {
             //Verify data
             $this->throwExceptionIfNotExistsScriptTask ($scriptTaskUid);
+            $objScriptTask = new \ScriptTask();
+            $objScriptTask->setScrtasUid ($scriptTaskUid);
+            $objScriptTask->delete ();
 
             //Delete
         } catch (\Exception $e) {
@@ -415,7 +418,7 @@ class ScriptTask
             $objScript->setScrtasObjType ($record["SCRTAS_OBJ_TYPE"]);
             $objScript->setScrtasObjUid ($record["SCRTAS_OBJ_UID"]);
             $objScript->setScrtasUid ($record["SCRTAS_UID"]);
-             $objScript->setTitle ($record["title"]);
+            $objScript->setTitle ($record["title"]);
 
             return $objScript;
         } catch (\Exception $e) {
