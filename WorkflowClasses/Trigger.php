@@ -37,8 +37,6 @@ class Trigger extends BaseTrigger
             }
             else
             {
-                print_r($this->getArrayValidationErrors());
-                die;
                 throw (new Exception ("Failed Validation in class " . get_class ($this) . "."));
             }
         } catch (Exception $e) {
@@ -53,7 +51,7 @@ class Trigger extends BaseTrigger
             $this->setTitle ($triTitle);
 
             $triDescription = isset ($fields['description']) ? $fields['description'] : '';
-            $template = isset($aData['template_name']) ? $aData['template_name'] : '';
+            $template = isset($fields['template_name']) ? $fields['template_name'] : '';
 
             $this->setTemplate($template);
             $this->setDescription ($triDescription);
@@ -85,6 +83,7 @@ class Trigger extends BaseTrigger
     {
         try {
             $oRow = $this->retrieveByPK ($TriUid);
+
             if ( !is_null ($oRow) )
             {
 

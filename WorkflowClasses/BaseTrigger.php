@@ -318,7 +318,8 @@ abstract class BaseTrigger
      */
     public function retrieveByPK ($pk)
     {
-        $v = $this->objMysql->_select ("workflow.step_trigger", [], ["id" => $pk]);
+        $v = $this->objMysql->_query ("SELECT workflow_id, workflow_from, workflow_to, trigger_type, step_to, step_id, title, description, event_type, template_name, TO_BASE64(`template_name`) AS code FROM workflow.step_trigger WHERE id = ?", [$pk]);
+        
         return !empty ($v) > 0 ? $v[0] : null;
     }
 

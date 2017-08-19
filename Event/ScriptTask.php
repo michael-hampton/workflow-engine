@@ -14,8 +14,5 @@
 class ScriptTask extends BaseScriptTask
 {
 
-    public function retrieveByPK($pk)
-    {
-        
-    }
+  
 }

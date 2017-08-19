@@ -525,4 +525,16 @@ class ScriptTask
         }
     }
 
+    public function getScriptTriggers ($workflowId)
+    {
+        $results = $this->objMysql->_select ("workflow.step_trigger", [], ["workflow_id" => $workflowId, "trigger_type" => "script"]);
+
+        if ( !isset ($results[0]) || empty ($results[0]) )
+        {
+            return array();
+        }
+
+        return $results;
+    }
+
 }

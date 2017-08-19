@@ -21,6 +21,11 @@ abstract class BaseScriptTask implements Persistent
      * @var        string
      */
     protected $scrtas_uid = '';
+
+    /**
+     * The value for the title field.
+     * @var        string
+     */
     protected $title;
 
     /**
@@ -336,6 +341,30 @@ abstract class BaseScriptTask implements Persistent
         } catch (Exception $ex) {
             throw $ex;
         }
+    }
+
+    public function retrieveByPK ($pk)
+    {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        $result = $this->objMysql->_select ("workflow.SCRIPT_TASK", [], ["SCRTAS_UID" => $pk]);
+
+        if ( !isset ($result[0]) || empty ($result[0]) )
+        {
+            return false;
+        }
+
+        $objScript = new ScriptTask();
+        $objScript->setActUid ($result[0]["ACT_UID"]);
+        $objScript->setPrjUid ($result[0]["PRJ_UID"]);
+        $objScript->setScrtasObjType ($result[0]["SCRTAS_OBJ_TYPE"]);
+        $objScript->setScrtasObjUid ($result[0]["SCRTAS_OBJ_UID"]);
+        $objScript->setScrtasUid ($result[0]["SCRTAS_UID"]);
+
+        return $objScript;
     }
 
 }
