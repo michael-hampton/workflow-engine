@@ -251,3 +251,12 @@ require_once HOME_DIR . 'core/app/library/Tables/BaseReportField.php';
 require_once HOME_DIR . 'core/app/library/Tables/ReportField.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/ReportTable.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/Table.php';
+
+require_once HOME_DIR . '/core/app/library/CaseTracker/BaseCaseTrackerObject.php';
+require_once HOME_DIR . '/core/app/library/CaseTracker/BaseCaseTracker.php';
+require_once HOME_DIR . '/core/app/library/CaseTracker/CaseTrackerObject.php';
+require_once HOME_DIR . '/core/app/library/CaseTracker/CaseTracker.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/CaseTracker.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/CaseTrackerObject.php';
+
+
