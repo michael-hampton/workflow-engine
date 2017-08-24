@@ -10,6 +10,7 @@ class Elements
     private $name;
     private $current_step;
     private $workflow_id;
+    private $audit;
     private $source_id;
     private $id;
     private $sampleRef;
@@ -426,8 +427,21 @@ class Elements
         {
             $this->JSON = $JSON;
         }
+
+        $auditResult = $objMysql->_select ("workflow.workflow_data", [], ["object_id" => $this->source_id]);
+
+        if ( isset ($auditResult[0]) && !empty ($auditResult[0]) && isset ($auditResult[0]['audit_data']) )
+        {
+            $this->audit = json_decode ($auditResult[0]['audit_data'], true);
+        }
+    }
+    
+    public function getAudit ()
+    {
+        return $this->audit;
     }
 
+    
     public function getOriginalDescription ()
     {
         return $this->originalDescription;

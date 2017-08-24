@@ -27,7 +27,7 @@ class Attachment
 
     public function loadObject ($arrData, \Users $objUser)
     {
-        
+
         if ( isset ($arrData['files']) )
         {
             if ( isset ($arrData['step']) && !$arrData['step'] instanceof \WorkflowStep )
@@ -47,7 +47,7 @@ class Attachment
             }
             else
             {
-                
+
                 $objVersioning = new \DocumentVersion();
                 $id = $objVersioning->create (array("filename" => $arrData['filename'], "document_id" => 1, "app_uid" => $this->projectId), $objUser);
                 $this->upload ($arrData['source_id'], $id);
@@ -119,7 +119,7 @@ class Attachment
             $arrExtensions = explode (",", $extensions);
 
             foreach ($arrExtensions as $key => $extension) {
-                $arrExtensions[$key] = trim(str_replace (".", "", $extension));
+                $arrExtensions[$key] = trim (str_replace (".", "", $extension));
             }
 
             $inputName = $objStepDocument[$this->documentId]->getTitle (); // input document name
@@ -144,7 +144,7 @@ class Attachment
             $actualSize = $maxFileSize * (($unit == "MB") ? 1024 * 1024 : 1024); //Bytes
 
             if ( !empty ($objStepDocument) )
-            {   
+            {
                 if ( $actualSize > 0 && $size > 0 )
                 {
                     if ( $size > $actualSize )
@@ -198,7 +198,7 @@ class Attachment
             }
 
             $this->object['file_destination'] = $destination;
-            
+
             // update version
             $id = $objVersioning->create (array("filename" => $originalFilename, "document_id" => $this->documentId, "app_uid" => $this->projectId), $objUser);
             $arrUploadedFiles[] = $id;
@@ -354,6 +354,69 @@ class Attachment
         } catch (Exception $ex) {
             throw $ex;
         }
+    }
+
+    public function getDocumentsByType ($docUid, $docType)
+    {
+        $results = $this->objMysql->_select ("app_document", [], ["document_id" => $docUid, "document_type" => $docType]);
+
+        if ( isset ($results[0]) && !empty ($results[0]) )
+        {
+            foreach ($results as $key => $result) {
+
+                $oAppDocument = new \DocumentVersion();
+                $Fields = $oAppDocument->load ($result['document_id'], $result['document_version'], null, true);
+
+                $info = pathinfo ($Fields['filename']);
+
+                if ( $result['document_type'] === "OUTPUT" )
+                {
+                    $ext = "pdf";
+
+                    $realPath = UPLOADS_DIR . "OutputDocuments/" . $result['app_id'] . "/" . $result['document_id'] . "_" . $result['document_version'] . "." . $ext;
+                    $realPath1 = UPLOADS_DIR . 'OutputDocuments/' . $info['basename'] . "_" . $result['document_version'] . '.' . $ext;
+
+                    $realPath2 = UPLOADS_DIR . 'OutputDocuments/' . $info['basename'] . '.' . $ext;
+
+                    $sw_file_exists = false;
+
+                    if ( file_exists ($realPath) )
+                    {
+                        $sw_file_exists = true;
+                    }
+                    elseif ( file_exists ($realPath1) )
+                    {
+                        $sw_file_exists = true;
+
+                        $realPath = $realPath1;
+                    }
+                    elseif ( file_exists ($realPath2) )
+                    {
+                        $sw_file_exists = true;
+
+                        $realPath = $realPath2;
+                    }
+
+                    $results[$key]['path'] = $realPath;
+                }
+                else
+                {
+                    $inputDocument = new \BusinessModel\InputDocument();
+                    $inputDocument->throwExceptionIfNotExistsInputDocument ($result['document_id']);
+                    $arrInput = $inputDocument->getInputDocument ($result['document_id']);
+
+                    $ext = (isset ($info['extension']) ? $info['extension'] : '');
+                    $realPath1 = "C:/xampp/htdocs/FormBuilder/public/uploads/" . $arrInput[$result['document_id']]->getDestinationPath () . "/" . $info['filename'] . "." . $ext;
+
+                    if ( file_exists ($realPath1) )
+                    {
+                        $results[$key]['path'] = $realPath1;
+                    }
+                }
+            }
+        }
+
+        return $results;
     }
 
 }
