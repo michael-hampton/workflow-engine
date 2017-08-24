@@ -9,7 +9,6 @@ class DatabaseOptions
     private $valueColumn;
     private $whereColumn;
     private $orderBy;
-    private $stepId;
     private $objMysql;
     private $fieldId;
     private $id;

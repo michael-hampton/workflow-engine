@@ -9,22 +9,13 @@ class Attachment
     private $projectId;
     public $id;
     public $object = array();
-    private $filename;
     private $documentId;
     private $objMysql;
     private $arrayValidation;
+    private $table = "task_manager.attachments";
 
     public function __construct ()
     {
-        if ( !defined ("PATH_DATA_PUBLIC") )
-        {
-            define ("PATH_DATA_PUBLIC", $_SERVER['DOCUMENT_ROOT'] . "/FormBuilder/public/");
-        }
-
-        if ( !defined ("PATH_SEP") )
-        {
-            define ("PATH_SEP", "/");
-        }
 
         $this->objMysql = new \Mysql2();
     }
@@ -34,8 +25,9 @@ class Attachment
         $this->id = $id;
     }
 
-    public function loadObject ($arrData)
+    public function loadObject ($arrData, \Users $objUser)
     {
+
         if ( isset ($arrData['files']) )
         {
             if ( isset ($arrData['step']) && !$arrData['step'] instanceof \WorkflowStep )
@@ -48,134 +40,18 @@ class Attachment
                 $this->documentId = $arrData['file_type'];
                 $this->stepId = $arrData['step']->getStepId ();
                 $this->projectId = $arrData['source_id'];
-                $result = $this->uploadDocument ($arrData['files'], $arrData);
-                
+
+                $result = $this->uploadDocument ($arrData['files'], $arrData, $objUser);
+
                 return $result;
             }
             else
             {
-                $aData = array(
-                    "prf_path" => "uploads",
-                    "prf_filename" => $arrData['filename']
-                );
 
-                $arrResponse = $this->addProcessFilesManager ($arrData['source_id'], $arrData['uploaded_by'], $aData);
-                $this->upload ($arrData['source_id'], $arrResponse['prf_uid']);
+                $objVersioning = new \DocumentVersion();
+                $id = $objVersioning->create (array("filename" => $arrData['filename'], "document_id" => 1, "app_uid" => $this->projectId), $objUser);
+                $this->upload ($arrData['source_id'], $id);
             }
-        }
-    }
-
-    public function addProcessFilesManager ($sProcessUID, $userUID, $aData)
-    {
-        try {
-            $aData['prf_path'] = rtrim ($aData['prf_path'], '/') . '/';
-
-            if ( !$aData['prf_filename'] )
-            {
-                throw new \Exception ("ID_INVALID_VALUE_FOR");
-            }
-
-            $extention = strstr ($aData['prf_filename'], '.');
-
-            if ( !$extention )
-            {
-                $extention = '.html';
-                $aData['prf_filename'] = $aData['prf_filename'] . $extention;
-            }
-            if ( $extention == '.docx' || $extention == '.doc' || $extention == '.html' || $extention == '.php' || $extention == '.jsp' ||
-                    $extention == '.xlsx' || $extention == '.xls' || $extention == '.js' || $extention == '.css' || $extention == '.txt' )
-            {
-                $sEditable = true;
-            }
-            else
-            {
-                $sEditable = false;
-            }
-
-
-            $sMainDirectory = current (explode ("/", $aData['prf_path']));
-
-            if ( $sMainDirectory != 'uploads' && $sMainDirectory != 'templates' )
-            {
-                throw new \Exception ("ID_INVALID_PRF_PATH");
-            }
-
-            if ( strstr ($aData['prf_path'], '/') )
-            {
-                $sSubDirectory = substr ($aData['prf_path'], strpos ($aData['prf_path'], "/") + 1);
-            }
-            else
-            {
-                $sSubDirectory = '';
-            }
-
-            switch ($sMainDirectory) {
-                case 'templates':
-
-                    break;
-                case 'uploads':
-                    $sDirectory = PATH_DATA_PUBLIC . $sMainDirectory . "/" . $sProcessUID . PATH_SEP . $sSubDirectory . $aData['prf_filename'];
-                    $sCheckDirectory = PATH_DATA_PUBLIC . $sMainDirectory . "/" . $sProcessUID . PATH_SEP . $sSubDirectory;
-                    $sEditable = false;
-
-                    if ( $extention == '.exe' )
-                    {
-                        throw new \Exception ('ID_FILE_UPLOAD_INCORRECT_EXTENSION');
-                    }
-                    break;
-                default:
-                    break;
-            }
-            if ( file_exists ($sDirectory) )
-            {
-                $directory = $sMainDirectory . PATH_SEP . $sSubDirectory . $aData['prf_filename'];
-                //throw new Exception ("ID_EXISTS_FILE");
-            }
-
-            if ( !file_exists ($sCheckDirectory) )
-            {
-                $oProcessFiles = new \ProcessFile();
-                $sDate = date ('Y-m-d H:i:s');
-                $oProcessFiles->setProUid ($sProcessUID);
-                $oProcessFiles->setUsrUid ($userUID);
-                $oProcessFiles->setPrfUpdateUsrUid ('');
-                $oProcessFiles->setPrfPath ($sCheckDirectory);
-                $oProcessFiles->setPrfType ('folder');
-                $oProcessFiles->setPrfEditable ('');
-                $oProcessFiles->setPrfCreateDate ($sDate);
-                $oProcessFiles->save ();
-            }
-
-            $oProcessFiles = new \ProcessFile();
-            $sDate = date ('Y-m-d H:i:s');
-            $oProcessFiles->setProUid ($sProcessUID);
-            $oProcessFiles->setUsrUid ($userUID);
-            $oProcessFiles->setPrfUpdateUsrUid ('');
-            $oProcessFiles->setPrfPath ($sDirectory);
-            $oProcessFiles->setPrfType ('file');
-            $oProcessFiles->setPrfEditable ($sEditable);
-            $oProcessFiles->setPrfCreateDate ($sDate);
-            $oProcessFiles->setPrfFielname ($aData['prf_filename']);
-
-            if ( isset ($aData['file_type']) )
-            {
-                $oProcessFiles->setFileType ($aData['file_type']);
-            }
-
-            $oProcessFiles->save ();
-
-            $oProcessFile = array('prf_uid' => $oProcessFiles->getId (),
-                'prf_filename' => $aData['prf_filename'],
-                'usr_uid' => $oProcessFiles->getUsrUid (),
-                'prf_update_usr_uid' => $oProcessFiles->getPrfUpdateUsrUid (),
-                'prf_path' => $sMainDirectory . PATH_SEP . $sSubDirectory,
-                'prf_type' => $oProcessFiles->getPrfType (),
-                'prf_editable' => $oProcessFiles->getPrfEditable (),
-                'prf_create_date' => $oProcessFiles->getPrfCreateDate ());
-
-            return $oProcessFile;
-        } catch (Exception $e) {
-            throw $e;
         }
     }
 
@@ -223,7 +99,7 @@ class Attachment
      * @return boolean
      * @throws Exception
      */
-    private function uploadDocument ($arrFiles, $arrData)
+    private function uploadDocument ($arrFiles, $arrData, \Users $objUser)
     {
         $stepDocument = new \BusinessModel\InputDocument (new \Task ($this->stepId));
 
@@ -234,6 +110,7 @@ class Attachment
 
         $objStepDocument = $stepDocument->getInputDocument ($this->documentId);
 
+
         if ( !empty ($objStepDocument) )
         {
 
@@ -242,11 +119,10 @@ class Attachment
             $arrExtensions = explode (",", $extensions);
 
             foreach ($arrExtensions as $key => $extension) {
-                $arrExtensions[$key] = str_replace (".", "", $extension);
+                $arrExtensions[$key] = trim (str_replace (".", "", $extension));
             }
 
             $inputName = $objStepDocument[$this->documentId]->getTitle (); // input document name
-            //$projectId = 1;
             $intCount = 0;
             $versioning = $objStepDocument[$this->documentId]->getVersioning ();
             $dir2 = $objStepDocument[$this->documentId]->getDestinationPath ();
@@ -255,39 +131,35 @@ class Attachment
 
         $arrUploadedFiles = array();
 
-        foreach ($_FILES['fileUpload']['name'] as $key => $name) {
-            $size = $_FILES['fileUpload']['size'][$key];
-            $file_tmp = $_FILES['fileUpload']['tmp_name'][$key];
+        foreach ($arrFiles['fileUpload']['name'] as $key => $name) {
+            $size = $arrFiles['fileUpload']['size'][$key];
+            $file_tmp = $arrFiles['fileUpload']['tmp_name'][$key];
             $arrName = explode ('.', $name);
             $file_ext = strtolower (end ($arrName));
 
             $filename = $this->projectId . "_" . $intCount . date ("YmdHis") . "." . $file_ext;
-            $dir = $_SERVER['DOCUMENT_ROOT'] . "/FormBuilder/public/uploads/" . $dir2 . "/";
+            $dir = UPLOADS_DIR . $dir2 . "/";
             $destination = $dir . $filename;
+
+            $actualSize = $maxFileSize * (($unit == "MB") ? 1024 * 1024 : 1024); //Bytes
 
             if ( !empty ($objStepDocument) )
             {
-                if ( $unit == "MB" )
+                if ( $actualSize > 0 && $size > 0 )
                 {
-                    $actualSize = $this->formatSizeUnits ($size, "MB");
-                }
-                else
-                {
-                    $actualSize = $this->formatSizeUnits ($size, "KB");
-                }
-
-                if ( $actualSize > $size )
-                {
-                    $this->arrayValidation[] = "TOO BIG";
+                    if ( $size > $actualSize )
+                    {
+                        throw new Exception ("ID_SIZE_VERY_LARGE_PERMITTED");
+                    }
                 }
 
-                if ( in_array ($file_ext, $arrExtensions) === false )
+                if ( !in_array (trim ($file_ext), $arrExtensions) )
                 {
                     $this->arrayValidation[] = "extension not allowed, please choose a JPEG or PNG file.";
                 }
 
                 $filename = $inputName . "_" . $this->projectId . "_" . $intCount . "." . $file_ext;
-                $dir = $_SERVER['DOCUMENT_ROOT'] . "/FormBuilder/public/uploads/" . $dir2 . "/";
+                $dir = UPLOADS_DIR . $dir2 . "/";
                 $destination = $dir . $filename;
 
                 $objVersioning = new \DocumentVersion();
@@ -314,9 +186,9 @@ class Attachment
                 {
                     return false;
                 }
-                
+
                 $objFile = new \BusinessModel\FileUpload();
-                $objFile->verifyPath($dir, TRUE);
+                $objFile->verifyPath ($dir, TRUE);
             }
 
             if ( !move_uploaded_file ($file_tmp, $destination) )
@@ -327,25 +199,16 @@ class Attachment
 
             $this->object['file_destination'] = $destination;
 
-            $aData = array(
-                "prf_path" => "uploads",
-                "prf_filename" => $filename,
-                "file_type" => $arrData['file_type']
-            );
-
-            // save document
-            $arrResponse = $this->addProcessFilesManager ($arrData['source_id'], $arrData['uploaded_by'], $aData);
-
             // update version
-            $objVersioning->create (array("filename" => $originalFilename, "document_id" => $arrResponse['prf_uid']));
-            $arrUploadedFiles[] = $arrResponse['prf_uid'];
+            $id = $objVersioning->create (array("filename" => $originalFilename, "document_id" => $this->documentId, "app_uid" => $this->projectId), $objUser);
+            $arrUploadedFiles[] = $id;
 
             $intCount++;
         }
 
         return $arrUploadedFiles;
     }
-    
+
     public function getArrayValidation ()
     {
         return $this->arrayValidation;
@@ -369,7 +232,7 @@ class Attachment
     public function getAllAttachments ($sourceId)
     {
         $objMysql = new \Mysql2();
-        $arrAttachments = $objMysql->_select ("task_manager.attachments", array(), array("source_id" => $sourceId));
+        $arrAttachments = $objMysql->_select ("task_manager.PROCESS_FILES", array(), array("source_id" => $sourceId));
 
         $aFields = array();
 
@@ -390,7 +253,7 @@ class Attachment
             $objProcessFiles->setPrfFielname ($arrAttachment['filename']);
             $objProcessFiles->setUsrUid ($arrAttachment['uploaded_by']);
             $objProcessFiles->setPrfPath ($arrAttachment['file_destination']);
-            $objProcessFiles->setDownloadPath($filePath);
+            $objProcessFiles->setDownloadPath ($filePath);
 
             $aFields[] = $objProcessFiles;
         }
@@ -406,7 +269,7 @@ class Attachment
      */
     function formatSizeUnits ($bytes, $type)
     {
-       // $GB = number_format ($bytes / 1073741824, 2);
+        //$GB = number_format ($bytes / 1073741824, 2);
 
         $MB = number_format ($bytes / 1048576, 2);
 
@@ -419,33 +282,6 @@ class Attachment
         else
         {
             return $MB;
-        }
-    }
-
-    /**
-     * @param $aData
-     * @throws Exception
-     */
-    public function updateProcessFilesManagerInDb ($aData)
-    {
-        try {
-            //update database
-            if ( $this->existsProcessFile ($aData['prf_uid']) )
-            {
-                $oProcessFiles = new \ProcessFile();
-                $sDate = date ('Y-m-d H:i:s');
-                $oProcessFiles->setPrfUpdateDate ($sDate);
-                $oProcessFiles->setProUid ($aData['PRO_UID']);
-                $oProcessFiles->setPrfPath ($aData['PRF_PATH']);
-                $oProcessFiles->setId ($aData['prf_uid']);
-                $oProcessFiles->save ();
-            }
-            else
-            {
-                //$this->addProcessFilesManagerInDb($aData);
-            }
-        } catch (Exception $e) {
-            throw $e;
         }
     }
 
@@ -492,7 +328,6 @@ class Attachment
     public function deleteProcessFilesManager ($sProcessUID, $prfUid)
     {
         try {
-            $path = '';
 
             $result = $this->retrieveByPK ($prfUid);
 
@@ -517,8 +352,71 @@ class Attachment
             $processFiles->setId ($prfUid);
             $processFiles->delete ();
         } catch (Exception $ex) {
-            throw $e;
+            throw $ex;
         }
+    }
+
+    public function getDocumentsByType ($docUid, $docType)
+    {
+        $results = $this->objMysql->_select ("app_document", [], ["document_id" => $docUid, "document_type" => $docType]);
+
+        if ( isset ($results[0]) && !empty ($results[0]) )
+        {
+            foreach ($results as $key => $result) {
+
+                $oAppDocument = new \DocumentVersion();
+                $Fields = $oAppDocument->load ($result['document_id'], $result['document_version'], null, true);
+
+                $info = pathinfo ($Fields['filename']);
+
+                if ( $result['document_type'] === "OUTPUT" )
+                {
+                    $ext = "pdf";
+
+                    $realPath = UPLOADS_DIR . "OutputDocuments/" . $result['app_id'] . "/" . $result['document_id'] . "_" . $result['document_version'] . "." . $ext;
+                    $realPath1 = UPLOADS_DIR . 'OutputDocuments/' . $info['basename'] . "_" . $result['document_version'] . '.' . $ext;
+
+                    $realPath2 = UPLOADS_DIR . 'OutputDocuments/' . $info['basename'] . '.' . $ext;
+
+                    $sw_file_exists = false;
+
+                    if ( file_exists ($realPath) )
+                    {
+                        $sw_file_exists = true;
+                    }
+                    elseif ( file_exists ($realPath1) )
+                    {
+                        $sw_file_exists = true;
+
+                        $realPath = $realPath1;
+                    }
+                    elseif ( file_exists ($realPath2) )
+                    {
+                        $sw_file_exists = true;
+
+                        $realPath = $realPath2;
+                    }
+
+                    $results[$key]['path'] = $realPath;
+                }
+                else
+                {
+                    $inputDocument = new \BusinessModel\InputDocument();
+                    $inputDocument->throwExceptionIfNotExistsInputDocument ($result['document_id']);
+                    $arrInput = $inputDocument->getInputDocument ($result['document_id']);
+
+                    $ext = (isset ($info['extension']) ? $info['extension'] : '');
+                    $realPath1 = "C:/xampp/htdocs/FormBuilder/public/uploads/" . $arrInput[$result['document_id']]->getDestinationPath () . "/" . $info['filename'] . "." . $ext;
+
+                    if ( file_exists ($realPath1) )
+                    {
+                        $results[$key]['path'] = $realPath1;
+                    }
+                }
+            }
+        }
+
+        return $results;
     }
 
 }

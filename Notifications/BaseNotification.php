@@ -7,19 +7,25 @@ abstract class BaseNotification implements Persistent
     protected $system;
     protected $message;
     protected $subject;
-    private $body;
+    protected $body;
     protected $objMysql;
-    private $recipient;
-    private $hasRead;
-    private $dateSent;
-    private $triggeringStatus;
-    private $projectId;
-    private $id;
-    private $sentByUser;
-    private $parentId;
-    private $stepData;
-    private $stepName;
-    
+    protected $recipient;
+    protected $elementId;
+    protected $hasRead;
+    protected $dateSent;
+    protected $triggeringStatus;
+    protected $projectId;
+    protected $id;
+    protected $sentByUser;
+    protected $parentId;
+    protected $stepData;
+    protected $stepName;
+    protected $cc;
+    protected $bcc;
+    protected $from;
+    protected $sendToAll;
+    protected $defaultFrom = "bluetiger_uan@yahoo.com";
+    protected $fromName;
     private $arrFieldMapping = array(
         "notificationId" => array("accessor" => "getId", "mutator" => "setId"),
         "step" => array("accessor" => "getTriggeringStatus", "mutator" => "setTriggeringStatus"),
@@ -29,7 +35,12 @@ abstract class BaseNotification implements Persistent
         "sentByUser" => array("accessor" => "getSentByUser", "mutator" => "setSentByUser"),
         "parentId" => array("accessor" => "getParentId", "mutator" => "setParentId"),
         "step_data" => array("accessor" => "getStepData", "mutator" => "setStepData"),
-        "step_name" => array("accessor" => "getStepName", "mutator" => "setStepName")
+        "step_name" => array("accessor" => "getStepName", "mutator" => "setStepName"),
+        "CC" => array("accessor" => "getCc", "mutator" => "setCc"),
+        "BCC" => array("accessor" => "getBcc", "mutator" => "setBcc"),
+        "from" => array("accessor" => "getFrom", "mutator" => "setFrom"),
+        "fromName" => array("accessor" => "getFromName", "mutator" => "setFromName"),
+        "sendToAll" => array("accessor" => "getSendToAll", "mutator" => "setSendToAll")
     );
     public $arrNotificationData = array();
     public $arrMessages = array();
@@ -69,7 +80,7 @@ abstract class BaseNotification implements Persistent
 
         return true;
     }
-    
+
     public function validate ()
     {
         ;
@@ -120,52 +131,56 @@ abstract class BaseNotification implements Persistent
     {
         $objMysql = new Mysql2();
         $arrResult = $objMysql->_select ("auto_notifications", array(), array("triggering_status" => $this->status, "system" => $this->system));
-        
-        if ( !empty ($arrResult) )
-        {
-            $this->message = $arrResult[0];
-        }
-        else
+
+        if ( !isset ($arrResult[0]) || empty ($arrResult[0]) )
         {
             return false;
         }
+
+        $this->message = $arrResult[0];
+
+        $this->fromName = trim ($arrResult[0]['from_name']) !== "" ? $arrResult[0]['from_name'] : '';
+        $this->from = trim ($arrResult[0]['from_mail']) !== "" ? $arrResult[0]['from_mail'] : '';
+        $this->cc = trim ($arrResult[0]['cc']) !== "" ? $arrResult[0]['cc'] : '';
+        $this->bcc = trim ($arrResult[0]['bcc']) !== "" ? $arrResult[0]['bcc'] : '';
+        $this->sendToAll = $arrResult[0]['send_to_all'];
     }
 
-    function getRecipient ()
+    public function getRecipient ()
     {
         return $this->recipient;
     }
 
-    function getMessage ()
+    public function getMessage ()
     {
         return $this->message;
     }
 
-    function getSubject ()
+    public function getSubject ()
     {
         return $this->subject;
     }
 
-    function getBody ()
+    public function getBody ()
     {
         return $this->body;
     }
 
-    function getHasRead ()
+    public function getHasRead ()
     {
         return $this->hasRead;
     }
 
-    function getDateSent ()
+    public function getDateSent ()
     {
         return $this->dateSent;
     }
-    
+
     /**
      * 
      * @param type $hasRead
      */
-    function setHasRead ($hasRead)
+    public function setHasRead ($hasRead)
     {
         $this->hasRead = $hasRead;
     }
@@ -174,17 +189,17 @@ abstract class BaseNotification implements Persistent
      * 
      * @param type $dateSent
      */
-    function setDateSent ($dateSent)
+    public function setDateSent ($dateSent)
     {
         $this->dateSent = $dateSent;
     }
 
-    function getTriggeringStatus ()
+    public function getTriggeringStatus ()
     {
         return $this->triggeringStatus;
     }
 
-    function getId ()
+    public function getId ()
     {
         return $this->id;
     }
@@ -193,7 +208,7 @@ abstract class BaseNotification implements Persistent
      * 
      * @param type $triggeringStatus
      */
-    function setTriggeringStatus ($triggeringStatus)
+    public function setTriggeringStatus ($triggeringStatus)
     {
         $this->triggeringStatus = $triggeringStatus;
         $this->arrNotificationData['triggering_status'] = $triggeringStatus;
@@ -204,7 +219,7 @@ abstract class BaseNotification implements Persistent
      * 
      * @param type $id
      */
-    function setId ($id)
+    public function setId ($id)
     {
         $this->id = $id;
     }
@@ -213,7 +228,7 @@ abstract class BaseNotification implements Persistent
      * 
      * @param type $subject
      */
-    function setSubject ($subject)
+    public function setSubject ($subject)
     {
         $this->subject = $subject;
         $this->arrNotificationData['message_subject'] = $subject;
@@ -224,7 +239,7 @@ abstract class BaseNotification implements Persistent
      * 
      * @param type $body
      */
-    function setBody ($body)
+    public function setBody ($body)
     {
         $this->body = $body;
         $this->arrNotificationData['message_body'] = $body;
@@ -235,14 +250,14 @@ abstract class BaseNotification implements Persistent
      * 
      * @param type $recipient
      */
-    function setRecipient ($recipient)
+    public function setRecipient ($recipient)
     {
         $this->recipient = $recipient;
         $this->arrNotificationData['to'] = $recipient;
         $this->arrMessages['recipient'] = $recipient;
     }
 
-    function getParentId ()
+    public function getParentId ()
     {
         return $this->parentId;
     }
@@ -251,13 +266,13 @@ abstract class BaseNotification implements Persistent
      * 
      * @param type $parentId
      */
-    function setParentId ($parentId)
+    public function setParentId ($parentId)
     {
         $this->parentId = $parentId;
         $this->arrMessages['parent_id'] = $parentId;
     }
 
-    function getProjectId ()
+    public function getProjectId ()
     {
         return $this->projectId;
     }
@@ -271,7 +286,7 @@ abstract class BaseNotification implements Persistent
         $this->projectId = $projectId;
     }
 
-    function getSentByUser ()
+    public function getSentByUser ()
     {
         return $this->sentByUser;
     }
@@ -280,13 +295,13 @@ abstract class BaseNotification implements Persistent
      * 
      * @param type $sentByUser
      */
-    function setSentByUser ($sentByUser)
+    public function setSentByUser ($sentByUser)
     {
         $this->sentByUser = $sentByUser;
         $this->arrMessages['sent_by_user'] = $sentByUser;
     }
-    
-    function getStepData ()
+
+    public function getStepData ()
     {
         return $this->stepData;
     }
@@ -295,19 +310,69 @@ abstract class BaseNotification implements Persistent
      * 
      * @param type $stepData
      */
-    function setStepData ($stepData)
+    public function setStepData ($stepData)
     {
         $this->stepData = $stepData;
     }
-    
-    function getStepName ()
+
+    public function getStepName ()
     {
         return $this->stepName;
     }
 
-    function setStepName ($stepName)
+    public function setStepName ($stepName)
     {
         $this->stepName = $stepName;
+    }
+
+    public function getCc ()
+    {
+        return $this->cc;
+    }
+
+    public function getBcc ()
+    {
+        return $this->bcc;
+    }
+
+    public function getFrom ()
+    {
+        return $this->from;
+    }
+
+    public function getSendToAll ()
+    {
+        return $this->sendToAll;
+    }
+
+    public function getFromName ()
+    {
+        return $this->fromName;
+    }
+
+    public function setCc ($cc)
+    {
+        $this->cc = $cc;
+    }
+
+    public function setBcc ($bcc)
+    {
+        $this->bcc = $bcc;
+    }
+
+    public function setFrom ($from)
+    {
+        $this->from = $from;
+    }
+
+    public function setSendToAll ($sendToAll)
+    {
+        $this->sendToAll = $sendToAll;
+    }
+
+    public function setFromName ($fromName)
+    {
+        $this->fromName = $fromName;
     }
 
     /**
@@ -317,11 +382,35 @@ abstract class BaseNotification implements Persistent
     {
         if ( isset ($this->id) && is_numeric ($this->id) )
         {
-            $this->objMysql->_update ("task_manager.auto_notifications", $this->arrNotificationData, array("id" => $this->id));
+            $this->objMysql->_update ("task_manager.auto_notifications", [
+                "system" => "task_manager",
+                "message_subject" => $this->subject,
+                "message_body" => $this->body,
+                "to" => $this->recipient,
+                "from_name" => $this->fromName,
+                "from_mail" => $this->from,
+                "cc" => $this->cc,
+                "bcc" => $this->bcc,
+                "send_to_all" => $this->sendToAll
+                    ], array(
+                "id" => $this->id
+                    )
+            );
         }
         else
         {
-            $this->objMysql->_insert ("task_manager.auto_notifications", array($this->arrNotificationData));
+            $this->objMysql->_insert ("task_manager.auto_notifications", [
+                "triggering_status" => $this->triggeringStatus,
+                "`system`" => "task_manager",
+                "message_subject" => $this->subject,
+                "message_body" => $this->body,
+                "`to`" => $this->recipient,
+                "from_name" => $this->fromName,
+                "from_mail" => $this->from,
+                "cc" => $this->cc,
+                "bcc" => $this->bcc,
+                "send_to_all" => $this->sendToAll
+            ]);
         }
     }
 
@@ -340,6 +429,34 @@ abstract class BaseNotification implements Persistent
         $this->arrMessages['date_sent'] = date ("Y-m-d H:i:s");
         $this->arrMessages['status'] = 1;
         $this->objMysql->_insert ("workflow.notifications_sent", $this->arrMessages);
+    }
+
+    /**
+     *
+     */
+    public function sendMessage ()
+    {
+        $this->objMysql->_query ("UPDATE workflow.notifications_sent
+                                SET status = 2
+                                WHERE case_id = ?
+                                AND project_id = ?
+                                AND status != 3", [$this->elementId, $this->projectId]
+        );
+
+        $id = $this->objMysql->_insert (
+                "workflow.notifications_sent", array(
+            "subject" => $this->subject,
+            "message" => $this->body,
+            "recipient" => $this->recipient,
+            "date_sent" => date ("Y-m-d H:i:s"),
+            "project_id" => $this->projectId,
+            "case_id" => $this->elementId,
+            "status" => 1,
+            "step_id" => $this->status
+                )
+        );
+
+        return $id;
     }
 
 }

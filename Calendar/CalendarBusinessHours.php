@@ -94,7 +94,7 @@ class CalendarBusinessHours extends BaseCalendarBusinessHours
         if ( $tr->validate () )
         {
             // we save it, since we get no validation errors, or do whatever else you like.
-            $res = $tr->save ();
+            $tr->save ();
         }
         else
         {

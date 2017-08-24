@@ -23,8 +23,8 @@ class NotificationsFactory
     {
         $arrWhere = array();
 
-        $query = "SELECT ns.*, s.step_name FROM workflow.`notifications_sent` ns
-                    LEFT JOIN workflow.steps s ON s.step_id = ns.`step_id`
+        $query = "SELECT ns.*, t.step_name FROM workflow.`notifications_sent` ns
+                    LEFT JOIN workflow.task t ON t.TAS_UID = ns.`step_id`
                     WHERE 1=1
                     ";
 
@@ -94,8 +94,8 @@ class NotificationsFactory
 
         $arrWhere = array();
 
-        $query = "SELECT ns.*, s.step_name FROM workflow.`notifications_sent` ns
-                    LEFT JOIN workflow.steps s ON s.step_id = ns.`step_id`
+        $query = "SELECT ns.*, t.step_name FROM workflow.`notifications_sent` ns
+                    LEFT JOIN workflow.task t ON t.TAS_UID = ns.`step_id`
                     WHERE 1=1
                     ";
 
@@ -152,14 +152,12 @@ class NotificationsFactory
         $_SESSION["pagination"]["total_counter"] = $totalRows;
 
         $current_page = $page;
-        $startwith = $pageLimit * $page;
+        //$startwith = $pageLimit * $page;
         $total_pages = $totalRows / $pageLimit;
         $_SESSION["pagination"]["current_page"] = $current_page;
 
         // calculating displaying pages
-        $_SESSION["pagination"]["total_pages"] = (int) ($totalRows / $pageLimit);
-        if ( fmod ($totalRows, $pageLimit) > 0 )
-            $_SESSION["pagination"]["total_pages"] ++;
+        $_SESSION["pagination"]["total_pages"] = ceil((int) $total_pages);
 
         $query .= " LIMIT " . $page . ", " . $pageLimit;
 

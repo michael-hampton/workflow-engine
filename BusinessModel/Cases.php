@@ -18,7 +18,7 @@ class Cases
      * Get list for Cases
      *
      * @access public
-     * @param array $dataList, Data for list
+     * @param array $dataList , Data for list
      * @return array
      */
     public function getList ($dataList = array())
@@ -50,7 +50,7 @@ class Cases
         $valuesCorrect = array('todo', 'draft', 'paused', 'sent', 'selfservice', 'unassigned', 'search');
         if ( !in_array ($action, $valuesCorrect) )
         {
-            throw (new \Exception (\G::LoadTranslation ("ID_INCORRECT_VALUE_ACTION")));
+            throw (new \Exception ("ID_INCORRECT_VALUE_ACTION"));
         }
         $start = (int) $start;
         $start = abs ($start);
@@ -84,14 +84,6 @@ class Cases
         if ( $action == 'search' || $action == 'to_reassign' )
         {
             $userUid = ($user == "CURRENT_USER") || $user == '' ? $userUid : $user;
-
-            if ( $first )
-            {
-                $result = array();
-                $result['totalCount'] = 0;
-                $result['data'] = array();
-                return $result;
-            }
         }
 
         $result = $this->getAll (
@@ -151,10 +143,10 @@ class Cases
                 foreach ($workflowData['elements'] as $elementId => $element) {
                     //if ( $elementId == $caseId )
                     //{
-                    if ( isset ($element['current_step']) && isset ($element['workflow_id']) )
-                    {
-                        $previousStep = $this->getPreviousStep ($element['current_step'], $element['workflow_id']);
-                    }
+                    //if ( isset ($element['current_step']) && isset ($element['workflow_id']) )
+                    //{
+                    //$previousStep = $this->getPreviousStep ($element['current_step'], $element['workflow_id']);
+                    //}
 
                     if ( isset ($auditData['elements'][$elementId]['steps']) )
                     {
@@ -468,7 +460,7 @@ class Cases
      * Get Case Notes
      *
      * @access public
-     * @param string $app_uid, Uid for case
+     * @param string $app_uid , Uid for case
      * @return array
      */
     public function getCaseNotes ($app_uid, $usr_uid, $data_get = array())
@@ -562,8 +554,8 @@ class Cases
      * Save new case note
      *
      * @access public
-     * @param string $app_uid, Uid for case
-     * @param array $app_data, Data for case variables
+     * @param string $app_uid , Uid for case
+     * @param array $app_data , Data for case variables
      */
     public function saveCaseNote ($app_uid, $usr_uid, $note_content, $send_mail = false)
     {
@@ -662,6 +654,11 @@ class Cases
             {
                 $projectId = $this->saveProject ($arrData, $objWorkflow, $objUser);
 
+                if ( !$projectId )
+                {
+                    return false;
+                }
+
                 $this->projectUid ($projectId);
             }
 
@@ -672,19 +669,14 @@ class Cases
 
             if ( isset ($arrFiles['fileUpload']) )
             {
-                $arrFiles = $this->uploadCaseFiles ($arrFiles, $projectId, $objStep);
-
-//                if ( !$arrFiles )
-//                {
-//                    $errorCounter++;
-//                }
+                $arrFiles = $this->uploadCaseFiles ($arrFiles, $projectId, $objStep, $objUser);
             }
 
             if ( $errorCounter === 0 )
             {
                 if ( isset ($arrFiles) && !empty ($arrFiles) )
                 {
-                    $_POST['form']['file2'] = implode (",", $arrFiles);
+                    $variables['form']['file2'] = implode (",", $arrFiles);
                 }
 
                 $variables['form']['source_id'] = $projectId;
@@ -699,6 +691,16 @@ class Cases
                     $variables['form']['hasEvent'] = true;
                 }
 
+                if ( isset ($variables['form']['name']) && trim ($variables['form']['name']) !== "" )
+                {
+                    $objElements->setOriginalTitle ($variables['form']['name']);
+                }
+
+                if ( isset ($variables['form']['description']) && trim ($variables['form']['description']) !== "" )
+                {
+                    $objElements->setOriginalDescription ($variables['form']['description']);
+                }
+
                 $validation = $objStep->save ($objElements, $variables['form'], $objUser);
                 $caseId = $objElements->getId ();
 
@@ -708,6 +710,18 @@ class Cases
                     echo json_encode ($validate);
                     return false;
                 }
+
+                $objElements->updateTitle ($objUser, $objStep);
+
+                (new \Log (LOG_FILE))->log (
+                        array(
+                    "message" => "New Case Created",
+                    'case_id' => $caseId,
+                    'project_id' => $projectId,
+                    'user' => $objUser->getUsername (),
+                    'workflow_id' => $objWorkflow->getWorkflowId (),
+                    'step_id' => $objStep->getStepId ()
+                        ), \Log::NOTICE);
 
                 return array("project_id" => $projectId, "case_id" => $caseId);
             }
@@ -720,19 +734,18 @@ class Cases
      * Uploads files that were saved as part of the new case process
      * @see addCase
      */
-    public function uploadCaseFiles ($arrFilesUploaded, $projectId, \WorkflowStep $objStep, $fileType = '')
+    public function uploadCaseFiles ($arrFilesUploaded, $projectId, \WorkflowStep $objStep, \Users $objUser, $fileType = '')
     {
         if ( isset ($arrFilesUploaded['fileUpload']['name'][0]) && !empty ($arrFilesUploaded['fileUpload']['name'][0]) )
         {
             foreach ($arrFilesUploaded['fileUpload']['name'] as $key => $value) {
 
                 $fileContent = file_get_contents ($arrFilesUploaded['fileUpload']['tmp_name'][$key]);
-
                 $arrData = array(
                     "source_id" => $projectId,
                     "filename" => $value,
                     "date_uploaded" => date ("Y-m-d H:i:s"),
-                    "uploaded_by" => $_SESSION['user']['username'],
+                    "uploaded_by" => $objUser->getUsername (),
                     "contents" => $fileContent,
                     "files" => $arrFilesUploaded,
                     "step" => $objStep
@@ -745,7 +758,7 @@ class Cases
 
                 $objAttachments = new \BusinessModel\Attachment();
 
-                $id = $arrFiles = $objAttachments->loadObject ($arrData);
+                $id = $arrFiles = $objAttachments->loadObject ($arrData, $objUser);
 
                 if ( $id === false )
                 {
@@ -786,7 +799,9 @@ class Cases
 
         if ( $validation === false )
         {
-            print_r ($objStep->getFieldValidation ());
+            $validate['validation'] = $objStep->getFieldValidation ();
+            echo json_encode ($validate);
+            return false;
         }
 
         $projectId = $objSave->getId ();
@@ -838,8 +853,9 @@ class Cases
      */
     private function getStepName ($stepName)
     {
-        $step = $this->objMysql->_query ("SELECT s.step_name FROM workflow.status_mapping m
-                                                    INNER JOIN workflow.steps s ON s.step_id = m.step_from
+
+        $step = $this->objMysql->_query ("SELECT t.step_name FROM workflow.status_mapping m
+                                                    INNER JOIN workflow.task t ON t.TAS_UID = m.TAS_UID
                                                     WHERE m.id = ?", [$stepName]);
 
         if ( isset ($step[0]['step_name']) && trim ($step[0]['step_name']) !== "" )
@@ -875,13 +891,13 @@ class Cases
      * @param type $status
      * @param type $rejectionReason
      */
-    public function updateStatus (\Elements $objElement, $status, $rejectionReason = '')
+    public function updateStatus (\Elements $objElement, \Users $objUser, $status, $rejectionReason = '')
     {
         /** Todo
          * Pass in user object
          */
         $arrStepData = array(
-            'claimed' => $_SESSION["user"]["username"],
+            'claimed' => $objUser->getUsername (),
             "dateCompleted" => date ("Y-m-d H:i;s"),
             "status" => $status
         );
@@ -892,7 +908,6 @@ class Cases
         }
 
         $objSteps = new \WorkflowStep (null, $objElement);
-        $objUser = (new \BusinessModel\UsersFactory())->getUser ($_SESSION['user']['usrid']);
 
         if ( $status === "COMPLETE" )
         {
@@ -905,40 +920,34 @@ class Cases
     }
 
     /**
-     * 
+     *
      * @param Elements $objElements
      */
-    public function assignUsers (\Elements $objElements)
+    public function assignUsers (\Elements $objElement, \Users $objUser)
     {
-        $objUser = (new \BusinessModel\UsersFactory())->getUser ($_SESSION['user']['usrid']);
-        
         $arrStepData = array(
-            'claimed' => $_SESSION["user"]["username"],
+            'claimed' => $objUser->getUsername (),
             "dateCompleted" => date ("Y-m-d H:i;s"),
             "status" => "CLAIMED"
         );
 
-        $objStep = new \WorkflowStep (null, $objElements);
-        $objStep->assignUserToStep ($objElements, $objUser, $arrStepData);
+        $objStep = new \WorkflowStep (null, $objElement);
+        $objStep->complete ($objElement, $arrStepData, $objUser);
     }
 
     /**
      * Get Case Variables
      *
      * @access public
-     * @param string $app_uid, Uid for case
-     * @param string $usr_uid, Uid for user
-     * @param string $dynaFormUid, Uid for step
+     * @param string $app_uid , Uid for case
+     * @param string $usr_uid , Uid for user
+     * @param string $dynaFormUid , Uid for step
      * @return array
      */
-    public function getCaseVariables ($app_uid, $usr_uid, $pro_uid, $dynaFormUid = null, $act_uid = null, $app_index = null)
+    public function getCaseVariables ($app_uid, $pro_uid, $dynaFormUid = null, $act_uid = null, $app_index = null)
     {
         $this->isInteger ($app_uid, '$app_uid');
-        //Validator::appUid($app_uid, '$app_uid');
-        //$this->isInteger ($usr_uid, '$usr_uid');
-        //$this->validateUserId ($usr_uid);
 
-        require_once $_SERVER['DOCUMENT_ROOT'] . "/core/app/config/config.php";
         $arrSystemVariables = getSystemVariables ();
 
         $objCase = $this->getCaseInfo ($pro_uid, $app_uid);
@@ -950,28 +959,23 @@ class Cases
 
         $arrayCaseVariable = [];
 
+        $arrFields = [];
+
         if ( !is_null ($dynaFormUid) )
         {
             $objForm = new \BusinessModel\Form (new \Task ($dynaFormUid));
             $arrAllFields = $objForm->getFields (true);
-            $arrFields = [];
 
-            if ( !empty ($arrAllFields) )
+            if ( !empty ($arrAllFields) && is_array ($arrAllFields) )
             {
-                foreach ($arrAllFields as $key => $arrField) {
-                    $arrFields[] = $key;
-                }
+                $arrFields = array_keys ($arrAllFields);
             }
+        }
 
 
-            $arrayCaseVariable = $this->__getFieldsAndValuesByDynaFormAndAppData (
-                    $arrFields, $objCase, $arrSystemVariables
-            );
-        }
-        else
-        {
-            $arrayCaseVariable = $objCase;
-        }
+        $arrayCaseVariable = $this->__getFieldsAndValuesByDynaFormAndAppData (
+                $arrFields, $objCase, $arrSystemVariables
+        );
 
         return $arrayCaseVariable;
     }
@@ -988,18 +992,27 @@ class Cases
     private function __getFieldsAndValuesByDynaFormAndAppData (array $form, \Elements $objElements, array $caseVariables)
     {
         try {
-            $caseVariableAux = [];
 
-            foreach ($form as $value) {
-                $field = $value;
+            if ( isset ($objElements->arrElement) && !empty ($objElements->arrElement) )
+            {
+                foreach ($objElements->arrElement as $elementName => $elementValue) {
+                    $caseVariable[$elementName] = $elementValue;
+                }
+            }
 
-                if ( isset ($objElements->objJobFields[$field]) )
-                {
-                    if ( isset ($objElements->objJobFields[$field]['accessor']) )
+            if ( !empty ($form) )
+            {
+                foreach ($form as $value) {
+                    $field = $value;
+
+                    if ( isset ($objElements->objJobFields[$field]) )
                     {
-                        if ( method_exists ($objElements, $objElements->objJobFields[$field]['accessor']) )
+                        if ( isset ($objElements->objJobFields[$field]['accessor']) )
                         {
-                            $caseVariable[$field] = call_user_func (array($objElements, $objElements->objJobFields[$field]['accessor']));
+                            if ( method_exists ($objElements, $objElements->objJobFields[$field]['accessor']) )
+                            {
+                                $caseVariable[$field] = call_user_func (array($objElements, $objElements->objJobFields[$field]['accessor']));
+                            }
                         }
                     }
                 }
@@ -1014,7 +1027,6 @@ class Cases
                     }
                 }
             }
-
 
             return $caseVariable;
         } catch (Exception $ex) {
@@ -1032,32 +1044,32 @@ class Cases
      *
      * return object Return an object with data of an OutputDocument
      */
-    public function addCasesOutputDocument ($projectId, $caseId, $stepId, $outputDocumentUid, $userUid)
+    public function addCasesOutputDocument ($projectId, $caseId, $stepId, $outputDocumentUid, $objUser)
     {
         try {
-            $sApplication = $caseId;
-            $sUserLogged = $userUid;
             $outputID = $outputDocumentUid;
 
             $oOutputDocument = new \OutputDocument();
             $aOD = $oOutputDocument->retrieveByPk ($outputID);
-            $Fields = $this->getCaseVariables ($caseId, $userUid, $projectId, $stepId);
+
+            $Fields = $this->getCaseVariables ((int) $caseId, $projectId, $stepId);
 
             $sFilename = preg_replace ('[^A-Za-z0-9_]', '_', $this->replaceDataField ($aOD->getOutDocFilename (), $Fields));
-
-            $fileTags = $aOD->getOutDocTags ();
 
             $objDocumentVersion = new \DocumentVersion (array());
             $lastDocVersion = $objDocumentVersion->getLastDocVersionByFilename ($sFilename);
 
             if ( ($aOD->getOutDocVersioning () ) )
             {
-                $lastDocVersion ++;
-                $objDocumentVersion->create (array("filename" => $sFilename, "document_id" => $aOD->getOutDocUid (), "document_type" => "OUTPUT"));
+
+                $lastDocVersion++;
+                $objDocumentVersion->create (array("filename" => $sFilename, "app_uid" => $projectId, "document_id" => $aOD->getOutDocUid (), "document_type" => "OUTPUT"), $objUser);
             }
 
             $sFilename = $aOD->getOutDocUid () . "_" . $lastDocVersion;
-            $pathOutput = $_SERVER['DOCUMENT_ROOT'] . "/FormBuilder/public/uploads/OutputDocuments/" . $projectId . "/";
+
+            $pathOutput = OUTPUT_DOCUMENTS . $projectId . "/";
+
             $objFile = new \BusinessModel\FileUpload();
             $objFile->mk_dir ($pathOutput);
 
@@ -1100,7 +1112,7 @@ class Cases
 
     /* Returns content with [parameters] replaced with its values defined */
 
-    public function replaceDataField ($sContent, $aFields, $DBEngine = 'mysql')
+    public function replaceDataField ($sContent, $aFields)
     {
         $nrt = array("\n", "\r", "\t");
         $nrthtml = array("(n /)", "(r /)", "(t /)");
@@ -1108,7 +1120,6 @@ class Cases
         $strContentAux = str_replace ($nrt, $nrthtml, $sContent);
 
         $iOcurrences = preg_match_all ('/\[([^\]]+)\]/', $sContent, $arrayMatch1, PREG_PATTERN_ORDER | PREG_OFFSET_CAPTURE);
-        $nl2brRecursive = true;
 
         if ( $iOcurrences )
         {
@@ -1123,7 +1134,7 @@ class Cases
             $strContentAux1 = null;
             $strContentAux1 = $strContentAux;
 
-            foreach ($arrayGrid as $index => $value) {
+            foreach ($arrayGrid as $value) {
                 if ( $value !== "" )
                 {
                     $grdName = $value;
@@ -1160,7 +1171,7 @@ class Cases
      * @return object
      */
 
-    public function getAllGeneratedDocumentsCriteria ($sProcessUID, $sApplicationUID, $sTasKUID, $sUserUID)
+    public function getAllGeneratedDocumentsCriteria ($sProcessUID, $sApplicationUID, \Task $objTask, \Users $objUser)
     {
         if ( $this->objMysql === null )
         {
@@ -1169,14 +1180,13 @@ class Cases
 
         $listing = false;
 
-        $objUserFactory = new \BusinessModel\UsersFactory();
-        $objUser = $objUserFactory->getUser ($sUserUID);
+        $aObjectPermissions = $this->getAllObjectsFrom ($sProcessUID, $sApplicationUID, $objTask->getTasUid (), $objUser);
 
-        $aObjectPermissions = $this->getAllObjectsFrom ($sProcessUID, $sApplicationUID, $sTasKUID, $objUser);
         if ( !is_array ($aObjectPermissions) )
         {
             $aObjectPermissions = array('DYNAFORMS' => array(-1), 'INPUT_DOCUMENTS' => array(-1), 'OUTPUT_DOCUMENTS' => array(-1));
         }
+
         if ( !isset ($aObjectPermissions['DYNAFORMS']) )
         {
             $aObjectPermissions['DYNAFORMS'] = array(-1);
@@ -1211,23 +1221,25 @@ class Cases
             }
         }
 
-        $results = $this->objMysql->_select ("workflow.step_document", [], ["step_id" => $sTasKUID]);
+        $arrSteps = (new Step())->getSteps ($objTask->getTasUid (), "OUTPUT_DOCUMENT");
 
         $aOutputDocuments = array();
 
-
-        foreach ($results as $aRow) {
+        foreach ($arrSteps as $aRow) {
 
             $oAppDocument = new \DocumentVersion();
 
-            $lastVersion = $oAppDocument->getLastDocVersion ($aRow['document_id']);
+            $lastVersion = $oAppDocument->getLastDocVersion ($aRow->getStepUidObj ());
 
-            if ( $aRow['document_type'] == 1 )
+            if ( $aRow->getStepTypeObj () == "OUTPUT_DOCUMENT" )
             {
-                $aAux = $oAppDocument->load ($aRow['document_id'], $lastVersion);
+
+                $this->addCasesOutputDocument ($sProcessUID, $sApplicationUID, $objTask->getTasUid (), $aRow->getStepUidObj (), $objUser);
+
+                $aAux = $oAppDocument->load ($aRow->getStepUidObj (), $lastVersion);
 
                 $oOutputDocument = new \OutputDocument();
-                $aGields = $oOutputDocument->retrieveByPk ($aRow['document_id']);
+                $aGields = $oOutputDocument->retrieveByPk ($aRow->getStepUidObj ());
                 //OUTPUTDOCUMENT
                 $outDocTitle = $aGields->getOutDocTitle ();
                 switch ($aGields->getOutDocGenerate ()) {
@@ -1238,7 +1250,6 @@ class Cases
                                 $aAux['id'] . '&v=' . $lastVersion . '&ext=pdf&random=' . rand ();
                         $filePdfLabel = ".pdf";
                         break;
-
                     case "DOC":
                         $fileDoc = 'tasks/cases_ShowOutputDocument?a=' .
                                 $aAux['id'] . '&v=' . $lastVersion . '&ext=doc&random=' . rand ();
@@ -1246,7 +1257,6 @@ class Cases
                         $filePdf = 'javascript:alert("NO PDF")';
                         $filePdfLabel = " ";
                         break;
-
                     case "BOTH":
                         $fileDoc = 'tasks/cases_ShowOutputDocument?a=' .
                                 $aAux['id'] . '&v=' . $lastVersion . '&ext=doc&random=' . rand ();
@@ -1256,7 +1266,7 @@ class Cases
                             foreach ($listing as $folderitem) {
                                 if ( ($folderitem->filename == $aRow['APP_DOC_UID']) && ($folderitem->type == "DOC") )
                                 {
-                                    $fileDocLabel = G::LoadTranslation ('ID_GET_EXTERNAL_FILE') . " .doc";
+                                    $fileDocLabel = ".doc";
                                     $fileDoc = $folderitem->downloadScript;
                                     continue;
                                 }
@@ -1265,19 +1275,15 @@ class Cases
                         $filePdf = 'tasks/cases_ShowOutputDocument?a=' .
                                 $aAux['id'] . '&v=' . $lastVersion . '&ext=pdf&random=' . rand ();
                         $filePdfLabel = ".pdf";
-
                         break;
                 }
-
                 try {
                     $oUser = new \BusinessModel\UsersFactory();
                     $aAux1 = $oUser->getUser ($aAux['user_id']);
-
                     $sUser = $this->usersNameFormatBySetParameters ("@lastName, @firstName (@userName)", $aAux1->getUsername (), $aAux1->getFirstName (), $aAux1->getLastName ());
                 } catch (\Exception $oException) {
                     $sUser = '(USER DELETED)';
                 }
-
                 //if both documents were generated, we choose the pdf one, only if doc was
                 //generate then choose the doc file.
                 $firstDocLink = $filePdf;
@@ -1320,15 +1326,15 @@ class Cases
                 {
                     $aFields['TITLE'] = $aFields['APP_DOC_COMMENT'];
                 }
-
                 //$aFields['POSITION'] = $_SESSION['STEP_POSITION'];
                 $aFields['CONFIRM'] = 'ID_CONFIRM_DELETE_ELEMENT';
-                if ( in_array ($aRow['id'], $aObjectPermissions['OUTPUT_DOCUMENTS']) )
+
+                if ( in_array ($aRow->getStepUidObj (), $aObjectPermissions['OUTPUT_DOCUMENTS']) )
                 {
-                    if ( in_array ($aRow['id'], $aDelete['OUTPUT_DOCUMENTS']) )
-                    {
-                        $aFields['ID_DELETE'] = 'ID_DELETE';
-                    }
+                    //if ( in_array ($aRow->getStepUidObj (), $aDelete['OUTPUT_DOCUMENTS']) )
+                    //{
+                    $aFields['ID_DELETE'] = 'ID_DELETE';
+                    //}
                 }
                 $aOutputDocuments[] = $aFields;
             }
@@ -1346,17 +1352,11 @@ class Cases
     }
 
     /**
-
      * Obtain all user permits for Dynaforms, Input and output documents from some action [VIEW, BLOCK, etc...]
-
      * function getAllObjectsFrom ($PRO_UID, $APP_UID, $TAS_UID, $USR_UID, $ACTION)
-
      * @access public
-
      * @param  Project ID, Case ID, Step ID, User ID, Action
-
      * @return Array with user permissions for all objects types
-
      */
     public function getAllObjectsFrom ($PRO_UID, $APP_UID, $TAS_UID = "", \Users $objUser, $ACTION = "")
     {
@@ -1367,22 +1367,25 @@ class Cases
 
         $USR_UID = $objUser->getUserId ();
 
-        $USER_PERMISSIONS = Array();
-        $INPUT = Array();
-        $OUTPUT = Array();
-        $GROUP_PERMISSIONS = Array();
+        $USER_PERMISSIONS = array();
+        $INPUT = array();
+        $OUTPUT = array();
+        $GROUP_PERMISSIONS = array();
 
-        $RESULT = Array(
-            "DYNAFORM" => Array(),
-            "Input" => Array(),
-            "Output" => Array(),
+        $RESULT = array(
+            "DYNAFORM" => array(),
+            "Input" => array(),
+            "Output" => array(),
             "CASES_NOTES" => 0,
-            "MSGS_HISTORY" => Array()
+            "MSGS_HISTORY" => array()
 
                 /* ----------------------------------********--------------------------------- */
         );
 
-        $objPermissions = new \BusinessModel\StepPermission (new \Task ($TAS_UID));
+        $objTask = new \Task();
+        $objTask->setTasUid ($TAS_UID);
+
+        $objPermissions = new \BusinessModel\StepPermission ($objTask);
         $arrPermissions = $objPermissions->getProcessPermissions ();
 
         if ( !empty ($arrPermissions) )
@@ -1436,8 +1439,6 @@ class Cases
         {
             foreach ($PERMISSIONS as $row) {
 
-                $USER = $row['USR_UID'];
-                $O_TYPE = $row['OP_OBJ_TYPE'];
                 $ACTION = $row['OP_ACTION'];
 
                 $sw_participate = false; // must be false for default
@@ -1464,20 +1465,23 @@ class Cases
                             if ( $ACTION == 'Input' )
                             {
 
-                                $obj_type = 2;
+                                $obj_type = "INPUT_DOCUMENT";
                             }
                             else
                             {
 
-                                $obj_type = 1;
+                                $obj_type = "OUTPUT_DOCUMENT";
                             }
 
-                            $oDataset = $this->objMysql->_select ("workflow.step_document", [], ["step_id" => $TAS_UID, "document_type" => $obj_type]);
+                            $oDataset = $this->objMysql->_select ("workflow.step", [], ["TAS_UID" => $TAS_UID, "STEP_TYPE_OBJ" => $obj_type]);
 
-                            foreach ($oDataset as $aRow) {
-                                if ( !in_array ($aRow['document_id'], $RESULT[$ACTION]) )
-                                {
-                                    array_push ($RESULT[$ACTION], $aRow['document_id']);
+                            if ( !empty ($oDataset) )
+                            {
+                                foreach ($oDataset as $aRow) {
+                                    if ( !in_array ($aRow['STEP_UID_OBJ'], $RESULT[$ACTION]) )
+                                    {
+                                        array_push ($RESULT[$ACTION], $aRow['STEP_UID_OBJ']);
+                                    }
                                 }
                             }
 
@@ -1491,7 +1495,7 @@ class Cases
 
         $sw_participate = !isset ($sw_participate) ? false : true;
 
-        return Array(
+        return array(
             "DYNAFORMS" => $RESULT['DYNAFORM'],
             "INPUT_DOCUMENTS" => $RESULT['Input'],
             "OUTPUT_DOCUMENTS" => $RESULT['Output'],
@@ -1519,6 +1523,7 @@ class Cases
         }
 
         $objCase = $this->getCaseInfo ($proUid, $appUid);
+
         $arrayAccess = array();
 
         //User has participated
@@ -1529,17 +1534,19 @@ class Cases
             $arrayAccess['participated'] = in_array ($objUser->getUsername (), $aParticipated) ? true : false;
         }
 
-
         //User is supervisor
         if ( !empty ($objCase) && is_object ($objCase) )
         {
             $workflowId = $objCase->getWorkflow_id ();
             $supervisor = new \BusinessModel\ProcessSupervisor();
             $isSupervisor = $supervisor->isUserProcessSupervisor (new \Workflow ($workflowId), $objUser);
+
             $arrayAccess['supervisor'] = ($isSupervisor) ? true : false;
 
+
             $query = $this->objMysql->_select ("workflow.status_mapping", [], ["id" => $objCase->getCurrentStepId ()]);
-            $stepId = $query[0]['step_from'];
+
+            $stepId = $query[0]['TAS_UID'];
 
             $objectPermissions = $this->getAllObjectsFrom ($proUid, $appUid, $stepId, $objUser);
 
@@ -1573,24 +1580,23 @@ class Cases
         {
             return true;
         }
-
         return true;
     }
 
     /**
      * Get Users to reassign
      *
-     * @param string $userUid         Unique id of User (User logged)
-     * @param string $taskUid         Unique id of Task
-     * @param array  $arrayFilterData Data of the filters
-     * @param string $sortField       Field name to sort
-     * @param string $sortDir         Direction of sorting (ASC, DESC)
-     * @param int    $start           Start
-     * @param int    $limit           Limit
+     * @param string $userUid Unique id of User (User logged)
+     * @param string $taskUid Unique id of Task
+     * @param array $arrayFilterData Data of the filters
+     * @param string $sortField Field name to sort
+     * @param string $sortDir Direction of sorting (ASC, DESC)
+     * @param int $start Start
+     * @param int $limit Limit
      *
      * @return array Return Users to reassign
      */
-    public function getUsersToReassign ($projectId, $caseId, \Users $objUser, \WorkflowStep $objStep, $arrayFilterData = null, $sortField = null, $sortDir = null, $start = null, $limit = null)
+    public function getUsersToReassign (\WorkflowStep $objStep, $arrayFilterData = null, $sortField = null, $sortDir = null, $start = null, $limit = null)
     {
         try {
 
@@ -1603,10 +1609,10 @@ class Cases
             $numRecTotal = 0;
             //Set variables
             $stepId = $objStep->getStepId ();
-            $taskId = $objStep->getWorkflowStepId ();
+
+            echo $stepId;
+
             $workflowId = $objStep->getWorkflowId ();
-            $user = new \BusinessModel\UsersFactory();
-            $group = new \BusinessModel\Team();
             //Set variables
             $filterName = 'filter';
 
@@ -1677,7 +1683,7 @@ class Cases
 
             if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData['filter']) && trim ($arrayFilterData['filter']) != '' )
             {
-                $search = $arraySearch[(isset ($arrayFilterData['filterOption'])) ? $arrayFilterData['filterOption'] : ''];
+                $search = (isset ($arrayFilterData['filterOption'])) ? $arrayFilterData['filterOption'] : '';
 
                 $sql .= "AND (username LIKE '%" . $search . "%' OR firstName LIKE '%" . $search . "%' OR lastName LIKE '%" . $search . "%' )";
             }
@@ -1761,11 +1767,11 @@ class Cases
             {
                 foreach ($obj['elements'] as $elementId => $element) {
 
-                    if (isset($element['current_step']) && $element['current_step'] === $objFlow->getId () )
+                    if ( isset ($element['current_step']) && $element['current_step'] === $objFlow->getId () )
                     {
                         $lastStep = end ($objAudit['elements'][$elementId]['steps']);
 
-                        $date = $lastStep['dateCompleted'];
+
                         $rows[$WorkflowObject['object_id']] = $elementId;
                         $dates[$WorkflowObject['object_id']] = $lastStep['dateCompleted'];
                         $total++;
@@ -1784,7 +1790,7 @@ class Cases
         }
     }
 
-    public function doPostReassign (\Flow $objFlow, $data, $doReassign = true)
+    public function doPostReassign (\Task $objTask, $data, $doReassign = true)
     {
         if ( $this->objMysql === null )
         {
@@ -1806,39 +1812,38 @@ class Cases
 
         $casesToReassign = $data['cases'];
 
-        foreach ($casesToReassign as $key => $val) {
+        foreach ($casesToReassign as $val) {
 
             if ( $doReassign === true )
             {
                 $appDelegation = $this->objMysql->_select ("workflow.workflow_data", [], ["object_id" => $val['parentId']]);
-                $existDelegation = $this->validateReassignData ($objFlow, $appDelegation, $val, $data, 'DELEGATION_NOT_EXISTS');
+                $existDelegation = $this->validateReassignData ($objTask, $appDelegation, $val, 'DELEGATION_NOT_EXISTS');
+
+                if ( !$existDelegation )
+                {
+                    return false;
+                }
 
                 //Will be not able reassign a case when is paused
-                $flagPaused = $this->validateReassignData ($objFlow, $appDelegation, $val, $data, 'ID_REASSIGNMENT_PAUSED_ERROR');
+                $flagPaused = $this->validateReassignData ($objTask, $appDelegation, $val, 'ID_REASSIGNMENT_PAUSED_ERROR');
 
                 //Current users of OPEN DEL_INDEX thread
-                $flagSameUser = $this->validateReassignData ($objFlow, $appDelegation, $val, $data, 'REASSIGNMENT_TO_THE_SAME_USER');
+                $flagSameUser = $this->validateReassignData ($objTask, $appDelegation, $val, 'REASSIGNMENT_TO_THE_SAME_USER');
 
 
                 if ( $flagPaused && $flagSameUser )
                 {
                     return true;
                 }
-
-                return false;
             }
-
 
             if ( !isset ($val['user']) || !is_a ($val['user'], "Users") )
             {
                 throw new \Exception ("No user provided");
             }
 
-
-            $usrUid = $val['user']->getUserId ();
-
             //USER_NOT_ASSIGNED_TO_TASK
-            $flagHasPermission = $this->validateReassignData ($objFlow, array(), $val, $data, 'USER_NOT_ASSIGNED_TO_TASK');
+            $flagHasPermission = $this->validateReassignData ($objTask, array(), $val, 'USER_NOT_ASSIGNED_TO_TASK');
 
             return $flagHasPermission;
         }
@@ -1851,12 +1856,11 @@ class Cases
      * @param string $type
      * @return bool
      */
-    private function validateReassignData (\Flow $objFlow, $appDelegation = array(), $value, $data, $type = 'DELEGATION_NOT_EXISTS')
+    private function validateReassignData (\Task $objTask, $appDelegation = array(), $value, $type = 'DELEGATION_NOT_EXISTS')
     {
         $return = true;
         switch ($type) {
             case 'DELEGATION_NOT_EXISTS':
-                $exists = 0;
 
                 $workflowData = json_decode ($appDelegation[0]['workflow_data'], true);
 
@@ -1876,7 +1880,7 @@ class Cases
 
             case 'USER_NOT_ASSIGNED_TO_TASK':
 
-                $stepResult = $this->objMysql->_select ("workflow.status_mapping", [], ["id" => $objFlow->getId ()]);
+                $stepResult = $this->objMysql->_select ("workflow.status_mapping", [], ["TAS_UID" => $objTask->getTasUid ()]);
 
                 if ( !isset ($stepResult[0]) || empty ($stepResult[0]) )
                 {
@@ -1892,12 +1896,11 @@ class Cases
                 {
                     return false;
                 }
-                
-                $oTask = new \Task ($stepResult[0]['step_from']);
 
-                $permission = new StepPermission ($oTask);
+                $permission = new StepPermission ($objTask);
                 $supervisor = new ProcessSupervisor();
                 $objUser = (new UsersFactory())->getUser ($value['user']->getUserId ());
+
                 //$taskUid = $objFlow->getId ();
                 $flagBoolean = $permission->checkUserOrGroupAssignedTask ($objUser);
                 $flagps = $supervisor->isUserProcessSupervisor (new \Workflow ($stepResult[0]['workflow_id']), $objUser);
@@ -1938,9 +1941,9 @@ class Cases
                 $audit = json_decode ($appDelegation[0]['audit_data'], true);
                 $objUser = (new UsersFactory())->getUser ($value['user']->getUserId ());
 
-                if ( isset ($audit['elements'][$value['elementId']]['steps'][$objFlow->getId ()]) && isset ($audit['elements'][$value['elementId']]['steps'][$objFlow->getId ()]['claimed']) )
+                if ( isset ($audit['elements'][$value['elementId']]['steps'][$objTask->getStepId ()]) && isset ($audit['elements'][$value['elementId']]['steps'][$objTask->getStepId ()]['claimed']) )
                 {
-                    if ( trim ($objUser->getUsername ()) === trim ($audit['elements'][$value['elementId']]['steps'][$objFlow->getId ()]['claimed']) )
+                    if ( trim ($objUser->getUsername ()) === trim ($audit['elements'][$value['elementId']]['steps'][$objTask->getStepId ()]['claimed']) )
                     {
                         $this->messageResponse = [
                             'APP_UID' => $value['elementId'],
@@ -1954,6 +1957,199 @@ class Cases
                 break;
         }
         return $return;
+    }
+
+    /**
+     * get all upload document that they have send it
+     *
+     * @param string $sProcessUID Unique id of Process
+     * @param string $sApplicationUID Unique id of Case
+     * @param string $sTasKUID Unique id of Activity
+     * @param string $sUserUID Unique id of User
+     * @return object
+     */
+    public function getAllUploadedDocumentsCriteria (\Elements $objElement, $sTasKUID, \Users $objUser)
+    {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        $result = $this->objMysql->_select ("workflow.status_mapping", [], ["id" => $objElement->getCurrentStepId ()]);
+
+        if ( !isset ($result[0]) || empty ($result[0]) )
+        {
+            return false;
+        }
+
+        $taskId = $result[0]['TAS_UID'];
+
+        $aObjectPermissions = $this->getAllObjects ($objElement, $taskId, $objUser);
+
+        if ( !is_array ($aObjectPermissions) )
+        {
+            $aObjectPermissions = array(
+                'DYNAFORMS' => array(-1),
+                'INPUT_DOCUMENTS' => array(-1),
+                'OUTPUT_DOCUMENTS' => array(-1)
+            );
+        }
+
+        if ( !isset ($aObjectPermissions['DYNAFORMS']) )
+        {
+            $aObjectPermissions['DYNAFORMS'] = array(-1);
+        }
+        else
+        {
+            if ( !is_array ($aObjectPermissions['DYNAFORMS']) )
+            {
+                $aObjectPermissions['DYNAFORMS'] = array(-1);
+            }
+        }
+
+        if ( !isset ($aObjectPermissions['INPUT_DOCUMENTS']) )
+        {
+            $aObjectPermissions['INPUT_DOCUMENTS'] = array(-1);
+        }
+        else
+        {
+            if ( !is_array ($aObjectPermissions['INPUT_DOCUMENTS']) )
+            {
+                $aObjectPermissions['INPUT_DOCUMENTS'] = array(-1);
+            }
+        }
+        if ( !isset ($aObjectPermissions['OUTPUT_DOCUMENTS']) )
+        {
+            $aObjectPermissions['OUTPUT_DOCUMENTS'] = array(-1);
+        }
+        else
+        {
+            if ( !is_array ($aObjectPermissions['OUTPUT_DOCUMENTS']) )
+            {
+                $aObjectPermissions['OUTPUT_DOCUMENTS'] = array(-1);
+            }
+        }
+
+        $oAppDocument = new \DocumentVersion();
+
+        $sql = "SELECT * FROM task_manager.APP_DOCUMENT
+                WHERE app_id = ?
+                AND document_type IN ('INPUT') AND status IN('ACTIVE')
+                ORDER BY id ASC";
+        $arrParameters = array($objElement->getSource_id ());
+
+        $results = $this->objMysql->_query ($sql, $arrParameters);
+
+        if ( !isset ($results[0]) || empty ($results[0]) )
+        {
+            return false;
+        }
+
+        $aInputDocuments = array();
+
+        foreach ($results as $result) {
+            $aTask = (new \Task ($taskId))->retrieveByPk ($taskId);
+
+            if ( $aTask === false )
+            {
+                $aTask = array('TAS_TITLE' => '(TASK DELETED)');
+            }
+
+            $aAux = (new \DocumentVersion())->load ($result['document_id'], $result['document_version'], $result['id'], false);
+            $lastVersion = $oAppDocument->getLastDocVersionByFilename ($result['filename']);
+
+            if ( $aAux->getUsrUid () !== "-1" )
+            {
+                try {
+                    $aAux1 = (new \BusinessModel\UsersFactory())->getUser ($aAux->getUsrUid ());
+                    $sUser = $this->usersNameFormatBySetParameters ("@lastName, @firstName (@userName)", $aAux1->getUsername (), $aAux1->getFirstName (), $aAux1->getLastName ());
+                } catch (Exception $oException) {
+                    $sUser = '***';
+                }
+            }
+            else
+            {
+                $sUser = '***';
+            }
+
+            $aFields = array(
+                'APP_DOC_UID' => $aAux->getAppDocUid (),
+                'DOC_UID' => $aAux->getDocUid (),
+                'APP_DOC_FILENAME' => $aAux->getAppDocFilename (),
+                'TYPE' => $aAux->getAppDocType (),
+                'CREATE_DATE' => $aAux->getAppDocCreateDate (),
+                'CREATED_BY' => $sUser
+            );
+            if ( $aFields['APP_DOC_FILENAME'] != '' )
+            {
+                $aFields['TITLE'] = $aFields['APP_DOC_FILENAME'];
+            }
+            else
+            {
+                $aFields['TITLE'] = $aFields['APP_DOC_COMMENT'];
+            }
+
+            //$aFields['POSITION'] = $_SESSION['STEP_POSITION'];
+            $aFields['CONFIRM'] = 'ID_CONFIRM_DELETE_ELEMENT';
+
+            if ( (int) $aObjectPermissions['INPUT_DOCUMENTS'][0] === 1 )
+            {
+                $aFields['ID_DELETE'] = 'ID_DELETE';
+            }
+            $aFields['DOWNLOAD_LABEL'] = 'ID_DOWNLOAD';
+            $aFields['DOWNLOAD_LINK'] = "/FormBuilder/attachments/cases_ShowDocument?a=" . $aAux->getAppDocUid () . "&v=" . $aAux->getDocVersion ();
+            $aFields['DOC_VERSION'] = $aAux->getDocVersion ();
+
+            if ( $lastVersion == $aAux->getDocVersion () )
+            {
+                //Show only last version
+                $aInputDocuments[] = $aFields;
+            }
+        }
+
+        return $aInputDocuments;
+    }
+
+    /**
+     * Obtain all user permits for Dynaforms, Input and output documents
+     *
+     * function getAllObjects ($PRO_UID, $APP_UID, $TAS_UID, $USR_UID)
+     * @author Erik Amaru Ortiz <erik@colosa.com>
+     * @access public
+     * @param  Process ID, Application ID, Task ID and User ID
+     * @return Array within all user permitions all objects' types
+     */
+    public function getAllObjects (\Elements $objElement, $TAS_UID, \Users $objUser, $delIndex = 0)
+    {
+
+        $ACTIONS = array('RO', 'master', 'INPUT'); //TO COMPLETE
+        $MAIN_OBJECTS = array();
+        $RESULT_OBJECTS = array();
+
+        foreach ($ACTIONS as $action) {
+            $MAIN_OBJECTS[$action] = $this->getAllObjectsFrom ($objElement->getSource_id (), $objElement->getId (), $TAS_UID, $objUser, $action, $delIndex);
+        }
+
+        /* ADDITIONAL OPERATIONS */
+        /*         * * BETWEN VIEW AND BLOCK** */
+        $RESULT_OBJECTS['DYNAFORMS'] = $this->arrayDiff (
+                $MAIN_OBJECTS['RO']['DYNAFORMS'], $MAIN_OBJECTS['master']['DYNAFORMS']
+        );
+        $RESULT_OBJECTS['INPUT_DOCUMENTS'] = $this->arrayDiff (
+                $MAIN_OBJECTS['RO']['INPUT_DOCUMENTS'], $MAIN_OBJECTS['master']['INPUT_DOCUMENTS']
+        );
+        $RESULT_OBJECTS['OUTPUT_DOCUMENTS'] = array_merge_recursive (
+                $this->arrayDiff ($MAIN_OBJECTS['RO']['OUTPUT_DOCUMENTS'], $MAIN_OBJECTS['master']['OUTPUT_DOCUMENTS'])
+        );
+        $RESULT_OBJECTS['CASES_NOTES'] = $this->arrayDiff (
+                $MAIN_OBJECTS['RO']['CASES_NOTES'], $MAIN_OBJECTS['master']['CASES_NOTES']
+        );
+        array_push ($RESULT_OBJECTS["DYNAFORMS"], -1, -2);
+        array_push ($RESULT_OBJECTS['INPUT_DOCUMENTS'], -1);
+        array_push ($RESULT_OBJECTS['OUTPUT_DOCUMENTS'], -1);
+        array_push ($RESULT_OBJECTS['CASES_NOTES'], -1);
+
+        return $RESULT_OBJECTS;
     }
 
 }

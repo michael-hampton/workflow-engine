@@ -11,10 +11,9 @@
  *
  * @author michael.hampton
  */
-class AppDelegation
+class AppDelegation extends BaseAppDelegation
 {
 
-    private $del_delegate_date;
     private $objMysql;
 
     public function __construct ()
@@ -25,6 +24,253 @@ class AppDelegation
     public function getConnection ()
     {
         $this->objMysql = new Mysql2();
+    }
+
+    /**
+     * create an application delegation
+     *
+     * @param $sProUid process Uid
+     * @param $sAppUid Application Uid
+     * @param $sTasUid Task Uid
+     * @param $sUsrUid User Uid
+     * @param $iPriority delegation priority
+     * @param $isSubprocess is a subprocess inside a process?
+     * @return delegation index of the application delegation.
+     */
+    public function createAppDelegation (
+    WorkflowStep $objWorkflowStep, $objElement, Users $objUser, Task $objTask, $step, $iPriority = 3, $isSubprocess = false, $sPrevious = -1, $hasEvent = null, $flagControlMulInstance = false, $status, $status2, $delPrevious = 0, $taskId = 0, $userId = 0, $proId = 0)
+    {
+        if ( strlen ($objWorkflowStep->getWorkflowId ()) == 0 )
+        {
+            throw (new Exception ('Column "PRO_UID" cannot be null.'));
+        }
+        if ( method_exists ($objElement, "getSource_id") && strlen ($objElement->getSource_id ()) == 0 )
+        {
+            throw (new Exception ('Column "APP_UID" cannot be null.'));
+        }
+        elseif ( method_exists ($objElement, "getId") && strlen ($objElement->getId ()) == 0 )
+        {
+            throw (new Exception ('Column "APP_UID" cannot be null.'));
+        }
+
+        if ( strlen ($objWorkflowStep->getCurrentTask ()) == 0 )
+        {
+            throw (new Exception ('Column "TAS_UID" cannot be null.'));
+        }
+        if ( trim ($objUser->getUserId ()) === "" )
+        {
+            throw (new Exception ('Column "USR_UID" cannot be null.'));
+        }
+
+        $this->delegation_id = null;
+        //Get max DEL_INDEX
+
+        $sql = "SELECT * FROM workflow.workflow_data WHERE object_id = ? AND DEL_LAST_INDEX = 1 ORDER BY DEL_INDEX DESC";
+        $objectId = method_exists ($objElement, "getSource_id") ? $objElement->getSource_id () : $objElement->getId ();
+        $arrParameters = array($objectId);
+
+        $results = $this->objMysql->_query ($sql, $arrParameters);
+
+        $delIndex = 1;
+        $delPreviusUsrUid = $objUser->getUserId ();
+        $delPreviousFather = $sPrevious;
+
+        if ( isset ($results[0]) && !empty ($results[0]) )
+        {
+            $delIndex = (isset ($results[0]["DEL_INDEX"])) ? $results[0]["DEL_INDEX"] + 1 : 1;
+            $delPreviusUsrUid = $results[0]["USR_UID"];
+            $delPreviousFather = $results[0]["DEL_PREVIOUS"];
+        }
+        else
+        {
+            $sql2 = "SELECT DEL_INDEX, DEL_DELEGATE_DATE, object_id WHERE object_id = ? ORDER BY DEL_DELEGATE_DATE DESC";
+
+            $results2 = $this->objMysql->_query ($sql2, $arrParameters);
+
+            if ( isset ($results2[0]) && !empty ($results2[0]) )
+            {
+                $delIndex = (isset ($results2[0]["DEL_INDEX"])) ? $results2[0]["DEL_INDEX"] + 1 : 1;
+            }
+        }
+
+        $this->setAppUid (method_exists ($objElement, "getSource_id") ? $objElement->getSource_id () : $objElement->getId ());
+        $this->setProUid ($objWorkflowStep->getWorkflowId ());
+        $this->setTasUid ($objTask->getStepId ());
+        $this->setDelIndex ($delIndex);
+        $this->setDelLastIndex (1);
+        $this->setDelPrevious ($sPrevious == - 1 ? 0 : $sPrevious );
+        $this->setUsrUid ($objUser->getUserId ());
+        $this->setDelType ('NORMAL');
+        $this->setDelPriority (($iPriority != '' ? $iPriority : '3'));
+        $this->setDelThreadStatus ('OPEN');
+        $this->setDelDelegateDate ('now');
+        $this->setTasId ($objTask->getStepId ());
+        $this->setCollectionId ((int) $objWorkflowStep->getCollectionId ());
+        $this->setHasEvent ((int) $hasEvent);
+        $this->setUsrId ($objUser->getUsername ());
+        $this->setProId ($objWorkflowStep->getWorkflowId ());
+        $this->setStatus ($status);
+        $this->setAppNumber ($objElement->getId ());
+        $this->setAuditStatus ($status2);
+
+        // Must allow task to move even if calendar not set. Calendar can throw exception.
+        try {
+            //The function return an array now.  By JHL
+            $delTaskDueDate = $this->calculateDueDate ($objTask);
+            $delRiskDate = $this->calculateRiskDate ($objTask, $this->getRisk ());
+
+            //$this->setDelTaskDueDate( $delTaskDueDate['DUE_DATE'] ); // Due date formatted
+            $this->setDelTaskDueDate ($delTaskDueDate);
+            $this->setDelRiskDate ($delRiskDate);
+        } catch (Exception $ex) {
+            
+        }
+
+
+        if ( (defined ("DEBUG_CALENDAR_LOG")) && (DEBUG_CALENDAR_LOG) )
+        {
+            //$this->setDelData( $delTaskDueDate['DUE_DATE_LOG'] ); // Log of actions made by Calendar Engine
+            $this->setDelData ($delTaskDueDate);
+        }
+        else
+        {
+            $this->setDelData ('');
+        }
+        // this condition assures that an internal delegation like a subprocess dont have an initial date setted
+        if ( $delIndex == 1 && !$isSubprocess )
+        {
+            //the first delegation, init date this should be now for draft applications, in other cases, should be null.
+            $this->setDelInitDate ('now');
+        }
+        if ( $this->validate () )
+        {
+            try {
+                $this->save ();
+            } catch (Exception $e) {
+                error_log ($e->getMessage ());
+                return;
+            }
+        }
+        else
+        {
+            // Something went wrong. We can now get the validationFailures and handle them.
+            $msg = '';
+            $validationFailuresArray = $this->getValidationFailures ();
+            foreach ($validationFailuresArray as $objValidationFailure) {
+                $msg .= $objValidationFailure . "<br/>";
+            }
+            throw (new Exception ('Failed Data validation. ' . $msg));
+        }
+        $delIndex = $this->getDelIndex ();
+        // Hook for the trigger PM_CREATE_NEW_DELEGATION
+        if ( defined ('PM_CREATE_NEW_DELEGATION') )
+        {
+            $bpmn = new \ProcessMaker\Project\Bpmn();
+            $flagActionsByEmail = true;
+            $arrayAppDelegationPrevious = $this->getPreviousDelegationValidTask ($sAppUid, $delIndex);
+            $data = new stdclass();
+            $data->TAS_UID = $sTasUid;
+            $data->APP_UID = $sAppUid;
+            $data->DEL_INDEX = $delIndex;
+            $data->USR_UID = $sUsrUid;
+            $data->PREVIOUS_USR_UID = ($arrayAppDelegationPrevious !== false) ? $arrayAppDelegationPrevious['USR_UID'] : $delPreviusUsrUid;
+            if ( $bpmn->exists ($sProUid) )
+            {
+                /* ----------------------------------********--------------------------------- */
+                /* ----------------------------------********--------------------------------- */
+            }
+            if ( $flagActionsByEmail )
+            {
+                //$oPluginRegistry = &PMPluginRegistry::getSingleton ();
+                //$oPluginRegistry->executeTriggers (PM_CREATE_NEW_DELEGATION, $data);
+            }
+        }
+        return $delIndex;
+    }
+
+    /**
+     * Load the Application Delegation row specified in [app_id] column value.
+     *
+     * @param string $AppUid the uid of the application
+     * @return array $Fields the fields
+     */
+    public function Load ($AppUid, $sDelIndex)
+    {
+        $con = Propel::getConnection (AppDelegationPeer::DATABASE_NAME);
+        try {
+            $oAppDel = AppDelegationPeer::retrieveByPk ($AppUid, $sDelIndex);
+            if ( is_object ($oAppDel) && get_class ($oAppDel) == 'AppDelegation' )
+            {
+                $aFields = $oAppDel->toArray (BasePeer::TYPE_FIELDNAME);
+                $this->fromArray ($aFields, BasePeer::TYPE_FIELDNAME);
+                return $aFields;
+            }
+            else
+            {
+                throw (new Exception ("The row '$AppUid, $sDelIndex' in table AppDelegation doesn't exist!"));
+            }
+        } catch (Exception $oError) {
+            throw ($oError);
+        }
+    }
+
+    /**
+     * Update the application row
+     *
+     * @param array $aData
+     * @return variant
+     *
+     */
+    public function update ($aData)
+    {
+        $con = Propel::getConnection (AppDelegationPeer::DATABASE_NAME);
+        try {
+            $con->begin ();
+            $oApp = AppDelegationPeer::retrieveByPK ($aData['APP_UID'], $aData['DEL_INDEX']);
+            if ( is_object ($oApp) && get_class ($oApp) == 'AppDelegation' )
+            {
+                $oApp->fromArray ($aData, BasePeer::TYPE_FIELDNAME);
+                if ( $oApp->validate () )
+                {
+                    $res = $oApp->save ();
+                    $con->commit ();
+                    return $res;
+                }
+                else
+                {
+                    $msg = '';
+                    foreach ($this->getValidationFailures () as $objValidationFailure) {
+                        $msg .= $objValidationFailure->getMessage () . "<br/>";
+                    }
+                    throw (new PropelException ('The row cannot be created!', new PropelException ($msg)));
+                }
+            }
+            else
+            {
+                $con->rollback ();
+                throw (new Exception ("This AppDelegation row doesn't exist!"));
+            }
+        } catch (Exception $oError) {
+            throw ($oError);
+        }
+    }
+
+    public function remove ($sApplicationUID, $iDelegationIndex)
+    {
+        $oConnection = Propel::getConnection (StepTriggerPeer::DATABASE_NAME);
+        try {
+            $oConnection->begin ();
+            $oApp = AppDelegationPeer::retrieveByPK ($sApplicationUID, $iDelegationIndex);
+            if ( is_object ($oApp) && get_class ($oApp) == 'AppDelegation' )
+            {
+                $result = $oApp->delete ();
+            }
+            $oConnection->commit ();
+            return $result;
+        } catch (Exception $e) {
+            $oConnection->rollback ();
+            throw ($e);
+        }
     }
 
     public function getRisk ()
@@ -114,23 +360,24 @@ class AppDelegation
         }
     }
 
-    public function calculateRiskDate (Flow $objFlow, $dueDate, $risk)
+    public function calculateRiskDate (Task $objTask, $risk)
     {
         try {
+
             $data = array();
-            $data['TAS_DURATION'] = $objFlow->getTasDuration ();
-            $data['TAS_TIMEUNIT'] = $objFlow->getTasTimeUnit ();
-            $data['TAS_TYPE_DAY'] = $objFlow->getTasTypeDay ();
+            $data['TAS_DURATION'] = $objTask->getTasDuration ();
+            $data['TAS_TIMEUNIT'] = $objTask->getTasTimeUnit ();
+            $data['TAS_TYPE_DAY'] = $objTask->getTasTypeDay ();
 
             $riskTime = $data['TAS_DURATION'] - ($data['TAS_DURATION'] * $risk);
 
             //Calendar - Use the dates class to calculate dates
-            $calendar = new \BusinessModel\Calendar();
+            $calendar = new CalendarFunctions();
             $arrayCalendarData = array();
             if ( $calendar->pmCalendarUid == "" )
             {
-                $calendar->getCalendar ($objFlow->getCalendarUid ());
-                $arrayCalendarData = $calendar->getCalendarData ($objFlow->getCalendarUid ());
+                $calendar->getCalendar ($objTask->getCalendarUid ());
+                $arrayCalendarData = $calendar->getCalendarData ($objTask->getCalendarUid ());
             }
 
             $this->setDelDelegateDate ('now');
@@ -146,10 +393,10 @@ class AppDelegation
 
     public function calculateDueDate (Task $objTask)
     {
-        
         $aData['TAS_DURATION'] = $objTask->getTasDuration ();
         $aData['TAS_TIMEUNIT'] = $objTask->getTasTimeunit ();
         $aData['TAS_TYPE_DAY'] = $objTask->getTasTypeDay ();
+
         if ( trim ($objTask->getCalendarUid ()) !== "" )
         {
             $aCalendarUID = $objTask->getCalendarUid ();
@@ -159,12 +406,12 @@ class AppDelegation
             $aCalendarUID = '';
         }
 
-        $calendar = new \BusinessModel\Calendar();
+        $calendar = new CalendarFunctions();
         $arrayCalendarData = $calendar->getCalendarData ($aCalendarUID);
 
         if ( $calendar->pmCalendarUid == "" )
         {
-            $calendar->getCalendar (null, $this->getProUid (), $this->getTasUid ());
+            $calendar->getCalendar (null, $this->getProUid (), $objTask->getTasUid ());
             $arrayCalendarData = $calendar->getCalendarData ($aCalendarUID);
         }
 
@@ -173,69 +420,22 @@ class AppDelegation
         $timezone = 'Europe/London';
         $date->setTimezone (new DateTimeZone ($timezone)); // +04
         $timezone = $date->format ('Y-m-d H:i:s');
-        
+
         $dueDate = $calendar->dashCalculateDate ($initDate, $aData["TAS_DURATION"], $aData["TAS_TIMEUNIT"], $arrayCalendarData);
-        
+
         return $dueDate;
     }
 
     public function test ()
     {
         $objTask = new Task();
-        $objTask->setTasDuration(5);
+        $objTask->setTasDuration (5);
         $objTask->setTasTimeunit ("DAYS");
         $objTask->setTasTypeDay ("CALENDAR DAYS");
         $objTask->setCalendarUid (15);
 
         $delTaskDueDate = $this->calculateDueDate ($objFlow);
         $delRiskDate = $this->calculateRiskDate ($objFlow, date ("Y-m-d H:i:s"), $this->getRisk ());
-
-        echo $delRiskDate . " " . $delTaskDueDate;
-    }
-
-    public function calculateDuration ($cron = 0)
-    {
-        if ( $this->objMysql === null )
-        {
-            $this->getConnection ();
-        }
-
-        $results = $this->objMysql->_query ("SELECT ca.*, m.step_condition FROM calendar.`calendar_assignees` ca
-                                            INNER JOIN workflow.status_mapping M ON m.id = ca.USER_UID
-                                            WHERE OBJECT_TYPE = 'task'");
-
-
-        $arrDone = array();
-        $arrValues = [];
-
-        foreach ($results as $result) {
-
-            $objCases = new BusinessModel\Cases();
-            $arrCases = $objCases->getCasesForTask (new Flow ($result['USER_UID']));
-
-
-            $i = 0;
-            $now = new DateTime();
-            $calendar = new \BusinessModel\Calendar();
-
-            foreach ($arrCases['rows'] as $parentId => $caseId) {
-
-                if ( !in_array ($result['USER_UID'], $arrDone) )
-                {
-                    $calendar->getCalendar ($result['CALENDAR_UID']);
-                    $calData = $calendar->getCalendarData ($result['CALENDAR_UID']);
-                    $calculatedValues = $this->getValuesToStoreForCalculateDuration (array("case_id" => $caseId, "parentId" => $parentId, "TASK" => $result['step_condition']), $calendar, $calData, $now);
-                    $calculatedValues['elementId'] = $caseId;
-                    $calculatedValues['parentId'] = $parentId;
-                    
-                    return $calculatedValues;
-
-                    $arrValues[] = $calculatedValues;
-                }
-            }
-
-            $arrDone[] = $result['USER_UID'];
-        }
     }
 
     public function getValuesToStoreForCalculateDuration ($row, $calendar, $calData, $nowDate)
@@ -281,7 +481,6 @@ class AppDelegation
         );
 
         $arrMike['dFinishDate'] = trim ($rowValues['dFinishDate']) !== "" ? $rowValues['dFinishDate']->format ('Y-m-d H:i:s') : date ("Y-m-d H:i:s", strtotime ("+2 days"));
-        ;
 
 
         return Array(
@@ -372,9 +571,7 @@ class AppDelegation
     {
 
         //$firstAudit = array_shift (array_slice ($row['audit_object']['steps'], 0, 1));
-        $lastEl = array_values (array_slice ($row['audit_object']['steps'], -1))[0];
         $taskId = $row['TASK']['task_properties']['TAS_UID'];
-        $arrStep = [];
 
         $step = $row['audit_object']['steps'][$taskId];
 
@@ -390,6 +587,41 @@ class AppDelegation
             'dNow' => $nowDate,
             'row' => $row
         );
+    }
+
+    /*
+
+     * With this we can change the status to CLOSED in APP_DELEGATION
+
+     *
+
+     * @name CloseCurrentDelegation
+
+     * @param string $sAppUid
+
+     * @param string $iDelIndex
+
+     * @return Fields
+
+     */
+
+    public function CloseCurrentDelegation ($objMike, WorkflowStep $objWorkflowStep)
+    {
+
+        try {
+            $this->setDelFinishDate ('now');
+            $this->setDelThreadStatus ("CLOSED");
+            $this->setAppNumber ($objMike->getId ());
+            $this->setAppUid ($objMike->getSource_id ());
+            $this->setTasUid ($objWorkflowStep->getCurrentStep ());
+
+            if ( $this->validate () )
+            {
+                $this->completeAudit ();
+            }
+        } catch (Exception $ex) {
+            throw $ex;
+        }
     }
 
 }

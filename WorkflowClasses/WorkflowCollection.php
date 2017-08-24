@@ -3,11 +3,7 @@
 class WorkflowCollection extends BaseWorkflowCollection
 {
 
-  
     private $objMysql;
-  
-    private $processCout = 0;
- 
     public $arrCollection = array();
 
     public function __construct ($intWorkflowCollectionId = null, $objMike = null)
@@ -27,28 +23,19 @@ class WorkflowCollection extends BaseWorkflowCollection
         $this->objMike = $objMike;
     }
 
-  
-
     protected function getWorkflowCollectionData ($objMike)
     {
 
-        if ( method_exists ($objMike, "getParentId") )
+        if ( !method_exists ($objMike, "getParentId") )
         {
-            die ("No");
-        }
-        else
-        {
-            die ("Yes");
+            throw new Exception ("Cant find parent id");
         }
 
         if ( method_exists ($objMike, "getSource_id") && $objMike->getSource_id () != "" )
         {
             $parentId = $objMike->getSource_id ();
         }
-        else
-        {
-            $id = $objMike->getId ();
-        }
+
 
         $result = $this->objMysql->_select ("workflow.workflow_data", array("workflow_data"), array("object_id" => $parentId));
 
@@ -66,7 +53,7 @@ class WorkflowCollection extends BaseWorkflowCollection
 
         $this->setWorkflow ($workflowData['request_id']);
 
-        $result2 = $objMysql->_select ("workflow.workflows", array(), array("workflow_id" => $this->workflow));
+        $result2 = $this->objMysql->_select ("workflow.workflows", array(), array("workflow_id" => $this->workflow));
         $this->setRequestType ($result2[0]['request_id']);
 
         //$this->setWorkflow ($workflowData['workflow_id']);
@@ -74,10 +61,6 @@ class WorkflowCollection extends BaseWorkflowCollection
 
         return $workflowData;
     }
-
- 
-    
-   
 
     public function getNextWorkflow ()
     {
@@ -96,7 +79,7 @@ class WorkflowCollection extends BaseWorkflowCollection
             // get starting workflow
             $sql = "SELECT * FROM workflow.workflow_mapping wm
                     INNER JOIN workflow.workflows w ON w.workflow_id = wm.workflow_from
-                    WHERE w.request_id = ? AND wm.first_workflow = 1
+                    WHERE w.parent_id = ? AND wm.first_workflow = 1
                     ";
             $arrResult = $this->objMysql->_query ($sql, array($this->requestId));
 
@@ -109,18 +92,36 @@ class WorkflowCollection extends BaseWorkflowCollection
         }
     }
 
-    public function getMappedWorkflows ()
+    public function getWorkflowsByCategory ()
     {
         $sql = "SELECT w.* FROM workflow.workflows w
-                INNER JOIN workflow.request_types r ON r.request_id = w.`request_id`
-                                    WHERE w.request_id = ?";
+                INNER JOIN workflow.request_types r ON r.request_id = w.`request_id`";
 
-        $arrResult = $this->objMysql->_query ($sql, array($this->requestId));
+
+        $sql .= " WHERE r.request_id = ?";
+        $arrParameters[] = $this->requestId;
+
+        $arrResult = $this->objMysql->_query ($sql, $arrParameters);
 
         return $arrResult;
     }
 
-    
+    public function getMappedWorkflows ()
+    {
+        $arrParameters = [];
+
+        $sql = "SELECT w.* FROM workflow.workflows w
+                INNER JOIN workflow.request_types r ON r.request_id = w.`request_id`";
+
+
+        $sql .= " WHERE parent_id = ? OR workflow_id = ?";
+        $arrParameters[] = $this->requestId;
+        $arrParameters[] = $this->requestId;
+
+        $arrResult = $this->objMysql->_query ($sql, $arrParameters);
+
+        return $arrResult;
+    }
 
     public function checkNameExists ($name)
     {

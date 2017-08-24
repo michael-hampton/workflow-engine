@@ -25,9 +25,10 @@ class StepPermission
      */
     public function __construct (\Task $objStep = null)
     {
+        
         if ( $objStep !== null )
         {
-            $this->stepId = $objStep->getStepId ();
+            $this->stepId = $objStep->getTasUid ();
         }
 
         $this->objMysql = new \Mysql2();
@@ -44,7 +45,7 @@ class StepPermission
      * @return array
      */
     public function getProcessPermissions ()
-    {
+    {        
         $arrPermissions = [];
         $this->validateStepUid ();
 
@@ -225,7 +226,7 @@ class StepPermission
         $permissions = $this->getProcessPermissions ();
         $teamId = $objUser->getTeam_id ();
         $userId = $objUser->getUserId ();
-
+        
         // 1 for master 2 for RO
 
         if ( empty ($permissions) )
@@ -293,8 +294,6 @@ class StepPermission
         {
             return false;
         }
-
-        return $permissionFlag;
     }
 
     /**
@@ -305,6 +304,7 @@ class StepPermission
     public function validateStepUid ()
     {
         $this->stepId = trim ($this->stepId);
+
         if ( $this->stepId == '' )
         {
             throw (new \Exception ("STEP ID HAS NOT BEEN SET"));
@@ -329,8 +329,6 @@ class StepPermission
      */
     public function checkUserOrGroupAssignedTask (\Users $objUser)
     {
-
-
         $permissions = $this->getProcessPermissions ();
 
         if ( !isset ($permissions['master']) || empty ($permissions['master']) )

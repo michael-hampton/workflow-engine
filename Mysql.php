@@ -114,8 +114,7 @@ class Mysql2 extends D
 
             return $string;
         } catch (Exception $ex) {
-            print_r($data);
-            die($string);
+            throw $ex;
         }
     }
 
@@ -229,7 +228,7 @@ class Mysql2 extends D
             if ( !is_int ($offset) )
             {
 
-                D::P (['ERROR' => 'Non integer passed to function as OFFSET value'], true);
+                throw new Exception('Non integer passed to function as OFFSET value');
                 return FALSE;
             }
 
@@ -256,9 +255,9 @@ class Mysql2 extends D
 
                 return $arrResultSet;
             } catch (Exception $e) {
-                //echo $this->parms($query, $arrParameters);
+                $message = $this->parms($query, $arrParameters);
                 //die($e->getMessage());
-                $this->setLog ($e);
+                $this->setLog ($e, $message);
             }
         }
         else
@@ -268,8 +267,7 @@ class Mysql2 extends D
                 $this->logInfo ($this->parms ($query, $arrParameters));
                 return $this->db->lastInsertId ();
             } catch (Exception $e) {
-                //echo $this->parms($query, $arrParameters);
-                //die($e->getMessage());
+               
                 $this->setLog ($e, $this->parms ($query, $arrParameters));
             }
         }
@@ -308,7 +306,7 @@ class Mysql2 extends D
         $this->queryDatabase ($query, $values, FALSE);
     }
 
-    public function _insert ($table, $data, $format = '')
+    public function _insert ($table, $data)
     {
         // Check for $table or $data not set
 

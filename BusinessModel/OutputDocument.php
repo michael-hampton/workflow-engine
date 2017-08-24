@@ -16,6 +16,7 @@ namespace BusinessModel;
 
 class OutputDocument
 {
+    use Validator;
 
     private $objMysql;
 
@@ -60,7 +61,7 @@ class OutputDocument
                     {
                         if ( $blReturnArray === true )
                         {
-                            $outputDocArray[$aRow['id']] = array('out_doc_uid' => $aRow['OUT_DOC_UID'],
+                            $outputDocArray[$aRow['id']] = array('out_doc_uid' => $aRow['id'],
                                 'out_doc_title' => $aRow['OUT_DOC_TITLE'],
                                 'out_doc_description' => $aRow['OUT_DOC_DESCRIPTION'],
                                 'out_doc_filename' => $aRow['OUT_DOC_FILENAME'],
@@ -140,7 +141,7 @@ class OutputDocument
             }
             else
             {
-                throw new \Exception (\G::LoadTranslation ("ID_INVALID_VALUE_FOR", array('out_doc_pdf_security_permissions')));
+                throw new \Exception ("ID_INVALID_VALUE_FOR");
             }
         }
         try {
@@ -240,8 +241,8 @@ class OutputDocument
             {
                 if ( isset ($outputDocumentData['out_doc_pdf_security_open_password']) && $outputDocumentData['out_doc_pdf_security_open_password'] != "" )
                 {
-                    $outputDocumentData['out_doc_pdf_security_open_password'] = \G::encrypt ($outputDocumentData['out_doc_pdf_security_open_password'], $sOutputDocumentUID);
-                    $outputDocumentData['out_doc_pdf_security_owner_password'] = \G::encrypt ($outputDocumentData['out_doc_pdf_security_owner_password'], $sOutputDocumentUID);
+                    $outputDocumentData['out_doc_pdf_security_open_password'] = $this->encrypt ($outputDocumentData['out_doc_pdf_security_open_password'], $sOutputDocumentUID);
+                    $outputDocumentData['out_doc_pdf_security_owner_password'] = $this->encrypt ($outputDocumentData['out_doc_pdf_security_owner_password'], $sOutputDocumentUID);
                 }
                 else
                 {
@@ -329,9 +330,9 @@ class OutputDocument
     public function existsTitle ($processUid, $title)
     {
         try {
-            $sql = "SELECT ot.OUT_DOC_TITLE FROM workflow.`step_document` sd
-                    INNER JOIN workflow.output_document ot ON ot.id = sd.`document_id`
-                    WHERE sd.`step_id` = ? AND ot.OUT_DOC_TITLE = ?";
+            $sql = "SELECT ot.OUT_DOC_TITLE FROM workflow.`step` sd
+                    INNER JOIN workflow.output_document ot ON ot.id = sd.`STEP_UID_OBJ`
+                    WHERE sd.`STEP_UID` = ? AND ot.OUT_DOC_TITLE = ?";
 
             $arrParameters = array($processUid, $title);
 
@@ -360,7 +361,7 @@ class OutputDocument
     {
         try {
             $sql = "SELECT d.OUT_DOC_TITLE, d.id from workflow.output_document d
-                    LEFT JOIN workflow.step_document sd ON sd.id = d.id
+                    LEFT JOIN workflow.step sd ON sd.STEP_UID_OBJ = d.id
                     WHERE d.OUT_DOC_TITLE = ?";
 
             $arrParameters = array($title);
@@ -391,18 +392,16 @@ class OutputDocument
     {
         try {
             $flagAssigned = false;
-            $arrayData = array();
             //Step
             $result = $this->objMysql->_query ("SELECT d.* FROM `output_document` d 
-                                            INNER JOIN step_document sd ON sd.document_id = d.id
-                                            WHERE sd.document_type = 1
-                                            AND sd.document_id = ?", [$outputDocumentUid]);
+                                            INNER JOIN step sd ON sd.STEP_UID_OBJ = d.id
+                                            WHERE sd.STEP_TYPE_OBJ = 'OUTPUT_DOCUMENT'
+                                            AND sd.STEP_UID_OBJ = ?", [$outputDocumentUid]);
 
 
             if ( isset ($result[0]) && !empty ($result[0]) )
             {
                 $flagAssigned = true;
-                $arrayData[] = \G::LoadTranslation ("ID_CASES_MENU_ADMIN");
             }
 
             //Return
@@ -420,7 +419,7 @@ class OutputDocument
      *
      * return void Throw exception if the OutputDocument it's assigned in other objects
      */
-    public function throwExceptionIfItsAssignedInOtherObjects ($outputDocumentUid, $fieldNameForException)
+    public function throwExceptionIfItsAssignedInOtherObjects ($outputDocumentUid)
     {
         try {
             list($flagAssigned, $arrayData) = $this->itsAssignedInOtherObjects ($outputDocumentUid);
@@ -437,11 +436,11 @@ class OutputDocument
     {
 
         try {
-            $results = $this->objMysql->_query ("SELECT * FROM workflow.output_document d INNER JOIN workflow.step_object sd ON sd.STEP_UID_OBJ = d.id WHERE sd.TAS_UID = ? AND sd.STEP_TYPE_OBJ = 'OUTPUT_DOCUMENT'", [$objStep->getTasUid ()]);
+            $results = $this->objMysql->_query ("SELECT * FROM workflow.output_document d INNER JOIN workflow.step sd ON sd.STEP_UID_OBJ = d.id WHERE sd.TAS_UID = ? AND sd.STEP_TYPE_OBJ = 'OUTPUT_DOCUMENT'", [$objStep->getTasUid ()]);
 
             $arrDocuments = [];
 
-            foreach ($results as $key => $result) {
+            foreach ($results as $result) {
                 $oDocument = new \OutputDocument ();
                 $arrDocuments[] = $oDocument->retrieveByPk ($result['id']);
             }
@@ -485,8 +484,7 @@ class OutputDocument
                 }
             }
         } catch (Exception $ex) {
-            echo $ex->getMessage ();
-            die;
+             throw $ex;
         }
     }
 

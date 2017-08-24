@@ -99,8 +99,14 @@ class Save
             $this->object['audit_data'] = json_decode ($arrWorkflowObject[0]['audit_data'], true);
         }
     }
+    
+    public function doAudit(Users $objUser) {
+        if(trim($objUser->getUserId()) === "") {
+            return false;
+        }
+    }
 
-    public function save ()
+    public function save (Users $objUser)
     {
         if ( isset ($this->object['step_data']) )
         {
@@ -120,7 +126,7 @@ class Save
             $this->setId ($id);
         }
 
-
+        $this->doAudit($objUser);
 
 
         return true;
@@ -145,92 +151,92 @@ class Save
         }
     }
 
-    function getRequestId ()
+    public function getRequestId ()
     {
         return $this->requestId;
     }
 
-    function setRequestId ($requestId)
+    public function setRequestId ($requestId)
     {
         $this->requestId = $requestId;
         $this->object['step_data']['job']['request_id'] = $requestId;
     }
 
-    function getStartStep ()
+    public function getStartStep ()
     {
         return $this->startStep;
     }
 
-    function setStartStep ($startStep)
+    public function setStartStep ($startStep)
     {
         $this->startStep = $startStep;
         $this->object['step_data']['job']['start_step'] = $startStep;
     }
 
-    function getDescription ()
+    public function getDescription ()
     {
         return $this->description;
     }
 
-    function getName ()
+    public function getName ()
     {
         return $this->name;
     }
 
-    function getPriority ()
+    public function getPriority ()
     {
         return $this->priority;
     }
 
-    function getDeptId ()
+    public function getDeptId ()
     {
         return $this->deptId;
     }
 
-    function getWorkflow ()
+    public function getWorkflow ()
     {
         return $this->workflow;
     }
 
-    function getAddedBy ()
+    public function getAddedBy ()
     {
         return $this->addedBy;
     }
 
-    function getCreatedBy ()
+    public function getCreatedBy ()
     {
         return $this->createdBy;
     }
 
-    function getProjectStatus ()
+    public function getProjectStatus ()
     {
         return $this->projectStatus;
     }
 
-    function getCurrentStep ()
+    public function getCurrentStep ()
     {
         return $this->currentStep;
     }
 
-    function getDueDate ()
+    public function getDueDate ()
     {
         return $this->dueDate;
     }
 
-    function setDescription ($description)
+    public function setDescription ($description)
     {
         $this->description = $description;
         $this->object['step_data']['job']['description'] = $description;
     }
 
-    function setName ($name)
+    public function setName ($name)
     {
         $this->name = $name;
         $this->object['step_data']['job']['name'] = $name;
         $this->object['step_data']['scheduler']['name'] = $name;
     }
 
-    function setPriority ($priority)
+    public function setPriority ($priority)
     {
         $this->priority = $priority;
         $this->object['step_data']['job']['priority'] = $priority;
@@ -238,34 +244,34 @@ class Save
         $this->object['priority'] = $priority;
     }
 
-    function setDeptId ($deptId)
+    public function setDeptId ($deptId)
     {
         $this->deptId = $deptId;
         $this->object['step_data']['job']['deptId'] = $deptId;
         $this->object['department_id'] = $deptId;
     }
 
-    function setWorkflow ($workflow)
+    public function setWorkflow ($workflow)
     {
         $this->workflow = $workflow;
         $this->object['step_data']['job']['workflow'] = $workflow;
     }
 
-    function setAddedBy ($addedBy)
+    public function setAddedBy ($addedBy)
     {
         $this->addedBy = $addedBy;
         $this->object['step_data']['job']['added_by'] = $addedBy;
         $this->object['step_data']['scheduler']['added_by'] = $addedBy;
     }
 
-    function setCreatedBy ($createdBy)
+    public function setCreatedBy ($createdBy)
     {
         $this->createdBy = $createdBy;
         $this->object['step_data']['job']['date_created'] = $createdBy;
         $this->object['step_data']['scheduler']['date_created'] = $createdBy;
     }
 
-    function setProjectStatus ($projectStatus)
+    public function setProjectStatus ($projectStatus)
     {
         $this->projectStatus = $projectStatus;
         $this->object['step_data']['job']['project_status'] = $projectStatus;
@@ -273,69 +279,69 @@ class Save
         $this->object['project_status'] = $projectStatus;
     }
 
-    function setCurrentStep ($currentStep)
+    public function setCurrentStep ($currentStep)
     {
         $this->currentStep = $currentStep;
         $this->object['step_data']['job']['current_step'] = $currentStep;
     }
 
-    function setDueDate ($dueDate)
+    public function setDueDate ($dueDate)
     {
         $this->dueDate = $dueDate;
         $this->object['step_data']['job']['dueDate'] = $dueDate;
         $this->object['step_data']['scheduler']['dueDate'] = $dueDate;
     }
 
-    function getCompletedBy ()
+    public function getCompletedBy ()
     {
         return $this->completedBy;
     }
 
-    function getCompletedDate ()
+    public function getCompletedDate ()
     {
         return $this->completedDate;
     }
 
-    function getRejectionReason ()
+    public function getRejectionReason ()
     {
         return $this->rejectionReason;
     }
 
-    function getDateRejected ()
+    public function getDateRejected ()
     {
         return $this->dateRejected;
     }
 
-    function getRejectedBy ()
+    public function getRejectedBy ()
     {
         return $this->rejectedBy;
     }
 
-    function setCompletedBy ($completedBy)
+    public function setCompletedBy ($completedBy)
     {
         $this->completedBy = $completedBy;
         $this->object['step_data']['job']['completed_by'] = $completedBy;
     }
 
-    function setCompletedDate ($completedDate)
+    public function setCompletedDate ($completedDate)
     {
         $this->completedDate = $completedDate;
         $this->object['step_data']['job']['completed_date'] = $completedDate;
     }
 
-    function setRejectionReason ($rejectionReason)
+    public function setRejectionReason ($rejectionReason)
     {
         $this->rejectionReason = $rejectionReason;
         $this->object['step_data']['job']['rejection_reason'] = $rejectionReason;
     }
 
-    function setDateRejected ($dateRejected)
+    public function setDateRejected ($dateRejected)
     {
         $this->dateRejected = $dateRejected;
         $this->object['step_data']['job']['date_rejected'] = $dateRejected;
     }
 
-    function setRejectedBy ($rejectedBy)
+    public function setRejectedBy ($rejectedBy)
     {
         $this->rejectedBy = $rejectedBy;
         $this->object['step_data']['job']['rejected_by'] = $rejectedBy;
@@ -348,7 +354,7 @@ class Save
             $this->object['step_data'] = json_encode ($this->object['step_data']);
         }
 
-        $query = $this->objMysql->_update ("task_manager.projects", $this->object, array("id" => $this->id));
+        $this->objMysql->_update ("task_manager.projects", $this->object, array("id" => $this->id));
     }
 
     public function saveStep ($arrSteps)

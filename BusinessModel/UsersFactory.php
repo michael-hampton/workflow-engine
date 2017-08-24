@@ -1,4 +1,5 @@
 <?php
+
 namespace BusinessModel;
 
 class UsersFactory
@@ -26,11 +27,6 @@ class UsersFactory
         $this->deptId = $deptId;
         $this->permId = $permId;
         $this->teamId = $teamId;
-
-        if ( !defined ("PATH_IMAGES_ENVIRONMENT_USERS") )
-        {
-            define ("PATH_IMAGES_ENVIRONMENT_USERS", $_SERVER['DOCUMENT_ROOT'] . "/FormBuilder/public/img/users");
-        }
     }
 
     /**
@@ -172,9 +168,9 @@ class UsersFactory
         try {
             if ( $this->existsName ($userName, $userUidToExclude) )
             {
-                throw new Exception ("Username already exists");
+                throw new \Exception("Username already exists");
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -207,7 +203,7 @@ class UsersFactory
      * @param string $sPassword
      * @return array
      */
-    public function testPassword ($sPassword = '')
+    public function testPassword ()
     {
         if ( !preg_match ("/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{8,}$/", $this->password) )
         {
@@ -229,10 +225,7 @@ class UsersFactory
     {
         try {
             //Set variables
-            $arrayUserData = ($userUid == "") ? array() : $this->getUser ($userUid, true);
-            $flagInsert = ($userUid == "") ? true : false;
-
-            $arrayFinalData = array_merge ($arrayUserData, $arrayData);
+            //$arrayUserData = ($userUid == "") ? array() : $this->getUser ($userUid, true);
 
 
             //Verify data
@@ -252,7 +245,7 @@ class UsersFactory
 
             if ( isset ($arrayData["USR_NEW_PASS"]) )
             {
-                $this->throwExceptionIfPasswordIsInvalid ($arrayData["USR_NEW_PASS"], $this->arrayFieldNameForException["usrNewPass"]);
+                $this->throwExceptionIfPasswordIsInvalid ($arrayData["USR_NEW_PASS"]);
             }
 
 
@@ -307,7 +300,7 @@ class UsersFactory
                 if ( isset ($_FILES['upload']) && !empty ($_FILES['upload']['name']) )
                 {
 
-                    $objUsers->uploadImage ($userUid);
+                    $this->uploadImage($userUid);
                 }
 
                 //Create in workflow
@@ -383,7 +376,6 @@ class UsersFactory
                 }
                 //Update in workflow
                 //Save Calendar assigment
-
 
                 return true;
             } catch (Exception $e) {
@@ -600,8 +592,7 @@ class UsersFactory
 
                     $aAux = explode ('.', $_FILES['upload']['name']);
                     $objFile->uploadFile ($_FILES['upload']['tmp_name'], PATH_IMAGES_ENVIRONMENT_USERS, $userUid . '.' . $aAux[1]);
-                    die;
-                    \G::resizeImage (PATH_IMAGES_ENVIRONMENT_USERS . $userUid . '.' . $aAux[1], 96, 96, PATH_IMAGES_ENVIRONMENT_USERS . $userUid . '.gif');
+                    $objFile->resizeImage (PATH_IMAGES_ENVIRONMENT_USERS . $userUid . '.' . $aAux[1], 96, 96, PATH_IMAGES_ENVIRONMENT_USERS . $userUid . '.gif');
                 }
             }
             else
@@ -660,7 +651,7 @@ class UsersFactory
      */
     public function loadUserRolePermission ($sUser)
     {
-        $objUser = (new UsersFactory())->getUser($sUser);
+        $objUser = (new UsersFactory())->getUser ($sUser);
         $objUserRole = new \BusinessModel\RoleUser();
         $fieldsRoles = $objUserRole->getRolesForUser ($objUser);
 
@@ -669,7 +660,7 @@ class UsersFactory
         foreach ($fieldsRoles as $fieldsRole) {
             $fieldsPermissions[] = $objUserRole->getAllPermissions (new \Role ($fieldsRole['role_id']));
         }
-        
+
         $permissions = [];
 
         foreach ($fieldsPermissions as $fieldsPermission) {
@@ -688,7 +679,6 @@ class UsersFactory
 
     public function checkPermission (\BaseUser $objUser, $permissionCode)
     {
-
         try {
 
             $flagPermission = false;

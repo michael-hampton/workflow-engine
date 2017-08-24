@@ -10,6 +10,7 @@ class Elements
     private $name;
     private $current_step;
     private $workflow_id;
+    private $audit;
     private $source_id;
     private $id;
     private $sampleRef;
@@ -24,6 +25,8 @@ class Elements
     private $projectName;
     private $dateCompleted;
     private $dueDate;
+    private $originalTitle;
+    private $originalDescription;
     public $objJobFields = array(
         "location" => array("required" => "true", "type" => "string", "accessor" => "getLocation", "mutator" => "setLocation"),
         "batch" => array("required" => "true", "type" => "string", "accessor" => "getBatch", "mutator" => "setBatch"),
@@ -35,15 +38,17 @@ class Elements
         "sampleRef" => array("required" => "true", "type" => "string", "accessor" => "getSampleRef", "mutator" => "setSampleRef"),
         "file2" => array("required" => "true", "type" => "int", "accessor" => "getFile2", "mutator" => "setFile2"),
         "rejectionReason" => array("required" => "false", "type" => "string", "accessor" => "getRejectionReason", "mutator" => "setRejectionReason"),
+        "originalTitle" => array("required" => "false", "type" => "string", "accessor" => "getOriginalTitle", "mutator" => "setOriginalTitle"),
+        "originalDescription" => array("required" => "false", "type" => "string", "accessor" => "getOriginalDescription", "mutator" => "setOriginalDescription"),
     );
     public $objSchedulerFields = array(
         "description" => array("fieldName" => "title", "required" => "true", "type" => "int"),
         "name" => array("fieldName" => "title", "required" => "true", "type" => "int"),
         "current_step" => array("fieldName" => "current_step", "required" => "true", "type" => "int"),
     );
-    private $objMysql;
     private $arrToIgnore = array("claimed", "status", "dateCompleted", "priority", "deptId", "workflow", "added_by", "date_created", "project_status", "dueDate");
     private $status;
+    private $objMysql;
 
     public function __construct ($parentId, $id = null)
     {
@@ -131,17 +136,17 @@ class Elements
         return true;
     }
 
-    function getLocation ()
+    public function getLocation ()
     {
         return $this->location;
     }
 
-    function getDescription ()
+    public function getDescription ()
     {
         return $this->description;
     }
 
-    function getName ()
+    public function getName ()
     {
         return $this->name;
     }
@@ -166,22 +171,22 @@ class Elements
         return $this->current_step;
     }
 
-    function getWorkflow_id ()
+    public function getWorkflow_id ()
     {
         return $this->workflow_id;
     }
 
-    function getSource_id ()
+    public function getSource_id ()
     {
         return $this->source_id;
     }
 
-    function getSampleRef ()
+    public function getSampleRef ()
     {
         return $this->sampleRef;
     }
 
-    function getFile2 ()
+    public function getFile2 ()
     {
         return $this->file2;
     }
@@ -190,7 +195,7 @@ class Elements
      * 
      * @param type $location
      */
-    function setLocation ($location)
+    public function setLocation ($location)
     {
         $this->location = $location;
         $this->arrElement['location'] = $location;
@@ -200,7 +205,7 @@ class Elements
      * 
      * @param type $description
      */
-    function setDescription ($description)
+    public function setDescription ($description)
     {
         $this->description = $description;
         $this->arrElement['description'] = $description;
@@ -211,7 +216,7 @@ class Elements
      * 
      * @param type $name
      */
-    function setName ($name)
+    public function setName ($name)
     {
         $this->name = $name;
         $this->arrElement['name'] = $name;
@@ -222,7 +227,7 @@ class Elements
      * 
      * @param type $current_step
      */
-    function setCurrent_step ($current_step)
+    public function setCurrent_step ($current_step)
     {
         $this->current_step = $current_step;
         $this->arrElement['current_step'] = $current_step;
@@ -233,7 +238,7 @@ class Elements
      * 
      * @param type $workflow_id
      */
-    function setWorkflow_id ($workflow_id)
+    public function setWorkflow_id ($workflow_id)
     {
         $this->workflow_id = $workflow_id;
         $this->arrElement['workflow_id'] = $workflow_id;
@@ -243,7 +248,7 @@ class Elements
      * 
      * @param type $source_id
      */
-    function setSource_id ($source_id)
+    public function setSource_id ($source_id)
     {
         $this->source_id = $source_id;
         $this->arrElement['source_id'] = $source_id;
@@ -253,7 +258,7 @@ class Elements
      * 
      * @param type $sampleRef
      */
-    function setSampleRef ($sampleRef)
+    public function setSampleRef ($sampleRef)
     {
         $this->sampleRef = $sampleRef;
         $this->arrElement['sampleRef'] = $sampleRef;
@@ -263,7 +268,7 @@ class Elements
      * 
      * @param string $file2
      */
-    function setFile2 ($file2)
+    public function setFile2 ($file2)
     {
         if ( isset ($this->file2) )
         {
@@ -274,7 +279,7 @@ class Elements
         $this->arrElement['file2'] = $file2;
     }
 
-    function getBatch ()
+    public function getBatch ()
     {
         return $this->batch;
     }
@@ -283,13 +288,13 @@ class Elements
      * 
      * @param type $batch
      */
-    function setBatch ($batch)
+    public function setBatch ($batch)
     {
         $this->batch = $batch;
         $this->arrElement['batch'] = $batch;
     }
 
-    function getRejectionReason ()
+    public function getRejectionReason ()
     {
         return $this->rejectionReason;
     }
@@ -298,7 +303,7 @@ class Elements
      * 
      * @param type $rejectionReason
      */
-    function setRejectionReason ($rejectionReason)
+    public function setRejectionReason ($rejectionReason)
     {
         $this->rejectionReason = $rejectionReason;
         $this->arrElement['rejectionReason'] = $rejectionReason;
@@ -422,6 +427,76 @@ class Elements
         {
             $this->JSON = $JSON;
         }
+
+        $auditResult = $objMysql->_select ("workflow.workflow_data", [], ["object_id" => $this->source_id]);
+
+        if ( isset ($auditResult[0]) && !empty ($auditResult[0]) && isset ($auditResult[0]['audit_data']) )
+        {
+            $this->audit = json_decode ($auditResult[0]['audit_data'], true);
+        }
+    }
+    
+    public function getAudit ()
+    {
+        return $this->audit;
+    }
+
+    
+    public function getOriginalDescription ()
+    {
+        return $this->originalDescription;
+    }
+
+    public function setOriginalDescription ($originalDescription)
+    {
+        $this->originalDescription = $originalDescription;
+        $this->arrElement['originalDescription'] = $originalDescription;
+    }
+
+    public function getOriginalTitle ()
+    {
+        return $this->originalTitle;
+    }
+
+    public function setOriginalTitle ($originalTitle)
+    {
+        $this->originalTitle = $originalTitle;
+        $this->arrElement['originalTitle'] = $originalTitle;
+    }
+
+    public function updateTitle (\Users $objUser, WorkflowStep $objStep = null)
+    {
+        $this->getElement ();
+
+        $intChanged = 0;
+
+        $dynaformId = $objStep !== null && is_numeric ($objStep->getNextTask ()) && (int) $objStep->getNextTask () !== 0 ? $objStep->getNextTask () : '';
+
+        $objCases = new \BusinessModel\Cases();
+
+        $Fields = $objCases->getCaseVariables ((int) $this->id, $this->source_id, $dynaformId);
+
+        if ( !empty ($Fields) )
+        {
+            if ( trim ($this->originalTitle) !== "" )
+            {
+                $title = $objCases->replaceDataField ($this->originalTitle, $Fields);
+                $this->setName ($title);
+                $intChanged++;
+            }
+
+            if ( trim ($this->originalDescription) !== "" )
+            {
+                $description = $objCases->replaceDataField ($this->originalDescription, $Fields);
+                $this->setDescription ($description);
+                $intChanged++;
+            }
+
+            if ( $intChanged > 0 )
+            {
+                $this->save ($objUser);
+            }
+        }
     }
 
     public function getElement ()
@@ -447,35 +522,26 @@ class Elements
      * @param type $workflow
      * @return type
      */
-    public function buildObjectId ($sourceId, $workflow)
+    public function buildObjectId ($sourceId)
     {
-        $objMysql = new Mysql2();
-        $result = $objMysql->_select ("task_manager.projects", array(), array("id" => $sourceId));
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        $result = $this->objMysql->_select ("task_manager.projects", array(), array("id" => $sourceId));
         $JSON = json_decode ($result[0]['step_data'], true);
 
-        $arrWorkflowData = $objMysql->_select ("workflow.workflow_data", array(), array("object_id" => $this->source_id));
-        
+        $arrWorkflowData = $this->objMysql->_select ("workflow.workflow_data", array(), array("object_id" => $this->source_id));
+
         $workflowData = [];
-        
-        if(isset($arrWorkflowData[0]['workflow_data'])) {
+
+        if ( isset ($arrWorkflowData[0]['workflow_data']) )
+        {
             $workflowData = json_decode ($arrWorkflowData[0]['workflow_data'], true);
         }
-  
-        $count = 0;
 
-        if ( isset ($JSON['elements']) && !empty ($JSON['elements']) )
-        {
-            foreach ($JSON['elements'] as $arrElements) {
-                //foreach ($arrElements as $workflowId => $arrElement) {
-                //if ( $workflowId == $workflow )
-                //{
-                $count++;
-                //}
-                //}
-            }
-        }
-
-        return ($count + 1);
+        return isset ($JSON['elements']) ? count ($JSON['elements']) + 1 : 1;
     }
 
     public function getId ()
@@ -548,7 +614,7 @@ class Elements
         return $array;
     }
 
-    private function doAudit ()
+    private function doAudit (\Users $objUser)
     {
         $result = $this->objMysql->_select ("task_manager.projects", array(), array("id" => $this->source_id));
         $data = json_decode ($result[0]['step_data'], true);
@@ -571,7 +637,7 @@ class Elements
                 "PRO_UID" => 120,
                 "TAS_UID" => $this->id,
                 "APP_UPDATE_DATE" => date ("Y-m-d H:i:s"),
-                "USER_UID" => $_SESSION['user']['username'],
+                "USER_UID" => $objUser->getUsername (),
                 "before" => $fieldsOnBoth,
                 "message" => "Field Updated"
             );
@@ -581,9 +647,33 @@ class Elements
         }
     }
 
-    public function save ()
+    public function getConnection ()
     {
-        $objMysql = new Mysql2();
+        $this->objMysql = new Mysql2();
+    }
+
+    public function save (\Users $objUser)
+    {
+
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        if ( trim ($this->source_id) !== "" )
+        {
+            $result = $this->objMysql->_select ("task_manager.projects", [], ["id" => $this->source_id]);
+
+            if ( isset ($result[0]) && !empty ($result[0]) )
+            {
+                $data = json_decode ($result[0]['step_data'], true);
+            }
+
+            if ( isset ($data['elements']) )
+            {
+                $this->JSON['elements'] = $data['elements'];
+            }
+        }
 
         if ( $this->id == "" )
         {
@@ -598,22 +688,28 @@ class Elements
             $this->JSON['scheduler']['backlogs'][$id] = $this->object['scheduler'];
             $this->JSON['elements'][$id] = $this->arrElement;
 
-            $objMysql->_update ("task_manager.projects", array("step_data" => json_encode ($this->JSON)), array("id" => $this->source_id));
+            $this->objMysql->_update ("task_manager.projects", array("step_data" => json_encode ($this->JSON)), array("id" => $this->source_id));
         }
         else
         {
-            $this->doAudit ();
+            $this->doAudit ($objUser);
             $this->JSON['elements'][$this->id] = $this->arrElement;
 
-            $objMysql->_update ("task_manager.projects", array("step_data" => json_encode ($this->JSON)), array("id" => $this->source_id));
+            $this->objMysql->_update ("task_manager.projects", array("step_data" => json_encode ($this->JSON)), array("id" => $this->source_id));
         }
+
+        (new \Log (LOG_FILE))->log (
+                $this->JSON['elements'][$this->id], \Log::NOTICE);
+
+        $additionalTables = new AdditionalTables();
+        $additionalTables->updateReportTables ($this);
     }
 
     public function getCurrent_step ()
     {
         return $this->current_step;
     }
-    
+
     public function getDueDate ()
     {
         return $this->dueDate;
@@ -623,7 +719,5 @@ class Elements
     {
         $this->dueDate = $dueDate;
     }
-
-
 
 }

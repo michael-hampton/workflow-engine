@@ -59,7 +59,7 @@ class StepTrigger
         {
             $result = $this->objMysql->_select ("workflow.workflow_data", array("workflow_data", "audit_data", "id"), array("object_id" => $this->parentId));
 
-            if ( empty ($result) )
+            if ( !isset ($result[0]) || empty ($result[0]) )
             {
                 return false;
             }
@@ -75,15 +75,54 @@ class StepTrigger
     }
 
     /**
+     * List of Triggers in process
+     * @var string $sProcessUID. Uid for Process
+     *
+     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
+     * @copyright Colosa - Bolivia
+     *
+     * @return array
+     */
+    public function getTriggerList ($sProcessUID = '')
+    {
+        $arrWhere = [];
+
+        if ( $sProcessUID !== "" )
+        {
+            $arrWhere = array("workflow_id" => $sProcessUID);
+        }
+
+        $results = $this->objMysql->_select ("workflow.step_trigger", [], $arrWhere, ["title" => "ASC"]);
+
+        if ( !isset ($results[0]) || empty ($results[0]) )
+        {
+            return false;
+        }
+
+        $arrTriggers = [];
+
+        foreach ($results as $result) {
+            $objTrigger = new \Trigger();
+            $objTrigger->setDescription ($result['description']);
+            $objTrigger->setTitle ($result['title']);
+            $objTrigger->setWorkflowId ($result['workflow_id']);
+            $objTrigger->setTriggerType ($result['trigger_type']);
+            $objTrigger->setId ($result['id']);
+
+            $arrTriggers[] = $objTrigger;
+        }
+
+        return $arrTriggers;
+    }
+
+    /**
      * 
      * @param type $objMike
      * @return boolean
      */
-    public function checkTriggers ($objMike)
+    public function checkTriggers (\WorkflowStep $objWorkflowStep, $objMike, \Users $objUser)
     {
         $this->elementId = $objMike->getId ();
-
-        $arrWorkflow = array();
 
         if ( method_exists ($objMike, "getParentId") )
         {
@@ -95,6 +134,12 @@ class StepTrigger
         }
 
         $arrWorkflowData = $this->getWorkflowData ();
+
+        if ( $arrWorkflowData === false )
+        {
+            return false;
+        }
+
         $this->arrWorkflowObject = json_decode ($arrWorkflowData[0]['workflow_data'], true);
 
         if ( isset ($this->arrWorkflowObject['elements'][$this->elementId]) )
@@ -105,27 +150,44 @@ class StepTrigger
         else
         {
             $this->blMove = true;
-            $this->currentStep = $this->arrWorkflowObject['current_step'];
-            $this->workflowId = $this->arrWorkflowObject['workflow_id'];
+            $this->currentStep = $this->arrWorkflowObject['elements'][$this->parentId]['current_step'];
+            $this->workflowId = $this->arrWorkflowObject['elements'][$this->parentId]['workflow_id'];
         }
 
         $arrTriggers = $this->getTriggers ();
         $blHasTrigger = false;
+
+        $objCase = new Cases();
 
         foreach ($arrTriggers as $arrTrigger) {
 
             $arrTrigger['event_type'] = isset ($arrTrigger['event_type']) && trim ($arrTrigger['event_type']) !== "" ? $arrTrigger['event_type'] : "INTERMEDIATE";
 
             switch ($arrTrigger['event_type']) {
+                
+                case "script":
+                    
+                 break;   
+                
                 case "START":
-                                        
+
                     $projectId = $this->parentId;
                     $workflowTo = $arrTrigger['workflow_to'];
-                    $objCase = new Cases();
+
                     $objWorkflow = new \Workflow ($workflowTo);
-                    $objUser = (new \BusinessModel\UsersFactory())->getUser ($_SESSION['user']['usrid']);
-                    $objCase->addCase ($objWorkflow, $objUser, array(), array(), false, $projectId);
+                    $arrCase = $objCase->addCase ($objWorkflow, $objUser, array(), array(), false, $projectId, true);
                     $this->blAddedCase = true;
+
+                    (new \Log (LOG_FILE))->log (
+                            array(
+                        "message" => "CREATED NEW CASE BY TRIGGER",
+                        'case_id' => $arrCase['case_id'],
+                        'project_id' => $this->parentId,
+                        'user' => $objUser->getUsername (),
+                        'workflow_id' => $this->workflowId,
+                        'step_id' => $this->currentStep
+                            ), \Log::NOTICE);
+
                     break;
 
                 default:
@@ -134,37 +196,59 @@ class StepTrigger
                     $workflow = isset ($arrTrigger['workflow_from']) ? $arrTrigger['workflow_from'] : $arrTrigger['workflow_id'];
                     $triggerType = isset ($arrTrigger['trigger_type']) ? $arrTrigger['trigger_type'] : '';
 
+                    if ( $triggerType === "sendMail" )
+                    {
+                        $templateName = str_replace (" ", "_", $arrTrigger['template_name']);
+                        $this->executeSendMail ($templateName);
+                    }
+
                     if ( $arrTrigger !== false && !empty ($arrTrigger) )
                     {
 
-                        if ( $workflow == $this->arrWorkflowObject['workflow_id'] )
+                        if ( $workflow == $this->arrWorkflowObject['elements'][$this->parentId]['workflow_id'] )
                         {
                             if ( $triggerType == "step" )
                             {
+                                $objTask = (new \Task())->retrieveByPk ($objWorkflowStep->getStepId ());
+                                $objTask->setStepId ($arrTrigger['step_to']);
+                                (new \AppDelegation())->createAppDelegation ($objWorkflowStep, new \Save ($this->parentId), $objUser, $objTask, $objWorkflowStep->getStepId (), 3, false, -1, null, false, "STEP_COMPLETE", "COMPLETE");
 
-                                $this->arrWorkflowObject['current_step'] = $arrTrigger['step_to'];
-                                $blHasTrigger = true;
-                                $this->blMove = true;
+                                (new \Log (LOG_FILE))->log (
+                                        array(
+                                    "message" => "Trigger executed - Updated Step",
+                                    'case_id' => $this->elementId,
+                                    'project_id' => $this->parentId,
+                                    'user' => $objUser->getUsername (),
+                                    'workflow_id' => $objWorkflowStep->getWorkflowId (),
+                                    'step_id' => $arrTrigger['step_to']
+                                        ), \Log::NOTICE);
 
-                                if ( isset ($this->arrWorkflowObject['elements'][$this->parentId]) )
-                                {
-                                    if ( $this->arrWorkflowObject['elements'][$this->parentId]['workflow_id'] == $arrTrigger['workflow_to'] || $this->arrWorkflowObject['elements'][$this->parentId]['workflow_id'] == $arrTrigger['workflow_id']
-                                    )
-                                    {
-                                        $this->arrWorkflowObject['elements'][$this->parentId]['current_step'] = $arrTrigger['step_to'];
-                                    }
-                                }
+                                return false;
                             }
                             elseif ( $triggerType == "workflow" )
                             {
-                                $this->arrWorkflowObject['workflow_id'] = $arrTrigger['workflow_to'];
+                                $this->arrWorkflowObject['elements'][$this->parentId]['workflow_id'] = $arrTrigger['workflow_to'];
                             }
                             elseif ( $triggerType == "gateway" )
                             {
                                 $objGateway = new \BusinessModel\StepGateway (new \Task ($this->arrWorkflowObject['elements'][$this->parentId]['current_step']));
                                 $this->arrWorkflowObject = $objGateway->updateStep ($arrTrigger, $this->arrWorkflowObject, $objMike);
+
+                                //$objTask = (new \Task())->retrieveByPk ($objWorkflowStep->getStepId ());
+                                //(new \AppDelegation())->createAppDelegation ($objWorkflowStep, $objMike, $objUser, $objTask, $objWorkflowStep->getStepId (), 3, false, -1, $this->arrWorkflowObject['elements'][$this->parentId]['current_step'], null, false, "STEP_COMPLETE", "COMPLETE");
+
                                 $blHasTrigger = true;
-                                $this->blMove = false;
+                                $this->blMove = true;
+
+                                (new \Log (LOG_FILE))->log (
+                                        array(
+                                    "message" => "Gateway Updated Step",
+                                    'case_id' => $this->elementId,
+                                    'project_id' => $this->parentId,
+                                    'user' => $objUser->getUsername (),
+                                    'workflow_id' => $workflow,
+                                    'step_id' => $this->arrWorkflowObject['elements'][$this->parentId]['current_step']
+                                        ), \Log::NOTICE);
                             }
                         }
                         else
@@ -187,6 +271,16 @@ class StepTrigger
                                 {
                                     $objGateway = new \BusinessModel\StepGateway (null);
                                     $this->arrWorkflowObject = $objGateway->updateStep ($arrTrigger, $this->arrWorkflowObject, $objMike);
+
+                                    (new \Log (LOG_FILE))->log (
+                                            array(
+                                        "message" => "Gateway Updated Step",
+                                        'case_id' => $this->elementId,
+                                        'project_id' => $this->parentId,
+                                        'user' => $objUser->getUsername (),
+                                        'workflow_id' => $this->arrWorkflowObject['elements'][$this->elementId]['workflow_id'],
+                                        'step_id' => $this->arrWorkflowObject['elements'][$this->elementId]['current_step']
+                                            ), \Log::NOTICE);
 
                                     $blHasTrigger = true;
                                     $this->blMove = false;
@@ -287,6 +381,7 @@ class StepTrigger
             {
                 $oTrigger->create ($stepUid, $dataTrigger);
                 $dataTrigger['TRI_UID'] = $oTrigger->getTriggerId ();
+                return $dataTrigger;
             }
             else
             {
@@ -370,7 +465,6 @@ class StepTrigger
                 throw (new \Exception ("The row '$StepUid, $TasUid, $TriUid, $StType' in table StepTrigger doesn't exist!"));
             }
         } catch (Exception $oError) {
-            $oConnection->rollback ();
             throw ($oError);
         }
     }
@@ -386,7 +480,7 @@ class StepTrigger
         try {
 
             $oObj = $this->retrieveByPK ($StepUid);
-            if ( isset ($oStepTrigger[0]) && !empty ($oStepTrigger[0]) )
+            if ( isset ($oObj[0]) && !empty ($oObj[0]) )
             {
                 return true;
             }
@@ -407,7 +501,7 @@ class StepTrigger
     public function getTriggerCriteria ()
     {
         try {
-            $criteria = "SELECT title, event_type, description, id, workflow_id, workflow_to, trigger_type, step_to, step_id, workflow_from FROM workflow.step_trigger";
+            $criteria = "SELECT title, event_type, description, template_name, id, workflow_id, workflow_to, trigger_type, step_to, step_id, workflow_from FROM workflow.step_trigger";
             return $criteria;
         } catch (Exception $e) {
             throw $e;
@@ -427,6 +521,84 @@ class StepTrigger
         $triggerArray = $triggerO->load ($sTriggerUID);
 
         return $triggerArray;
+    }
+
+    public function executeSendMail ($templateName = null, $id = null)
+    {
+        if ( $templateName === null && $id === null )
+        {
+            return false;
+        }
+
+        if ( $templateName === null && $id !== null )
+        {
+            $arrTrigger = $this->getDataTrigger ($id);
+            $templateName = $arrTrigger['template_name'];
+        }
+
+        if ( !empty ($arrTrigger) )
+        {
+            $template = PATH_DATA_MAILTEMPLATES . $templateName . ".html";
+
+            $content = file_get_contents ($template);
+            $subject = "CASE HAS BEEN " . $arrTrigger['event_type'] . " BY [USER]";
+
+            $objSendNotification = new \SendNotification();
+            $objSendNotification->setProjectId ($this->parentId);
+            $recipients = $objSendNotification->getTaskUsers ();
+
+            if ( empty ($recipients) )
+            {
+                return false;
+            }
+
+            $objCase = new \BusinessModel\Cases();
+
+            $recipients = implode (",", $recipients);
+
+            $Fields = $objCase->getCaseVariables ((int) $this->elementId, (int) $this->parentId, (int) $this->currentStep);
+
+            if ( trim ($content) !== "" && trim ($subject) !== "" )
+            {
+                $subject = $objCase->replaceDataField ($subject, $Fields);
+                $body = $objCase->replaceDataField ($content, $Fields);
+                $objSendNotification->notificationEmail ($recipients, $subject, $body);
+            }
+        }
+    }
+
+    /**
+     * Verify if doesn't exists the Trigger in table TRIGGERS
+     *
+     * @param string $triggerUid            Unique id of Trigger
+     * @param string $processUid            Unique id of Process
+     *
+     * return void Throw exception if doesn't exists the Trigger in table TRIGGERS
+     */
+    public function throwExceptionIfNotExistsTrigger ($triggerUid, $processUid)
+    {
+        try {
+
+            $sql = "SELECT id FROM workflow.step_trigger";
+
+            $sql .= " WHERE id = ? ";
+            $arrParameters = array($triggerUid);
+
+            if ( $processUid != "" )
+            {
+                $sql .= "AND workflow_id = ?";
+                $arrParameters[] = $processUid;
+            }
+
+            $results = $this->objMysql->_query ($sql, $arrParameters);
+
+            if ( !isset ($results[0]) || empty ($results[0]) )
+            {
+                throw new \Exception ("ID_TRIGGER_DOES_NOT_EXIST " . $triggerUid);
+            }
+        } catch (\Exception $e) {
+            throw $e;
+        }
     }
 
 }

@@ -21,7 +21,7 @@ class Diagram
      */
     public function saveDiagram($arrData)
     {
-        $file = $_SERVER['DOCUMENT_ROOT'] . "/core/public/BPMNdata/". $this->collectionId."-".$this->workflowId.".json";
+        $file = DIAGRAMS . $this->collectionId."-".$this->workflowId.".json";
         file_put_contents ($file, json_encode ($arrData));
     }
 }

@@ -69,8 +69,7 @@ class CalendarHolidays extends BaseCalendarHolidays
         foreach ($toDelete as $key => $holidayInfo) {
             $CalendarUid = $holidayInfo['CALENDAR_UID'];
             $CalendarHolidayName = $holidayInfo['CALENDAR_HOLIDAY_NAME'];
-            $CalendarHolidayStart = $holidayInfo['CALENDAR_HOLIDAY_START'];
-            $CalendarHolidayEnd = $holidayInfo['CALENDAR_HOLIDAY_END'];
+
             //if exists the row in the database propel will update it, otherwise will insert.
             $tr = $this->retrieveByPK ($CalendarUid, $CalendarHolidayName);
             if ( ( is_object ($tr) && get_class ($tr) == 'CalendarHolidays' ) )
@@ -100,7 +99,7 @@ class CalendarHolidays extends BaseCalendarHolidays
         $tr->setCalendarHolidayEnd ($CalendarHolidayEnd);
         if ( $tr->validate () )
         {
-            $id = $tr->save ();
+            $tr->save ();
         }
         else
         {

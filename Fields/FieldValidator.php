@@ -212,6 +212,7 @@ class FieldValidator
 
                     if ( isset ($arrRequiredField["maxlength"]) && $arrRequiredField['maxlength'] > 0 )
                     {
+                        
                         if ( isset ($arrFormData[$field]) && (strlen ($arrFormData[$field] . "") > (int) ($arrRequiredField["maxlength"])) )
                         {
                             $result["success"] = false;

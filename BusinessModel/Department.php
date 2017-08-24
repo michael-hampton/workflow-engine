@@ -359,18 +359,6 @@ class Department
 
             return $objUser;
 
-
-//            $recordc = [
-//                'usr_uid'       => $record['USR_UID'],
-//                'usr_username'  => $record['USR_USERNAME'],
-//                'usr_firstname' => $record['USR_FIRSTNAME'],
-//                'usr_lastname'  => $record['USR_LASTNAME'],
-//                'usr_status'    => $record['USR_STATUS']
-//            ];
-//            if (isset($record['USR_SUPERVISOR'])) {
-//                $recordc['usr_supervisor'] = $record['USR_SUPERVISOR'];
-//            }
-//            return $recordc;
         } catch (\Exception $e) {
             throw $e;
         }
@@ -440,7 +428,7 @@ class Department
             $department = new \Department();
             $department->addUserToDepartment ($objDepartment, $objUser);
             //Return
-            $arrayData = array("DEP_UID" => $objDepartment->getId (), "userId" => $objUser->getUserId ());
+            $arrayData = array("DEP_UID" => $departmentUid, "userId" => $objUser->getUserId ());
             return $arrayData;
         } catch (\Exception $e) {
             throw $e;

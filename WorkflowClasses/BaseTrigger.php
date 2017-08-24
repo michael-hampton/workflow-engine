@@ -16,6 +16,7 @@ abstract class BaseTrigger
     private $triggerId;
     private $New;
     private $eventType;
+    private $template;
 
     /**
      *
@@ -162,6 +163,19 @@ abstract class BaseTrigger
         return $this->triggerId;
     }
 
+    /**
+     * @return mixed
+     */
+    public function getTemplate()
+    {
+        return $this->template;
+    }
+
+    public function setTemplate($template)
+    {
+        $this->template = $template;
+    }
+
     public function setTriggerId ($triggerId)
     {
         $this->triggerId = $triggerId;
@@ -209,7 +223,8 @@ abstract class BaseTrigger
                 "step_id" => $this->id,
                 "title" => $this->title,
                 "description" => $this->description,
-                "event_type" => $this->eventType
+                "event_type" => $this->eventType,
+                "template_name" => $this->template
             ));
             
              $this->triggerId = $id;
@@ -224,7 +239,8 @@ abstract class BaseTrigger
                 "step_id" => $this->id,
                 "title" => $this->title,
                 "description" => $this->description,
-                "event_type" => $this->eventType
+                "event_type" => $this->eventType,
+                "template_name" => $this->template
                     ), array(
                 "id" => $this->triggerId
             ));
@@ -302,7 +318,8 @@ abstract class BaseTrigger
      */
     public function retrieveByPK ($pk)
     {
-        $v = $this->objMysql->_select ("workflow.step_trigger", [], ["id" => $pk]);
+        $v = $this->objMysql->_query ("SELECT workflow_id, workflow_from, workflow_to, trigger_type, step_to, step_id, title, description, event_type, template_name, TO_BASE64(`template_name`) AS code FROM workflow.step_trigger WHERE id = ?", [$pk]);
+        
         return !empty ($v) > 0 ? $v[0] : null;
     }
 

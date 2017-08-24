@@ -34,7 +34,7 @@ class GroupUser
      *
      * return void Throw exception if doesn't exist the User in Group
      */
-    public function throwExceptionIfNotExistsGroupUser (\Team $objGroup, \Users $objUser, $fieldNameForException)
+    public function throwExceptionIfNotExistsGroupUser (\Team $objGroup, \Users $objUser)
     {
         try {
 
@@ -153,7 +153,7 @@ class GroupUser
      *
      * return void
      */
-    public function delete (\Users $objUser, \Team $objTeam = null)
+    public function delete (\Users $objUser, \Team $objTeam)
     {
         try {
 
@@ -162,19 +162,23 @@ class GroupUser
                 return false;
             }
 
-            //Verify data
-            $group = new Team();
-            if ( $groupUid !== null )
+            if ( trim ($objTeam->getId ()) === "" )
             {
-                $group->throwExceptionIfNotExistsGroup ($objTeam->getId ());
-                $this->throwExceptionIfNotExistsGroupUser ($objTeam, $objUser);
+                return false;
             }
+
+            //Verify data
+            $group = new \Team();
+
+            $group->throwExceptionIfNotExistsGroup ($objTeam->getId ());
+            $this->throwExceptionIfNotExistsGroupUser ($objTeam, $objUser);
+
 
             $this->validateUserId ($objUser->getUserId ());
 
             //Delete
-            $groups = new \Team();
-            $group->removeUsersFromGroup ($userUid, $groupUid);
+
+            $group->removeUsersFromGroup ($objUser, $objTeam);
         } catch (Exception $e) {
             throw $e;
         }

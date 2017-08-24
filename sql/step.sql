@@ -1,0 +1,104 @@
+-- phpMyAdmin SQL Dump
+-- version 4.5.1
+-- http://www.phpmyadmin.net
+--
+-- Host: 127.0.0.1
+-- Generation Time: Jul 11, 2017 at 08:44 PM
+-- Server version: 10.1.8-MariaDB
+-- PHP Version: 5.6.14
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `workflow`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `step`
+--
+
+CREATE TABLE `step` (
+  `STEP_UID` int(11) NOT NULL,
+  `PRO_UID` int(11) NOT NULL,
+  `TAS_UID` int(11) DEFAULT NULL,
+  `STEP_TYPE_OBJ` enum('DYNAFORM','INPUT_DOCUMENT','OUTPUT_DOCUMENT','EXTERNAL') DEFAULT 'DYNAFORM',
+  `STEP_UID_OBJ` int(11) DEFAULT NULL,
+  `STEP_CONDITION` text,
+  `STEP_MODE` varchar(10) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `step`
+--
+
+INSERT INTO `step` (`STEP_UID`, `PRO_UID`, `TAS_UID`, `STEP_TYPE_OBJ`, `STEP_UID_OBJ`, `STEP_CONDITION`, `STEP_MODE`) VALUES
+(1, 1, 1, 'DYNAFORM', 1, NULL, 'EDIT'),
+(2, 1, 2, 'DYNAFORM', 2, NULL, 'EDIT'),
+(3, 1, 3, 'DYNAFORM', 3, NULL, 'EDIT'),
+(4, 1, 4, 'DYNAFORM', 4, NULL, 'EDIT'),
+(5, 1, 5, 'DYNAFORM', 5, NULL, 'EDIT'),
+(7, 6, 7, 'DYNAFORM', 7, NULL, 'EDIT'),
+(8, 6, 8, 'DYNAFORM', 8, NULL, 'EDIT'),
+(9, 6, 9, 'DYNAFORM', 9, NULL, 'EDIT'),
+(10, 7, 10, 'DYNAFORM', 10, NULL, 'EDIT'),
+(11, 7, 11, 'DYNAFORM', 11, NULL, 'EDIT'),
+(12, 7, 12, 'DYNAFORM', 12, NULL, 'EDIT'),
+(13, 7, 13, 'DYNAFORM', 13, NULL, 'EDIT'),
+(14, 7, 14, 'DYNAFORM', 14, NULL, 'EDIT'),
+(32, 44, 32, 'DYNAFORM', 32, NULL, 'EDIT'),
+(33, 44, 33, 'DYNAFORM', 33, NULL, 'EDIT'),
+(34, 44, 34, 'DYNAFORM', 34, NULL, 'EDIT'),
+(35, 44, 35, 'DYNAFORM', 35, NULL, 'EDIT'),
+(36, 44, 36, 'DYNAFORM', 36, NULL, 'EDIT'),
+(37, 44, 37, 'DYNAFORM', 37, NULL, 'EDIT'),
+(38, 8, 38, 'DYNAFORM', 38, NULL, 'EDIT'),
+(39, 8, 39, 'DYNAFORM', 39, NULL, 'EDIT'),
+(40, 8, 40, 'DYNAFORM', 40, NULL, 'EDIT'),
+(41, 8, 41, 'DYNAFORM', 41, NULL, 'EDIT'),
+(46, 45, 46, 'DYNAFORM', 46, NULL, 'EDIT'),
+(47, 45, 47, 'DYNAFORM', 47, NULL, 'EDIT'),
+(48, 45, 48, 'DYNAFORM', 48, NULL, 'EDIT'),
+(49, 45, 49, 'DYNAFORM', 49, NULL, 'EDIT'),
+(50, 47, 50, 'DYNAFORM', 50, NULL, 'EDIT'),
+(51, 47, 51, 'DYNAFORM', 51, NULL, 'EDIT'),
+(52, 47, 52, 'DYNAFORM', 52, NULL, 'EDIT'),
+(53, 16, 53, 'DYNAFORM', 53, NULL, 'EDIT'),
+(54, 16, 54, 'DYNAFORM', 54, NULL, 'EDIT'),
+(55, 16, 55, 'DYNAFORM', 55, NULL, 'EDIT'),
+(56, 16, 56, 'DYNAFORM', 56, NULL, 'EDIT'),
+(57, 16, 57, 'DYNAFORM', 57, NULL, 'EDIT'),
+(59, 7, 12, 'INPUT_DOCUMENT', 40, NULL, 'EDIT');
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `step`
+--
+ALTER TABLE `step`
+  ADD PRIMARY KEY (`STEP_UID`),
+  ADD KEY `STEP_UID` (`STEP_UID`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `step`
+--
+ALTER TABLE `step`
+  MODIFY `STEP_UID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+

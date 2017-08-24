@@ -6,7 +6,6 @@ class DashboardBuilder
     public function buildDashboard (Dashboard $objDashboard, $arrData)
     {
         $html = "";
-        $type = "bar";
 
         $html .= '<div class="col-lg-'.$objDashboard->getColumns ().'">';
 
@@ -17,12 +16,10 @@ class DashboardBuilder
 
         $html .= '<div class="ibox-content">';
 
-        echo $objDashboard->getChartType ();
-
         switch (trim ($objDashboard->getChartType ())) {
 
             case "table":
-                $html .= $this->buildTable ($objDashboard, $arrData);
+                $html .= $this->buildTable ($arrData);
                 break;
 
 
@@ -53,7 +50,7 @@ class DashboardBuilder
         return $html;
     }
 
-    private function buildTable (Dashboard $objDashboard, $arrData)
+    private function buildTable ($arrData)
     {
         reset ($arrData);
         $first_key = key ($arrData);
@@ -70,7 +67,7 @@ class DashboardBuilder
 
         $html .= "</thead>";
 
-        foreach ($arrData as $columnName => $data) {
+        foreach ($arrData as $data) {
             $html .= "<tr>";
             if ( is_array ($data) )
             {

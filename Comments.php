@@ -1,7 +1,5 @@
 <?php
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/core/app/library/Mysql.php';
-
 class Comments extends BaseComments
 {
 
@@ -60,7 +58,7 @@ class Comments extends BaseComments
                 $oCase = new Cases();
                 $p = $oCase->getUsersParticipatedInCase ($appUid);
 
-                foreach ($p as $key => $userParticipated) {
+                foreach ($p as $userParticipated) {
                     $noteRecipientsA[] = $userParticipated;
                 }
 
@@ -111,7 +109,7 @@ class Comments extends BaseComments
         }
     }
 
-    public function doCount ($appUid, $usrUid = '', $start = '', $limit = 25, $sort = 'datetime', $dir = 'DESC', $dateFrom = '', $dateTo = '', $search = '')
+    public function doCount ($appUid, $usrUid = '', $sort = 'datetime', $dir = 'DESC', $dateFrom = '', $dateTo = '', $search = '')
     {
         if ( $this->objMysql === null )
         {
@@ -203,7 +201,7 @@ class Comments extends BaseComments
         }
 
         $response = array();
-        $totalCount = $this->doCount ($appUid, $usrUid, $start, $limit, $sort, $dir, $dateFrom, $dateTo, $search);
+        $totalCount = $this->doCount ($appUid, $usrUid, $sort, $dir, $dateFrom, $dateTo, $search);
 
         $response['totalCount'] = $totalCount;
 
@@ -219,7 +217,7 @@ class Comments extends BaseComments
 
         if ( !empty ($results) )
         {
-            foreach ($results as $key => $result) {
+            foreach ($results as $result) {
                 $result['comment'] = htmlentities (stripslashes ($result['comment']), ENT_QUOTES, 'UTF-8');
                 $response['notes'][] = $result;
             }

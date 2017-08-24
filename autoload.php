@@ -1,11 +1,28 @@
 <?php
 
 define ("HOME_DIR", "C:/xampp/htdocs/");
+define ("LOG_FILE", "C:/xampp/htdocs/core/app/logs/easyflow.log");
 define ("PATH_THIRDPARTY", HOME_DIR . '/core/app/library/thirdparty/');
+define ("PATH_DATA_MAILTEMPLATES", HOME_DIR . 'core/public/templates/');
+define ("DIAGRAMS", HOME_DIR . "core/public/BPMNdata/");
+define ("PATH_DATA_PUBLIC", HOME_DIR . "FormBuilder/public/");
 define ("PATH_SEP", "/");
+define ("UPLOADS_DIR", PATH_DATA_PUBLIC . "uploads/");
+define ("OUTPUT_DOCUMENTS", UPLOADS_DIR . "OutputDocuments/");
+define ("PATH_IMAGES_ENVIRONMENT_USERS", HOME_DIR . PATH_DATA_PUBLIC . "img/users");
+define ("WEB_ENTRY_DIR", HOME_DIR . "core/public/webentry/");
+define ("WEB_ENTRY_TEMPLATES", WEB_ENTRY_DIR . "template.phtml");
 
+require_once HOME_DIR . "/core/app/config/config.php";
 require_once HOME_DIR . '/core/app/library/Persistent.php';
+require_once HOME_DIR . '/core/app/library/Log.php';
+require_once HOME_DIR . '/core/app/library/BaseConfiguration.php';
+require_once HOME_DIR . '/core/app/library/Configuration.php';
+require_once HOME_DIR . '/core/app/library/class.configuration.php';
+
+
 require_once HOME_DIR . '/core/app/library/BusinessModel/Validator.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/Download.php';
 require_once HOME_DIR . '/core/app/library/config.php';
 require_once HOME_DIR . '/core/app/library/Mysql.php';
 require_once HOME_DIR . '/core/app/library/BaseVariable.php';
@@ -46,8 +63,17 @@ require_once HOME_DIR . '/core/app/library/Event/BaseWebEntryEvent.php';
 require_once HOME_DIR . '/core/app/library/Event/WebEntryEvent.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/WebEntryEvent.php';
 
-require_once HOME_DIR . '/core/app/library/Event/BaseAppDelegation.php';
+require_once HOME_DIR . '/core/app/library/Calendar/BaseCalendarDefinition.php';
+require_once HOME_DIR . '/core/app/library/Calendar/CalendarDefinition.php';
+require_once HOME_DIR . '/core/app/library/CalendarFunctions.php';
+
+
+require_once HOME_DIR . '/core/app/library/WorkflowClasses/BaseAppDelegation.php';
 require_once HOME_DIR . '/core/app/library/Event/AppDelegation.php';
+
+require_once HOME_DIR . '/core/app/library/Event/BaseMessageTypeVariable.php';
+require_once HOME_DIR . '/core/app/library/Event/MessageTypeVariable.php';
+
 
 /* * *********************** Documents ******************************************** */
 //require_once HOME_DIR . '/core/app/library/Documents/StepDocument.php';
@@ -118,16 +144,32 @@ require_once HOME_DIR . '/core/app/library/Notifications/BaseNotification.php';
 require_once HOME_DIR . '/core/app/library/Notifications/Notification.php';
 require_once HOME_DIR . '/core/app/library/Notifications/SendNotification.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/NotificationsFactory.php';
+//require_once HOME_DIR . '/core/app/library/BusinessModel/EmailTemplate.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/Notification.php';
+
+require_once HOME_DIR . '/core/app/library/BusinessModel/FilesManager.php';
+
+require_once HOME_DIR . '/core/app/library/BusinessModel/EmailServer.php';
+require_once HOME_DIR . '/core/app/library/Notifications/BaseEmailServer.php';
+require_once HOME_DIR . '/core/app/library/Notifications/EmailServer.php';
+
 /* * ********************* BPMN Classes ***************************************************** */
 require_once HOME_DIR . '/core/app/library/BPMN/BPMN.php';
 require_once HOME_DIR . '/core/app/library/BPMN/BPMNWorkflow.php';
 require_once HOME_DIR . '/core/app/library/BPMN/BaseTask.php';
 require_once HOME_DIR . '/core/app/library/BPMN/Task.php';
+require_once HOME_DIR . '/core/app/library/Process/BaseTaskUser.php';
+require_once HOME_DIR . '/core/app/library/Process/TaskUser.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/Task.php';
 require_once HOME_DIR . '/core/app/library/BPMN/Participant.php';
 require_once HOME_DIR . '/core/app/library/BPMN/Message.php';
 require_once HOME_DIR . '/core/app/library/BPMN/Flow.php';
-;
+
+require_once HOME_DIR . '/core/app/library/ScriptFunctions.php';
+require_once HOME_DIR . '/core/app/library/Event/BaseScriptTask.php';
+require_once HOME_DIR . '/core/app/library/Event/ScriptTask.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/ScriptTask.php';
+
 require_once HOME_DIR . '/core/app/library/BPMN/Diagram.php';
 require_once HOME_DIR . '/core/app/library/BPMN/Conditions.php';
 
@@ -183,7 +225,7 @@ require_once HOME_DIR . '/core/app/library/Dashboard/DashboardFactory.php';
 require_once HOME_DIR . '/core/app/library/Audit/BaseAudit.php';
 require_once HOME_DIR . '/core/app/library/Audit/Audit.php';
 
-/**************** Calendar ************************/
+/* * ************** Calendar *********************** */
 require_once HOME_DIR . '/core/app/library/Calendar/BaseCalendarBusinessHours.php';
 require_once HOME_DIR . '/core/app/library/Calendar/CalendarBusinessHours.php';
 
@@ -192,7 +234,29 @@ require_once HOME_DIR . '/core/app/library/Calendar/CalendarHolidays.php';
 
 require_once HOME_DIR . '/core/app/library/Calendar/BaseCalendarAssignment.php';
 require_once HOME_DIR . '/core/app/library/Calendar/CalendarAssignment.php';
-require_once HOME_DIR . '/core/app/library/Calendar/BaseCalendarDefinition.php';
-require_once HOME_DIR . '/core/app/library/Calendar/CalendarDefinition.php';
+
+
 require_once HOME_DIR . '/core/app/library/BusinessModel/Calendar.php';
+
+
+require_once HOME_DIR . 'core/app/library/Step/InputDocument.php';
+require_once HOME_DIR . 'core/app/library/MessageType/Variable.php';
+
+require_once HOME_DIR . 'core/app/library/Tables/SaveReport.php';
+require_once HOME_DIR . 'core/app/library/reportTableCSV.php';
+require_once HOME_DIR . 'core/app/library/Tables/pmTable.php';
+require_once HOME_DIR . 'core/app/library/Tables/BaseAdditionalTable.php';
+require_once HOME_DIR . 'core/app/library/Tables/AdditionalTables.php';
+require_once HOME_DIR . 'core/app/library/Tables/BaseReportField.php';
+require_once HOME_DIR . 'core/app/library/Tables/ReportField.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/ReportTable.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/Table.php';
+
+require_once HOME_DIR . '/core/app/library/CaseTracker/BaseCaseTrackerObject.php';
+require_once HOME_DIR . '/core/app/library/CaseTracker/BaseCaseTracker.php';
+require_once HOME_DIR . '/core/app/library/CaseTracker/CaseTrackerObject.php';
+require_once HOME_DIR . '/core/app/library/CaseTracker/CaseTracker.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/CaseTracker.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/CaseTrackerObject.php';
+
 

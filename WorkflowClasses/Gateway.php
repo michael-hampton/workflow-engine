@@ -94,7 +94,7 @@ class Gateway extends BaseGateway
             if ( !is_null ($oGateWay) )
             {
                 
-                $iResult = $this->delete ();
+                $this->delete ();
                 return true;
             }
             else

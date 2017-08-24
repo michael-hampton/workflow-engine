@@ -106,9 +106,9 @@ class Role
         try {
             if ( $this->existsCode ($roleCode, $roleUidExclude) )
             {
-                throw new Exception ("ID_ROLE_CODE_ALREADY_EXISTS");
+                throw new \Exception ("ROLE CODE ALREADY EXISTS");
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -146,9 +146,6 @@ class Role
         try {
 
             //Set variables
-            $arrayRoleData = ($roleUid == "") ? array() : $this->getRole ($roleUid, true);
-            $flagInsert = ($roleUid == "") ? true : false;
-            $arrayDataMain = array_merge ($arrayRoleData, $arrayData);
             //Verify data
             if ( isset ($arrayData["role_code"]) && !preg_match ("/^\w+$/", $arrayData["role_code"]) )
             {
@@ -390,8 +387,7 @@ class Role
         try {
             //Verify data
             $this->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
-            //Set data
-            $arrayRoleData = $this->getRole ($roleUid);
+            
             //Verify data
             $this->throwExceptionIfNotExistsRole ($roleUid);
 
@@ -406,7 +402,7 @@ class Role
                 $arrayData["status"] = ($arrayData["status"] == "ACTIVE") ? 1 : 0;
             }
 
-            $result = $role->updateRole ($arrayData);
+            $role->updateRole ($arrayData);
 
 
             return $arrayData;

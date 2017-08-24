@@ -143,7 +143,7 @@ abstract class BaseCalendarDefinition implements Persistent
      * @param      string $format The date/time format string (either date()-style or strftime()-style).
      *                          If format is NULL, then the integer unix timestamp will be returned.
      * @return     mixed Formatted date/time value as string or integer unix timestamp (if format is NULL).
-     * @throws     PropelException - if unable to convert the date/time to timestamp.
+     * @throws     Exception - if unable to convert the date/time to timestamp.
      */
     public function getCalendarCreateDate ($format = 'Y-m-d H:i:s')
     {
@@ -158,7 +158,7 @@ abstract class BaseCalendarDefinition implements Persistent
             $ts = strtotime ($this->calendar_create_date);
             if ( $ts === -1 || $ts === false )
             {
-                throw new PropelException ("Unable to parse value of [calendar_create_date] as date/time value: " .
+                throw new Exception ("Unable to parse value of [calendar_create_date] as date/time value: " .
                 var_export ($this->calendar_create_date, true));
             }
         }
@@ -186,7 +186,6 @@ abstract class BaseCalendarDefinition implements Persistent
      * @param      string $format The date/time format string (either date()-style or strftime()-style).
      *                          If format is NULL, then the integer unix timestamp will be returned.
      * @return     mixed Formatted date/time value as string or integer unix timestamp (if format is NULL).
-     * @throws     PropelException - if unable to convert the date/time to timestamp.
      */
     public function getCalendarUpdateDate ($format = 'Y-m-d H:i:s')
     {
@@ -199,11 +198,7 @@ abstract class BaseCalendarDefinition implements Persistent
         {
             // a non-timestamp value was set externally, so we convert it
             $ts = strtotime ($this->calendar_update_date);
-            if ( $ts === -1 || $ts === false )
-            {
-                //throw new PropelException ("Unable to parse value of [calendar_update_date] as date/time value: " .
-                //var_export ($this->calendar_update_date, true));
-            }
+           
         }
         else
         {
@@ -323,7 +318,7 @@ abstract class BaseCalendarDefinition implements Persistent
             }
             if ( $ts === -1 || $ts === false )
             {
-                throw new PropelException ("Unable to parse date/time value for [calendar_create_date] from input: " .
+                throw new Exception ("Unable to parse date/time value for [calendar_create_date] from input: " .
                 var_export ($v, true));
             }
         }
@@ -356,11 +351,7 @@ abstract class BaseCalendarDefinition implements Persistent
             {
                 $ts = null;
             }
-            if ( $ts === -1 || $ts === false )
-            {
-                //throw new PropelException ("Unable to parse date/time value for [calendar_update_date] from input: " .
-                //var_export ($v, true));
-            }
+           
         }
         else
         {
@@ -450,79 +441,18 @@ abstract class BaseCalendarDefinition implements Persistent
             $this->calendar_status = $v;
         }
     }
-
-// setCalendarStatus()
-
-    /**
-     * Hydrates (populates) the object variables with values from the database resultset.
-     *
-     * An offset (1-based "start column") is specified so that objects can be hydrated
-     * with a subset of the columns in the resultset rows.  This is needed, for example,
-     * for results of JOIN queries where the resultset row includes columns from two or
-     * more tables.
-     *
-     * @param      ResultSet $rs The ResultSet class with cursor advanced to desired record pos.
-     * @param      int $startcol 1-based offset column which indicates which restultset column to start with.
-     * @return     int next starting column
-     * @throws     PropelException  - Any caught Exception will be rewrapped as a PropelException.
-     */
-    public function hydrate (ResultSet $rs, $startcol = 1)
-    {
-        try {
-
-            $this->calendar_uid = $rs->getString ($startcol + 0);
-
-            $this->calendar_name = $rs->getString ($startcol + 1);
-
-            $this->calendar_create_date = $rs->getTimestamp ($startcol + 2, null);
-
-            $this->calendar_update_date = $rs->getTimestamp ($startcol + 3, null);
-
-            $this->calendar_work_days = $rs->getString ($startcol + 4);
-
-            $this->calendar_description = $rs->getString ($startcol + 5);
-
-            $this->calendar_status = $rs->getString ($startcol + 6);
-
-            $this->resetModified ();
-
-            $this->setNew (false);
-
-            // FIXME - using NUM_COLUMNS may be clearer.
-            return $startcol + 7; // 7 = CalendarDefinitionPeer::NUM_COLUMNS - CalendarDefinitionPeer::NUM_LAZY_LOAD_COLUMNS).
-        } catch (Exception $e) {
-            throw new PropelException ("Error populating CalendarDefinition object", $e);
-        }
-    }
-
+    
     /**
      * Removes this object from datastore and sets delete attribute.
      *
-     * @param      Connection $con
      * @return     void
-     * @throws     PropelException
-     * @see        BaseObject::setDeleted()
-     * @see        BaseObject::isDeleted()
      */
-    public function delete ($con = null)
+    public function delete ()
     {
-        if ( $this->isDeleted () )
-        {
-            throw new PropelException ("This object has already been deleted.");
-        }
-
-        if ( $con === null )
-        {
-            $con = Propel::getConnection (CalendarDefinitionPeer::DATABASE_NAME);
-        }
-
         try {
-            $con->begin ();
-            CalendarDefinitionPeer::doDelete ($this, $con);
+            CalendarDefinitionPeer::doDelete ($this);
             $this->setDeleted (true);
-            $con->commit ();
-        } catch (PropelException $e) {
-            $con->rollback ();
+        } catch (Exception $e) {
             throw $e;
         }
     }
@@ -562,9 +492,7 @@ abstract class BaseCalendarDefinition implements Persistent
                     ]
             );
         }
-
-
-
+        
         return $id;
     }
 
@@ -576,7 +504,7 @@ abstract class BaseCalendarDefinition implements Persistent
      *
      * @param      Connection $con
      * @return     int The number of rows affected by this insert/update and any referring
-     * @throws     PropelException
+     * @throws     Exception
      * @see        save()
      */
     protected function doSave ($con)

@@ -37,7 +37,7 @@ class Step
 
         try {
 
-            $sql = "SELECT STEP_UID FROM step_object WHERE TAS_UID = ?";
+            $sql = "SELECT STEP_UID FROM step WHERE TAS_UID = ?";
             $arrParameters = array($taskUid);
 
             if ( $stepUidExclude != "" )
@@ -89,12 +89,7 @@ class Step
 
             switch ($type) {
                 case "DYNAFORM":
-                    $dynaform = new \Dynaform();
 
-                    if ( !$dynaform->dynaformExists ($objectUid) )
-                    {
-                        $msg = "ID_DYNAFORM_DOES_NOT_EXIST";
-                    }
                     break;
                 case "INPUT_DOCUMENT":
                     $inputdoc = new \InputDocument();
@@ -167,9 +162,16 @@ class Step
     {
         $step = new \Step();
 
-        if ( !$step->StepExists ($stepUid) )
+        if ( $this->objMysql === null )
         {
-            throw new \Exception ("ID_STEP_DOES_NOT_EXIST");
+            $this->getConnection ();
+        }
+
+        $result = $this->objMysql->_select ("workflow.step", [], ["STEP_UID" => $stepUid]);
+
+        if ( !isset ($result[0]) || empty ($result[0]) )
+        {
+            throw new Exception ("STEP ID DOESNT EXIST");
         }
     }
 
@@ -228,7 +230,7 @@ class Step
             {
                 throw new \Exception ("ID_UNDEFINED_VALUE_IS_REQUIRED");
             }
-            
+
             $arrayData["STEP_UID_OBJ"] = trim ($arrayData["STEP_UID_OBJ"]);
 
             if ( $arrayData["STEP_UID_OBJ"] == "" )
@@ -240,7 +242,7 @@ class Step
             {
                 throw new \Exception ("ID_UNDEFINED_VALUE_IS_REQUIRED");
             }
-            
+
             $arrayData["STEP_MODE"] = trim ($arrayData["STEP_MODE"]);
 
             if ( $arrayData["STEP_MODE"] == "" )
@@ -263,7 +265,7 @@ class Step
             {
                 throw new \Exception ("ID_RECORD_EXISTS_IN_TABLE");
             }
-            
+
             $arrayData['PRO_UID'] = $processUid;
             $arrayData['TAS_UID'] = $taskUid;
 
@@ -283,45 +285,95 @@ class Step
     }
 
     /**
+     * Get all Steps of a Task
+     *
+     * @param string $taskUid Unique id of Task
+     *
+     * return array Return an array with all Steps of a Task
+     */
+    public function getSteps ($taskUid, $type = '')
+    {
+        try {
+
+            if ( $this->objMysql === null )
+            {
+                $this->getConnection ();
+            }
+
+            $arrayStep = array();
+            $step = new Step();
+            //Verify data
+            $task = new Task();
+            $task->throwExceptionIfNotExistsTask (null, $taskUid);
+
+            $results = $this->objMysql->_select ("workflow.step", [], ["TAS_UID" => $taskUid], ["STEP_UID" => "ASC"]);
+
+            foreach ($results as $row) {
+                $arrayData = $step->getStep ($row["STEP_UID"], $type);
+                
+                if ( count ($arrayData) > 0 )
+                {
+                    $arrayStep[] = $arrayData;
+                }
+            }
+
+            //Return
+            return $arrayStep;
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
      * Get data of a Step
      *
      * @param string $stepUid Unique id of Step
      *
      * return array Return an array with data of a Step
      */
-    public function getStep ($stepUid)
+    public function getStep ($stepUid, $type = '')
     {
         try {
+
+            if ( $this->objMysql === null )
+            {
+                $this->getConnection ();
+            }
+
             $arrayStep = array();
 
             //Verify data
             $this->throwExceptionIfNotExistsStep ($stepUid);
-
+           
             //Get data
-            $sql = "SELECT * FROM step_object WHERE STEP_UID = ?";
-            $arrParameters = array($stepUid);
-
-            $results = $this->objMysql->_query ($sql, $arrParameters);
+            $arrWhere = array("STEP_UID" => $stepUid);
+            
+            if($type !== "") {
+                $arrWhere['STEP_TYPE_OBJ'] = $type;
+            }
+            
+            $results = $this->objMysql->_select ("workflow.step", [], $arrWhere);
 
             $arrayStep = array();
+            $titleObj = '';
+            $descriptionObj = '';
 
             foreach ($results as $row) {
+                
                 switch ($row["STEP_TYPE_OBJ"]) {
                     case "DYNAFORM":
-                        $dynaform = new \Dynaform();
-                        $arrayData = $dynaform->load ($row["STEP_UID_OBJ"]);
-
-                        $titleObj = $arrayData["DYN_TITLE"];
-                        $descriptionObj = $arrayData["DYN_DESCRIPTION"];
+                        //$dynaform = new \Dynaform();
+                        //$arrayData = $dynaform->load ($row["STEP_UID_OBJ"]);
+                        //$titleObj = $arrayData["DYN_TITLE"];
                         break;
                     case "INPUT_DOCUMENT":
-                        $inputDocument = new \InputDocument();
-                        $arrayData = $inputDocument->getByUid ($row["STEP_UID_OBJ"]);
+                        //$inputDocument = new \InputDocument();
+                        //$arrayData = $inputDocument->getByUid ($row["STEP_UID_OBJ"]);
 
-                        if ( $arrayData === false )
-                        {
-                            return $arrayStep;
-                        }
+                        //if ( $arrayData === false )
+                        //{
+                            //return $arrayStep;
+                        //}
 
                         break;
                     case "OUTPUT_DOCUMENT":
@@ -333,13 +385,16 @@ class Step
                             return $arrayStep;
                         }
 
+                        $titleObj = $arrayData->getOutDocTitle();
+                        $descriptionObj = $arrayData->getOutDocDescription();
+
                         break;
                     case "EXTERNAL":
                         $titleObj = "unknown " . $row["STEP_UID"];
 
                         if ( isset ($externalSteps) && is_array ($externalSteps) && count ($externalSteps) > 0 )
                         {
-                            foreach ($externalSteps as $key => $value) {
+                            foreach ($externalSteps as $value) {
                                 if ( $value->sStepId == $row["STEP_UID_OBJ"] )
                                 {
                                     $titleObj = $value->sStepTitle;
@@ -354,14 +409,15 @@ class Step
                 $objStep->setStepTypeObj ($row["STEP_TYPE_OBJ"]);
                 $objStep->setStepMode ($row["STEP_MODE"]);
                 $objStep->setStepCondition ($row["STEP_CONDITION"]);
-                $objStep->setStepPosition ((int) ($row["STEP_POSITION"]));
                 $objStep->setStepUidObj ($row["STEP_UID_OBJ"]);
+                $objStep->setTitle($titleObj);
+                $objStep->setDescription($descriptionObj);
 
                 //Return
                 $arrayStep[] = $objStep;
             }
 
-            return $arrayStep;
+            return $objStep;
         } catch (\Exception $e) {
             throw $e;
         }

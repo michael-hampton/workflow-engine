@@ -10,10 +10,10 @@ class Lists
     private $audit;
     private $projectId;
     private $lastStep;
-    private $arrParents = array();
     private $objMysql;
     private $parentId;
     private $lastStepInProcess;
+    private $username;
 
     public function __construct ()
     {
@@ -28,7 +28,7 @@ class Lists
             foreach ($this->audit['steps'] as $step) {
                 if ( isset ($step['claimed']) )
                 {
-                    if ( $step['claimed'] == $_SESSION['user']['username'] )
+                    if ( $step['claimed'] == $this->username )
                     {
                         return array("parentId" => $this->parentId, "projectId" => $this->projectId);
                     }
@@ -41,7 +41,7 @@ class Lists
     {
         if ( isset ($this->lastStep['claimed']) && trim ($this->lastStep['claimed']) != "" )
         {
-            if ( $this->lastStep['claimed'] == $_SESSION['user']['username'] )
+            if ( $this->lastStep['claimed'] == $this->username)
             {
                 return array("parentId" => $this->parentId, "projectId" => $this->projectId);
             }
@@ -137,22 +137,16 @@ class Lists
         return $result[0]['id'];
     }
 
-    public function loadList ($listName = '', $dataList = array(), $total = false)
+    public function loadList ($listName = '', \Users $objUser, $dataList = array())
     {
-        if ( !isset ($dataList["userId"]) )
+        if ( trim ($objUser->getUserId()) === "")
         {
 
             throw (new \Exception ("ID_USER_NOT_EXIST"));
         }
-        else
-        {
 
-            $this->validateUserId ($dataList["userId"]);
-            $userUid = $dataList["userId"];
-
-            $objUsers = new \BusinessModel\UsersFactory();
-            $arrUser = $objUsers->getUser($userUid);
-        }
+            $this->validateUserId ($objUser->getUserId());
+            $this->username = $objUser->getUsername();
 
         if ( isset ($dataList['page']) && is_numeric ($dataList['page']) )
         {
@@ -171,12 +165,12 @@ class Lists
         switch ($listName) {
             case "CASES_INBOX":
             case "inbox":
-                return $objNotificationsFactory->getNotifications (array("status" => 1, "user" => $arrUser->getUser_email ()));
+                return $objNotificationsFactory->getNotifications (array("status" => 1, "user" => $objUser->getUser_email ()));
                 break;
 
             case "CASES_DRAFT":
             case "draft":
-                return $objNotificationsFactory->getNotifications (array("status" => 2, "user" => $arrUser[0]->getUser_email ()));
+                return $objNotificationsFactory->getNotifications (array("status" => 2, "user" => $objUser->getUser_email ()));
                 break;
 
             case "ABANDONED":

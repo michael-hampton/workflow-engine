@@ -15,7 +15,6 @@ class Flow
     private $loc;
     private $stepName;
 
-
     /**
      * 
      * @param type $id
@@ -46,11 +45,11 @@ class Flow
         $this->id = $id;
     }
 
-        /**
+    /**
      * 
      * @return type
      */
-    function getWorkflowId ()
+    public function getWorkflowId ()
     {
         return $this->workflowId;
     }
@@ -59,7 +58,7 @@ class Flow
      * 
      * @return type
      */
-    function getStepFrom ()
+    public function getStepFrom ()
     {
         return $this->stepFrom;
     }
@@ -68,7 +67,7 @@ class Flow
      * 
      * @return type
      */
-    function getStepTo ()
+    public function getStepTo ()
     {
         return $this->stepTo;
     }
@@ -77,7 +76,7 @@ class Flow
      * 
      * @return type
      */
-    function getIsActive ()
+    public function getIsActive ()
     {
         return $this->isActive;
     }
@@ -86,7 +85,7 @@ class Flow
      * 
      * @return type
      */
-    function getCondition ()
+    public function getCondition ()
     {
 
         if ( !is_array ($this->condition) )
@@ -96,12 +95,12 @@ class Flow
         return $this->condition;
     }
 
-    function getFirstStep ()
+    public function getFirstStep ()
     {
         return $this->firstStep;
     }
 
-    function getOrderId ()
+    public function getOrderId ()
     {
         return $this->orderId;
     }
@@ -110,7 +109,7 @@ class Flow
      * 
      * @param type $workflowId
      */
-    function setWorkflowId ($workflowId)
+    public function setWorkflowId ($workflowId)
     {
         $this->workflowId = $workflowId;
     }
@@ -119,7 +118,7 @@ class Flow
      * 
      * @param type $stepFrom
      */
-    function setStepFrom ($stepFrom)
+    public function setStepFrom ($stepFrom)
     {
         $this->stepFrom = $stepFrom;
     }
@@ -128,7 +127,7 @@ class Flow
      * 
      * @param type $stepTo
      */
-    function setStepTo ($stepTo)
+    public function setStepTo ($stepTo)
     {
         $this->stepTo = $stepTo;
     }
@@ -137,7 +136,7 @@ class Flow
      * 
      * @param type $isActive
      */
-    function setIsActive ($isActive)
+    public function setIsActive ($isActive)
     {
         $this->isActive = $isActive;
     }
@@ -146,7 +145,7 @@ class Flow
      * 
      * @param type $condition
      */
-    function setCondition ($condition)
+    public function setCondition ($condition)
     {
         if ( is_array ($condition) )
         {
@@ -160,7 +159,7 @@ class Flow
      * 
      * @param type $firstStep
      */
-    function setFirstStep ($firstStep)
+    public function setFirstStep ($firstStep)
     {
         $this->firstStep = $firstStep;
     }
@@ -169,12 +168,12 @@ class Flow
      * 
      * @param type $orderId
      */
-    function setOrderId ($orderId)
+    public function setOrderId ($orderId)
     {
         $this->orderId = $orderId;
     }
 
-    function getLoc ()
+    public function getLoc ()
     {
         return $this->loc;
     }
@@ -183,7 +182,7 @@ class Flow
      * 
      * @param type $loc
      */
-    function setLoc ($loc)
+    public function setLoc ($loc)
     {
         $this->loc = $loc;
     }
@@ -210,6 +209,7 @@ class Flow
     {
         $this->objMysql->_insert ("workflow.status_mapping", array(
             "workflow_id" => $this->workflowId,
+            "TAS_UID" => $this->stepFrom,
             "step_from" => $this->stepFrom,
             "step_to" => $this->stepTo,
             "step_condition" => $this->condition,
@@ -228,7 +228,7 @@ class Flow
      */
     public function removeFlow ()
     {
-        $this->objMysql->_delete ("workflow.status_mapping", array("step_from" => $this->id, "workflow_id" => $this->workflowId));
+        $this->objMysql->_delete ("workflow.status_mapping", array("TAS_UID" => $this->id, "workflow_id" => $this->workflowId));
 
         return true;
     }
@@ -271,7 +271,7 @@ class Flow
      * return void Throw exception if doesn't exists the Task
 
      */
-    public function throwExceptionIfNotExistsTask ($taskUid, $processUid = '', $fieldNameForException = '')
+    public function throwExceptionIfNotExistsTask ($taskUid, $processUid = '')
     {
         try {
 

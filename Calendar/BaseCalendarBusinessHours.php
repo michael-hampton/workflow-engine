@@ -170,25 +170,15 @@ abstract class BaseCalendarBusinessHours implements Persistent
      *
      * @param      Connection $con
      * @return     void
-     * @throws     PropelException
+     * @throws     Exception
      * @see        BaseObject::setDeleted()
      * @see        BaseObject::isDeleted()
      */
-    public function delete($con = null)
+    public function delete()
     {
-        if ($this->isDeleted()) {
-            throw new PropelException("This object has already been deleted.");
-        }
-        if ($con === null) {
-            $con = Propel::getConnection(CalendarBusinessHoursPeer::DATABASE_NAME);
-        }
         try {
-            $con->begin();
             CalendarBusinessHoursPeer::doDelete($this, $con);
-            $this->setDeleted(true);
-            $con->commit();
         } catch (PropelException $e) {
-            $con->rollback();
             throw $e;
         }
     }
@@ -198,11 +188,9 @@ abstract class BaseCalendarBusinessHours implements Persistent
      * wraps the doSave() worker method in a transaction.
      *
      * @param      Connection $con
-     * @return     int The number of rows affected by this insert/update
-     * @throws     PropelException
-     * @see        doSave()
+     * @return     new id
      */
-    public function save($con = null)
+    public function save()
     {
        $id = $this->objMysql->_insert("calendar.calendar_business_hours", 
                [
@@ -215,39 +203,7 @@ abstract class BaseCalendarBusinessHours implements Persistent
        
        return $id;
     }
-    /**
-     * Stores the object in the database.
-     *
-     * If the object is new, it inserts it; otherwise an update is performed.
-     * All related objects are also updated in this method.
-     *
-     * @param      Connection $con
-     * @return     int The number of rows affected by this insert/update and any referring
-     * @throws     PropelException
-     * @see        save()
-     */
-    protected function doSave($con)
-    {
-        $affectedRows = 0; // initialize var to track total num of affected rows
-        if (!$this->alreadyInSave) {
-            $this->alreadyInSave = true;
-            // If this object has been modified, then save it to the database.
-            if ($this->isModified()) {
-                if ($this->isNew()) {
-                    $pk = CalendarBusinessHoursPeer::doInsert($this, $con);
-                    $affectedRows += 1; // we are assuming that there is only 1 row per doInsert() which
-                                         // should always be true here (even though technically
-                                         // BasePeer::doInsert() can insert multiple rows).
-                    $this->setNew(false);
-                } else {
-                    $affectedRows += CalendarBusinessHoursPeer::doUpdate($this, $con);
-                }
-                $this->resetModified(); // [HL] After being saved an object is no longer 'modified'
-            }
-            $this->alreadyInSave = false;
-        }
-        return $affectedRows;
-    } // doSave()
+  
     /**
      * Array of ValidationFailed objects.
      * @var        array ValidationFailed[]

@@ -54,7 +54,7 @@ class Department extends BaseDepartment
             }
             if ( $this->validate () )
             {
-                $res = $this->save ();
+                $this->save ();
                 return $this->getId ();
             }
             else
@@ -77,7 +77,7 @@ class Department extends BaseDepartment
      * @param      Connection $con the connection to use
      * @return     Department
      */
-    public function retrieveByPK ($pk, $con = null)
+    public function retrieveByPK ($pk)
     {
 
         $result = $this->objMysql->_select ("user_management.departments", [], ["id" => $pk]);
@@ -103,7 +103,7 @@ class Department extends BaseDepartment
         try {
             $oPro = $this->loadDepartmentRecord ($this->retrieveByPK ($aData['id']));
 
-            if ( is_object ($oPro) && get_class ($oPro) == 'Departments' )
+            if ( is_object ($oPro) && get_class ($oPro) == 'Department' )
             {
                 $oPro->loadObject ($aData);
                 if ( $oPro->validate () )
@@ -135,7 +135,6 @@ class Department extends BaseDepartment
             }
             else
             {
-                $con->rollback ();
                 throw (new Exception ("The row '" . $aData['DEP_UID'] . "' in table Department doesn't exist!"));
             }
         } catch (Exception $oError) {
@@ -143,59 +142,6 @@ class Department extends BaseDepartment
         }
     }
 
-    /**
-     * Remove the row
-     *
-     * @param array $aData or string $ProUid
-     * @return string
-     *
-     */
-//    public function remove ($ProUid)
-//    {
-//        if ( is_array ($ProUid) )
-//        {
-//            $ProUid = (isset ($ProUid['DEP_UID']) ? $ProUid['DEP_UID'] : '');
-//        }
-//        try {
-//            $oCriteria = new Criteria ('workflow');
-//            $oCriteria->addSelectColumn (UsersPeer::USR_UID);
-//            $oCriteria->add (UsersPeer::DEP_UID, $ProUid, Criteria::EQUAL);
-//            $oDataset = UsersPeer::doSelectRS ($oCriteria);
-//            $oDataset->setFetchmode (ResultSet::FETCHMODE_ASSOC);
-//            $oDataset->next ();
-//            $aFields = array();
-//            while ($aRow = $oDataset->getRow ()) {
-//                $aFields['USR_UID'] = $aRow['USR_UID'];
-//                $aFields['DEP_UID'] = '';
-//                $oDepto = UsersPeer::retrieveByPk ($aFields['USR_UID']);
-//                if ( is_object ($oDepto) && get_class ($oDepto) == 'UsersPeer' )
-//                {
-//                    return true;
-//                }
-//                else
-//                {
-//                    $oDepto = new Users();
-//                    $oDepto->update ($aFields);
-//                }
-//                $oDataset->next ();
-//            }
-//            $oPro = DepartmentPeer::retrieveByPK ($ProUid);
-//            if ( !is_null ($oPro) )
-//            {
-//                $dptoTitle = $this->Load ($oPro->getDepUid ());
-//                Content::removeContent ('DEPO_TITLE', '', $oPro->getDepUid ());
-//                Content::removeContent ('DEPO_DESCRIPTION', '', $oPro->getDepUid ());
-//                G::auditLog ("DeleteDepartament", "Departament Name: " . $dptoTitle['DEP_TITLE'] . " Departament ID: (" . $oPro->getDepUid () . ") ");
-//                return $oPro->delete ();
-//            }
-//            else
-//            {
-//                throw (new Exception ("The row '$ProUid' in table Group doesn't exist!"));
-//            }
-//        } catch (Exception $oError) {
-//            throw ($oError);
-//        }
-//    }
     // select departments
     // this function is used to draw the hierachy tree view
     public function getDepartments ()
@@ -252,7 +198,7 @@ class Department extends BaseDepartment
     public function existsDepartment ($DepUid)
     {
         $result = $this->objMysql->_select ("user_management.departments", [], ["id" => $DepUid]);
-        
+
         $oPro = $this->loadDepartmentRecord ($result[0]);
         if ( is_object ($oPro) && get_class ($oPro) == 'Department' )
         {
@@ -278,7 +224,7 @@ class Department extends BaseDepartment
     public function addUserToDepartment (Department $objDepartment, Users $objUser)
     {
         try {
-            
+
             $objUser->setDept_id ($objDepartment->getId ());
             $objUser->save ();
         } catch (Exception $ex) {
@@ -301,7 +247,7 @@ class Department extends BaseDepartment
     {
         try {
             $objUser = new Users();
-            $objUser->setDept_id (0);
+            $objUser->setDept_id ($depUid);
             $objUser->setUserId ($userUid);
         } catch (Exception $ex) {
             throw $ex;

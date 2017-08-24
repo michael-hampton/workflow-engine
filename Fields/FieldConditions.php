@@ -121,7 +121,6 @@ class FieldConditions
             $iResult = $baseConditions->delete ();
             return $iResult;
         } catch (Exception $oError) {
-            $oConnection->rollback ();
             throw ($oError);
         }
     }

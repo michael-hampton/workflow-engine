@@ -3,6 +3,8 @@
 class BPMNWorkflow extends BPMN
 {
 
+    use \BusinessModel\Validator;
+
     private $objMysql;
     private $workflow;
     private $collectionId;
@@ -78,7 +80,6 @@ class BPMNWorkflow extends BPMN
         $arrGateways = [];
 
         $objBPMN = new BPMN();
-        $objTasks = new Task();
         $arrStepMapping = $objBPMN->getAllTasks ($this->workflow);
 
         $intNoOfSteps = count ($arrStepMapping);
@@ -95,7 +96,7 @@ class BPMNWorkflow extends BPMN
 
         $dimension = 50;
 
-        $max = $this->objMysql->_query ("SELECT MAX(step_id) + 1 AS `MAX` FROM workflow.steps");
+        $max = $this->objMysql->_query ("SELECT MAX(TAS_UID) + 1 AS `MAX` FROM workflow.task");
         $lastKey = $max[0]['MAX'] + $intNoOfSteps;
 
         foreach ($arrStepMapping as $key => $arrStep) {
@@ -285,6 +286,7 @@ class BPMNWorkflow extends BPMN
 
             $objTask = new Task ($steps['key']);
             $objFlow = new Flow ($steps['key'], $this->workflow);
+            $objLog = new \Log (LOG_FILE);
 
             if ( $steps['item'] == "End" || $steps['item'] == "end" )
             {
@@ -292,26 +294,30 @@ class BPMNWorkflow extends BPMN
             }
             else
             {
-                $check = $objTask->getTask ($steps['key']);
                 $check2 = $objBPMN->getFlow ($steps['key'], $this->workflow);
 
                 $arrStepFields[$steps['key']] = $this->objMysql->_select ("workflow.step_fields", array(), array("step_id" => $steps['key']));
 
                 if ( $steps['category'] != "event" || $steps['item'] == "start" )
                 {
-
-                    echo "DELETING STEP " . $steps['text'] . " ";
+                    $objLog->log (
+                            array(
+                        "message" => "DELETING STEP",
+                        'step' => $steps['text'],
+                            ), \Log::NOTICE);
 
                     $objFlow->removeFlow ();
-
                     $objTask->removeTask ($steps['key']);
-
-                    $objTask->setStepName ($steps['text']);
-                    $id = $objTask->saveNewStep ();
+                    $id = (new Task())->create (array("TAS_TITLE" => $steps['text'], "PRO_UID" => $this->workflow));
 
                     $arrStepFields[$steps['key']]['step_id'] = $id;
 
-                    echo "CREATED STEP " . $steps['text'] . " ";
+                    $objLog->log (
+                            array(
+                        "message" => "CREATED STEP",
+                        'step' => $steps['text'],
+                            ), \Log::NOTICE);
+
 
                     $arrNewMappings[$steps['key']] = $id;
 
@@ -444,8 +450,12 @@ class BPMNWorkflow extends BPMN
                 {
                     $objBPMN->saveFlow ($from, $to, $this->workflow, $key, json_encode ($arrConditions), $arrSteps[$mapping['from']]['loc']);
                 }
-
-                echo "CREATED MAPPING " . $from . " ";
+                
+                $objLog->log(
+                            array(
+                        "message" => "CREATED MAPPING",
+                        'step' => $from,
+                            ), \Log::NOTICE);
 
                 $objTrigger = new Trigger ($from);
 
@@ -466,6 +476,10 @@ class BPMNWorkflow extends BPMN
                     $this->objMysql->_delete ("workflow.step_fields", array("step_id" => $key));
 
                     $stepId = $arrSteps['step_id'];
+
+                    (new \BusinessModel\Step())->create ($stepId, $this->workflow, array('STEP_UID_OBJ' => $stepId,
+                        'STEP_TYPE_OBJ' => "DYNAFORM",
+                        'STEP_MODE' => "EDIT"));
 
                     foreach ($arrSteps as $arrStepField) {
                         if ( isset ($arrStepField['field_id']) && isset ($arrStepField['order_id']) )
@@ -508,7 +522,7 @@ class BPMNWorkflow extends BPMN
         switch ($data['messageType']) {
             case "send":
             case "receive":
-                $messageEventRelationUid = $this->createMessageEventRelationByBpmnFlow ((new Flow())->retrieveByPk($data['EVN_UID']));
+                $this->createMessageEventRelationByBpmnFlow ((new Flow())->retrieveByPk ($data['EVN_UID']));
                 break;
         }
     }
@@ -516,25 +530,24 @@ class BPMNWorkflow extends BPMN
     public function createMessageEventRelationByBpmnFlow (Flow $bpmnFlow)
     {
         try {
-            
-            $messageEventRelation = new MessageEventRelation();
-            
-            $messageEventRelationUid = "";
-      
 
-            if ( (strtolower($bpmnFlow->getCondition()['sendNotification']) === "yes" || strtolower($bpmnFlow->getCondition()['receiveNotification']) === "yes") &&
-                    (int)$bpmnFlow->getIsActive () === 1 && trim($bpmnFlow->getStepTo ()) !== "" &&
+            $messageEventRelation = new BusinessModel\MessageEventRelation();
+
+            $messageEventRelationUid = "";
+
+            if ( (strtolower ($bpmnFlow->getCondition ()['sendNotification']) === "yes" || strtolower ($bpmnFlow->getCondition ()['receiveNotification']) === "yes") &&
+                    (int) $bpmnFlow->getIsActive () === 1 && trim ($bpmnFlow->getStepTo ()) !== "" &&
                     !$messageEventRelation->existsEventRelation ($bpmnFlow->getWorkflowId (), $bpmnFlow->getStepFrom (), $bpmnFlow->getStepTo ())
             )
             {
-       
+
                 $arrayResult = $messageEventRelation->create (
                         $bpmnFlow->getWorkflowId (), array(
                     "EVN_UID_THROW" => $bpmnFlow->getStepFrom (),
                     "EVN_UID_CATCH" => $bpmnFlow->getStepTo ()
                         )
                 );
-                
+
                 $messageEventRelationUid = $arrayResult->getMSGER_UID ();
             }
 

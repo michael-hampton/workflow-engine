@@ -5,7 +5,6 @@ class DashboardInstance
 
     private $objMysql;
     private $arrProjects = array();
-    private $arrJson = array();
     private $arrUsersWithProjects = array();
     private $arrLateProjects = array();
     private $arrOnTime = array();

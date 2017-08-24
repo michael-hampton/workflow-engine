@@ -17,7 +17,6 @@ namespace BusinessModel;
 class MessageApplication
 {
 
-    private $frontEnd = false;
     private $objMysql;
 
     private function getConnection ()
@@ -130,7 +129,7 @@ class MessageApplication
 
                 if ( $messageApplication->validate () )
                 {
-                    $result = $messageApplication->save ();
+                    $messageApplication->save ();
                     //Return
                     return true;
                 }
@@ -174,9 +173,6 @@ class MessageApplication
             {
                 return $arrayMessageApplication;
             }
-
-            $arrayEventType = array("START", "INTERMEDIATE");
-            $arrayEventMarker = array("MESSAGECATCH");
 
             //SQL
             $select = "SELECT ma.*, md.*, sm.step_condition, sm.order_id";
@@ -266,15 +262,13 @@ class MessageApplication
      * @throws \Exception
      * @return void
      */
-    public function catchMessageEvent ($frontEnd = false)
+    public function catchMessageEvent (\Users $objUser)
     {
         try {
             $case = new \BusinessModel\Cases();
 
             //Get data
             $totalMessageEvent = 0;
-            $counterStartMessageEvent = 0;
-            $counterIntermediateCatchMessageEvent = 0;
             $counter = 0;
             $start = 0;
             $limit = 1000;
@@ -302,7 +296,6 @@ class MessageApplication
                     $taskUid = $arrayMessageApplicationData["EVN_UID_CATCH"];
                     $messageApplicationUid = $arrayMessageApplicationData["MSGAPP_UID"];
                     $messageApplicationCorrelation = $arrayMessageApplicationData["MSGAPP_CORRRELATION"];
-                    $objUser = (new \BusinessModel\UsersFactory())->getUser ($_SESSION['user']['usrid']);
                     $messageEventDefinitionCorrelation = $arrayMessageApplicationData["MSGED_CORRELATION"];
                     $arrayVariable = $this->mergeVariables ($arrayMessageApplicationData["MSGED_VARIABLES"], $arrayMessageApplicationData["MSGAPP_VARIABLES"]);
                     $flagCatched = false;
@@ -328,22 +321,20 @@ class MessageApplication
                                     $variables['description'] = "DESCRIPTION";
 
                                     //Start and derivate new Case
-                                    $arrCase = $case->addCase ((new \Workflow( $arrayMessageApplicationData['workflow_id'])), $objUser, array("form" => $variables), [], true, null, true);
-
+                                    $arrCase = $case->addCase ((new \Workflow ($arrayMessageApplicationData['workflow_id'])), $objUser, array("form" => $variables), [], true, null, true);
+                                    
                                     $aInfo = array(
                                         'action' => 'CREATED-NEW-CASE'
-                                        , 'usrUid' => $_SESSION['user']['usrid']
+                                        , 'usrUid' => $objUser->getUserId ()
                                         , 'proUid' => $arrCase['project_id']
                                         , 'tasUid' => $taskUid
                                         , 'appUid' => $arrCase['case_id']
                                         , 'workflowId' => $processUid
                                     );
-                                    $this->syslog (
-                                            200
-                                            , "Case #" . $arrCase['case_id'] . " created"
-                                            , 'CREATED-NEW-CASE'
-                                            , $aInfo
-                                    );
+                                  
+
+                                    (new \Log (LOG_FILE))->log (
+                                            $aInfo, \Log::NOTICE);
 
 
                                     $objElement = $case->getCaseInfo ($arrCase['project_id'], $arrCase['case_id']);
@@ -351,18 +342,14 @@ class MessageApplication
 
                                     $aInfo = array(
                                         'action' => 'ROUTED-NEW-CASE'
-                                        , 'usrUid' => $_SESSION['user']['usrid']
+                                        , 'usrUid' => $objUser->getUserId ()
                                         , 'proUid' => $arrCase['project_id']
                                         , 'tasUid' => $taskUid
                                         , 'appUid' => $arrCase['case_id']
                                         , 'workflowId' => $processUid
                                     );
-                                    $this->syslog (
-                                            200
-                                            , "Case #" . $arrCase['case_id'] . " routed"
-                                            , 'ROUTED-NEW-CASE'
-                                            , $aInfo
-                                    );
+                                    (new \Log (LOG_FILE))->log (
+                                            $aInfo, \Log::NOTICE);
 
                                     $flagCatched = true;
                                 }
@@ -378,19 +365,15 @@ class MessageApplication
 
                                 $aInfo = array(
                                     'action' => 'ROUTED-NEW-CASE'
-                                    , 'usrUid' => $_SESSION['user']['usrid']
+                                    , 'usrUid' => $objUser->getUserId ()
                                     , 'proUid' => $objElement->getParentId ()
                                     , 'tasUid' => $taskUid
                                     , 'appUid' => $objElement->getId ()
                                     , 'workflowId' => $processUid
                                 );
 
-                                $this->syslog (
-                                        200
-                                        , "Case #".$objElement->getId ()." routed "
-                                        , 'ROUTED-NEW-CASE'
-                                        , $aInfo
-                                );
+                                (new \Log (LOG_FILE))->log (
+                                       $aInfo, \Log::NOTICE);
 
                                 $flagCatched = true;
                                 break;
@@ -399,7 +382,7 @@ class MessageApplication
                         //Message-Application catch
                         if ( $flagCatched )
                         {
-                            $result = $this->update ($messageApplicationUid, array("MSGAPP_STATUS" => "READ"));
+                            $this->update ($messageApplicationUid, array("MSGAPP_STATUS" => "READ"));
                         }
                         $counter++;
                         //Progress bar
@@ -426,8 +409,8 @@ class MessageApplication
         try {
 
             $arrayVariable = array();
-            foreach ($arrayVariableName['MSGT_VARIABLES'] as $key => $value) {
-                foreach ($arrayVariableValue['MSGT_VARIABLES'] as $key2 => $value2) {
+            foreach ($arrayVariableName['MSGT_VARIABLES'] as $value) {
+                foreach ($arrayVariableValue['MSGT_VARIABLES'] as $value2) {
                     if ( $value2['MSGTV_NAME'] == $value['MSGTV_NAME'] )
                     {
                         $arrayVariable[$value['FIELD']] = $value2['VALUE'];
@@ -485,7 +468,7 @@ class MessageApplication
 
                 if ( $messageApplication->validate () )
                 {
-                    $result = $messageApplication->save ();
+                    $messageApplication->save ();
                     //Return
                     return true;
                 }
@@ -504,38 +487,4 @@ class MessageApplication
             throw $e;
         }
     }
-
-    /**
-     * The Syslog register the information in Monolog Class
-     *
-     * @param int $level DEBUG=100 INFO=200 NOTICE=250 WARNING=300 ERROR=400 CRITICAL=500
-     * @param string $message
-     * @param string $ipClient for Context information
-     * @param string $action for Context information
-     * @param string $timeZone for Context information
-     * @param string $workspace for Context information
-     * @param string $usrUid for Context information
-     * @param string $proUid for Context information
-     * @param string $tasUid for Context information
-     * @param string $appUid for Context information
-     * @param string $delIndex for Context information
-     * @param string $stepUid for Context information
-     * @param string $triUid for Context information
-     * @param string $outDocUid for Context information
-     * @param string $inpDocUid for Context information
-     * @param string $url for Context information
-     *
-     * return void
-     */
-    private function syslog (
-    $level, $message, $action = '', $aContext = array()
-    )
-    {
-        try {
-            // \Bootstrap::registerMonolog ('MessageEventCron', $level, $message, $aContext, SYS_SYS, 'processmaker.log');
-        } catch (\Exception $e) {
-            throw $e;
-        }
-    }
-
 }

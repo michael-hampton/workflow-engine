@@ -14,6 +14,8 @@
 class OutputDocument extends BaseOutputDocument
 {
 
+    use \BusinessModel\Validator;
+
     private $objMysql;
 
     public function __construct ()
@@ -26,13 +28,12 @@ class OutputDocument extends BaseOutputDocument
     {
         try {
             $oOutputDocument = $this->retrieveByPK ($sOutDocUid);
-            if ( is_null ($oOutputDocument) )
+            if ( is_null ($oOutputDocument) || !is_object ($oOutputDocument) )
             {
                 return false;
             }
-            $aFields = $oOutputDocument->toArray (BasePeer::TYPE_FIELDNAME);
-            $this->fromArray ($aFields, BasePeer::TYPE_FIELDNAME);
-            return $aFields;
+
+            return $oOutputDocument;
         } catch (Exception $oError) {
             throw ($oError);
         }
@@ -188,12 +189,12 @@ class OutputDocument extends BaseOutputDocument
     public function generate ($sUID, $aFields, $sPath, $sFilename, $sContent, $sLandscape = false, $sTypeDocToGener = 'BOTH', $aProperties = array())
     {
         if ( ($sUID != '') && is_array ($aFields) && ($sPath != '') )
-        {   
-            $objCases = new Cases();
+        {
+            $objCases = new \BusinessModel\Cases();
             $sContent = $objCases->replaceDataField ($sContent, $aFields);
-                  
-            $objFile = new FileUpload();
-            
+
+            $objFile = new \BusinessModel\FileUpload();
+
             $objFile->verifyPath ($sPath, true);
             //Start - Create .doc
             $oFile = fopen ($sPath . $sFilename . '.doc', 'wb');
@@ -346,9 +347,7 @@ class OutputDocument extends BaseOutputDocument
         }
         else
         {
-            return PEAR::raiseError (
-                            null, G_ERROR_USER_UID, null, null, 'You tried to call to a generate method without send the Output Document UID, fields to use and the file path!', 'G_Error', true
-            );
+            throw new Exception ('You tried to call to a generate method without send the Output Document UID, fields to use and the file path!');
         }
     }
 
@@ -422,8 +421,8 @@ class OutputDocument extends BaseOutputDocument
         $pdf = new TCPDF ($sOrientation, PDF_UNIT, $sMedia, true, 'UTF-8', false);
         // set document information
         $pdf->SetCreator (PDF_CREATOR);
-        $pdf->SetAuthor ($aFields['USR_USERNAME']);
-        $pdf->SetTitle ('Processmaker');
+        $pdf->SetAuthor ($aFields['USER']);
+        $pdf->SetTitle ('EasyFlow');
         $pdf->SetSubject ($sFilename);
         $pdf->SetCompression (true);
         $margins = $aProperties['margins'];
@@ -451,8 +450,8 @@ class OutputDocument extends BaseOutputDocument
         {
             $tcpdfPermissions = array('print', 'modify', 'copy', 'annot-forms', 'fill-forms', 'extract', 'assemble', 'print-high');
             $pdfSecurity = $aProperties['pdfSecurity'];
-            $userPass = G::decrypt ($pdfSecurity['openPassword'], $sUID);
-            $ownerPass = ($pdfSecurity['ownerPassword'] != '') ? G::decrypt ($pdfSecurity['ownerPassword'], $sUID) : null;
+            $userPass = $this->decrypt ($pdfSecurity['openPassword'], $sUID);
+            $ownerPass = ($pdfSecurity['ownerPassword'] != '') ? $this->decrypt ($pdfSecurity['ownerPassword'], $sUID) : null;
             $permissions = explode ("|", $pdfSecurity['permissions']);
             $permissions = array_diff ($tcpdfPermissions, $permissions);
             $pdf->SetProtection ($permissions, $userPass, $ownerPass);
@@ -636,4 +635,5 @@ class OutputDocument extends BaseOutputDocument
             throw ($oError);
         }
     }
+
 }

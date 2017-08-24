@@ -201,14 +201,14 @@ abstract class BaseTeam implements Persistent
         return TRUE;
     }
 
-    public function removeUserOfGroup ($userUid, $groupUid = null)
+    public function removeUserOfGroup (Users $objUser, $groupUid = null)
     {
-        if ( !is_numeric ($userUid) )
+        if ( !is_numeric ($objUser->getUserId ()) )
         {
             throw new Exception ("Invalid ids given");
         }
 
-        $this->objMysql->_update ("user_management.poms_users", array("team_id" => null), array("usrid" => $userUid));
+        $this->objMysql->_update ("user_management.poms_users", array("team_id" => null), array("usrid" => $objUser->getUserId ()));
     }
     
     public function addUserOfGroup ($groupUid, $userUid)

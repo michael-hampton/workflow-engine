@@ -13,6 +13,7 @@ class Task extends BaseTask
 
         if ( $stepId !== null )
         {
+            $this->setTasUid ($stepId);
             $this->stepId = $stepId;
         }
     }
@@ -39,12 +40,12 @@ class Task extends BaseTask
 
     public function removeTask ()
     {
-        $this->objMysql->_delete ("workflow.steps", array("step_id" => $this->stepId));
+        $this->objMysql->_delete ("workflow.task", array("TAS_UID" => $this->stepId));
     }
 
     public function getTask ($step)
     {
-        $check = $this->objMysql->_select ("workflow.steps", array(), array("step_id" => $step));
+        $check = $this->objMysql->_select ("workflow.task", array(), array("TAS_UID" => $step));
 
         return $check;
     }
@@ -60,16 +61,19 @@ class Task extends BaseTask
 
         try {
 
-            $sTaskUID = $aData['TAS_UID'];
+            if ( isset ($aData['TAS_UID']) )
+            {
+                $sTaskUID = $aData['TAS_UID'];
+                $this->setTasUid ($sTaskUID);
+            }
+
 
 
             $this->setProUid ($aData['PRO_UID']);
-            $this->setTasUid ($sTaskUID);
+
             $this->setTasTitle ((isset ($aData['TAS_TITLE']) ? $aData['TAS_TITLE'] : ''));
             $this->setTasDescription ((isset ($aData['TAS_DESCRIPTION']) ? $aData['TAS_DESCRIPTION'] : ''));
             $this->setTasDefTitle ("");
-            $this->setTasDefDescription ("");
-            $this->setTasDefProcCode ("");
             $this->setTasDefMessage ("");
             $this->setTasDefSubjectMessage ("");
             $this->setTasType ("NORMAL");
@@ -89,33 +93,32 @@ class Task extends BaseTask
             $this->setTasViewAdditionalDocumentation ("FALSE");
             $this->setTasCanCancel ("FALSE");
             $this->setTasOwnerApp ("FALSE");
-            $this->setStgUid ("");
             $this->setTasCanPause ("FALSE");
             $this->setTasCanSendMessage ("TRUE");
             $this->setTasCanDeleteDocs ("FALSE");
             $this->setTasSelfService ("FALSE");
-            $this->setTasStart ("FALSE");
-            $this->setTasToLastUser ("FALSE");
             $this->setTasSendLastEmail ("FALSE");
 
             $this->setTasGroupVariable ("");
 
-            $this->setTasId ($aData['TAS_ID']);
+            if ( isset ($aData['TAS_ID']) )
+            {
+                $this->setTasId ($aData['TAS_ID']);
+            }
 
             $this->loadObject ($aData);
 
             if ( $this->validate () )
             {
-                $this->setTasTitleContent ((isset ($aData['TAS_TITLE']) ? $aData['TAS_TITLE'] : ''));
-                $this->setTasDescriptionContent ((isset ($aData['TAS_DESCRIPTION']) ? $aData['TAS_DESCRIPTION'] : ''));
+                //$this->setTasTitleContent ((isset ($aData['TAS_TITLE']) ? $aData['TAS_TITLE'] : ''));
+                //$this->setTasDescriptionContent ((isset ($aData['TAS_DESCRIPTION']) ? $aData['TAS_DESCRIPTION'] : ''));
 
-                $this->save ();
+                $sTaskUID = $this->save ();
 
                 return $sTaskUID;
             }
             else
             {
-
                 $e = new Exception ("Failed Validation in class " . get_class ($this) . ".");
                 $e->aValidationFailures = $this->getValidationFailures ();
 
@@ -208,6 +211,26 @@ class Task extends BaseTask
         }
     }
 
+    public function load ($TasUid)
+    {
+        try {
+            $oRow = $this->retrieveByPK ($TasUid);
+            if ( $oRow !== false )
+            {
+                return $oRow;
+                /* ----------------------------------********--------------------------------- */
+                ///////
+                return $this;
+            }
+            else
+            {
+                throw (new Exception ("The row '" . $TasUid . "' in table TASK doesn't exist!"));
+            }
+        } catch (Exception $oError) {
+            throw ($oError);
+        }
+    }
+
     public function updateTaskProperties ($fields)
     {
 
@@ -259,8 +282,7 @@ class Task extends BaseTask
                 return false;
             }
 
-
-            $objFlow->loadObject($fields);
+            $objFlow->loadObject ($fields);
 
             if ( $objFlow->validate () )
             {
@@ -294,7 +316,7 @@ class Task extends BaseTask
     public function retrieveByPk ($pk)
     {
 
-        $result = $this->objMysql->_select ("workflow.steps", [], ["TAS_UID" => $pk]);
+        $result = $this->objMysql->_select ("workflow.task", [], ["TAS_UID" => $pk]);
         if ( !isset ($result[0]) || empty ($result[0]) )
         {
             return false;
@@ -306,16 +328,70 @@ class Task extends BaseTask
 
         $objCalendar = new CalendarAssignment();
         $objAssignment = $objCalendar->retrieveByPk ($result[0]['TAS_UID'], "TASK");
-        $objFlow->setCalendarUid ($objAssignment->getCalendarUid ());
+
+        if ( is_object ($objAssignment) )
+        {
+            $objFlow->setCalendarUid ($objAssignment->getCalendarUid ());
+        }
+
         $objFlow->setTasTypeDay ($result[0]['TAS_TYPE_DAY']);
-        $objFlow->setTasUid($pk);
-        $objFlow->setTasAssignType($result[0]['TAS_ASSIGN_TYPE']);
-        $objFlow->setTasSelfserviceTime($result[0]['TAS_SELFSERVICE_TIME']);
-        $objFlow->setTasSelfserviceTimeUnit($result[0]['TAS_SELFSERVICE_TIME_UNIT']);
-        $objFlow->setTasSelfserviceTriggerUid($result[0]['TAS_SELFSERVICE_TRIGGER_UID']);
-        $objFlow->setTasSelfserviceExecution($result[0]['TAS_SELFSERVICE_EXECUTION']);
+        $objFlow->setTasUid ($pk);
+        $objFlow->setTasAssignType ($result[0]['TAS_ASSIGN_TYPE']);
+        $objFlow->setTasSelfserviceTime ($result[0]['TAS_SELFSERVICE_TIME']);
+        $objFlow->setTasSelfserviceTimeUnit ($result[0]['TAS_SELFSERVICE_TIME_UNIT']);
+        $objFlow->setTasSelfserviceTriggerUid ($result[0]['TAS_SELFSERVICE_TRIGGER_UID']);
+        $objFlow->setTasSelfserviceExecution ($result[0]['TAS_SELFSERVICE_EXECUTION']);
 
         return $objFlow;
+    }
+
+    /**
+     * Get the assigned groups of a task
+     *
+     * @param string $sTaskUID
+     * @param integer $iType
+     * @return array
+     */
+    public function getGroupsOfTask ($sTaskUID, $iType)
+    {
+        try {
+            $aGroups = array();
+            $sql = "SELECT tu.*, u.team_id, u.usrid FROM workflow.TASK_USER tu LEFT JOIN user_management.poms_users u ON u.team_id = tu.USR_UID WHERE tu.TAS_UID = ? AND TU_TYPE = ? AND TU_RELATION = 2 AND u.status = 1";
+            $arrParameters = array($sTaskUID, $iType);
+            $results = $this->objMysql->_query ($sql, $arrParameters);
+
+            foreach ($results as $aRow) {
+                $aGroups[] = $aRow;
+            }
+
+            return $aGroups;
+        } catch (Exception $oError) {
+            throw ($oError);
+        }
+    }
+
+    /**
+     * Get the assigned users of a task
+     *
+     * @param string $sTaskUID
+     * @param integer $iType
+     * @return array
+     */
+    public function getUsersOfTask ($sTaskUID, $iType)
+    {
+        try {
+            $aUsers = array();
+            $sql = "SELECT * FROM workflow.TASK_USER tu LEFT JOIN user_management.poms_users u ON u.usrid = tu.USR_UID WHERE tu.TAS_UID = ? AND TU_TYPE = ? AND TU_RELATION = 1 AND u.status = 1";
+            $arrParameters = array($sTaskUID, $iType);
+            $results = $this->objMysql->_query ($sql, $arrParameters);
+
+            foreach ($results as $aRow) {
+                $aUsers[] = $aRow;
+            }
+            return $aUsers;
+        } catch (Exception $oError) {
+            throw ($oError);
+        }
     }
 
 }

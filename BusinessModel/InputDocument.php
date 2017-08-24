@@ -6,8 +6,6 @@ class InputDocument
 {
 
     private $objMysql;
-    private $stepId;
-    private $documentId;
 
     /**
      * 
@@ -55,6 +53,7 @@ class InputDocument
             if ( $blReturnArray === false )
             {
                 foreach ($results as $result) {
+                    
                     $arrDocuments[$result['id']] = new \InputDocument ();
                     $arrDocuments[$result['id']]->setDescription ($result['description']);
                     $arrDocuments[$result['id']]->setDestinationPath ($result['destination_path']);
@@ -85,7 +84,7 @@ class InputDocument
     public function getInputDocumentForStep (\Step $objStep)
     {
         try {
-            $results = $this->objMysql->_query ("SELECT * FROM workflow.documents d INNER JOIN workflow.step_object sd ON sd.STEP_UID_OBJ = d.id WHERE sd.TAS_UID = ? AND STEP_TYPE_OBJ = 'INPUT_DOCUMENT'", [$objStep->getTasUid ()]);
+            $results = $this->objMysql->_query ("SELECT * FROM workflow.documents d INNER JOIN workflow.step sd ON sd.STEP_UID_OBJ = d.id WHERE sd.TAS_UID = ? AND STEP_TYPE_OBJ = 'INPUT_DOCUMENT'", [$objStep->getTasUid ()]);
 
             $arrDocuments = [];
 
@@ -126,7 +125,7 @@ class InputDocument
             {
                 throw new \Exception ("Step does not exist");
             }
-            $this->throwExceptionIfExistsTitle ($objStep->getTasUid (), $arrayData["INP_DOC_TITLE"]);
+            $this->throwExceptionIfExistsTitle ($arrayData["INP_DOC_TITLE"]);
 
             //Flags
             $flagDataDestinationPath = (isset ($arrayData["INP_DOC_DESTINATION_PATH"])) ? 1 : 0;
@@ -177,7 +176,7 @@ class InputDocument
         try {
 
             $result = $this->objMysql->_select ("workflow.documents", array(), array("id" => $inputDocumentUid));
-
+     
             if ( !isset ($result[0]) || empty ($result[0]) )
             {
                 throw new \Exception ("ID_INPUT_DOCUMENT_DOES_NOT_EXIST");
@@ -195,10 +194,10 @@ class InputDocument
      *
      * return void Throw exception if exists the title of a InputDocument
      */
-    public function throwExceptionIfExistsTitle ($processUid, $inputDocumentTitle)
+    public function throwExceptionIfExistsTitle ($inputDocumentTitle)
     {
         try {
-            if ( $this->existsTitle ($processUid, $inputDocumentTitle) )
+            if ( $this->existsTitle ($inputDocumentTitle) )
             {
                 //throw new \Exception ("ID_INPUT_DOCUMENT_TITLE_ALREADY_EXISTS");
             }
@@ -270,9 +269,6 @@ class InputDocument
     {
         try {
             //Verify data
-
-            $objWorkflowStep = new \WorkflowStep();
-
             $this->throwExceptionIfNotExistsInputDocument ($inputDocumentUid);
             $this->throwExceptionIfItsAssignedInOtherObjects ($inputDocumentUid);
 
@@ -297,7 +293,7 @@ class InputDocument
             $arrayData = array();
 
             //Step
-            $result = $this->objMysql->_select ("workflow.step_object", array(), array("STEP_UID_OBJ" => $inputDocumentUid));
+            $result = $this->objMysql->_select ("workflow.step", array(), array("STEP_UID_OBJ" => $inputDocumentUid));
 
             if ( isset ($result[0]) && !empty ($result[0]) )
             {
@@ -321,7 +317,7 @@ class InputDocument
      *
      * return bool Return true if exists the title of a InputDocument, false otherwise
      */
-    public function existsTitle ($processUid, $inputDocumentTitle, $inputDocumentUidExclude = "")
+    public function existsTitle ($inputDocumentTitle)
     {
         try {
             $result = $this->objMysql->_select ("workflow.documents", array(), array("name" => $inputDocumentTitle));
@@ -369,8 +365,7 @@ class InputDocument
                 }
             }
         } catch (Exception $ex) {
-            echo $ex->getMessage ();
-            die;
+            throw $ex;
         }
     }
 

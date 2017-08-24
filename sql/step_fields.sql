@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 24, 2017 at 05:24 PM
+-- Generation Time: Jul 11, 2017 at 08:46 PM
 -- Server version: 10.1.8-MariaDB
 -- PHP Version: 5.6.14
 
@@ -26,7 +26,6 @@ SET time_zone = "+00:00";
 -- Table structure for table `step_fields`
 --
 
-DROP TABLE IF EXISTS `step_fields`;
 CREATE TABLE `step_fields` (
   `field_id` int(11) NOT NULL,
   `step_id` int(11) NOT NULL,
@@ -69,10 +68,6 @@ INSERT INTO `step_fields` (`field_id`, `step_id`, `is_disabled`, `order_id`, `sy
 (5, 51, 0, 2, 0, 320, '', ''),
 (6, 51, 0, 3, 0, 321, '', ''),
 (7, 51, 0, 4, 0, 322, '', ''),
-(26, 61, 0, 1, 0, 323, '', ''),
-(29, 61, 0, 2, 0, 324, '', ''),
-(27, 61, 0, 3, 0, 325, '', ''),
-(25, 61, 0, 4, 0, 326, '', ''),
 (1, 33, 0, 0, 0, 327, '', ''),
 (2, 33, 0, 1, 0, 328, '', ''),
 (1, 32, 0, 0, 0, 331, '', ''),
@@ -118,7 +113,10 @@ INSERT INTO `step_fields` (`field_id`, `step_id`, `is_disabled`, `order_id`, `sy
 (26, 50, 0, 0, 0, 410, '', ''),
 (26, 50, 0, 0, 0, 412, '', ''),
 (25, 50, 0, 1, 0, 413, '', ''),
-(67, 41, 0, 0, 0, 414, '', '');
+(67, 41, 0, 0, 0, 414, '', ''),
+(1, 53, 0, 0, 0, 415, '', ''),
+(2, 53, 0, 1, 0, 416, '', ''),
+(1, 54, 0, 0, 0, 417, '', '');
 
 --
 -- Indexes for dumped tables
@@ -128,7 +126,9 @@ INSERT INTO `step_fields` (`field_id`, `step_id`, `is_disabled`, `order_id`, `sy
 -- Indexes for table `step_fields`
 --
 ALTER TABLE `step_fields`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `field_id` (`field_id`),
+  ADD KEY `step_id` (`step_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -138,7 +138,18 @@ ALTER TABLE `step_fields`
 -- AUTO_INCREMENT for table `step_fields`
 --
 ALTER TABLE `step_fields`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=415;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=418;
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `step_fields`
+--
+ALTER TABLE `step_fields`
+  ADD CONSTRAINT `fk_field9` FOREIGN KEY (`field_id`) REFERENCES `fields` (`field_id`),
+  ADD CONSTRAINT `fk_step5` FOREIGN KEY (`step_id`) REFERENCES `task` (`TAS_UID`);
+
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

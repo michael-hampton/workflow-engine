@@ -359,7 +359,7 @@ class TimerEvent
      *
      * return void Throw exception if is registered the Event
      */
-    public function throwExceptionIfEventIsRegistered ($projectUid, $eventUid, $fieldNameForException, $timerEventUidToExclude = "")
+    public function throwExceptionIfEventIsRegistered ($projectUid, $eventUid, $timerEventUidToExclude = "")
     {
         try {
             if ( $this->existsEvent ($projectUid, $eventUid, $timerEventUidToExclude) )
@@ -408,7 +408,7 @@ class TimerEvent
                 {
                     throw new \Exception ("ID_EVENT_EVENT_NOT_BELONG_TO_PROJECT");
                 }
-                $this->throwExceptionIfEventIsRegistered ($projectUid, $arrayData["EVN_UID"], $this->arrayFieldNameForException["eventUid"], $timerEventUid);
+                $this->throwExceptionIfEventIsRegistered ($projectUid, $arrayData["EVN_UID"], $timerEventUid);
             }
             //Verify data - Field definition
             $arrayFieldDefinition = array();
@@ -840,17 +840,13 @@ class TimerEvent
      *
      * return void
      */
-    public function startContinueCaseByTimerEvent ($datetime, $frontEnd = false)
+    public function startContinueCaseByTimerEvent ($datetime)
     {
         try {
-            
-
             //Set variables
             $case = new \BusinessModel\Cases();
             list($year, $month, $day, $hour, $minute) = $this->getYearMonthDayHourMinuteSecondByDatetime ($datetime);
-            $date = "$year-$month-$day";
             $dateIni = "$year-$month-$day 00:00:00";
-            $dateEnd = "$year-$month-$day 23:59:59";
 
             $this->log ("START-NEW-CASES", "Date \"$datetime (UTC +00:00)\": Start new cases");
 
@@ -870,9 +866,6 @@ class TimerEvent
 
                     //Set variables
                     $arrayTimerEventData = $result;
-
-                    $bpmnEventName = "TIMER EVENT";
-                    $taskUid = $result["EVN_UID"];
 
                     //Create the new case
                     $timerEventNextRunDate = $arrayTimerEventData["TMREVN_NEXT_RUN_DATE"];
@@ -907,9 +900,7 @@ class TimerEvent
                         
                         $objUser = (new UsersFactory())->getUser ($_SESSION['user']['usrid']);
                         $variables = array("name" => "NAME", "description" => "DESCRIPTION");
-                        $arrCase = $case->addCase ($arrayTimerEventData['workflow_id'], $objUser, array("form" => $variables), [], true, null, true);
-
-                        $arrayResult = json_decode (json_encode ($arrCase), true);
+                        $arrCase = $case->addCase (new \Workflow ($arrayTimerEventData['workflow_id']), $objUser, array("form" => $variables), [], true, null, true);
 
                         $this->log ("CREATED-NEW-CASE", "Case #" . $arrCase['case_id'] . " created, PRO_UID: " . $arrCase['project_id']);
 
@@ -954,12 +945,12 @@ class TimerEvent
                 }
                 else
                 {
-
-                   $arrCases = $case->getCasesForTask(new \Flow($$result['EVN_UID']));
+                   $arrCases = $case->getCasesForTask(new \Flow($result['EVN_UID']));
+                   
                    $total = $arrCases['total'];
                    $dates = $arrCases['dates'];
                    $rows = $arrCases['rows'];
-           
+
                     $counter = 0;
                     $flagRecord = false;
 
@@ -1033,7 +1024,8 @@ class TimerEvent
 
                             if ( $flagCase )
                             {
-                                $result = $case->updateStatus ($arrayApplicationData, "COMPLETE");
+                                $objUser = (new UsersFactory())->getUser ($_SESSION['user']['usrid']);
+                                $result = $case->updateStatus ($arrayApplicationData, $objUser, "COMPLETE");
                                 $flagRecord = true;
                             }
                             $counter++;

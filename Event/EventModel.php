@@ -125,7 +125,7 @@ class EventModel extends BaseEvent
                     }
                     else
                     {
-                        $oTrigger = TriggersPeer::retrieveByPk ($aData['TRI_UID']);
+                        //$oTrigger = TriggersPeer::retrieveByPk ($aData['TRI_UID']);
                     }
                     $this->setTriUid ($oTrigger->getTriUid ());
                 }
@@ -148,7 +148,8 @@ class EventModel extends BaseEvent
 
                 if ( $this->validate () )
                 {
-                    $iResult = $this->doSave ();
+                    $this->doSave ();
+                    
                     if ( isset ($aData['EVN_DESCRIPTION']) )
                     {
                         $this->setEvnDescription ($aData['EVN_DESCRIPTION']);

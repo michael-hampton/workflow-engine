@@ -1,4 +1,5 @@
 <?php
+
 namespace BusinessModel;
 
 trait Validator
@@ -413,6 +414,93 @@ trait Validator
         fwrite ($f, $message);
         fclose ($f);
         chmod ($path, 0777);
+    }
+
+    /**
+     * * Encrypt and decrypt functions ***
+     */
+
+    /**
+     * Decrypt string
+     * @access public
+     * @param string $string
+     * @param string $key
+     * @return string
+     */
+    public function decrypt ($string, $key)
+    {
+        $result = '';
+        $string = str_replace ('°', '/', $string);
+        $string_jhl = explode ("?", $string);
+        $string = base64_decode ($string);
+        $string = base64_decode ($string_jhl[0]);
+
+        for ($i = 0; $i < strlen ($string); $i ++) {
+            $char = substr ($string, $i, 1);
+            $keychar = substr ($key, ($i % strlen ($key)) - 1, 1);
+            $char = chr (ord ($char) - ord ($keychar));
+            $result .= $char;
+        }
+        if ( !empty ($string_jhl[1]) )
+        {
+            $result .= '?' . $string_jhl[1];
+        }
+        return $result;
+    }
+
+    /**
+     * Encrypt string
+     * @access public
+     * @param string $string
+     * @param string $key
+     * @return string
+     */
+    public static function encrypt ($string, $key)
+    {
+        //print $string;
+        //    if ( defined ( 'ENABLE_ENCRYPT' ) && ENABLE_ENCRYPT == 'yes' ) {
+        if ( strpos ($string, '|', 0) !== false )
+        {
+            return $string;
+        }
+        $result = '';
+        for ($i = 0; $i < strlen ($string); $i ++) {
+            $char = substr ($string, $i, 1);
+            $keychar = substr ($key, ($i % strlen ($key)) - 1, 1);
+            $char = chr (ord ($char) + ord ($keychar));
+            $result .= $char;
+        }
+
+        $result = base64_encode ($result);
+        $result = str_replace ('/', '°', $result);
+        $result = str_replace ('=', '', $result);
+        return $result;
+    }
+
+    public function arrayDiff ($array1, $array2)
+    {
+        if ( !is_array ($array1) )
+        {
+            $array1 = (array) $array1;
+        }
+
+        if ( !is_array ($array2) )
+        {
+            $array2 = (array) $array2;
+        }
+
+        // This wrapper for array_diff rekeys the array returned
+        $valid_array = array_diff ($array1, $array2);
+
+        // reinstantiate $array1 variable
+        $array1 = array();
+
+        // loop through the validated array and move elements to $array1
+        // this is necessary because the array_diff function returns arrays that retain their original keys
+        foreach ($valid_array as $valid) {
+            $array1[] = $valid;
+        }
+        return $array1;
     }
 
 }

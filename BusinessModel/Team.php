@@ -79,9 +79,9 @@ class Team
         try {
             if ( !$this->groupExists ($groupUid) )
             {
-                throw new Exception ("GROUP DOES NOT EXIST");
+                throw new \Exception ("GROUP DOES NOT EXIST");
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -151,7 +151,7 @@ class Team
             //Update
             $group = new \Team();
             $arrayData["team_id"] = $groupUid;
-            $result = $group->update ($arrayData);
+            $group->update ($arrayData);
             //Return
             unset ($arrayData["GRP_UID"]);
 
@@ -168,24 +168,29 @@ class Team
      *
      * return void
      */
-    public function delete ($groupUid)
+    public function delete (\Team $objTeam)
     {
         try {
             //Verify data
-            $this->throwExceptionIfNotExistsGroup ($groupUid);
-            $arrayTotalTasksByGroup = $this->getTotalTasksByGroup ($groupUid);
-            if ( isset ($arrayTotalTasksByGroup[$groupUid]) && $arrayTotalTasksByGroup[$groupUid] > 0 )
+            $this->throwExceptionIfNotExistsGroup ($objTeam->getId ());
+            $arrayTotalTasksByGroup = $this->getTotalTasksByGroup ($objTeam->getId ());
+            if ( isset ($arrayTotalTasksByGroup[$objTeam->getId ()]) && $arrayTotalTasksByGroup[$objTeam->getId ()] > 0 )
             {
                 throw new Exception ("ID_GROUP_CANNOT_DELETE_WHILE_ASSIGNED_TO_TASK");
             }
-            
+
             //Delete
             $group = new \Team();
-            $result = $group->remove ($groupUid);
+            $group->remove ($objTeam);
 
 
             $objPermissions = new \ObjectPermissions (null);
-            $objPermissions->deleteAll ("team", $groupUid);
+
+            try {
+                $objPermissions->deleteAll ("team", $objTeam->getId ());
+            } catch (Exception $ex) {
+                
+            }
         } catch (Exception $e) {
             throw $e;
         }
@@ -245,7 +250,6 @@ class Team
     public function getTotalTasksByGroup ($groupUid = "")
     {
         try {
-            $arrayData = array();
             //Verif data
             if ( $groupUid != "" )
             {
@@ -328,7 +332,10 @@ class Team
             $arrayGroup = array();
             $numRecTotal = 0;
             $arrWhere = array();
-            //Verify data
+
+            //Set variables
+            $filterName = "filter";
+
             //Get data
             if ( !is_null ($limit) && $limit . "" == "0" )
             {
@@ -352,6 +359,8 @@ class Team
             {
                 $criteria .= " WHERE team_name LIKE ?";
                 $arrWhere[] = "%" . $arrayFilterData['filter'] . "%";
+
+                $filterName = (isset ($arrayFilterData["filterOption"])) ? $arrayFilterData["filterOption"] : "";
             }
 
             //Number records total
@@ -386,7 +395,7 @@ class Team
             {
                 $criteria .= " LIMIT " . ((int) ($limit));
             }
-            
+
             $results = $this->objMysql->_query ($criteria, $arrWhere);
 
             foreach ($results as $row) {
@@ -438,7 +447,7 @@ class Team
      *
      * return array Return an array with data of a Group
      */
-    public function getGroup ($groupUid)
+    public function getGroup ($groupUid, $throwException)
     {
         try {
             //Verify data
@@ -449,12 +458,14 @@ class Team
             //SQL
             $result = $this->objMysql->_select ("user_management.teams", array(), array("team_id" => $groupUid));
 
-            if ( isset ($result[0]) && !empty ($result[0]) )
+            if ( !isset ($result[0]) || empty ($result[0]) )
             {
-                $result[0]["GRP_USERS"] = (isset ($arrayTotalUsersByGroup[$groupUid])) ? $arrayTotalUsersByGroup[$groupUid] : 0;
-                $result[0]["GRP_TASKS"] = (isset ($arrayTotalTasksByGroup[$groupUid])) ? $arrayTotalTasksByGroup[$groupUid] : 0;
+                return false;
             }
 
+
+            $result[0]["GRP_USERS"] = (isset ($arrayTotalUsersByGroup[$groupUid])) ? $arrayTotalUsersByGroup[$groupUid] : 0;
+            $result[0]["GRP_TASKS"] = (isset ($arrayTotalTasksByGroup[$groupUid])) ? $arrayTotalTasksByGroup[$groupUid] : 0;
 
             //Return
             $arrResult = $this->getGroupDataFromRecord ($result[0]);
@@ -590,9 +601,10 @@ class Team
                 case "AVAILABLE-USERS":
                     //Get Uids
                     $arrayUid = array();
-                    $criteria = $this->getUserCriteria ();
+                    $criteria = $this->getUserCriteria (null, $arrayFilterData);
                     $criteria = $criteria['sql'];
 
+                    $criteria .= " AND u.team_id = null";
                     $results = $this->objMysql->_query ($criteria);
 
                     foreach ($results as $row)
@@ -604,7 +616,7 @@ class Team
                         $objUser = new \BusinessModel\UsersFactory();
                         $arrayUser[] = $objUser->getUser ($userId);
                     }
-                    
+
                     return $arrayUser;
 
                     break;

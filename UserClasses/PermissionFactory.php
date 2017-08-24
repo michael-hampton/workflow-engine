@@ -239,7 +239,7 @@ class PermissionFactory
         try {
             $arrayPermission = array();
             //Verify data
-            $role = new Role();
+            
             $this->throwExceptionIfNotExistsRole ($roleUid);
           
             //Get data
@@ -248,7 +248,6 @@ class PermissionFactory
                 return $arrayPermission;
             }
             //Set variables
-            $rolePermission = new RolePermissions();
             //SQL
             switch ($option) {
                 case "PERMISSIONS":
