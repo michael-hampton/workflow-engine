@@ -16,6 +16,7 @@ namespace BusinessModel;
 
 class OutputDocument
 {
+
     use Validator;
 
     private $objMysql;
@@ -129,6 +130,7 @@ class OutputDocument
      */
     public function addOutputDocument ($sProcessUID, $outputDocumentData, \Step $objStep)
     {
+
         $outputDocumentData['out_doc_pdf_security_permissions'] = "print|modify|copy";
 
         $pemission = $outputDocumentData['out_doc_pdf_security_permissions'];
@@ -434,7 +436,6 @@ class OutputDocument
 
     public function getOutputDocumentsForStep (\Step $objStep)
     {
-
         try {
             $results = $this->objMysql->_query ("SELECT * FROM workflow.output_document d INNER JOIN workflow.step sd ON sd.STEP_UID_OBJ = d.id WHERE sd.TAS_UID = ? AND sd.STEP_TYPE_OBJ = 'OUTPUT_DOCUMENT'", [$objStep->getTasUid ()]);
 
@@ -454,16 +455,22 @@ class OutputDocument
     public function assignToStep ($assignArr, \Step $objStep)
     {
         try {
+
             $arrAssignedDocs = $this->getOutputDocumentsForStep ($objStep);
-            
+
             $arrAssigned = [];
 
             foreach ($arrAssignedDocs as $arrAssignedDoc) {
                 $arrAssigned[] = $arrAssignedDoc->getOutDocUid ();
             }
 
+            if ( !isset ($assignArr['selectedDocs']) )
+            {
+                $assignArr['selectedDocs'] = [];
+            }
+
             foreach ($arrAssigned as $docId) {
-                if ( !in_array ($docId, $assignArr) )
+                if ( !in_array ($docId, $assignArr['selectedDocs']) )
                 {
                     $objSDtepDocument = new \Step();
                     $objSDtepDocument->delete ("OUTPUT_DOCUMENT", $docId, $objStep->getTasUid ());
@@ -484,7 +491,7 @@ class OutputDocument
                 }
             }
         } catch (Exception $ex) {
-             throw $ex;
+            throw $ex;
         }
     }
 

@@ -53,7 +53,7 @@ class InputDocument
             if ( $blReturnArray === false )
             {
                 foreach ($results as $result) {
-                    
+
                     $arrDocuments[$result['id']] = new \InputDocument ();
                     $arrDocuments[$result['id']]->setDescription ($result['description']);
                     $arrDocuments[$result['id']]->setDestinationPath ($result['destination_path']);
@@ -176,7 +176,7 @@ class InputDocument
         try {
 
             $result = $this->objMysql->_select ("workflow.documents", array(), array("id" => $inputDocumentUid));
-     
+
             if ( !isset ($result[0]) || empty ($result[0]) )
             {
                 throw new \Exception ("ID_INPUT_DOCUMENT_DOES_NOT_EXIST");
@@ -343,8 +343,13 @@ class InputDocument
                 $arrAssigned[] = $arrAssignedDoc->getId ();
             }
 
+            if ( !isset ($assignArr['selectedDocs']) )
+            {
+                $assignArr['selectedDocs'] = [];
+            }
+
             foreach ($arrAssigned as $docId) {
-                if ( !in_array ($docId, $assignArr) )
+                if ( !in_array ($docId, $assignArr['selectedDocs']) )
                 {
                     $objSDtepDocument = new \Step();
                     $objSDtepDocument->delete ("INPUT_DOCUMENT", $docId, $objStep->getTasUid ());
