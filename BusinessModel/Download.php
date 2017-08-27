@@ -28,8 +28,12 @@ class Download
 
             $fields = $oAppDocument->load ($app_doc_uid, $docVersion, $app_uid, false);
 
-            $objInput = (new \BusinessModel\InputDocument())->getInputDocument ($oAppDocument->getDocUid ());
-            $destinationPath = $objInput[$oAppDocument->getDocUid ()]->getDestinationPath ();
+            if ( trim ($oAppDocument->getAppDocType ()) !== "" )
+            {
+                $objInput = (new \BusinessModel\InputDocument())->getInputDocument ($oAppDocument->getDocUid ());
+                $destinationPath = $objInput[$oAppDocument->getDocUid ()]->getDestinationPath ();
+            }
+
 
             $sAppDocUid = $fields->getAppDocUid ();
             $iDocVersion = $fields->getDocVersion ();
@@ -41,7 +45,11 @@ class Download
 
             $realPath = UPLOADS_DIR . $oAppDocument->getAppUid () . '/' . $file[0] . $file[1] . '_' . $iDocVersion . '.' . $ext;
 
-            $realPath1 = UPLOADS_DIR . $destinationPath . "/" . $oAppDocument->getAppDocFilename ();
+            if(isset($destinationPath) && trim($destinationPath) !== "") {
+                 $realPath1 = UPLOADS_DIR . $destinationPath . "/" . $oAppDocument->getAppDocFilename ();
+            } else {
+                 $realPath1 = UPLOADS_DIR . $oAppDocument->getAppDocFilename ();
+            }
 
             if ( !file_exists ($realPath) && file_exists ($realPath1) )
             {
@@ -71,7 +79,6 @@ class Download
                 @fclose ($fp);
             }
             exit;
-            
         } catch (\Exception $e) {
             throw $e;
         }

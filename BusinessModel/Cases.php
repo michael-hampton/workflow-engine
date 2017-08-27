@@ -2034,7 +2034,7 @@ class Cases
 
         $sql = "SELECT * FROM task_manager.APP_DOCUMENT
                 WHERE app_id = ?
-                AND document_type IN ('INPUT') AND status IN('ACTIVE')
+                AND document_type IN ('INPUT', '') AND status IN('ACTIVE')
                 ORDER BY id ASC";
         $arrParameters = array($objElement->getSource_id ());
 

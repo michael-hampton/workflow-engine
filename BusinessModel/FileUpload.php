@@ -141,6 +141,8 @@ class FileUpload
             $file = str_replace ('\\', '/', $file);
             $file = end (explode ("/", $file));
         }
+        
+        $file = trim($file) === "" ? $name : $file; 
 
         $path = str_replace ($file, '', $path);
 

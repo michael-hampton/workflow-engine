@@ -13,6 +13,7 @@ class Attachment
     private $objMysql;
     private $arrayValidation;
     private $table = "task_manager.attachments";
+    private $files;
 
     public function __construct ()
     {
@@ -30,6 +31,8 @@ class Attachment
 
         if ( isset ($arrData['files']) )
         {
+            $this->files = $arrData['files'];
+
             if ( isset ($arrData['step']) && !$arrData['step'] instanceof \WorkflowStep )
             {
                 throw new \Exception ("Invalid step object given.");
@@ -47,9 +50,8 @@ class Attachment
             }
             else
             {
-
                 $objVersioning = new \DocumentVersion();
-                $id = $objVersioning->create (array("filename" => $arrData['filename'], "document_id" => 1, "app_uid" => $this->projectId), $objUser);
+                $id = $objVersioning->create (array("filename" => $arrData['filename'], "document_id" => 1, "app_uid" => $arrData['source_id']), $objUser);
                 $this->upload ($arrData['source_id'], $id);
             }
         }
@@ -65,9 +67,9 @@ class Attachment
     public function upload ($prjUid, $prfUid)
     {
         try {
-
             $aRow = $this->retrieveByPK ($prfUid);
-            $path = $aRow[0]['file_destination'];
+
+            $path = isset ($aRow[0]['file_destination']) && !empty ($aRow[0]['file_destination']) ? $aRow[0]['file_destination'] : UPLOADS_DIR;
 
             if ( $path == '' )
             {
@@ -79,12 +81,14 @@ class Attachment
             if ( isset ($_FILES['fileUpload']) )
             {
                 foreach ($_FILES['fileUpload']['name'] as $key => $name) {
-                    $objFileUpload->doUpload ($name, $path, $_FILES['fileUpload']['error'][$key], $_FILES['fileUpload']['tmp_name'][$key]);
+                    $objFileUpload->doUpload ($name, $path, $this->files['fileUpload']['error'][$key], $this->files['fileUpload']['tmp_name'][$key]);
                 }
             }
             else
             {
-                $objFileUpload->doUpload ($_FILES['file']['name'], $path, $_FILES['file']['error'], $_FILES['file']['tmp_name']);
+                foreach ($this->files['file']['name'] as $key => $name) {
+                    $objFileUpload->doUpload ($this->files['file']['name'][$key], $path, $this->files['file']['error'][$key], $this->files['file']['tmp_name'][$key]);
+                }
             }
 
             return array();
@@ -292,7 +296,7 @@ class Attachment
      */
     private function retrieveByPK ($id)
     {
-        $result = $this->objMysql->_select ("task_manager.attachments", array(), array("id" => $id));
+        $result = $this->objMysql->_select ("task_manager.app_document", array(), array("id" => $id));
 
         if ( isset ($result[0]) && !empty ($result[0]) )
         {

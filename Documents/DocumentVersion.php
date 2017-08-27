@@ -138,7 +138,7 @@ class DocumentVersion extends BaseDocumentVersion
             $objVersioning->setAppDocFilename($aData['filename']);
             $objVersioning->setAppUid($aData['app_uid']);
 
-            $docType = isset ($aData['document_type']) ? $aData['document_type'] : 'INPUT';
+            $docType = isset ($aData['document_type']) ? $aData['document_type'] : '';
 
             if ($docType === "OUTPUT") {
                 $o = new OutputDocument();

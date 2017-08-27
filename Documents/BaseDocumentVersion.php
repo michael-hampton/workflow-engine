@@ -57,14 +57,13 @@ class BaseDocumentVersion implements Persistent
      */
     protected $app_doc_create_date;
     private $objMysql;
-
     public $arrFieldMapping = array(
         "APP_DOC_UID" => array("mutator" => "setAppDocUid", "accessor" => "getAppDocUid", "type" => "date", "required" => "true"),
         "DOC_VERSION" => array("mutator" => "setDocVersion", "accessor" => "getDocVersion", "type" => "date", "required" => "true"),
         "APP_DOC_STATUS" => array("mutator" => "setAppDocStatus", "accessor" => "getAppDocStatus", "type" => "int", "required" => "true"),
     );
 
-    public function getConnection()
+    public function getConnection ()
     {
         $this->objMysql = new Mysql2();
     }
@@ -74,7 +73,7 @@ class BaseDocumentVersion implements Persistent
      *
      * @return     string
      */
-    public function getAppDocUid()
+    public function getAppDocUid ()
     {
 
         return $this->app_doc_uid;
@@ -85,7 +84,7 @@ class BaseDocumentVersion implements Persistent
      *
      * @return     string
      */
-    public function getAppDocFilename()
+    public function getAppDocFilename ()
     {
 
         return $this->app_doc_filename;
@@ -96,7 +95,7 @@ class BaseDocumentVersion implements Persistent
      *
      * @return     int
      */
-    public function getDocVersion()
+    public function getDocVersion ()
     {
 
         return $this->doc_version;
@@ -107,7 +106,7 @@ class BaseDocumentVersion implements Persistent
      *
      * @return     string
      */
-    public function getDocUid()
+    public function getDocUid ()
     {
 
         return $this->doc_uid;
@@ -118,7 +117,7 @@ class BaseDocumentVersion implements Persistent
      *
      * @return     string
      */
-    public function getUsrUid()
+    public function getUsrUid ()
     {
 
         return $this->usr_uid;
@@ -129,7 +128,7 @@ class BaseDocumentVersion implements Persistent
      *
      * @return     string
      */
-    public function getAppDocType()
+    public function getAppDocType ()
     {
 
         return $this->app_doc_type;
@@ -140,7 +139,7 @@ class BaseDocumentVersion implements Persistent
      *
      * @return     string
      */
-    public function getAppUid()
+    public function getAppUid ()
     {
         return $this->app_uid;
     }
@@ -150,7 +149,7 @@ class BaseDocumentVersion implements Persistent
      *
      * @return     string
      */
-    public function getAppDocStatus()
+    public function getAppDocStatus ()
     {
         return $this->app_doc_status;
     }
@@ -161,16 +160,18 @@ class BaseDocumentVersion implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setAppDocUid($v)
+    public function setAppDocUid ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
-            $v = (string)$v;
+        if ( $v !== null && !is_string ($v) )
+        {
+            $v = (string) $v;
         }
 
-        if ($this->app_doc_uid !== $v || $v === '') {
+        if ( $this->app_doc_uid !== $v || $v === '' )
+        {
             $this->app_doc_uid = $v;
         }
     }
@@ -183,16 +184,18 @@ class BaseDocumentVersion implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setAppDocFilename($v)
+    public function setAppDocFilename ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
-            $v = (string)$v;
+        if ( $v !== null && !is_string ($v) )
+        {
+            $v = (string) $v;
         }
 
-        if ($this->app_doc_filename !== $v) {
+        if ( $this->app_doc_filename !== $v )
+        {
             $this->app_doc_filename = $v;
         }
     }
@@ -205,16 +208,18 @@ class BaseDocumentVersion implements Persistent
      * @param      int $v new value
      * @return     void
      */
-    public function setDocVersion($v)
+    public function setDocVersion ($v)
     {
 
         // Since the native PHP type for this column is integer,
         // we will cast the input value to an int (if it is not).
-        if ($v !== null && !is_int($v) && is_numeric($v)) {
-            $v = (int)$v;
+        if ( $v !== null && !is_int ($v) && is_numeric ($v) )
+        {
+            $v = (int) $v;
         }
 
-        if ($this->doc_version !== $v || $v === 1) {
+        if ( $this->doc_version !== $v || $v === 1 )
+        {
             $this->doc_version = $v;
         }
     }
@@ -227,16 +232,18 @@ class BaseDocumentVersion implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setDocUid($v)
+    public function setDocUid ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
-            $v = (string)$v;
+        if ( $v !== null && !is_string ($v) )
+        {
+            $v = (string) $v;
         }
 
-        if ($this->doc_uid !== $v || $v === '') {
+        if ( $this->doc_uid !== $v || $v === '' )
+        {
             $this->doc_uid = $v;
         }
     }
@@ -249,16 +256,18 @@ class BaseDocumentVersion implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setUsrUid($v)
+    public function setUsrUid ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
-            $v = (string)$v;
+        if ( $v !== null && !is_string ($v) )
+        {
+            $v = (string) $v;
         }
 
-        if ($this->usr_uid !== $v || $v === '') {
+        if ( $this->usr_uid !== $v || $v === '' )
+        {
             $this->usr_uid = $v;
         }
     }
@@ -271,16 +280,18 @@ class BaseDocumentVersion implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setAppDocType($v)
+    public function setAppDocType ($v)
     {
 
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
-            $v = (string)$v;
+        if ( $v !== null && !is_string ($v) )
+        {
+            $v = (string) $v;
         }
 
-        if ($this->app_doc_type !== $v || $v === '') {
+        if ( $this->app_doc_type !== $v || $v === '' )
+        {
             $this->app_doc_type = $v;
         }
     }
@@ -291,14 +302,16 @@ class BaseDocumentVersion implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setAppDocStatus($v)
+    public function setAppDocStatus ($v)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
-            $v = (string)$v;
+        if ( $v !== null && !is_string ($v) )
+        {
+            $v = (string) $v;
         }
-        if ($this->app_doc_status !== $v || $v === 'ACTIVE') {
+        if ( $this->app_doc_status !== $v || $v === 'ACTIVE' )
+        {
             $this->app_doc_status = $v;
         }
     }
@@ -309,19 +322,21 @@ class BaseDocumentVersion implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    public function setAppUid($v)
+    public function setAppUid ($v)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
-            $v = (string)$v;
+        if ( $v !== null && !is_string ($v) )
+        {
+            $v = (string) $v;
         }
-        if ($this->app_uid !== $v || $v === '') {
+        if ( $this->app_uid !== $v || $v === '' )
+        {
             $this->app_uid = $v;
         }
     }
 
-    public function getAppDocCreateDate()
+    public function getAppDocCreateDate ()
     {
         return $this->app_doc_create_date;
     }
@@ -334,25 +349,31 @@ class BaseDocumentVersion implements Persistent
      * @param      int $v new value
      * @return     void
      */
-    public function setAppDocCreateDate($v)
+    public function setAppDocCreateDate ($v)
     {
 
-        if ($v !== null && !is_int($v)) {
-            $ts = strtotime($v);
+        if ( $v !== null && !is_int ($v) )
+        {
+            $ts = strtotime ($v);
             //Date/time accepts null values
-            if ($v == '') {
+            if ( $v == '' )
+            {
                 $ts = null;
             }
-            if ($ts === -1 || $ts === false) {
+            if ( $ts === -1 || $ts === false )
+            {
                 throw new PropelException ("Unable to parse date/time value for [app_doc_create_date] from input: " .
-                    var_export($v, true));
+                var_export ($v, true));
             }
 
-            $ts = date("Y-m-d H:i:s", $ts);
-        } else {
-            $ts = date("Y-m-d H:i:s", $ts);
+            $ts = date ("Y-m-d H:i:s", $ts);
         }
-        if ($this->app_doc_create_date !== $ts) {
+        else
+        {
+            $ts = date ("Y-m-d H:i:s", $ts);
+        }
+        if ( $this->app_doc_create_date !== $ts )
+        {
             $this->app_doc_create_date = $ts;
         }
     }
@@ -367,35 +388,37 @@ class BaseDocumentVersion implements Persistent
      * @throws     PropelException
      * @see        doSave()
      */
-    public function save()
+    public function save ()
     {
 
-        if ($this->objMysql === null) {
-            $this->getConnection();
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
         }
 
-        if (trim($this->app_doc_uid) === "") {
-            $id = $this->objMysql->_insert(
-                "task_manager.APP_DOCUMENT", array(
-                    "document_version" => $this->doc_version,
-                    "user_id" => $this->usr_uid,
-                    "document_id" => $this->doc_uid,
-                    "date_created" => $this->app_doc_create_date,
-                    "filename" => $this->app_doc_filename,
-                    "document_type" => $this->app_doc_type,
-                    "app_id" => $this->app_uid,
-                    "status" => $this->app_doc_status
-                )
+        if ( trim ($this->app_doc_uid) === "" )
+        {
+            $id = $this->objMysql->_insert (
+                    "task_manager.APP_DOCUMENT", array(
+                "document_version" => $this->doc_version,
+                "user_id" => $this->usr_uid,
+                "document_id" => $this->doc_uid,
+                "date_created" => $this->app_doc_create_date,
+                "filename" => $this->app_doc_filename,
+                "document_type" => $this->app_doc_type,
+                "app_id" => $this->app_uid,
+                "status" => $this->app_doc_status
+                    )
             );
 
             return $id;
-        } else {
-            $this->objMysql->_update("task_manager.APP_DOCUMENT",
-                [
-                    "status" => $this->app_doc_status,
-                    "document_version" => $this->doc_version
-                ],
-                ["id" => $this->app_doc_uid]);
+        }
+        else
+        {
+            $this->objMysql->_update ("task_manager.APP_DOCUMENT", [
+                "status" => $this->app_doc_status,
+                "document_version" => $this->doc_version
+                    ], ["id" => $this->app_doc_uid]);
         }
     }
 
@@ -412,7 +435,7 @@ class BaseDocumentVersion implements Persistent
      * @return     array ValidationFailed[]
      * @see        validate()
      */
-    public function getValidationFailures()
+    public function getValidationFailures ()
     {
         return $this->validationFailures;
     }
@@ -423,8 +446,18 @@ class BaseDocumentVersion implements Persistent
      * @return     boolean Whether all columns pass validation.
      * @see        getValidationFailures()
      */
-    public function validate()
+    public function validate ()
     {
+        if ( trim ($this->app_uid) === "" )
+        {
+            $this->validationFailures[] = "App Id is missing";
+        }
+
+        if ( count ($this->validationFailures) > 0 )
+        {
+            return false;
+        }
+
         return true;
     }
 
@@ -432,15 +465,18 @@ class BaseDocumentVersion implements Persistent
      * @param array $arrData
      * @return bool
      */
-    public function loadObject(array $arrData)
+    public function loadObject (array $arrData)
     {
-        if (!empty($arrData)) {
+        if ( !empty ($arrData) )
+        {
             foreach ($this->arrFieldMapping as $strFieldKey => $arrFields) {
-                if (isset($arrData[$strFieldKey])) {
+                if ( isset ($arrData[$strFieldKey]) )
+                {
                     $strMutatorMethod = $arrFields['mutator'];
 
-                    if (is_callable(array($this, $strMutatorMethod))) {
-                        call_user_func(array($this, $strMutatorMethod), $arrData[$strFieldKey]);
+                    if ( is_callable (array($this, $strMutatorMethod)) )
+                    {
+                        call_user_func (array($this, $strMutatorMethod), $arrData[$strFieldKey]);
                     }
                 }
             }

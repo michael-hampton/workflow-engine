@@ -338,7 +338,6 @@ class ScriptFunctions
                         }
                         else
                         {
-                            die ("Mike");
                             if ( !isset ($aMatch[5][$i][0]) )
                             {
                                 $sScript .= "\$this->aFields['" . $aMatch[2][$i][0] . "']";
