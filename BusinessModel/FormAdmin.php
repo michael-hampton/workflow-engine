@@ -46,7 +46,7 @@ class FormAdmin
                 $arrWhere[] = $dynaFormUidExclude;
             }
 
-            $sql .= " WHERE DYN_TITLE = ?";
+            $sql .= " AND DYN_TITLE = ?";
             $arrWhere[] = $dynaFormTitle;
 
             $results = $this->objMysql->_query ($sql, $arrWhere);
@@ -203,7 +203,7 @@ class FormAdmin
      *
      * @return void
      */
-    private function throwExceptionDynaFormDoesNotExist ($dynaFormUid, $fieldNameForException)
+    private function throwExceptionDynaFormDoesNotExist ($dynaFormUid)
     {
         throw new \Exception (
         'ID_DYNAFORM_DOES_NOT_EXIST'
@@ -233,7 +233,7 @@ class FormAdmin
 
             $results = $this->objMysql->_query ($sql, $arrWhere);
 
-            if ( isset ($results[0]) && !empty ($results[0]) )
+            if ( !isset ($results[0]) || empty ($results[0]) )
             {
                 $this->throwExceptionDynaFormDoesNotExist ($dynaFormUid);
             }
@@ -255,7 +255,7 @@ class FormAdmin
     public function throwExceptionIfExistsTitle ($processUid, $dynaFormTitle, $dynaFormUidExclude = "")
     {
         try {
-            if ( $this->existsTitle ($processUid, $dynaFormTitle) )
+            if ( $this->existsTitle ($processUid, $dynaFormTitle, $dynaFormUidExclude) )
             {
                 throw new \Exception ("ID_DYNAFORM_TITLE_ALREADY_EXISTS");
             }
@@ -329,7 +329,7 @@ class FormAdmin
             $this->throwExceptionIfExistsTitle ($processUid, $arrayData["DYN_TITLE"]);
             //Create
 
-            $dynaForm = new \Dynaform();
+            $dynaForm = new \Form();
             $arrayData["PRO_UID"] = $processUid;
             $dynaFormUid = $dynaForm->create ($arrayData);
             //Return
@@ -359,10 +359,10 @@ class FormAdmin
             $this->throwExceptionIfNotExistsDynaForm ($dynaFormUid, "");
             //Load DynaForm
 
-            $dynaForm = new \Dynaform();
+            $dynaForm = new \Form();
             $arrayDynaFormData = $dynaForm->Load ($dynaFormUid);
 
-            $processUid = $arrayDynaFormData["PRO_UID"];
+            $processUid = $arrayDynaFormData->getProUid ();
 
             //Verify data
             if ( isset ($arrayData["DYN_TITLE"]) )

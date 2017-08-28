@@ -39,6 +39,7 @@ class Form extends BaseForm
             $this->setProUid ($aData['PRO_UID']);
             $this->setDynType (isset ($aData['DYN_TYPE']) ? $aData['DYN_TYPE'] : 'xmlform' );
             $this->setDynUpdateDate (date ("Y-m-d H:i:s"));
+            $this->setColumns ($aData['columns']);
 
             if ( isset ($aData["DYN_CONTENT"]) )
             {
@@ -119,6 +120,15 @@ class Form extends BaseForm
         }
 
         $objForm = new Form();
+        $objForm->setProUid ($results[0]['PRO_UID']);
+        $objForm->setColumns ($results[0]['columns']);
+        $objForm->setDynDescription ($results[0]['DYN_DESCRIPTION']);
+        $objForm->setDynLabel ($results[0]['DYN_LABEL']);
+        $objForm->setDynTitle ($results[0]['DYN_TITLE']);
+        $objForm->setDynType ($results[0]['DYN_TYPE']);
+        $objForm->setDynUid ($results[0]['DYN_UID']);
+        $objForm->setDynVersion ($results[0]['DYN_VERSION']);
+        $objForm->setDynContent ($results[0]['DYN_CONTENT']);
         return $objForm;
     }
 
@@ -300,6 +310,42 @@ class Form extends BaseForm
 
 
         return $results;
+    }
+
+    /**
+     * Set the [Dyn_title] column value.
+     *
+     * @param string $v new value
+     * @return void
+     */
+    public function setDynTitleContent ($v)
+    {
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ( $v !== null && !is_string ($v) )
+        {
+            $v = (string) $v;
+        }
+
+        $this->dyn_title_content = $v;
+    }
+
+    /**
+     * Set the [Dyn_description] column value.
+     *
+     * @param string $v new value
+     * @return void
+     */
+    public function setDynDescriptionContent ($v)
+    {
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ( $v !== null && !is_string ($v) )
+        {
+            $v = (string) $v;
+        }
+
+        $this->dyn_description = $v;
     }
 
 }

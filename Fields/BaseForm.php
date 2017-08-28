@@ -82,7 +82,21 @@ abstract class BaseForm implements Persistent
      * @var        boolean
      */
     protected $alreadyInSave = false;
+
+    /**
+     *
+     * @var type 
+     */
     protected $columns;
+    private $arrayFieldDefinition = array(
+        "DYN_TITLE" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getDynTitle", "mutator" => "setDynTitle"),
+        "DYN_DESCRIPTION" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getDynDescription", "mutator" => "setDynDescription"),
+        "DYN_VERSION" => array("type" => "string", "required" => true, "empty" => true, "accessor" => "getDynVersion", "mutator" => "setDynVersion"),
+        "columns" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getColumns", "mutator" => "setColumns"),
+        "DYN_LABEL" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getDynLabel", "mutator" => "setDynLabel"),
+        "DYN_TYPE" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getDynType", "mutator" => "setDynType"),
+        "PRO_UID" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getProUid", "mutator" => "setProUid"),
+    );
 
     /**
      * Flag to prevent endless validation loop, if this object is referenced
@@ -487,8 +501,7 @@ abstract class BaseForm implements Persistent
             }
             if ( $ts === -1 || $ts === false )
             {
-                throw new Exception ("Unable to parse date/time value for [dyn_update_date] from input: " .
-                var_export ($v, true));
+                throw new Exception ("Unable to parse date/time value for [dyn_update_date] from input: ");
             }
         }
         else
@@ -497,7 +510,7 @@ abstract class BaseForm implements Persistent
         }
         if ( $this->dyn_update_date !== $ts )
         {
-            $this->dyn_update_date = $ts;
+            $this->dyn_update_date = date ("Y-m-d H:i:s", $ts);
         }
     }
 
@@ -629,7 +642,7 @@ abstract class BaseForm implements Persistent
 
                 if ( trim ($this->$accessor ()) == "" )
                 {
-                    $this->arrValidationErrors[] = $fieldName . " Is empty. It is a required field";
+                    $this->validationFailures[] = $fieldName . " Is empty. It is a required field";
                     $errorCount++;
                 }
             }
