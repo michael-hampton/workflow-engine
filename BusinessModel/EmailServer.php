@@ -512,7 +512,7 @@ class EmailServer
                     $arrayDataAux["MESS_TRY_SEND_INMEDIATLY"] = 1;
                     $arrayDataAux["MAIL_TO"] = "admin@processmaker.com";
                     $arrayResult[$arrayMailTestName[1]] = $this->testConnectionByStep ($arrayDataAux);
-                    $arrayResult[$arrayMailTestName[1]]["title"] =  "ID_EMAIL_SERVER_TEST_CONNECTION_VERIFYING_MAIL";
+                    $arrayResult[$arrayMailTestName[1]]["title"] = "ID_EMAIL_SERVER_TEST_CONNECTION_VERIFYING_MAIL";
                     if ( isset ($arrayData["MESS_TRY_SEND_INMEDIATLY"]) && (int) ($arrayData["MESS_TRY_SEND_INMEDIATLY"]) == 1 && $arrayData['MAIL_TO'] != '' )
                     {
                         $arrayResult[$arrayMailTestName[2]] = $this->testConnectionByStep ($arrayData);
@@ -562,9 +562,83 @@ class EmailServer
     public function testConnectionByStep (array $arrayData, $step = 0)
     {
         try {
-            
+            // MAIL
+            if ( $arrayData["MESS_ENGINE"] == "MAIL" )
+            {
+                $arrayDataMail = array();
+                $eregMail = "/^[0-9a-zA-Z]+(?:[._][0-9a-zA-Z]+)*@[0-9a-zA-Z]+(?:[._-][0-9a-zA-Z]+)*\.[0-9a-zA-Z]{2,3}$/";
+                $arrayDataMail["FROM_EMAIL"] = ($arrayData["MESS_FROM_MAIL"] != "" && preg_match ($eregMail, $arrayData["MESS_FROM_MAIL"])) ? $arrayData["MESS_FROM_MAIL"] : "";
+                $arrayDataMail["FROM_NAME"] = ($arrayData["MESS_FROM_NAME"] != "") ? $arrayData["MESS_FROM_NAME"] : \G::LoadTranslation ("ID_MESS_TEST_BODY");
+                $arrayDataMail["MESS_ENGINE"] = "MAIL";
+                $arrayDataMail["MESS_SERVER"] = "localhost";
+                $arrayDataMail["MESS_PORT"] = 25;
+                $arrayDataMail["MESS_ACCOUNT"] = $arrayData["MAIL_TO"];
+                $arrayDataMail["MESS_PASSWORD"] = "";
+                $arrayDataMail["TO"] = $arrayData["MAIL_TO"];
+                $arrayDataMail["MESS_RAUTH"] = true;
+
+                $arrayTestMailResult = array();
+
+                try {
+                    $arrayTestMailResult = $this->sendTestMail ($arrayDataMail);
+                } catch (Exception $e) {
+                    $arrayTestMailResult["status"] = false;
+                    $arrayTestMailResult["message"] = $e->getMessage ();
+                }
+                $arrayResult = array(
+                    "result" => $arrayTestMailResult["status"],
+                    "message" => ""
+                );
+                if ( $arrayTestMailResult["status"] == false )
+                {
+                    $arrayResult["message"] = "ID_SENDMAIL_NOT_INSTALLED";
+                }
+                //Return
+                return $arrayResult;
+            }
         } catch (Exception $ex) {
             
+        }
+    }
+
+    /**
+     * Send a test email
+     *
+     * @param array $arrayData Data
+     *
+     * return array Return array with result of send test mail
+     */
+    public function sendTestMail (array $arrayData)
+    {
+        try {
+            $aConfiguration = array(
+                "MESS_ENGINE" => $arrayData["MESS_ENGINE"],
+                "MESS_SERVER" => $arrayData["MESS_SERVER"],
+                "MESS_PORT" => (int) ($arrayData["MESS_PORT"]),
+                "MESS_ACCOUNT" => $arrayData["MESS_ACCOUNT"],
+                "MESS_PASSWORD" => $arrayData["MESS_PASSWORD"],
+                "MESS_FROM_NAME" => $arrayData["FROM_NAME"],
+                "MESS_FROM_MAIL" => $arrayData["FROM_EMAIL"],
+                "MESS_RAUTH" => (int) ($arrayData["MESS_RAUTH"]),
+                "SMTPSecure" => (isset ($arrayData["SMTPSecure"])) ? $arrayData["SMTPSecure"] : "none"
+            );
+            $sFrom = $arrayData["FROM_EMAIL"];
+            $sSubject = "test subject";
+            $msg = "test body";
+
+            switch ($arrayData["MESS_ENGINE"]) {
+                case "MAIL":
+                    $engine = "ID_MESS_ENGINE_TYPE_1";
+                    break;
+                case "PHPMAILER":
+                    $engine = "ID_MESS_ENGINE_TYPE_2";
+                    break;
+                case "OPENMAIL":
+                    $engine = "ID_MESS_ENGINE_TYPE_3";
+                    break;
+            }
+        } catch (\Exception $e) {
+            throw $e;
         }
     }
 
