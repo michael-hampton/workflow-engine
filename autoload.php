@@ -108,6 +108,10 @@ require_once HOME_DIR . '/core/app/library/Fields/FieldConditions.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/Form.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/FormBuilder.php';
 
+require_once HOME_DIR . '/core/app/library/Fields/BaseForm.php';
+require_once HOME_DIR . '/core/app/library/Fields/Form.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/FormAdmin.php';
+
 
 /* * ************** Workflow Classes ********************************************* */
 
