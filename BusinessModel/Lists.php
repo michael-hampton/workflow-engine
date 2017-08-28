@@ -63,7 +63,7 @@ class Lists
     {
         if ( isset ($this->lastStep['status']) && trim ($this->lastStep['status']) != "" )
         {
-            if ( $this->lastStep['status'] == "REJECTED" )
+            if ( $this->lastStep['status'] == "REJECTED" || $this->lastStep['status'] == "REJECT")
             {
                 return array("parentId" => $this->parentId, "projectId" => $this->projectId);
             }
