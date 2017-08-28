@@ -389,10 +389,10 @@ class Form extends FieldFactory
             throw $e;
         }
     }
-    
-    public function load($id)
+
+    public function load ($id)
     {
-         $sql = "SELECT t.step_name, t.TAS_UID, w.workflow_id FROM workflow.step s 
+        $sql = "SELECT t.step_name, t.TAS_UID, w.workflow_id FROM workflow.step s 
                 INNER JOIN workflow.task t ON t.TAS_UID = s.TAS_UID
                 INNER JOIN workflow.status_mapping sm ON sm.TAS_UID = s.TAS_UID
                 INNER JOIN workflow.step_fields sf ON sf.step_id = s.STEP_UID
@@ -401,10 +401,10 @@ class Form extends FieldFactory
                 AND s.STEP_UID_OBJ = ?
                 GROUP BY s.TAS_UID
                 ";
-         
-         $results = $this->objMysql->_query($sql, [$id]);
-         
-         return $results;
+
+        $results = $this->objMysql->_query ($sql, [$id]);
+
+        return $results;
     }
 
     public function getDynaforms ($sProcessUid = '', $firstStep = true)
@@ -420,10 +420,11 @@ class Form extends FieldFactory
         {
             $sql .= " AND sm.first_step = 1";
         }
-        
+
         $arrParameters = [];
-        
-        if($sProcessUid !== '') {
+
+        if ( $sProcessUid !== '' )
+        {
             $sql .= " AND w.workflow_id = ?";
             $arrParameters[] = $sProcessUid;
         }

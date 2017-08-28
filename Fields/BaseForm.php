@@ -14,6 +14,8 @@
 abstract class BaseForm implements Persistent
 {
 
+    private $objMysql;
+
     /**
      * The value for the dyn_uid field.
      * @var        string
@@ -80,6 +82,7 @@ abstract class BaseForm implements Persistent
      * @var        boolean
      */
     protected $alreadyInSave = false;
+    protected $columns;
 
     /**
      * Flag to prevent endless validation loop, if this object is referenced
@@ -87,6 +90,11 @@ abstract class BaseForm implements Persistent
      * @var        boolean
      */
     protected $alreadyInValidation = false;
+
+    public function getConnection ()
+    {
+        $this->objMysql = new Mysql2();
+    }
 
     /**
      * Get the [dyn_uid] column value.
@@ -97,6 +105,17 @@ abstract class BaseForm implements Persistent
     {
 
         return $this->dyn_uid;
+    }
+
+    /**
+     * Get the [dyn_uid] column value.
+     * 
+     * @return     string
+     */
+    public function getColumns ()
+    {
+
+        return $this->columns;
     }
 
     /**
@@ -208,7 +227,7 @@ abstract class BaseForm implements Persistent
             $ts = strtotime ($this->dyn_update_date);
             if ( $ts === -1 || $ts === false )
             {
-                throw new Exception ("Unable to parse value of [dyn_update_date] as date/time value: " .
+                throw new Exception ("Unable to parse value of [dyn_update_date] as date/time value: ");
             }
         }
         else
@@ -317,7 +336,6 @@ abstract class BaseForm implements Persistent
         }
     }
 
-
     /**
      * Set the value of [dyn_type] column.
      * 
@@ -412,6 +430,28 @@ abstract class BaseForm implements Persistent
      * @param      int $v new value
      * @return     void
      */
+    public function setColumns ($v)
+    {
+
+// Since the native PHP type for this column is integer,
+// we will cast the input value to an int (if it is not).
+        if ( $v !== null && !is_int ($v) && is_numeric ($v) )
+        {
+            $v = (int) $v;
+        }
+
+        if ( $this->columns !== $v )
+        {
+            $this->columns = $v;
+        }
+    }
+
+    /**
+     * Set the value of [dyn_version] column.
+     * 
+     * @param      int $v new value
+     * @return     void
+     */
     public function setDynVersion ($v)
     {
 
@@ -461,7 +501,6 @@ abstract class BaseForm implements Persistent
         }
     }
 
-   
     /**
      * Removes this object from datastore and sets delete attribute.
      *
@@ -471,11 +510,21 @@ abstract class BaseForm implements Persistent
      * @see        BaseObject::setDeleted()
      * @see        BaseObject::isDeleted()
      */
-    public function delete ($con = null)
+    public function delete ()
     {
 
         try {
-           
+            if ( trim ($this->dyn_uid) === "" )
+            {
+                return false;
+            }
+
+            if ( $this->objMysql === null )
+            {
+                $this->getConnection ();
+            }
+
+            $this->objMysql->_delete ("workflow.form", ["DYN_UID" => $this->dyn_uid]);
         } catch (Exception $e) {
             throw $e;
         }
@@ -493,9 +542,48 @@ abstract class BaseForm implements Persistent
      */
     public function save ($con = null)
     {
-       
+
         try {
-         
+
+            if ( $this->objMysql === null )
+            {
+                $this->getConnection ();
+            }
+
+            if ( trim ($this->dyn_uid) !== "" )
+            {
+                $id = $this->objMysql->_update ("workflow.form", [
+                    "DYN_TITLE" => $this->dyn_title,
+                    "DYN_DESCRIPTION" => $this->dyn_description,
+                    "PRO_UID" => $this->pro_uid,
+                    "DYN_TYPE" => $this->dyn_type,
+                    "DYN_FILENAME" => $this->dyn_filename,
+                    "DYN_CONTENT" => $this->dyn_content,
+                    "DYN_LABEL" => $this->dyn_label,
+                    "DYN_VERSION" => $this->dyn_version,
+                    "DYN_UPDATE_DATE" => $this->dyn_update_date,
+                    "columns" => $this->columns
+                        ], ["DYN_UID" => $this->dyn_uid]
+                );
+            }
+            else
+            {
+                $id = $this->objMysql->_insert ("workflow.form", [
+                    "DYN_TITLE" => $this->dyn_title,
+                    "DYN_DESCRIPTION" => $this->dyn_description,
+                    "PRO_UID" => $this->pro_uid,
+                    "DYN_TYPE" => $this->dyn_type,
+                    "DYN_FILENAME" => $this->dyn_filename,
+                    "DYN_CONTENT" => $this->dyn_content,
+                    "DYN_LABEL" => $this->dyn_label,
+                    "DYN_VERSION" => $this->dyn_version,
+                    "DYN_UPDATE_DATE" => $this->dyn_update_date,
+                    "columns" => $this->columns
+                        ]
+                );
+
+                return $id;
+            }
         } catch (Exception $e) {
             throw $e;
         }
@@ -530,13 +618,55 @@ abstract class BaseForm implements Persistent
      * @see        doValidate()
      * @see        getValidationFailures()
      */
-    public function validate ($columns = null)
+    public function validate ()
     {
-      
+        $errorCount = 0;
+
+        foreach ($this->arrayFieldDefinition as $fieldName => $arrField) {
+            if ( $arrField['required'] === true )
+            {
+                $accessor = $this->arrayFieldDefinition[$fieldName]['accessor'];
+
+                if ( trim ($this->$accessor ()) == "" )
+                {
+                    $this->arrValidationErrors[] = $fieldName . " Is empty. It is a required field";
+                    $errorCount++;
+                }
+            }
+        }
+
+        if ( $errorCount > 0 )
+        {
+            return FALSE;
+        }
+
+        return TRUE;
     }
 
-    public function loadObject(array $arrData)
+    /**
+     *
+     * @param type $arrData
+     * @return boolean
+     */
+    public function loadObject (array $arrData)
     {
-        
+        foreach ($arrData as $formField => $formValue) {
+
+            if ( isset ($this->arrayFieldDefinition[$formField]) )
+            {
+                $mutator = $this->arrayFieldDefinition[$formField]['mutator'];
+
+                if ( method_exists ($this, $mutator) && is_callable (array($this, $mutator)) )
+                {
+                    if ( isset ($this->arrayFieldDefinition[$formField]) && trim ($formValue) != "" )
+                    {
+                        call_user_func (array($this, $mutator), $formValue);
+                    }
+                }
+            }
+        }
+
+        return true;
     }
+
 }
