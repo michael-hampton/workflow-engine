@@ -116,23 +116,23 @@ class EmailServer
                 $arrayFieldDefinition["MAIL_TO"]["empty"] = false;
             }
 
-            //Verify data Test Connection
-            if ( isset ($_SERVER["SERVER_NAME"]) )
-            {
-                $arrayTestConnectionResult = $this->testConnection ($arrayFinalData);
-                $msg = "";
-                foreach ($arrayTestConnectionResult as $key => $value) {
-                    $arrayTest = $value;
-                    if ( !$arrayTest["result"] )
-                    {
-                        $msg = $msg . (($msg != "") ? ", " : "") . $arrayTest["title"] . " (Error: " . $arrayTest["message"] . ")";
-                    }
-                }
-                if ( $msg != "" )
-                {
-                    throw new \Exception ($msg);
-                }
-            }
+//            //Verify data Test Connection
+//            if ( isset ($_SERVER["SERVER_NAME"]) )
+//            {
+//                $arrayTestConnectionResult = $this->testConnection ($arrayFinalData);
+//                $msg = "";
+//                foreach ($arrayTestConnectionResult as $key => $value) {
+//                    $arrayTest = $value;
+//                    if ( !$arrayTest["result"] )
+//                    {
+//                        $msg = $msg . (($msg != "") ? ", " : "") . $arrayTest["title"] . " (Error: " . $arrayTest["message"] . ")";
+//                    }
+//                }
+//                if ( $msg != "" )
+//                {
+//                    throw new \Exception ($msg);
+//                }
+//            }
         } catch (\Exception $e) {
             throw $e;
         }
@@ -512,7 +512,7 @@ class EmailServer
                     $arrayDataAux["MESS_TRY_SEND_INMEDIATLY"] = 1;
                     $arrayDataAux["MAIL_TO"] = "admin@processmaker.com";
                     $arrayResult[$arrayMailTestName[1]] = $this->testConnectionByStep ($arrayDataAux);
-                    $arrayResult[$arrayMailTestName[1]]["title"] = \G::LoadTranslation ("ID_EMAIL_SERVER_TEST_CONNECTION_VERIFYING_MAIL");
+                    $arrayResult[$arrayMailTestName[1]]["title"] =  "ID_EMAIL_SERVER_TEST_CONNECTION_VERIFYING_MAIL";
                     if ( isset ($arrayData["MESS_TRY_SEND_INMEDIATLY"]) && (int) ($arrayData["MESS_TRY_SEND_INMEDIATLY"]) == 1 && $arrayData['MAIL_TO'] != '' )
                     {
                         $arrayResult[$arrayMailTestName[2]] = $this->testConnectionByStep ($arrayData);
