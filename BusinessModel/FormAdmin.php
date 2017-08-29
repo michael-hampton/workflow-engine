@@ -690,4 +690,18 @@ class FormAdmin
         }
     }
 
+    public function checkFormExists ($taskId)
+    {
+        $result = $this->objMysql->_query ("SELECT * FROM step S 
+                                            INNER JOIN form f ON f.DYN_UID = s.STEP_UID_OBJ
+                                            WHERE s.TAS_UID = ? AND STEP_TYPE_OBJ = 'DYNAFORM'", [$taskId]);
+
+        if ( isset ($result[0]) && !empty ($result[0]) )
+        {
+            return $result[0]['DYN_UID'];
+        }
+
+        return false;
+    }
+
 }

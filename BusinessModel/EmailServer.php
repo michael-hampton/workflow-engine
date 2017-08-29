@@ -116,23 +116,23 @@ class EmailServer
                 $arrayFieldDefinition["MAIL_TO"]["empty"] = false;
             }
 
-//            //Verify data Test Connection
-//            if ( isset ($_SERVER["SERVER_NAME"]) )
-//            {
-//                $arrayTestConnectionResult = $this->testConnection ($arrayFinalData);
-//                $msg = "";
-//                foreach ($arrayTestConnectionResult as $key => $value) {
-//                    $arrayTest = $value;
-//                    if ( !$arrayTest["result"] )
-//                    {
-//                        $msg = $msg . (($msg != "") ? ", " : "") . $arrayTest["title"] . " (Error: " . $arrayTest["message"] . ")";
-//                    }
-//                }
-//                if ( $msg != "" )
-//                {
-//                    throw new \Exception ($msg);
-//                }
-//            }
+            //Verify data Test Connection
+            if ( isset ($_SERVER["SERVER_NAME"]) )
+            {
+                $arrayTestConnectionResult = $this->testConnection ($arrayFinalData);
+                $msg = "";
+                foreach ($arrayTestConnectionResult as $key => $value) {
+                    $arrayTest = $value;
+                    if ( !$arrayTest["result"] )
+                    {
+                        $msg = $msg . (($msg != "") ? ", " : "") . $arrayTest["title"] . " (Error: " . $arrayTest["message"] . ")";
+                    }
+                }
+                if ( $msg != "" )
+                {
+                    throw new \Exception ($msg);
+                }
+            }
         } catch (\Exception $e) {
             throw $e;
         }
@@ -520,6 +520,7 @@ class EmailServer
                     }
                     break;
                 case "PHPMAILER":
+                    $arrayData['MAIL_TO'] = "bluetiger_uan@yahoo.com";
                     $numSteps = ($arrayData['MAIL_TO'] != '') ? count ($arrayPhpMailerTestName) :
                             count ($arrayPhpMailerTestName) - 1;
                     for ($step = 1; $step <= $numSteps; $step++) {
@@ -601,6 +602,68 @@ class EmailServer
         }
     }
 
+    public function buildFrom ($configuration, $from = '')
+    {
+        if ( !isset ($configuration['MESS_FROM_NAME']) )
+        {
+            $configuration['MESS_FROM_NAME'] = '';
+        }
+        if ( !isset ($configuration['MESS_FROM_MAIL']) )
+        {
+            $configuration['MESS_FROM_MAIL'] = '';
+        }
+        if ( $from != '' )
+        {
+            if ( !preg_match ('/(.+)@(.+)\.(.+)/', $from, $match) )
+            {
+                if ( $configuration['MESS_FROM_MAIL'] != '' )
+                {
+                    $from .= ' <' . $configuration['MESS_FROM_MAIL'] . '>';
+                }
+                else if ( $configuration['MESS_ENGINE'] == 'PHPMAILER' && preg_match ('/(.+)@(.+)\.(.+)/', $configuration['MESS_ACCOUNT'], $match) )
+                {
+                    $from .= ' <' . $configuration['MESS_ACCOUNT'] . '>';
+                }
+                else
+                {
+                    $from .= ' <info@' . ((isset ($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] != '') ? $_SERVER['HTTP_HOST'] : 'processmaker.com') . '>';
+                }
+            }
+        }
+        else
+        {
+            if ( $configuration['MESS_FROM_NAME'] != '' && $configuration['MESS_FROM_MAIL'] != '' )
+            {
+                $from = $configuration['MESS_FROM_NAME'] . ' <' . $configuration['MESS_FROM_MAIL'] . '>';
+            }
+            else if ( $configuration['MESS_FROM_NAME'] != '' && $configuration['MESS_ENGINE'] == 'PHPMAILER' && preg_match ('/(.+)@(.+)\.(.+)/', $configuration['MESS_ACCOUNT'], $match) )
+            {
+                $from = $configuration['MESS_FROM_NAME'] . ' <' . $configuration['MESS_ACCOUNT'] . '>';
+            }
+            else if ( $configuration['MESS_FROM_NAME'] != '' )
+            {
+                $from = $configuration['MESS_FROM_NAME'] . ' <info@' . ((isset ($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] != '') ? $_SERVER['HTTP_HOST'] : 'processmaker.com') . '>';
+            }
+            else if ( $configuration['MESS_FROM_MAIL'] != '' )
+            {
+                $from = $configuration['MESS_FROM_MAIL'];
+            }
+            else if ( $configuration['MESS_ENGINE'] == 'PHPMAILER' && preg_match ('/(.+)@(.+)\.(.+)/', $configuration['MESS_ACCOUNT'], $match) )
+            {
+                $from = $configuration['MESS_ACCOUNT'];
+            }
+            else if ( $configuration['MESS_ENGINE'] == 'PHPMAILER' && $configuration['MESS_ACCOUNT'] != '' && !preg_match ('/(.+)@(.+)\.(.+)/', $configuration['MESS_ACCOUNT'], $match) )
+            {
+                $from = $configuration['MESS_ACCOUNT'] . ' <info@' . ((isset ($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] != '') ? $_SERVER['HTTP_HOST'] : 'processmaker.com') . '>';
+            }
+            else
+            {
+                $from = 'info@' . ((isset ($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] != '') ? $_SERVER['HTTP_HOST'] : 'processmaker.com');
+            }
+        }
+        return $from;
+    }
+
     /**
      * Send a test email
      *
@@ -622,7 +685,8 @@ class EmailServer
                 "MESS_RAUTH" => (int) ($arrayData["MESS_RAUTH"]),
                 "SMTPSecure" => (isset ($arrayData["SMTPSecure"])) ? $arrayData["SMTPSecure"] : "none"
             );
-            $sFrom = $arrayData["FROM_EMAIL"];
+            $sFrom = $this->buildFrom ($aConfiguration);
+
             $sSubject = "test subject";
             $msg = "test body";
 
@@ -637,6 +701,50 @@ class EmailServer
                     $engine = "ID_MESS_ENGINE_TYPE_3";
                     break;
             }
+
+            $oSpool = new \EmailFunctions();
+            $sBody = "Test Mike";
+
+            $oSpool->setConfig ($aConfiguration);
+
+            $oSpool->create (
+                    array(
+                        "msg_uid" => "",
+                        "app_uid" => "",
+                        "del_index" => 0,
+                        "app_msg_type" => "TEST",
+                        "app_msg_subject" => $sSubject,
+                        "app_msg_from" => $sFrom,
+                        "app_msg_to" => $arrayData["TO"],
+                        "app_msg_body" => $sBody,
+                        "app_msg_cc" => "",
+                        "app_msg_bcc" => "",
+                        "app_msg_attach" => "",
+                        "app_msg_template" => "",
+                        "app_msg_status" => "pending",
+                        "app_msg_attach" => ""
+                    )
+            );
+
+            $oSpool->sendMail ();
+
+            //Return
+            $arrayTestMailResult = array();
+
+            if ( $oSpool->status == "sent" )
+            {
+                $arrayTestMailResult["status"] = true;
+                $arrayTestMailResult["success"] = true;
+                $arrayTestMailResult["msg"] = "ID_MAIL_TEST_SUCCESS";
+            }
+            else
+            {
+                $arrayTestMailResult["status"] = false;
+                $arrayTestMailResult["success"] = false;
+                $arrayTestMailResult["msg"] = $oSpool->error;
+            }
+
+            return $arrayTestMailResult;
         } catch (\Exception $e) {
             throw $e;
         }
