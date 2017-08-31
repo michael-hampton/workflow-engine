@@ -78,6 +78,10 @@ require_once HOME_DIR . '/core/app/library/Event/MessageTypeVariable.php';
 /* * *********************** Documents ******************************************** */
 //require_once HOME_DIR . '/core/app/library/Documents/StepDocument.php';
 //require_once HOME_DIR . '/core/app/library/BusinessModel/StepDocument.php';
+
+require_once HOME_DIR . '/core/app/library/Documents/BaseAppFolder.php';
+require_once HOME_DIR . '/core/app/library/Documents/AppFolder.php
+
 require_once HOME_DIR . '/core/app/library/Documents/BaseProcessFile.php';
 require_once HOME_DIR . '/core/app/library/Documents/ProcessFile.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/FileUpload.php';
