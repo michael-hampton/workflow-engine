@@ -151,7 +151,21 @@ class SendNotification extends Notification
 
         $from = trim ($this->from) !== "" ? $this->from : $this->defaultFrom;
         $fromName = trim ($this->fromName) !== "" ? $this->fromName : "";
-       if(trim($sendto) !== "") {
+        
+            $aConfiguration = (!is_null(\EmailServerPeer::retrieveByPK($aTaskInfo['TAS_EMAIL_SERVER_UID']))) ?
+                    $eServer->getEmailServer($aTaskInfo['TAS_EMAIL_SERVER_UID'], true) :
+                    $eServer->getEmailServerDefault();
+                $msgError = '';
+        
+         $dataLastEmail['msgError'] = $msgError;
+                $dataLastEmail['configuration'] = $aConfiguration;
+                $dataLastEmail['subject'] = $message_subject;
+                $dataLastEmail['pathEmail'] = '';
+                $dataLastEmail['swtplDefault'] = 0;
+                $dataLastEmail['body'] = $message_body;
+                $dataLastEmail['from'] = $from;
+       
+        if(trim($sendto) !== "") {
                 $oSpool = new emailFunctions();
                 $oSpool->setConfig($dataLastEmail['configuration']);
                 $oSpool->create(array(
