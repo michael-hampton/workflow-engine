@@ -151,6 +151,32 @@ class SendNotification extends Notification
 
         $from = trim ($this->from) !== "" ? $this->from : $this->defaultFrom;
         $fromName = trim ($this->fromName) !== "" ? $this->fromName : "";
+       if(trim($sendto) !== "") {
+                $oSpool = new emailFunctions();
+                $oSpool->setConfig($dataLastEmail['configuration']);
+                $oSpool->create(array(
+                    "msg_uid" => "",
+                    'app_uid' => $this->projectId,
+                    'del_index' => 1,
+                    "app_msg_type" => "DERIVATION",
+                    "app_msg_subject" => $message_subject,
+                    'app_msg_from' => $from,
+                    "app_msg_to" => $sendto,
+                    'app_msg_body' => $message_body,
+                    "app_msg_cc" => $this->cc,
+                    "app_msg_bcc" => "",
+                    "app_msg_attach" => "",
+                    "app_msg_template" => "",
+                    "app_msg_status" => "pending",
+                    "app_msg_error" => $dataLastEmail['msgError']
+                ));
+                if ($dataLastEmail['msgError'] == '') {
+                    if (($dataLastEmail['configuration']["MESS_BACKGROUND"] == "") ||
+                        ($dataLastEmail['configuration']["MESS_TRY_SEND_INMEDIATLY"] == "1")
+                    ) {
+                        $oSpool->sendMail();
+                    }
+                }
 
         switch ($environment) {
 
