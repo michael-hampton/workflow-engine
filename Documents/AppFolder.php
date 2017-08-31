@@ -1,5 +1,5 @@
 <?php
-class AppFolder
+class AppFolder extends BaseAppFolder
 {
 private $objMysql;
 

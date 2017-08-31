@@ -2,6 +2,7 @@
 
 class SendNotification extends Notification
 {
+
     private $arrEmailAddresses = array();
 
     /**
@@ -138,7 +139,7 @@ class SendNotification extends Notification
             throw $ex;
         }
     }
-    
+
     /**
      *
      * @param type $sendto
@@ -147,84 +148,55 @@ class SendNotification extends Notification
      */
     public function notificationEmail ($sendto, $message_subject, $message_body)
     {
-        $environment = "DEV";
 
         $from = trim ($this->from) !== "" ? $this->from : $this->defaultFrom;
         $fromName = trim ($this->fromName) !== "" ? $this->fromName : "";
-        
-            $aConfiguration = (!is_null(\EmailServerPeer::retrieveByPK($aTaskInfo['TAS_EMAIL_SERVER_UID']))) ?
-                    $eServer->getEmailServer($aTaskInfo['TAS_EMAIL_SERVER_UID'], true) :
-                    $eServer->getEmailServerDefault();
-                $msgError = '';
-        
-         $dataLastEmail['msgError'] = $msgError;
-                $dataLastEmail['configuration'] = $aConfiguration;
-                $dataLastEmail['subject'] = $message_subject;
-                $dataLastEmail['pathEmail'] = '';
-                $dataLastEmail['swtplDefault'] = 0;
-                $dataLastEmail['body'] = $message_body;
-                $dataLastEmail['from'] = $from;
-       
-        if(trim($sendto) !== "") {
-                $oSpool = new emailFunctions();
-                $oSpool->setConfig($dataLastEmail['configuration']);
-                $oSpool->create(array(
-                    "msg_uid" => "",
-                    'app_uid' => $this->projectId,
-                    'del_index' => 1,
-                    "app_msg_type" => "DERIVATION",
-                    "app_msg_subject" => $message_subject,
-                    'app_msg_from' => $from,
-                    "app_msg_to" => $sendto,
-                    'app_msg_body' => $message_body,
-                    "app_msg_cc" => $this->cc,
-                    "app_msg_bcc" => "",
-                    "app_msg_attach" => "",
-                    "app_msg_template" => "",
-                    "app_msg_status" => "pending",
-                    "app_msg_error" => $dataLastEmail['msgError']
-                ));
-                if ($dataLastEmail['msgError'] == '') {
-                    if (($dataLastEmail['configuration']["MESS_BACKGROUND"] == "") ||
+
+        $aTaskInfo = $this->objMysql->_query ("SELECT * FROM `email_server` WHERE `MESS_FROM_MAIL` = ?", [$from]);
+
+        $aConfiguration = (!is_null ((new \BusinessModel\EmailServer())->retrieveByPK ($aTaskInfo[0]['MESS_UID']))) ?
+                (new \BusinessModel\EmailServer())->getEmailServer ($aTaskInfo[0]['MESS_UID'], true) :
+                "bluetiger_uan@yahoo.com";
+        $msgError = '';
+
+        $dataLastEmail['msgError'] = $msgError;
+        $dataLastEmail['configuration'] = $aConfiguration;
+        $dataLastEmail['subject'] = $message_subject;
+        $dataLastEmail['pathEmail'] = '';
+        $dataLastEmail['swtplDefault'] = 0;
+        $dataLastEmail['body'] = $message_body;
+        $dataLastEmail['from'] = $from;
+
+        if ( trim ($sendto) !== "" )
+        {
+            $oSpool = new EmailFunctions();
+            $oSpool->setConfig ($dataLastEmail['configuration']);
+            $oSpool->create (array(
+                "msg_uid" => "",
+                'app_uid' => $this->projectId,
+                'del_index' => 1,
+                "app_msg_type" => "DERIVATION",
+                "app_msg_subject" => $message_subject,
+                'app_msg_from' => $from,
+                "app_msg_to" => $sendto,
+                'app_msg_body' => $message_body,
+                "app_msg_cc" => $this->cc,
+                "app_msg_bcc" => $this->bcc,
+                "app_msg_attach" => "",
+                "app_msg_template" => "",
+                "app_msg_status" => "pending",
+                "app_msg_error" => $dataLastEmail['msgError']
+            ));
+            if ( $dataLastEmail['msgError'] == '' )
+            {
+                if ( ($dataLastEmail['configuration']["MESS_BACKGROUND"] == "") ||
                         ($dataLastEmail['configuration']["MESS_TRY_SEND_INMEDIATLY"] == "1")
-                    ) {
-                        $oSpool->sendMail();
-                    }
+                )
+                {
+                    $oSpool->sendMail ();
                 }
-
-        switch ($environment) {
-
-            case "DEV":
-                $message_subject = "[DEBUG:" . $environment . "]" . $message_subject;
-                break;
-
-            case "TEST":
-                $message_subject = "[DEBUG:" . $environment . "]" . $message_subject;
-                break;
-
-            default:
-                $message_subject = $message_subject;
-                break;
+            }
         }
-
-        $headers = '<' . $fromName . '>' . $from . '' . "\r\n" .
-                'X-Mailer: PHP/' . phpversion ();
-
-        if ( trim ($this->cc) !== '' )
-        {
-            $headers .= " CC: " . $this->cc . "\n";
-        }
-
-        if ( trim ($this->bcc) !== "" )
-        {
-            $headers .= "BCC: " . $this->bcc . "\n";
-        }
-
-        $message = $sendto . " " . $message_subject . " " . $message_body;
-
-        $this->logInfo2 ($message);
-
-        mail ($sendto, $message_subject, $message_body, $headers);
     }
 
 }

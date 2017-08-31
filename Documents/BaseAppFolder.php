@@ -359,7 +359,7 @@ abstract class BaseAppFolder implements Persistent
      * @see        doValidate()
      * @see        getValidationFailures()
      */
-    private function validate()
+    public function validate()
     {
         foreach ($this->arrFieldMapping as $strColumnName => $arrFieldMap) {
 

@@ -52,6 +52,12 @@ class BaseDocumentVersion implements Persistent
     protected $app_doc_status = 'ACTIVE';
 
     /**
+     * The value for the folder_uid field.
+     * @var        string
+     */
+    protected $folder_uid = '';
+
+    /**
      * The value for the app_doc_create_date field.
      * @var        int
      */
@@ -152,6 +158,16 @@ class BaseDocumentVersion implements Persistent
     public function getAppDocStatus ()
     {
         return $this->app_doc_status;
+    }
+
+    /**
+     * Get the [folder_uid] column value.
+     * 
+     * @return     string
+     */
+    public function getFolderUid ()
+    {
+        return $this->folder_uid;
     }
 
     /**
@@ -336,6 +352,26 @@ class BaseDocumentVersion implements Persistent
         }
     }
 
+    /**
+     * Set the value of [folder_uid] column.
+     * 
+     * @param      string $v new value
+     * @return     void
+     */
+    public function setFolderUid ($v)
+    {
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ( $v !== null && !is_string ($v) )
+        {
+            $v = (string) $v;
+        }
+        if ( $this->folder_uid !== $v || $v === '' )
+        {
+            $this->folder_uid = $v;
+        }
+    }
+
     public function getAppDocCreateDate ()
     {
         return $this->app_doc_create_date;
@@ -407,7 +443,8 @@ class BaseDocumentVersion implements Persistent
                 "filename" => $this->app_doc_filename,
                 "document_type" => $this->app_doc_type,
                 "app_id" => $this->app_uid,
-                "status" => $this->app_doc_status
+                "status" => $this->app_doc_status,
+                "FOLDER_UID" => $this->folder_uid
                     )
             );
 

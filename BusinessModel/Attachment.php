@@ -14,6 +14,7 @@ class Attachment
     private $arrayValidation;
     private $table = "task_manager.attachments";
     private $files;
+    private $workflowId;
 
     public function __construct ()
     {
@@ -43,6 +44,7 @@ class Attachment
                 $this->documentId = $arrData['file_type'];
                 $this->stepId = $arrData['step']->getStepId ();
                 $this->projectId = $arrData['source_id'];
+                $this->workflowId = $arrData['step']->getWorkflowId ();
 
                 $result = $this->uploadDocument ($arrData['files'], $arrData, $objUser);
 
@@ -51,7 +53,8 @@ class Attachment
             else
             {
                 $objVersioning = new \DocumentVersion();
-                $id = $objVersioning->create (array("filename" => $arrData['filename'], "document_id" => 1, "app_uid" => $arrData['source_id']), $objUser);
+                $folderId = (new \AppFolder())->createFromPath (basename (UPLOADS_DIR));
+                $id = $objVersioning->create (array("folderId" => $folderId, "filename" => $arrData['filename'], "document_id" => 10000, "app_uid" => $arrData['source_id']), $objUser);
                 $this->upload ($arrData['source_id'], $id);
             }
         }
@@ -110,6 +113,17 @@ class Attachment
         if ( !is_numeric ($this->documentId) )
         {
             throw new \Exception ("Invalid document id given");
+        }
+
+        $result = $this->objMysql->_select ("workflow.step_permission", [], ["permission" => $objUser->getUserId (), "step_id" => $this->stepId, "access_level" => "INPUT"]);
+        $result2 = $this->objMysql->_select ("workflow.process_supervisors", [], ["user_id" => $objUser->getUserId (), "workflow_id" => $this->workflowId]);
+
+        if ( !isset ($result[0]) || empty ($result[0]) )
+        {
+            if ( !isset ($result2[0]) || empty ($result2[0]) )
+            {
+                throw new Exception ("User doesnt have permission to perform this action");
+            }
         }
 
         $objStepDocument = $stepDocument->getInputDocument ($this->documentId);
@@ -193,6 +207,8 @@ class Attachment
 
                 $objFile = new \BusinessModel\FileUpload();
                 $objFile->verifyPath ($dir, TRUE);
+
+                $folderId = (new \AppFolder())->createFromPath ($dir2);
             }
 
             if ( !move_uploaded_file ($file_tmp, $destination) )
@@ -204,7 +220,7 @@ class Attachment
             $this->object['file_destination'] = $destination;
 
             // update version
-            $id = $objVersioning->create (array("filename" => $originalFilename, "document_id" => $this->documentId, "app_uid" => $this->projectId), $objUser);
+            $id = $objVersioning->create (array("folderId" => $folderId, "filename" => $originalFilename, "document_id" => $this->documentId, "app_uid" => $this->projectId), $objUser);
             $arrUploadedFiles[] = $id;
 
             $intCount++;

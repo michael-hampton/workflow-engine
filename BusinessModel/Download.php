@@ -1,5 +1,4 @@
 <?php
-
 namespace BusinessModel;
 
 class Download
@@ -28,12 +27,11 @@ class Download
 
             $fields = $oAppDocument->load ($app_doc_uid, $docVersion, $app_uid, false);
 
-            if ( trim ($oAppDocument->getAppDocType ()) !== "" )
+            if ( trim ($oAppDocument->getAppDocType ()) !== "" || trim ($oAppDocument->getDocUid ()) !== "" && (int) $oAppDocument->getDocUid () !== 10000 )
             {
                 $objInput = (new \BusinessModel\InputDocument())->getInputDocument ($oAppDocument->getDocUid ());
                 $destinationPath = $objInput[$oAppDocument->getDocUid ()]->getDestinationPath ();
             }
-
 
             $sAppDocUid = $fields->getAppDocUid ();
             $iDocVersion = $fields->getDocVersion ();
@@ -45,10 +43,13 @@ class Download
 
             $realPath = UPLOADS_DIR . $oAppDocument->getAppUid () . '/' . $file[0] . $file[1] . '_' . $iDocVersion . '.' . $ext;
 
-            if(isset($destinationPath) && trim($destinationPath) !== "") {
-                 $realPath1 = UPLOADS_DIR . $destinationPath . "/" . $oAppDocument->getAppDocFilename ();
-            } else {
-                 $realPath1 = UPLOADS_DIR . $oAppDocument->getAppDocFilename ();
+            if ( isset ($destinationPath) && trim ($destinationPath) !== "" )
+            {
+                $realPath1 = UPLOADS_DIR . $destinationPath . "/" . $oAppDocument->getAppDocFilename ();
+            }
+            else
+            {
+                $realPath1 = UPLOADS_DIR . $oAppDocument->getAppDocFilename ();
             }
 
             if ( !file_exists ($realPath) && file_exists ($realPath1) )
@@ -59,26 +60,7 @@ class Download
             $filename = $info['basename'];
             $mimeType = $this->mime_content_type ($filename);
 
-            header ('Pragma: public');
-            header ('Expires: -1');
-            header ('Cache-Control: public, must-revalidate, post-check=0, pre-check=0');
-            header ('Content-Transfer-Encoding: binary');
-            header ("Content-Disposition: attachment; filename=\"$filename\"");
-            header ("Content-Length: " . filesize ($realPath));
-            header ("Content-Type: $mimeType");
-            header ("Content-Description: File Transfer");
-
-            if ( $fp = fopen ($realPath, 'rb') )
-            {
-
-                ob_end_clean ();
-                while (!feof ($fp) and ( connection_status () == 0)) {
-                    print(fread ($fp, 8192));
-                    flush ();
-                }
-                @fclose ($fp);
-            }
-            exit;
+            return array("filename" => $filename, "mimeType" => $mimeType, "realPath" => $realPath);
         } catch (\Exception $e) {
             throw $e;
         }
@@ -342,5 +324,4 @@ class Download
     }
 
 }
-
 ?>
