@@ -29,7 +29,7 @@ class WorkflowCollectionFactory
             $arrWorkflowCollectionObjects[$result['request_type']]->setName ($result['request_type']);
             $arrWorkflowCollectionObjects[$result['request_type']]->setDescription ($result['description']);
             $arrWorkflowCollectionObjects[$result['request_type']]->setRequestId ($result['request_id']);
-            $arrWorkflowCollectionObjects[$result['request_type']]->setParentId ($result['parent_id']);
+            //$arrWorkflowCollectionObjects[$result['request_type']]->setParentId ($result['parent_id']);
         }
 
         return $arrWorkflowCollectionObjects;

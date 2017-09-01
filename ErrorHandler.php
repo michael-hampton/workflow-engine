@@ -205,7 +205,7 @@ class ErrorHandler
         $headers = "From: " . strtolower ($_SERVER['HTTP_HOST']) . "Debugger  \r\n" .
                 "content-type: text/html";
 
-        mail (implode (', ', $arr_email_address), strtoupper (APP_ENVIRONMENT . " : " . $level), $email_heading .
+        mail (implode (', ', $arr_email_address), strtoupper ("DEV : " . $level), $email_heading .
                 $formatted_message, $headers);
     }
 
