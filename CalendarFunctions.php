@@ -116,7 +116,6 @@ class CalendarFunctions extends CalendarDefinition
             //$tr = CalendarDefinitionPeer::retrieveByPK ( $calendarUid );
         }
 
-        $CalendarBusinessHoursObj = new \CalendarBusinessHours();
         $CalendarBusinessHours = $this->getCalendarBusinessHours ($calendarUid);
 
         $numDay = 8;
@@ -238,7 +237,7 @@ class CalendarFunctions extends CalendarDefinition
      * @access public
      *
      */
-    function addCalendarLog ($msg)
+    public function addCalendarLog ($msg)
     {
         $this->calendarLog .= "\n" . date ("D M j G:i:s T Y") . ": " . $msg;
     }

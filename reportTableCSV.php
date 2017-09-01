@@ -25,86 +25,6 @@ class reportTableCSV
     }
 
     /**
-     * get dynaform fields
-     *
-     * @param string $httpData->PRO_UID
-     * @param string $httpData->TYPE
-     * @param string $httpData->GRID_UID
-     */
-    public function getDynafields ($httpData)
-    {
-        G::LoadClass ('reportTables');
-        $aFields['FIELDS'] = array();
-        $aFields['PRO_UID'] = $httpData->PRO_UID;
-        $dynFields = array();
-        if ( isset ($httpData->loadField) && $httpData->loadField )
-        {
-            unset ($_SESSION['_cache_pmtables']);
-        }
-        $httpData->textFilter = (isset ($httpData->textFilter)) ? $httpData->textFilter : null;
-        if ( isset ($httpData->TYPE) && $httpData->TYPE == 'GRID' )
-        {
-            if ( isset ($httpData->GRID_UID) )
-            {
-                list($gridId, $dynaFormUid) = explode ('-', $httpData->GRID_UID);
-                $this->dynUid = $dynaFormUid;
-                $this->gridId = $gridId;
-                $dynFields = $this->_getDynafields ($aFields['PRO_UID'], 'grid', $httpData->start, $httpData->limit, $httpData->textFilter);
-            }
-            else
-            {
-                $gridFields = $this->_getGridFields ($aFields['PRO_UID']);
-                foreach ($gridFields as $value) {
-                    $dynFields[] = [
-                        'FIELD_UID' => $value['gridId'] . '-' . $value['uid'],
-                        'FIELD_NAME' => $value['gridName']
-                    ];
-                }
-            }
-        }
-        else
-        {
-            // normal dynaform
-            $dynFields = $this->_getDynafields ($aFields['PRO_UID'], 'xmlform', $httpData->start, $httpData->limit, $httpData->textFilter);
-        }
-        return $dynFields;
-    }
-
-    public function updateAvDynafields ($httpData)
-    {
-        $indexes = explode (',', $httpData->indexes);
-        $fields = array();
-        $httpData->isset = $httpData->isset == 'true' ? true : false;
-        if ( isset ($_SESSION['_cache_pmtables']) && $_SESSION['_cache_pmtables']['pro_uid'] == $httpData->PRO_UID )
-        {
-            foreach ($indexes as $i) {
-                if ( is_numeric ($i) )
-                {
-                    if ( isset ($_SESSION['_cache_pmtables']['rows'][$i]) )
-                    {
-                        $_SESSION['_cache_pmtables']['rows'][$i]['_isset'] = $httpData->isset;
-                        if ( $httpData->isset )
-                        {
-                            $_SESSION['_cache_pmtables']['count'] ++;
-                        }
-                        else
-                        {
-                            $_SESSION['_cache_pmtables']['count'] --;
-                        }
-                        $fields[] = $_SESSION['_cache_pmtables']['rows'][$i]['FIELD_NAME'];
-                    }
-                }
-                else
-                {
-                    $index = $_SESSION['_cache_pmtables']['indexes'][$i];
-                    $_SESSION['_cache_pmtables']['rows'][$index]['_isset'] = $httpData->isset;
-                }
-            }
-        }
-        return $fields;
-    }
-
-    /**
      * Internal method: remove malicious code, fix missing end tags, fix illegal nesting, convert deprecated tags, validate CSS, preserve rich formatting 
      * @author Marcelo Cuiza
      * @access protected
@@ -112,7 +32,7 @@ class reportTableCSV
      * @param String $type (url)
      * @return Array or String $input
      */
-    function xssFilterHard ($input, $type = "")
+    private function xssFilterHard ($input, $type = "")
     {
         if ( is_array ($input) )
         {
@@ -127,7 +47,7 @@ class reportTableCSV
                     {
                         if ( !empty ($val) )
                         {
-                            if ( !is_object (G::json_decode ($val)) )
+                            if ( !is_object (json_decode ($val)) )
                             {
                                 $inputFiltered = $purifier->purify ($val);
                                 if ( $type != "url" && !strpos (basename ($val), "=") )
@@ -141,7 +61,7 @@ class reportTableCSV
                             }
                             else
                             {
-                                $jsArray = G::json_decode ($val, true);
+                                $jsArray = json_decode ($val, true);
                                 if ( is_array ($jsArray) && sizeof ($jsArray) )
                                 {
                                     foreach ($jsArray as $j => $jsVal) {
@@ -157,7 +77,7 @@ class reportTableCSV
                                             }
                                         }
                                     }
-                                    $inputFiltered = G::json_encode ($jsArray);
+                                    $inputFiltered = json_encode ($jsArray);
                                 }
                                 else
                                 {
@@ -232,7 +152,7 @@ class reportTableCSV
                                 }
                             }
                         }
-                        $input = G::json_encode ($jsArray);
+                        $input = json_encode ($jsArray);
                     }
                 }
                 return $input;
@@ -243,11 +163,11 @@ class reportTableCSV
     public function importCSV ($httpData, $arrFile)
     {
         $countRow = 250;
-        $tmpfilename = $_FILES['FileUpload2']['tmp_name'];
+        $tmpfilename = $arrFile['FileUpload2']['tmp_name'];
         //$tmpfilename = $filter->xssFilterHard($tmpfilename, 'path');
         if ( preg_match ('/[\x00-\x08\x0b-\x0c\x0e\x1f]/', file_get_contents ($tmpfilename)) === 0 )
         {
-            $filename = $_FILES['FileUpload2']['name'];
+            $filename = $arrFile['FileUpload2']['name'];
             //$filename = $filter->xssFilterHard($filename, 'path');
             if ( $oFile = fopen ($this->xssFilterHard ($tmpfilename, 'path'), 'r') )
             {
@@ -320,7 +240,7 @@ class reportTableCSV
                                     $conData = 0;
                                 }
                             } catch (Exception $oError) {
-                                $sErrorMessages .= G::LoadTranslation ('ID_ERROR_INSERT_LINE') . ': ' . G::LoadTranslation ('ID_LINE') . ' ' . $i . '. ';
+                                $sErrorMessages .= 'ID_ERROR_INSERT_LINE' . ': ' . 'ID_LINE' . ' ' . $i . '. ';
                             }
                         }
                         else
@@ -368,24 +288,21 @@ class reportTableCSV
         try {
             $link = '';
             $size = '';
-            $META = 'Content';
             $bytesSaved = 0;
             $oAdditionalTables = new AdditionalTables();
             $aAdditionalTables = $oAdditionalTables->load ($httpData['ADD_TAB_UID'], true);
 
-            $sErrorMessages = '';
             $sDelimiter = $httpData['CSV_DELIMITER'];
             $resultData = $oAdditionalTables->getAllData ($httpData['ADD_TAB_UID'], null, null, false);
 
             $rows = $resultData['rows'];
-            $count = $resultData['count'];
             $PUBLIC_ROOT_PATH = PATH_DATA_PUBLIC . 'csv' . PATH_SEP;
             $filenameOnly = "rpt_" . strtolower ($aAdditionalTables['ADD_TAB_CLASS_NAME'] . "_" . date ("Y-m-d") . '_' . date ("Hi") . ".csv");
             $filename = $PUBLIC_ROOT_PATH . $filenameOnly;
 
             $fp = fopen ($filename, "wb");
             $swColumns = true;
-            foreach ($rows as $keyCol => $cols) {
+            foreach ($rows as $cols) {
                 $SDATA = "";
                 $header = "";
                 $cnt = $cntC = count ($cols);
@@ -474,7 +391,7 @@ class reportTableCSV
             $PUBLIC_ROOT_PATH = PATH_DATA_PUBLIC . 'csv' . PATH_SEP;
             $filename = $arrFiles['FileUpload2']['name'];
             $tempName = $arrFiles['FileUpload2']['tmp_name'];
-            
+
             if ( !$fromConfirm )
             {
                 (new \BusinessModel\FileUpload())->uploadFile ($tempName, $PUBLIC_ROOT_PATH, $filename);
@@ -482,10 +399,10 @@ class reportTableCSV
             if ( $fromConfirm == 'clear' )
             {
                 $fromConfirm = true;
-            }            
-            
+            }
+
             $fileContent = file_get_contents ($PUBLIC_ROOT_PATH . $filename);
-            
+
             if ( strpos ($fileContent, '-----== ProcessMaker Open Source Private Tables ==-----') === false )
             {
                 $result->success = false;
@@ -493,7 +410,7 @@ class reportTableCSV
                 $result->message = $filename . 'ID_PMTABLE_INVALID_FILE';
                 return $result;
             }
-                        
+
             $currentProUid = '';
             if ( isset ($_POST["form"]["PRO_UID_HELP"]) && !empty ($_POST["form"]["PRO_UID_HELP"]) )
             {
@@ -504,7 +421,7 @@ class reportTableCSV
                 if ( isset ($httpData["form"]["PRO_UID"]) && !empty ($httpData["form"]["PRO_UID"]) )
                 {
                     $currentProUid = $httpData["form"]["PRO_UID"];
-                    
+
                     $_SESSION['PROCESS'] = $currentProUid;
                 }
                 else
@@ -512,24 +429,22 @@ class reportTableCSV
                     $currentProUid = $_SESSION['PROCESS'];
                 }
             }
-            
+
             //Get Additional Tables
             $arrayTableSchema = [];
             $arrayTableData = [];
             $f = fopen ($PUBLIC_ROOT_PATH . $filename, 'rb');
             $fdata = intval (fread ($f, 9));
             $type = fread ($f, $fdata);
-            
+
             while (!feof ($f)) {
-                                
+
                 switch ($type) {
                     case '@META':
                         $fdata = intval (fread ($f, 9));
-                        $metadata = fread ($f, $fdata);
                         break;
                     case '@SCHEMA':
                         $fdataUid = intval (fread ($f, 9));
-                        $uid = fread ($f, $fdataUid);
                         $fdata = intval (fread ($f, 9));
                         $schema = fread ($f, $fdata);
                         $arrayTableSchema[] = unserialize ($schema);
@@ -556,7 +471,7 @@ class reportTableCSV
                 }
             }
             fclose ($f);
-            
+
             //First Validate the file
             $reportTable = new \BusinessModel\ReportTable();
             $arrayOverwrite = array();
@@ -568,7 +483,7 @@ class reportTableCSV
                 $aErrors = $reportTable->checkPmtFileThrowErrors (
                         $arrayTableSchema, $currentProUid, $fromAdmin, $overWrite, $_POST['form']['PRO_UID']
                 );
-                
+
                 $countC = 0;
                 $countM = 0;
                 $countI = 0;
@@ -598,7 +513,7 @@ class reportTableCSV
                     throw new Exception ('ID_PMTABLE_IMPORT_WITH_ERRORS');
                 }
             }
-                        
+
             //Then create the tables
             if ( isset ($_POST["form"]["TABLES_OF_NO"]) )
             {
@@ -616,7 +531,7 @@ class reportTableCSV
                         $arrayTableSchema, $arrayTableData, $currentProUid, $fromAdmin, true
                 );
             }
-            
+
 
             if ( $errors == '' )
             {
@@ -676,8 +591,6 @@ class reportTableCSV
                 $tableData = $at->getAllData ($table->ADD_TAB_UID, null, null, false);
 
                 $table->ADD_TAB_NAME = $tableRecord['ADD_TAB_CLASS_NAME'];
-                $rows = $tableData['rows'];
-                $count = $tableData['count'];
                 array_push ($EXPORT_TRACEBACK, array('uid' => $table->ADD_TAB_UID, 'name' => $table->ADD_TAB_NAME, 'num_regs' => $tableData['count'], 'schema' => $table->_SCHEMA ? 'yes' : 'no', 'data' => $table->_DATA ? 'yes' : 'no'
                 ));
             }
@@ -738,7 +651,6 @@ class reportTableCSV
             fclose ($fp);
             $filenameLink = "pmTables/streamExported?f=$filenameOnly";
             $size = round (($bytesSaved / 1024), 2) . " Kb";
-            $meta = "<pre>" . $META . "</pre>";
             $filename = $filenameOnly;
             $link = $filenameLink;
             $result->success = true;
@@ -781,284 +693,6 @@ class reportTableCSV
             $addTables[] = $result;
         }
         return $addTables;
-    }
-
-    /**
-     * Get all dynaform fields from a process (without grid fields)
-     *
-     * @param $proUid
-     * @param $type [values:xmlform/grid]
-     */
-    public function _getDynafields2 ($proUid, $type = 'xmlform')
-    {
-        $fields = array();
-        $fieldsNames = array();
-        $oCriteria = new Criteria ('workflow');
-        $oCriteria->addSelectColumn (DynaformPeer::DYN_FILENAME);
-        $oCriteria->add (DynaformPeer::PRO_UID, $proUid);
-        $oCriteria->add (DynaformPeer::DYN_TYPE, $type);
-        $oDataset = DynaformPeer::doSelectRS ($oCriteria);
-        $oDataset->setFetchmode (ResultSet::FETCHMODE_ASSOC);
-        $oDataset->next ();
-        $excludeFieldsList = array('title', 'subtitle', 'link', 'file', 'button', 'reset', 'submit', 'listbox', 'checkgroup', 'grid', 'javascript'
-        );
-        $labelFieldsTypeList = array('dropdown', 'checkbox', 'radiogroup', 'yesno'
-        );
-        while ($aRow = $oDataset->getRow ()) {
-            if ( file_exists (PATH_DYNAFORM . PATH_SEP . $aRow['DYN_FILENAME'] . '.xml') )
-            {
-                $G_FORM = new Form ($aRow['DYN_FILENAME'], PATH_DYNAFORM, SYS_LANG);
-                if ( $G_FORM->type == 'xmlform' || $G_FORM->type == '' )
-                {
-                    foreach ($G_FORM->fields as $fieldName => $fieldNode) {
-                        if ( !in_array ($fieldNode->type, $excludeFieldsList) && !in_array ($fieldName, $fieldsNames) )
-                        {
-                            $fields[] = array('name' => $fieldName, 'type' => $fieldNode->type, 'label' => $fieldNode->label
-                            );
-                            $fieldsNames[] = $fieldName;
-                            if ( in_array ($fieldNode->type, $labelFieldsTypeList) && !in_array ($fieldName . '_label', $fieldsNames) )
-                            {
-                                $fields[] = array('name' => $fieldName . '_label', 'type' => $fieldNode->type, 'label' => $fieldNode->label . '_label'
-                                );
-                                $fieldsNames[] = $fieldName;
-                            }
-                        }
-                    }
-                }
-            }
-            $oDataset->next ();
-        }
-        return $fields;
-    }
-
-    public function _getDynafields ($proUid, $type = 'xmlform', $start = null, $limit = null, $filter = null)
-    {
-        G::LoadClass ('pmDynaform');
-        $cache = 1;
-        if ( !isset ($_SESSION['_cache_pmtables']) || (isset ($_SESSION['_cache_pmtables']) && $_SESSION['_cache_pmtables']['pro_uid'] != $proUid) || (isset ($_SESSION['_cache_pmtables']) && $_SESSION['_cache_pmtables']['dyn_uid'] != $this->dynUid) )
-        {
-            $cache = 0;
-            $fields = array();
-            $fieldsNames = array();
-            $oCriteria = new Criteria ('workflow');
-            $oCriteria->addSelectColumn (DynaformPeer::DYN_FILENAME);
-            $oCriteria->add (DynaformPeer::PRO_UID, $proUid);
-            $oCriteria->add (DynaformPeer::DYN_TYPE, $type);
-            if ( isset ($this->dynUid) )
-            {
-                $oCriteria->add (DynaformPeer::DYN_UID, $this->dynUid);
-            }
-            $oDataset = DynaformPeer::doSelectRS ($oCriteria);
-            $oDataset->setFetchmode (ResultSet::FETCHMODE_ASSOC);
-            $oDataset->next ();
-            $excludeFieldsList = array('multipleFile', 'title', 'subtitle', 'link', 'file', 'button', 'reset', 'submit', 'listbox', 'checkgroup', 'grid', 'javascript', 'location', 'scannerCode', 'array'
-            );
-            $labelFieldsTypeList = array('dropdown', 'radiogroup');
-            G::loadSystem ('dynaformhandler');
-            $index = 0;
-            while ($aRow = $oDataset->getRow ()) {
-                if ( file_exists (PATH_DYNAFORM . PATH_SEP . $aRow['DYN_FILENAME'] . '.xml') )
-                {
-                    $dynaformHandler = new dynaformHandler (PATH_DYNAFORM . $aRow['DYN_FILENAME'] . '.xml');
-                    $nodeFieldsList = $dynaformHandler->getFields ();
-                    foreach ($nodeFieldsList as $node) {
-                        $arrayNode = $dynaformHandler->getArray ($node);
-                        $fieldName = $arrayNode['__nodeName__'];
-                        $fieldType = isset ($arrayNode['type']) ? $arrayNode['type'] : '';
-                        $fieldValidate = ( isset ($arrayNode['validate'])) ? $arrayNode['validate'] : '';
-                        if ( !in_array ($fieldType, $excludeFieldsList) && !in_array ($fieldName, $fieldsNames) )
-                        {
-                            $fields[] = array(
-                                'FIELD_UID' => $fieldName . '-' . $fieldType,
-                                'FIELD_NAME' => $fieldName,
-                                'FIELD_VALIDATE' => $fieldValidate,
-                                '_index' => $index ++,
-                                '_isset' => true
-                            );
-                            $fieldsNames[] = $fieldName;
-                            if ( in_array ($fieldType, $labelFieldsTypeList) && !in_array ($fieldName . '_label', $fieldsNames) )
-                            {
-                                $fields[] = array(
-                                    'FIELD_UID' => $fieldName . '_label' . '-' . $fieldType,
-                                    'FIELD_NAME' => $fieldName . '_label',
-                                    'FIELD_VALIDATE' => $fieldValidate,
-                                    '_index' => $index ++,
-                                    '_isset' => true
-                                );
-                                $fieldsNames[] = $fieldName;
-                            }
-                        }
-                    }
-                }
-                $oDataset->next ();
-            }
-            // getting bpmn projects
-            $bpmn = new \ProcessMaker\Project\Bpmn();
-            if ( $bpmn->exists ($proUid) )
-            {
-                switch ($type) {
-                    case 'xmlform':
-                        $arrayDataTypeToExclude = ['array', 'grid'];
-                        $arrayTypeToExclude = ['multipleFile', 'title', 'subtitle', 'link', 'file', 'button', 'reset', 'submit', 'listbox', 'grid', 'array', 'javascript', 'location', 'scannerCode'];
-                        $arrayControlSupported = [];
-                        $dynaformAllControl = $this->getDynaformVariables ($proUid, $arrayTypeToExclude, true, 'DATA');
-                        foreach ($dynaformAllControl as $value) {
-                            $arrayControl = array_change_key_case ($value, CASE_UPPER);
-                            if ( isset ($arrayControl['DATATYPE']) && isset ($arrayControl['TYPE']) )
-                            {
-                                if ( !in_array ($arrayControl['DATATYPE'], $arrayDataTypeToExclude) &&
-                                        !in_array ($arrayControl['TYPE'], $arrayTypeToExclude)
-                                )
-                                {
-                                    $arrayControlSupported[$arrayControl['VAR_UID']] = $arrayControl['TYPE'];
-                                }
-                            }
-                        }
-                        $dynaformNotAllowedVariables = $this->getDynaformVariables ($proUid, $arrayTypeToExclude, false);
-                        $criteria = new Criteria ('workflow');
-                        $criteria->addSelectColumn (ProcessVariablesPeer::VAR_UID);
-                        $criteria->addSelectColumn (ProcessVariablesPeer::VAR_NAME);
-                        $criteria->addSelectColumn (ProcessVariablesPeer::VAR_FIELD_TYPE);
-                        $criteria->add (ProcessVariablesPeer::PRJ_UID, $proUid, Criteria::EQUAL);
-                        $rsCriteria = ProcessVariablesPeer::doSelectRS ($criteria);
-                        $rsCriteria->setFetchmode (ResultSet::FETCHMODE_ASSOC);
-                        $index = 0;
-                        while ($rsCriteria->next ()) {
-                            $record = $rsCriteria->getRow ();
-                            if ( !in_array ($record['VAR_NAME'], $dynaformNotAllowedVariables) &&
-                                    !in_array ($record['VAR_FIELD_TYPE'], $arrayTypeToExclude) &&
-                                    !in_array ($record['VAR_NAME'], $fieldsNames)
-                            )
-                            {
-                                $fields[] = [
-                                    'FIELD_UID' => $record['VAR_NAME'] . '-' . $record['VAR_FIELD_TYPE'],
-                                    'FIELD_NAME' => $record['VAR_NAME'],
-                                    'FIELD_VALIDATE' => 'any',
-                                    '_index' => $index++,
-                                    '_isset' => true
-                                ];
-                                $fieldsNames[] = $record['VAR_NAME'];
-                            }
-                            if ( isset ($arrayControlSupported[$record['VAR_UID']]) &&
-                                    !in_array ($record['VAR_NAME'] . '_label', $fieldsNames)
-                            )
-                            {
-                                $fields[] = [
-                                    'FIELD_UID' => $record['VAR_NAME'] . '_label' . '-' . $arrayControlSupported[$record['VAR_UID']],
-                                    'FIELD_NAME' => $record['VAR_NAME'] . '_label',
-                                    'FIELD_VALIDATE' => 'any',
-                                    '_index' => $index++,
-                                    '_isset' => true
-                                ];
-                                $fieldsNames[] = $record['VAR_NAME'] . '_label';
-                            }
-                        }
-                        break;
-                    case 'grid':
-                        $dynaForm = new \ProcessMaker\BusinessModel\DynaForm();
-                        $dynaFormUid = $this->dynUid;
-                        $gridId = $this->gridId;
-                        $arrayDynaFormData = $dynaForm->getDynaFormRecordByPk ($dynaFormUid, [], false);
-                        if ( $arrayDynaFormData !== false )
-                        {
-                            $arrayGrid = pmDynaform::getGridsAndFields ($arrayDynaFormData['DYN_CONTENT']);
-                            if ( $arrayGrid !== false && isset ($arrayGrid[$gridId]) )
-                            {
-                                $grid = $arrayGrid[$gridId];
-                                $arrayValidTypes = [
-                                    'text' => ['type' => 'text', 'label' => false],
-                                    'textarea' => ['type' => 'textarea', 'label' => false],
-                                    'dropdown' => ['type' => 'dropdown', 'label' => true],
-                                    'checkbox' => ['type' => 'checkbox', 'label' => false],
-                                    'datetime' => ['type' => 'date', 'label' => false],
-                                    'suggest' => ['type' => 'suggest', 'label' => false],
-                                    'hidden' => ['type' => 'hidden', 'label' => false]
-                                ];
-                                $index = 0;
-                                foreach ($grid->columns as $value) {
-                                    $field = $value;
-                                    if ( isset ($field->type) && isset ($arrayValidTypes[$field->type]) &&
-                                            isset ($field->id) && $field->id != '' && isset ($field->name) && $field->name != ''
-                                    )
-                                    {
-                                        if ( !in_array ($field->id, $fieldsNames) )
-                                        {
-                                            $fields[] = [
-                                                'FIELD_UID' => $field->id . '-' . $arrayValidTypes[$field->type]['type'],
-                                                'FIELD_NAME' => $field->id,
-                                                'FIELD_VALIDATE' => 'any',
-                                                '_index' => $index++,
-                                                '_isset' => true
-                                            ];
-                                            $fieldsNames[] = $field->id;
-                                        }
-                                        if ( $arrayValidTypes[$field->type]['label'] &&
-                                                !in_array ($field->id . '_label', $fieldsNames)
-                                        )
-                                        {
-                                            $fields[] = [
-                                                'FIELD_UID' => $field->id . '_label' . '-' . $arrayValidTypes[$field->type]['type'],
-                                                'FIELD_NAME' => $field->id . '_label',
-                                                'FIELD_VALIDATE' => 'any',
-                                                '_index' => $index++,
-                                                '_isset' => true
-                                            ];
-                                            $fieldsNames[] = $field->id . '_label';
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        break;
-                }
-            }
-            sort ($fields);
-            // if is a editing
-            $fieldsEdit = array();
-            if ( isset ($_SESSION['ADD_TAB_UID']) )
-            {
-                $additionalTables = new AdditionalTables();
-                $table = $additionalTables->load ($_SESSION['ADD_TAB_UID'], true);
-                foreach ($table['FIELDS'] as $i => $field) {
-                    array_push ($fieldsEdit, $field['FLD_DYN_NAME']);
-                }
-            } //end editing
-            $indexes = array();
-            foreach ($fields as $i => $field) {
-                $fields[$i]['_index'] = $i;
-                $indexes[$field['FIELD_NAME']] = $i;
-                if ( in_array ($field['FIELD_NAME'], $fieldsEdit) )
-                {
-                    $fields[$i]['_isset'] = false;
-                }
-            }
-            $_SESSION['_cache_pmtables']['pro_uid'] = $proUid;
-            $_SESSION['_cache_pmtables']['dyn_uid'] = $this->dynUid;
-            $_SESSION['_cache_pmtables']['rows'] = $fields;
-            $_SESSION['_cache_pmtables']['count'] = count ($fields);
-            $_SESSION['_cache_pmtables']['indexes'] = $indexes;
-        } //end reload
-        $fields = array();
-        $tmp = array();
-        foreach ($_SESSION['_cache_pmtables']['rows'] as $i => $row) {
-            if ( isset ($filter) && $filter != '' )
-            {
-                if ( $row['_isset'] && stripos ($row['FIELD_NAME'], $filter) !== false )
-                {
-                    $tmp[] = $row;
-                }
-            }
-            else
-            {
-                if ( $row['_isset'] )
-                {
-                    $tmp[] = $row;
-                }
-            }
-        }
-        $fields = array_slice ($tmp, $start, $limit);
-        return array('cache' => $cache, 'count' => count ($tmp), 'rows' => $fields
-        );
     }
 
     /**

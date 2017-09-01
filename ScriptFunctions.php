@@ -123,17 +123,6 @@ class ScriptFunctions
         $this->sScript = trim ($result);
     }
 
-    /**
-     * Verify the syntax
-     *
-     * @param string $sScript
-     * @return boolean
-     */
-    public function validSyntax ($sScript)
-    {
-        return true;
-    }
-
     public function executeAndCatchErrors ($sScript, $sCode)
     {
         try {
@@ -359,10 +348,6 @@ class ScriptFunctions
         $this->executeAndCatchErrors ($sScript, $this->sScript);
 
         $this->aFields["__VAR_CHANGED__"] = implode (",", $this->affected_fields);
-        for ($i = 0; $i < count ($this->affected_fields); $i ++) {
-            $_SESSION['TRIGGER_DEBUG']['DATA'][] = Array('key' => $this->affected_fields[$i], 'value' => isset ($this->aFields[$this->affected_fields[$i]]) ? $this->aFields[$this->affected_fields[$i]] : ''
-            );
-        }
     }
 
     /**
@@ -577,7 +562,7 @@ class ScriptFunctions
         }
         $sScript = '$bResult = ' . $sScript . ';';
         // checks if the syntax is valid or if the variables in that condition has been previously defined
-        if ( $this->validSyntax ($sScript) && $variableIsDefined )
+        if ( $variableIsDefined )
         {
             $this->bError = false;
             eval ($sScript);
@@ -585,13 +570,13 @@ class ScriptFunctions
         else
         {
             // echo "<script> alert('".G::loadTranslation('MSG_CONDITION_NOT_DEFINED')."'); </script>";
-            G::SendTemporalMessage ('MSG_CONDITION_NOT_DEFINED', 'error', 'labels');
+
             $this->bError = true;
         }
         return $bResult;
     }
 
-    Public function evaluateVariable ()
+    public function evaluateVariable ()
     {
 
         $searchTypes = array('checkgroup', 'dropdown', 'suggest');
@@ -810,5 +795,7 @@ function handleFatalErrors ($buffer)
 function registerError ($iType, $sError, $iLine, $sCode)
 {
     $sType = ($iType == 1 ? 'ERROR' : 'FATAL');
-    $_SESSION['TRIGGER_DEBUG']['ERRORS'][][$sType] = $sError . ($iLine > 0 ? ' (line ' . $iLine . ')' : '') . ':<br /><br />' . $sCode;
+    $errorMessage = $sError . ($iLine > 0 ? ' (line ' . $iLine . ')' : '') . ':<br /><br />' . $sCode;
+
+    return array("Type" => $sType, "error" => $errorMessage);
 }

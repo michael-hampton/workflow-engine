@@ -227,13 +227,13 @@ class ReportTable
                 //Validations
                 if ( is_array ($additionalTable->loadByName ($arrayData['REP_TAB_NAME'])) )
                 {
-                    throw new \Exception (\G::LoadTranslation ('ID_PMTABLE_ALREADY_EXISTS', [$arrayData['REP_TAB_NAME']]));
+                    throw new \Exception ('ID_PMTABLE_ALREADY_EXISTS', [$arrayData['REP_TAB_NAME']]);
                 }
                 if ( in_array (strtoupper ($arrayData['REP_TAB_NAME']), $reservedWords) ||
                         in_array (strtoupper ($arrayData['REP_TAB_NAME']), $reservedWordsSql)
                 )
                 {
-                    throw new \Exception (\G::LoadTranslation ('ID_PMTABLE_INVALID_NAME', [$arrayData['REP_TAB_NAME']]));
+                    throw new \Exception ('ID_PMTABLE_INVALID_NAME', [$arrayData['REP_TAB_NAME']]);
                 }
             }
 
@@ -384,7 +384,6 @@ class ReportTable
                 $obj = new \stdClass();
                 $obj->rows = json_encode ([['id' => $additionalTableUid, 'type' => '']]);
                 //Delete Report Table
-                $resultDeleteReportTable = $pmTablesProxy->delete ($obj);
             }
         } catch (\Exception $e) {
             $buildResult = ob_get_contents ();
@@ -427,7 +426,6 @@ class ReportTable
         try {
             $errors = '';
             $tableNameMap = [];
-            $processQueue = [];
             $processQueueTables = [];
             foreach ($arrayTableSchema as $value) {
                 $contentSchema = $value;
@@ -474,7 +472,7 @@ class ReportTable
                             $tNameOld = $contentSchema['ADD_TAB_NAME'];
                             $newTableName = $contentSchema['ADD_TAB_NAME'] . '_' . date ('YmdHis');
                             $contentSchema['ADD_TAB_NAME'] = $newTableName;
-                            $contentSchema['ADD_TAB_CLASS_NAME'] = \AdditionalTables::getPHPName ($newTableName);
+                            $contentSchema['ADD_TAB_CLASS_NAME'] = (new \AdditionalTables())->getPHPName ($newTableName);
                             //Mapping the table name for posterior uses
                             $tableNameMap[$tNameOld] = $contentSchema['ADD_TAB_NAME'];
                         }

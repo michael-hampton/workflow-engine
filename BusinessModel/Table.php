@@ -41,8 +41,6 @@ class Table
      * @var string $reportFlag. If is report table
      * @var string $validate. Flag for validate
      *
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
      *
      * @return array
      */
@@ -106,7 +104,7 @@ class Table
      *
      * @return void
      */
-    public function generateDataReport ($pro_uid, $rep_uid, $tableName, $validate = true)
+    public function generateDataReport ($pro_uid, $rep_uid, $validate = true)
     {
         if ( $validate )
         {
@@ -148,7 +146,7 @@ class Table
                 foreach ($primaryKeys as $key) {
                     $primaryKeysValues[] = isset ($row[$key['FLD_NAME']]) ? $row[$key['FLD_NAME']] : '';
                 }
-                $result['rows'][$i]['__index__'] = G::encrypt (implode (',', $primaryKeysValues), 'pmtable');
+                //$result['rows'][$i]['__index__'] = G::encrypt (implode (',', $primaryKeysValues), 'pmtable');
             }
         }
         else
@@ -194,7 +192,7 @@ class Table
             $tempRepTabName = $dataValidate['REP_TAB_CONNECTION'];
             $dataValidate['REP_TAB_GRID'] = 0;
 
-            $dataValidate['REP_TAB_CONNECTION'] = $this->validateRepConnection ($tempRepTabName, $pro_uid);
+            $dataValidate['REP_TAB_CONNECTION'] = $this->validateRepConnection ($tempRepTabName);
             if ( $dataValidate['reportTableType'] == 'GRID' )
             {
                 $dataValidate['REP_TAB_GRID'] = $this->validateRepGrid ($dataValidate['REP_TAB_GRID'], $pro_uid);
@@ -443,7 +441,7 @@ class Table
         if ( $reportFlag )
         {
             $rep_uid = $addTabUid;
-            $this->generateDataReport ($pro_uid, $rep_uid, $repTabClassName, false);
+            $this->generateDataReport ($pro_uid, $rep_uid, false);
         }
         if ( $createRep )
         {
@@ -469,8 +467,6 @@ class Table
      * @var string $pro_uid. Uid for process
      * @var string $reportFlag. If is report table
      *
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
      *
      * @return void
      */
@@ -553,7 +549,6 @@ class Table
 
             $fieldName = $aRow['name'];
             $fieldType = isset ($aRow['field_type']) ? $aRow['field_type'] : '';
-            $fieldValidate = ( isset ($aRow['validate'])) ? $aRow['validate'] : '';
 
             if ( !in_array ($fieldType, $excludeFieldsList) && !in_array ($fieldName, $fieldsNames) )
             {
@@ -583,8 +578,6 @@ class Table
      * Get Default Columns of Report Table
      * @var string $type. Type of Report Table
      *
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
      *
      * @return array
      */
@@ -664,8 +657,6 @@ class Table
      * Validate Process Uid
      * @var string $pro_uid. Uid for process
      *
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
      *
      * @return string
      */
@@ -688,8 +679,6 @@ class Table
      * Validate Table Uid
      * @var string $tab_uid. Uid for table
      *
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
      *
      * @return string
      */
@@ -720,8 +709,6 @@ class Table
      * Validate Table Name
      * @var string $rep_tab_name. Name for report table
      *
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
      *
      * @return string
      */
@@ -747,12 +734,10 @@ class Table
      * @var string $rep_tab_connection. Connection for report table
      * @var string $pro_uid. Uid for process
      *
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
      *
      * @return string
      */
-    public function validateRepConnection ($rep_tab_connection, $pro_uid)
+    public function validateRepConnection ($rep_tab_connection)
     {
         $rep_tab_connection = trim ($rep_tab_connection);
         if ( $rep_tab_connection == '' )
@@ -773,8 +758,6 @@ class Table
      * Validate Field Type
      * @var string $fld_type. Type for field
      *
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
      *
      * @return string
      */

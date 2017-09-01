@@ -136,7 +136,6 @@ class TaskUser extends BaseTaskUser
     //erik: new functions
     public function getUsersTask ($TAS_UID, $TU_TYPE = 1)
     {
-        $groupsTask = array();
         $usersTask = array();
         //getting task's users
         
@@ -147,7 +146,7 @@ class TaskUser extends BaseTaskUser
         
         $arrParameters = array($TAS_UID, $TU_TYPE);
        
-        $usersTask = $this->objMysql->_query($sql);
+        $usersTask = $this->objMysql->_query($sql, $arrParameters);
         
         //getting task's groups
         
@@ -156,7 +155,7 @@ class TaskUser extends BaseTaskUser
         LEFT JOIN user_management.teams t on t.team_id = tu.USR_UID
         WHERE TAS_UID = ? AND TU_TYPE = ? AND TU_RELATION = 2";
         
-        $results = $this->objMysql->_query($sql);
+        $results = $this->objMysql->_query($sql, $arrParameters);
        
         foreach($results as $result){
             $usersTask[] = $result;

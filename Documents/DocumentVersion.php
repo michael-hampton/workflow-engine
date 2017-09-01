@@ -10,6 +10,18 @@ class DocumentVersion extends BaseDocumentVersion
         $this->objMysql = new Mysql2();
     }
 
+    public function getFileByName ($name)
+    {
+        $result = $this->objMysql->_select ("APP_DOCUMENT", [], ["filename" => $name]);
+
+        if ( !isset ($result[0]) || empty ($result[0]) )
+        {
+            return false;
+        }
+
+        return $result;
+    }
+
     /**
      * Get last Document Version based on filename
      *
@@ -71,7 +83,7 @@ class DocumentVersion extends BaseDocumentVersion
      */
     public function retrieveByPK ($app_doc_uid, $doc_version)
     {
-        $result = $this->objMysql->_select ("task_manager.APP_DOCUMENT", [], ["document_version" => $doc_version, "id" => $app_doc_uid]);
+        $result = $this->objMysql->_select ("task_manager.APP_DOCUMENT", [], ["id" => $app_doc_uid]);
 
         if ( !isset ($result[0]) || empty ($result[0]) )
         {
@@ -87,6 +99,7 @@ class DocumentVersion extends BaseDocumentVersion
         $objDocumentVersion->setUsrUid ($result[0]['user_id']);
         $objDocumentVersion->setAppDocType ($result[0]['document_type']);
         $objDocumentVersion->setDocVersion ($result[0]['document_version']);
+        $objDocumentVersion->setAppUid($result[0]['app_id']);
 
         return $objDocumentVersion;
     }
@@ -250,7 +263,7 @@ class DocumentVersion extends BaseDocumentVersion
     {
         try {
             $oAppDocument = $this->retrieveByPK ($aData['APP_DOC_UID'], $aData['DOC_VERSION']);
-
+            
             if ( !is_null ($oAppDocument) )
             {
                 /* ----------------------------------********--------------------------------- */
@@ -278,6 +291,18 @@ class DocumentVersion extends BaseDocumentVersion
         } catch (Exception $oError) {
             throw ($oError);
         }
+    }
+
+    public function getDocumentsForFolder ($folderUid)
+    {
+        $result = $this->objMysql->_select ("APP_DOCUMENT", [], ["FOLDER_UID" => $folderUid]);
+
+        if ( !isset ($result[0]) || empty ($result[0]) )
+        {
+            return false;
+        }
+
+        return $result;
     }
 
 }

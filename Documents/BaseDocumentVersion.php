@@ -67,6 +67,7 @@ class BaseDocumentVersion implements Persistent
         "APP_DOC_UID" => array("mutator" => "setAppDocUid", "accessor" => "getAppDocUid", "type" => "date", "required" => "true"),
         "DOC_VERSION" => array("mutator" => "setDocVersion", "accessor" => "getDocVersion", "type" => "date", "required" => "true"),
         "APP_DOC_STATUS" => array("mutator" => "setAppDocStatus", "accessor" => "getAppDocStatus", "type" => "int", "required" => "true"),
+        "APP_DOC_FILENAME" => array("mutator" => "setAppDocFilename", "accessor" => "getAppDocFilename", "type" => "string", "required" => "true"),
     );
 
     public function getConnection ()
@@ -453,9 +454,15 @@ class BaseDocumentVersion implements Persistent
         else
         {
             $this->objMysql->_update ("task_manager.APP_DOCUMENT", [
+                "document_version" => $this->doc_version,
+                "user_id" => $this->usr_uid,
+                "document_id" => $this->doc_uid,
+                "date_created" => $this->app_doc_create_date,
+                "filename" => $this->app_doc_filename,
+                "document_type" => $this->app_doc_type,
+                "app_id" => $this->app_uid,
                 "status" => $this->app_doc_status,
-                "document_version" => $this->doc_version
-                    ], ["id" => $this->app_doc_uid]);
+                "FOLDER_UID" => $this->folder_uid], ["id" => $this->app_doc_uid]);
         }
     }
 

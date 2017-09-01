@@ -163,114 +163,27 @@ class AppDelegation extends BaseAppDelegation
         }
         $delIndex = $this->getDelIndex ();
         // Hook for the trigger PM_CREATE_NEW_DELEGATION
-        if ( defined ('PM_CREATE_NEW_DELEGATION') )
-        {
-            $bpmn = new \ProcessMaker\Project\Bpmn();
-            $flagActionsByEmail = true;
-            $arrayAppDelegationPrevious = $this->getPreviousDelegationValidTask ($sAppUid, $delIndex);
-            $data = new stdclass();
-            $data->TAS_UID = $sTasUid;
-            $data->APP_UID = $sAppUid;
-            $data->DEL_INDEX = $delIndex;
-            $data->USR_UID = $sUsrUid;
-            $data->PREVIOUS_USR_UID = ($arrayAppDelegationPrevious !== false) ? $arrayAppDelegationPrevious['USR_UID'] : $delPreviusUsrUid;
-            if ( $bpmn->exists ($sProUid) )
-            {
-                /* ----------------------------------********--------------------------------- */
-                /* ----------------------------------********--------------------------------- */
-            }
-            if ( $flagActionsByEmail )
-            {
-                //$oPluginRegistry = &PMPluginRegistry::getSingleton ();
-                //$oPluginRegistry->executeTriggers (PM_CREATE_NEW_DELEGATION, $data);
-            }
-        }
+        /* if ( defined ('PM_CREATE_NEW_DELEGATION') )
+          {
+          $bpmn = new \ProcessMaker\Project\Bpmn();
+          $flagActionsByEmail = true;
+          $arrayAppDelegationPrevious = $this->getPreviousDelegationValidTask ($sAppUid, $delIndex);
+          $data = new stdclass();
+          $data->TAS_UID = $sTasUid;
+          $data->APP_UID = $sAppUid;
+          $data->DEL_INDEX = $delIndex;
+          $data->USR_UID = $sUsrUid;
+          $data->PREVIOUS_USR_UID = ($arrayAppDelegationPrevious !== false) ? $arrayAppDelegationPrevious['USR_UID'] : $delPreviusUsrUid;
+          if ( $bpmn->exists ($sProUid) )
+          {
+          }
+          if ( $flagActionsByEmail )
+          {
+          //$oPluginRegistry = &PMPluginRegistry::getSingleton ();
+          //$oPluginRegistry->executeTriggers (PM_CREATE_NEW_DELEGATION, $data);
+          }
+          } */
         return $delIndex;
-    }
-
-    /**
-     * Load the Application Delegation row specified in [app_id] column value.
-     *
-     * @param string $AppUid the uid of the application
-     * @return array $Fields the fields
-     */
-    public function Load ($AppUid, $sDelIndex)
-    {
-        $con = Propel::getConnection (AppDelegationPeer::DATABASE_NAME);
-        try {
-            $oAppDel = AppDelegationPeer::retrieveByPk ($AppUid, $sDelIndex);
-            if ( is_object ($oAppDel) && get_class ($oAppDel) == 'AppDelegation' )
-            {
-                $aFields = $oAppDel->toArray (BasePeer::TYPE_FIELDNAME);
-                $this->fromArray ($aFields, BasePeer::TYPE_FIELDNAME);
-                return $aFields;
-            }
-            else
-            {
-                throw (new Exception ("The row '$AppUid, $sDelIndex' in table AppDelegation doesn't exist!"));
-            }
-        } catch (Exception $oError) {
-            throw ($oError);
-        }
-    }
-
-    /**
-     * Update the application row
-     *
-     * @param array $aData
-     * @return variant
-     *
-     */
-    public function update ($aData)
-    {
-        $con = Propel::getConnection (AppDelegationPeer::DATABASE_NAME);
-        try {
-            $con->begin ();
-            $oApp = AppDelegationPeer::retrieveByPK ($aData['APP_UID'], $aData['DEL_INDEX']);
-            if ( is_object ($oApp) && get_class ($oApp) == 'AppDelegation' )
-            {
-                $oApp->fromArray ($aData, BasePeer::TYPE_FIELDNAME);
-                if ( $oApp->validate () )
-                {
-                    $res = $oApp->save ();
-                    $con->commit ();
-                    return $res;
-                }
-                else
-                {
-                    $msg = '';
-                    foreach ($this->getValidationFailures () as $objValidationFailure) {
-                        $msg .= $objValidationFailure->getMessage () . "<br/>";
-                    }
-                    throw (new PropelException ('The row cannot be created!', new PropelException ($msg)));
-                }
-            }
-            else
-            {
-                $con->rollback ();
-                throw (new Exception ("This AppDelegation row doesn't exist!"));
-            }
-        } catch (Exception $oError) {
-            throw ($oError);
-        }
-    }
-
-    public function remove ($sApplicationUID, $iDelegationIndex)
-    {
-        $oConnection = Propel::getConnection (StepTriggerPeer::DATABASE_NAME);
-        try {
-            $oConnection->begin ();
-            $oApp = AppDelegationPeer::retrieveByPK ($sApplicationUID, $iDelegationIndex);
-            if ( is_object ($oApp) && get_class ($oApp) == 'AppDelegation' )
-            {
-                $result = $oApp->delete ();
-            }
-            $oConnection->commit ();
-            return $result;
-        } catch (Exception $e) {
-            $oConnection->rollback ();
-            throw ($e);
-        }
     }
 
     public function getRisk ()
@@ -315,8 +228,6 @@ class AppDelegation extends BaseAppDelegation
             $this->del_delegate_date = date ("Y-m-d H:i:s");
         }
     }
-
-// setDelDelegateDate()
 
     /**
      * Get the [optionally formatted] [del_delegate_date] column value.
@@ -426,18 +337,6 @@ class AppDelegation extends BaseAppDelegation
         return $dueDate;
     }
 
-    public function test ()
-    {
-        $objTask = new Task();
-        $objTask->setTasDuration (5);
-        $objTask->setTasTimeunit ("DAYS");
-        $objTask->setTasTypeDay ("CALENDAR DAYS");
-        $objTask->setCalendarUid (15);
-
-        $delTaskDueDate = $this->calculateDueDate ($objFlow);
-        $delRiskDate = $this->calculateRiskDate ($objFlow, date ("Y-m-d H:i:s"), $this->getRisk ());
-    }
-
     public function getValuesToStoreForCalculateDuration ($row, $calendar, $calData, $nowDate)
     {
         if ( $this->objMysql === null )
@@ -521,9 +420,15 @@ class AppDelegation extends BaseAppDelegation
     private function selectDate ($date1, $date2, $compareFunction)
     {
         if ( $date1 == null )
+        {
             return $date2;
+        }
+
         if ( $date2 == null )
+        {
             return $date1;
+        }
+
         return $compareFunction ($date1, $date2);
     }
 
@@ -550,11 +455,14 @@ class AppDelegation extends BaseAppDelegation
     private function createDateFromString ($stringDate)
     {
         if ( $stringDate == null || $stringDate == '' )
+        {
             return null;
+        }
+        
         return new DateTime ($stringDate);
     }
 
-    function get_next ($array, $key)
+    private function get_next ($array, $key)
     {
         $currentKey = key ($array);
         while ($currentKey !== null && $currentKey != $key) {
@@ -577,7 +485,7 @@ class AppDelegation extends BaseAppDelegation
 
         $next = $this->get_next ($row['audit_object']['steps'], $taskId);
 
-        return Array(
+        return array(
             'dDelegateDate' => $this->createDateFromString (date ("Y-m-d H:i:s")),
             'dInitDate' => $this->createDateFromString ($step['dateCompleted']),
             'dDueDate' => $this->createDateFromString (date ("Y-m-d H:i:s")),

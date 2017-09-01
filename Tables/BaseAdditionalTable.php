@@ -319,7 +319,6 @@ abstract class BaseAdditionalTables implements Persistent
         }
     }
 
-// setAddTabUid()
     /**
      * Set the value of [add_tab_name] column.
      * 
@@ -340,7 +339,6 @@ abstract class BaseAdditionalTables implements Persistent
         }
     }
 
-// setAddTabName()
     /**
      * Set the value of [add_tab_class_name] column.
      * 
@@ -361,7 +359,6 @@ abstract class BaseAdditionalTables implements Persistent
         }
     }
 
-// setAddTabClassName()
     /**
      * Set the value of [add_tab_description] column.
      * 
@@ -382,7 +379,6 @@ abstract class BaseAdditionalTables implements Persistent
         }
     }
 
-// setAddTabDescription()
     /**
      * Set the value of [add_tab_sdw_log_insert] column.
      * 
@@ -403,7 +399,6 @@ abstract class BaseAdditionalTables implements Persistent
         }
     }
 
-// setAddTabSdwLogInsert()
     /**
      * Set the value of [add_tab_sdw_log_update] column.
      * 
@@ -424,7 +419,6 @@ abstract class BaseAdditionalTables implements Persistent
         }
     }
 
-// setAddTabSdwLogUpdate()
     /**
      * Set the value of [add_tab_sdw_log_delete] column.
      * 
@@ -445,7 +439,6 @@ abstract class BaseAdditionalTables implements Persistent
         }
     }
 
-// setAddTabSdwLogDelete()
     /**
      * Set the value of [add_tab_sdw_log_select] column.
      * 
@@ -466,7 +459,6 @@ abstract class BaseAdditionalTables implements Persistent
         }
     }
 
-// setAddTabSdwLogSelect()
     /**
      * Set the value of [add_tab_sdw_max_length] column.
      * 
@@ -487,7 +479,6 @@ abstract class BaseAdditionalTables implements Persistent
         }
     }
 
-// setAddTabSdwMaxLength()
     /**
      * Set the value of [add_tab_sdw_auto_delete] column.
      * 
@@ -508,7 +499,6 @@ abstract class BaseAdditionalTables implements Persistent
         }
     }
 
-// setAddTabSdwAutoDelete()
     /**
      * Set the value of [add_tab_plg_uid] column.
      * 
@@ -529,7 +519,6 @@ abstract class BaseAdditionalTables implements Persistent
         }
     }
 
-// setAddTabPlgUid()
     /**
      * Set the value of [dbs_uid] column.
      * 
@@ -550,7 +539,6 @@ abstract class BaseAdditionalTables implements Persistent
         }
     }
 
-// setDbsUid()
     /**
      * Set the value of [pro_uid] column.
      * 
@@ -571,7 +559,6 @@ abstract class BaseAdditionalTables implements Persistent
         }
     }
 
-// setProUid()
     /**
      * Set the value of [add_tab_type] column.
      * 
@@ -592,7 +579,6 @@ abstract class BaseAdditionalTables implements Persistent
         }
     }
 
-// setAddTabType()
     /**
      * Set the value of [add_tab_grid] column.
      * 
@@ -613,7 +599,6 @@ abstract class BaseAdditionalTables implements Persistent
         }
     }
 
-// setAddTabGrid()
     /**
      * Set the value of [add_tab_tag] column.
      * 
@@ -633,9 +618,6 @@ abstract class BaseAdditionalTables implements Persistent
             $this->add_tab_tag = $v;
         }
     }
-
-// setAddTabTag()
-
   
     /**
      * Validates the objects modified field values and all objects related to this table.
@@ -668,6 +650,7 @@ abstract class BaseAdditionalTables implements Persistent
         }
         return TRUE;
     }
+    
     public function loadObject (array $arrData)
     {
         foreach ($arrData as $formField => $formValue) {
