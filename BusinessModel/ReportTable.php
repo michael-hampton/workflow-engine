@@ -298,7 +298,7 @@ class ReportTable
                 'ADD_TAB_CLASS_NAME' => $repTabClassName,
                 'ADD_TAB_DESCRIPTION' => $arrayData['REP_TAB_DSC'],
                 'ADD_TAB_PLG_UID' => '',
-                'DBS_UID' => isset($arrayData['REP_TAB_CONNECTION']) ? $arrayData['REP_TAB_CONNECTION'] : 'workflow',
+                'DBS_UID' => isset ($arrayData['REP_TAB_CONNECTION']) ? $arrayData['REP_TAB_CONNECTION'] : 'workflow',
                 'PRO_UID' => $arrayData['PRO_UID'],
                 'ADD_TAB_TYPE' => $arrayData['REP_TAB_TYPE'],
                 'ADD_TAB_GRID' => $arrayData['REP_TAB_GRID']
