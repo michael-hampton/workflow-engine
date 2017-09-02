@@ -12,8 +12,8 @@ class EmailFunctions
     private $spool_id;
     public $status;
     public $error;
-    private $ExceptionCode = Array(); //Array to define the Expetion codes
-    private $aWarnings = Array(); //Array to store the warning that were throws by the class
+    private $ExceptionCode = array(); //Array to define the Expetion codes
+    private $aWarnings = array(); //Array to store the warning that were throws by the class
     private $longMailEreg;
     private $mailEreg;
 
@@ -48,12 +48,8 @@ class EmailFunctions
     public function getSpoolFilesList ()
     {
         $sql = "SELECT * FROM APP_MESSAGE WHERE APP_MSG_STATUS ='pending'";
-
-        $con = Propel::getConnection ("workflow");
-        $stmt = $con->prepareStatement ($sql);
-        $rs = $stmt->executeQuery ();
-
-        while ($rs->next ()) {
+        $results = $this->objMysql->_query($sql);
+        foreach($results as $result); {
             $this->spool_id = $rs->getString ('APP_MSG_UID');
             $this->fileData['subject'] = $rs->getString ('APP_MSG_SUBJECT');
             $this->fileData['from'] = $rs->getString ('APP_MSG_FROM');
@@ -381,7 +377,7 @@ class EmailFunctions
         }
         else
         {
-            $this->fileData['envelope_to'] = Array();
+            $this->fileData['envelope_to'] = array();
         }
 
         //CC
@@ -402,7 +398,7 @@ class EmailFunctions
         }
         else
         {
-            $this->fileData['envelope_cc'] = Array();
+            $this->fileData['envelope_cc'] = array();
         }
 
         //BCC
@@ -423,7 +419,7 @@ class EmailFunctions
         }
         else
         {
-            $this->fileData['envelope_bcc'] = Array();
+            $this->fileData['envelope_bcc'] = array();
         }
     }
 
@@ -580,8 +576,8 @@ class EmailFunctions
                         }
                         break;
                     case 'OPENMAIL':
-                        G::LoadClass ('package');
-                        G::LoadClass ('smtp');
+                        //G::LoadClass ('package');
+                        //G::LoadClass ('smtp');
                         $pack = new package ($this->fileData);
                         $header = $pack->returnHeader ();
                         $body = $pack->returnBody ();
@@ -591,7 +587,7 @@ class EmailFunctions
                         $send->setUsername ($this->config['MESS_ACCOUNT']);
 
                         $passwd = $this->config['MESS_PASSWORD'];
-                        $passwdDec = G::decrypt ($passwd, 'EMAILENCRYPT');
+                        $passwdDec = $this->decrypt ($passwd, 'EMAILENCRYPT');
                         $auxPass = explode ('hash:', $passwdDec);
 
                         if ( count ($auxPass) > 1 )
@@ -624,75 +620,6 @@ class EmailFunctions
                             $this->status = 'failed';
                         }
                         break;
-                }
-            }
-        }
-    }
-
-    /**
-     * try resend the emails from spool
-     *
-     * @param string $dateResend
-     * @return none or exception
-     */
-    public function resendEmails ($dateResend = null, $cron = 0)
-    {
-        if ( !class_exists ('System') )
-        {
-            G::LoadClass ('system');
-        }
-        $aConfiguration = System::getEmailConfiguration ();
-
-        if ( !isset ($aConfiguration["MESS_ENABLED"]) )
-        {
-            $aConfiguration["MESS_ENABLED"] = '0';
-        }
-
-        if ( $aConfiguration["MESS_ENABLED"] == "1" )
-        {
-            require_once ("classes/model/AppMessage.php");
-
-            $this->setConfig ($aConfiguration);
-
-            $criteria = new Criteria ("workflow");
-            $criteria->add (AppMessagePeer::APP_MSG_STATUS, "sent", Criteria::NOT_EQUAL);
-
-            if ( $dateResend != null )
-            {
-                $criteria->add (AppMessagePeer::APP_MSG_DATE, $dateResend, Criteria::GREATER_EQUAL);
-            }
-
-            $rsCriteria = AppMessagePeer::doSelectRS ($criteria);
-            $rsCriteria->setFetchmode (ResultSet::FETCHMODE_ASSOC);
-
-            while ($rsCriteria->next ()) {
-                if ( $cron == 1 )
-                {
-                    $arrayCron = unserialize (trim (@file_get_contents (PATH_DATA . "cron")));
-                    $arrayCron["processcTimeStart"] = time ();
-                    @file_put_contents (PATH_DATA . "cron", serialize ($arrayCron));
-                }
-
-                $row = $rsCriteria->getRow ();
-
-                try {
-                    $sFrom = G::buildFrom ($aConfiguration, $row["APP_MSG_FROM"]);
-
-                    $this->setData ($row["APP_MSG_UID"], $row["APP_MSG_SUBJECT"], $sFrom, $row["APP_MSG_TO"], $row["APP_MSG_BODY"], date ("Y-m-d H:i:s"), $row["APP_MSG_CC"], $row["APP_MSG_BCC"], $row["APP_MSG_TEMPLATE"], $row["APP_MSG_ATTACH"]);
-
-                    $this->sendMail ();
-                } catch (Exception $e) {
-                    $strAux = "Spool::resendEmails(): Using " . $aConfiguration["MESS_ENGINE"] . " for APP_MGS_UID=" . $row["APP_MSG_UID"] . " -> With message: " . $e->getMessage ();
-
-                    if ( $e->getCode () == $this->ExceptionCode["WARNING"] )
-                    {
-                        array_push ($this->aWarnings, $strAux);
-                        continue;
-                    }
-                    else
-                    {
-                        throw $e;
-                    }
                 }
             }
         }
