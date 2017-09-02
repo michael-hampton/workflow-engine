@@ -421,7 +421,7 @@ abstract class BaseNotification implements Persistent
      */
     public function update ($arrUpdate, $id)
     {
-        $this->objMysql->_update ("workflow.notifications_sent", $arrUpdate, array("id" => $id));
+        $this->objMysql->_update ("workflow.APP_MESSAGE", $arrUpdate, array("APP_MSG_UID" => $id));
     }
 
     public function saveNewMessage ()
@@ -435,7 +435,7 @@ abstract class BaseNotification implements Persistent
      *
      */
     public function sendMessage ()
-    {
+    {        
         $this->objMysql->_query ("UPDATE workflow.notifications_sent
                                 SET status = 2
                                 WHERE case_id = ?

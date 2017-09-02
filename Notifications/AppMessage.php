@@ -126,6 +126,7 @@ class AppMessage extends BaseAppMessage
 
         $spool->setMsgUid ($db_spool['MSG_UID']);
         $spool->setAppUid ($db_spool['APP_UID']);
+        $spool->setCaseUid ($db_spool['CASE_UID']);
         $spool->setDelIndex ($db_spool['DEL_INDEX']);
         $spool->setAppMsgType ($db_spool['APP_MSG_TYPE']);
         $spool->setAppMsgSubject ($db_spool['APP_MSG_SUBJECT']);
@@ -141,8 +142,20 @@ class AppMessage extends BaseAppMessage
         $spool->setAppMsgSendDate ($db_spool['APP_MSG_SEND_DATE']); // Add by Ankit
         $spool->setAppMsgShowMessage ($db_spool['APP_MSG_SHOW_MESSAGE']); // Add by Ankit
         $spool->setAppMsgError ($db_spool['APP_MSG_ERROR']);
+        $spool->setAppMsgFrom($db_spool['APP_MSG_FROM']);
+        $spool->setAppMsgUid($pk);
 
         return $spool;
+    }
+
+    public function updatePrevious ()
+    {
+        $this->objMysql->_query ("UPDATE workflow.APP_MESSAGE
+                                SET APP_MSG_SHOW_MESSAGE = 2
+                                WHERE CASE_UID = ?
+                                AND APP_UID = ?
+                                AND APP_MSG_SHOW_MESSAGE != 3", [$this->caseId, $this->app_uid]
+        );
     }
 
 }

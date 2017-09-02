@@ -158,6 +158,9 @@ class SendNotification extends Notification
                 (new \BusinessModel\EmailServer())->getEmailServer ($aTaskInfo[0]['MESS_UID'], true) :
                 "bluetiger_uan@yahoo.com";
         $msgError = '';
+        
+        $aConfiguration['CASE_UID'] = $this->elementId;
+        $aConfiguration['APP_UID'] = $this->projectId;
 
         $dataLastEmail['msgError'] = $msgError;
         $dataLastEmail['configuration'] = $aConfiguration;
@@ -173,8 +176,9 @@ class SendNotification extends Notification
             $oSpool->setConfig ($dataLastEmail['configuration']);
             $oSpool->create (array(
                 "msg_uid" => "",
+                "case_id" => $this->elementId,
                 'app_uid' => $this->projectId,
-                'del_index' => 1,
+                'del_index' => $this->status,
                 "app_msg_type" => "DERIVATION",
                 "app_msg_subject" => $message_subject,
                 'app_msg_from' => $from,

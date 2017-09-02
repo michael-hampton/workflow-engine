@@ -16,6 +16,10 @@ abstract class BaseAppMessage implements Persistent
      * @var        string
      */
     protected $app_msg_uid;
+    
+    protected $hasRead;
+    
+    protected $stepName;
 
     /**
      * The value for the msg_uid field.
@@ -28,6 +32,12 @@ abstract class BaseAppMessage implements Persistent
      * @var        string
      */
     protected $app_uid = '';
+
+    /**
+     * The value for the caseId field.
+     * @var        string
+     */
+    protected $caseId = '';
 
     /**
      * The value for the del_index field.
@@ -137,8 +147,13 @@ abstract class BaseAppMessage implements Persistent
     {
         $this->objMysql = new Mysql2();
     }
+    
+    public function getStepName ()
+    {
+        return $this->stepName;
+    }
 
-    /**
+        /**
      * Get the [app_msg_uid] column value.
      * 
      * @return     string
@@ -169,6 +184,17 @@ abstract class BaseAppMessage implements Persistent
     {
 
         return $this->app_uid;
+    }
+
+    /**
+     * Get the [case_uid] column value.
+     * 
+     * @return     string
+     */
+    public function getCaseUid ()
+    {
+
+        return $this->caseId;
     }
 
     /**
@@ -300,6 +326,11 @@ abstract class BaseAppMessage implements Persistent
 
         return $this->app_msg_bcc;
     }
+    
+    public function getHasRead ()
+    {
+        return $this->hasRead;
+    }
 
     /**
      * Get the [app_msg_template] column value.
@@ -397,7 +428,21 @@ abstract class BaseAppMessage implements Persistent
 
         return $this->app_msg_error;
     }
-
+    
+    /**
+     * 
+     * @param type $hasRead
+     */
+    public function setHasRead ($hasRead)
+    {
+        $this->hasRead = $hasRead;
+    }
+    
+    public function setStepName ($stepName)
+    {
+        $this->stepName = $stepName;
+    }
+  
     /**
      * Set the value of [app_msg_uid] column.
      * 
@@ -461,6 +506,28 @@ abstract class BaseAppMessage implements Persistent
         if ( $this->app_uid !== $v || $v === '' )
         {
             $this->app_uid = $v;
+        }
+    }
+
+    /**
+     * Set the value of [case_uid] column.
+     * 
+     * @param      string $v new value
+     * @return     void
+     */
+    public function setCaseUid ($v)
+    {
+
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ( $v !== null && !is_string ($v) )
+        {
+            $v = (string) $v;
+        }
+
+        if ( $this->caseId !== $v || $v === '' )
+        {
+            $this->caseId = $v;
         }
     }
 
@@ -624,7 +691,7 @@ abstract class BaseAppMessage implements Persistent
         }
         if ( $this->app_msg_date !== $ts )
         {
-            $this->app_msg_date = date("Y-m-d H:i:s", $ts);
+            $this->app_msg_date = date ("Y-m-d H:i:s", $ts);
         }
     }
 
@@ -766,7 +833,7 @@ abstract class BaseAppMessage implements Persistent
         }
         if ( $this->app_msg_send_date !== $ts )
         {
-            $this->app_msg_send_date = date("Y-m-d H:i:s", $ts);
+            $this->app_msg_send_date = date ("Y-m-d H:i:s", $ts);
         }
     }
 
@@ -853,6 +920,7 @@ abstract class BaseAppMessage implements Persistent
             $id = $this->objMysql->_insert ("workflow.APP_MESSAGE", [
                 "MSG_UID" => $this->msg_uid,
                 "APP_UID" => $this->app_uid,
+                "CASE_UID" => $this->caseId,
                 "DEL_INDEX" => $this->del_index,
                 "APP_MSG_TYPE" => $this->app_msg_type,
                 "APP_MSG_SUBJECT" => $this->app_msg_subject,
@@ -871,6 +939,29 @@ abstract class BaseAppMessage implements Persistent
             );
 
             return $id;
+        }
+        else
+        {
+            $this->objMysql->_update ("workflow.APP_MESSAGE", [
+                "MSG_UID" => $this->msg_uid,
+                "APP_UID" => $this->app_uid,
+                "CASE_UID" => $this->caseId,
+                "DEL_INDEX" => $this->del_index,
+                "APP_MSG_TYPE" => $this->app_msg_type,
+                "APP_MSG_SUBJECT" => $this->app_msg_subject,
+                "APP_MSG_FROM" => $this->app_msg_from,
+                "APP_MSG_TO" => $this->app_msg_to,
+                "APP_MSG_BODY" => $this->app_msg_body,
+                "APP_MSG_DATE" => $this->app_msg_date,
+                "APP_MSG_CC" => $this->app_msg_cc,
+                "APP_MSG_BCC" => $this->app_msg_bcc,
+                "APP_MSG_TEMPLATE" => $this->app_msg_template,
+                "APP_MSG_STATUS" => $this->app_msg_status,
+                "APP_MSG_ATTACH" => $this->app_msg_attach,
+                "APP_MSG_SEND_DATE" => $this->app_msg_send_date,
+                "APP_MSG_SHOW_MESSAGE" => $this->app_msg_show_message,
+                "APP_MSG_ERROR" => $this->app_msg_error], ["APP_MSG_UID" => $this->app_msg_uid]
+            );
         }
     }
 

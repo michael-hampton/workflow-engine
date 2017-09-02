@@ -48,8 +48,10 @@ class EmailFunctions
     public function getSpoolFilesList ()
     {
         $sql = "SELECT * FROM APP_MESSAGE WHERE APP_MSG_STATUS ='pending'";
-        $results = $this->objMysql->_query($sql);
-        foreach($results as $result); {
+        $results = $this->objMysql->_query ($sql);
+        foreach ($results as $result)
+            ;
+        {
             $this->spool_id = $rs->getString ('APP_MSG_UID');
             $this->fileData['subject'] = $rs->getString ('APP_MSG_SUBJECT');
             $this->fileData['from'] = $rs->getString ('APP_MSG_FROM');
@@ -252,6 +254,7 @@ class EmailFunctions
      */
     private function updateSpoolStatus ()
     {
+
         $oAppMessage = (new AppMessage())->retrieveByPK ($this->spool_id);
         if ( is_array ($this->fileData['attachments']) )
         {
@@ -667,7 +670,7 @@ class EmailFunctions
         $spool->setAppMsgSendDate (date ('Y-m-d H:i:s')); // Add by Ankit
         $spool->setAppMsgShowMessage ($db_spool['app_msg_show_message']); // Add by Ankit
         $spool->setAppMsgError ($db_spool['app_msg_error']);
-
+        $spool->setCaseUid ($db_spool['case_id']);
 
         if ( !$spool->validate () )
         {
@@ -682,7 +685,10 @@ class EmailFunctions
         {
             //echo "Saving - validation ok\n";
             $this->status = 'success';
+            $spool->updatePrevious ();
             $sUID = $spool->save ();
+            $spool->setAppMsgUid($sUID);
+            
         }
 
         return $sUID;

@@ -23,36 +23,36 @@ class NotificationsFactory
     {
         $arrWhere = array();
 
-        $query = "SELECT ns.*, t.step_name FROM workflow.`notifications_sent` ns
-                    LEFT JOIN workflow.task t ON t.TAS_UID = ns.`step_id`
+        $query = "SELECT ns.*, t.step_name FROM workflow.`APP_MESSAGE` ns
+                    LEFT JOIN workflow.task t ON t.TAS_UID = ns.`DEL_INDEX`
                     WHERE 1=1
                     ";
 
         if ( isset ($arrParameters['user']) && $arrParameters['user'] !== null )
         {
-            $query .= " AND FIND_IN_SET(?, recipient) > 0";
+            $query .= " AND FIND_IN_SET(?, APP_MSG_TO) > 0";
             $arrWhere[] = $arrParameters['user'];
         }
 
         if ( isset ($arrParameters['status']) && $arrParameters['status'] != null )
         {
-            $query .= " AND status = ?";
+            $query .= " AND APP_MSG_SHOW_MESSAGE = ?";
             $arrWhere[] = $arrParameters['status'];
         }
 
         if ( isset ($arrParameters['is_important']) && $arrParameters['is_important'] !== null && $arrParameters['is_important'] != 0 )
         {
-            $query .= " AND is_important = 1";
+            $query .= " AND IS_IMPORTANT = 1";
         }
 
         if ( isset ($arrParameters['has_read']) && $arrParameters['has_read'] !== null && $arrParameters['has_read'] != 0 )
         {
-            $query .= " AND has_read = 1";
+            $query .= " AND HAS_READ = 1";
         }
 
         if ( isset ($arrParameters['id']) && $arrParameters['id'] !== null )
         {
-            $query .= " AND id = ?";
+            $query .= " AND APP_MSG_UID = ?";
             $arrWhere[] = $arrParameters['id'];
         }
 
@@ -64,7 +64,7 @@ class NotificationsFactory
 
         if ( isset ($arrParameters['searchText']) && !empty ($arrParameters['searchText']) )
         {
-            $query .= " AND (recipient LIKE ? OR subject LIKE ?)";
+            $query .= " AND (APP_MSG_TO LIKE ? OR APP_MSG_SUBJECT LIKE ?)";
             $arrWhere[] = "%" . $arrParameters['searchText'] . "%";
             $arrWhere[] = "%" . $arrParameters['searchText'] . "%";
         }
@@ -87,43 +87,53 @@ class NotificationsFactory
    * @param type $strOrderDir
    * @return \Notification
    */
-    public function getNotifications ($arrParameters, $pageLimit = 10, $page = 0, $strOrderBy = "ns.date_sent", $strOrderDir = "DESC")
+    public function getNotifications ($arrParameters, $pageLimit = 10, $page = 0, $strOrderBy = "ns.APP_MSG_SEND_DATE", $strOrderDir = "DESC")
     {
 
         $totalRows = $this->countNotifications ($arrParameters, $strOrderBy, $strOrderDir);
 
         $arrWhere = array();
 
-        $query = "SELECT ns.*, t.step_name FROM workflow.`notifications_sent` ns
-                    LEFT JOIN workflow.task t ON t.TAS_UID = ns.`step_id`
-                    WHERE 1=1
+        $query = "SELECT ns.APP_MSG_TO AS recipient, 
+                    APP_MSG_BODY AS message, 
+                    APP_UID AS project_id,
+                    CASE_UID AS case_id,
+                    APP_MSG_SUBJECT as subject, 
+                    HAS_READ AS has_read, 
+                    APP_MSG_SEND_DATE AS date_sent, 
+                    APP_MSG_UID AS id ,
+                    APP_MSG_FROM,
+                    t.step_name 
+                FROM workflow.`APP_MESSAGE` ns
+                LEFT JOIN workflow.task t ON t.TAS_UID = ns.`DEL_INDEX`
+                WHERE 1=1
                     ";
 
         if ( isset ($arrParameters['user']) && $arrParameters['user'] !== null )
         {
-            $query .= " AND FIND_IN_SET(?, recipient) > 0";
+            $query .= " AND FIND_IN_SET(?, APP_MSG_TO) > 0";
             $arrWhere[] = $arrParameters['user'];
         }
 
         if ( isset ($arrParameters['status']) && $arrParameters['status'] != null )
         {
-            $query .= " AND status = ?";
+            $query .= " AND APP_MSG_SHOW_MESSAGE = ?";
             $arrWhere[] = $arrParameters['status'];
         }
-
+        
         if ( isset ($arrParameters['is_important']) && $arrParameters['is_important'] !== null && $arrParameters['is_important'] != 0 )
         {
-            $query .= " AND is_important = 1";
+            $query .= " AND IS_IMPORTANT = 1";            
         }
 
         if ( isset ($arrParameters['has_read']) && $arrParameters['has_read'] !== null && $arrParameters['has_read'] != 0 )
         {
-            $query .= " AND has_read = 1";
+            $query .= " AND HAS_READ = 1";
         }
 
         if ( isset ($arrParameters['id']) && $arrParameters['id'] !== null )
         {
-            $query .= " AND id = ?";
+            $query .= " AND APP_MSG_UID = ?";
             $arrWhere[] = $arrParameters['id'];
         }
 
@@ -135,13 +145,13 @@ class NotificationsFactory
 
         if ( isset ($arrParameters['searchText']) && !empty ($arrParameters['searchText']) )
         {
-            $query .= " AND (recipient LIKE ? OR subject LIKE ?)";
+            $query .= " AND (APP_MSG_TO LIKE ? OR APP_MSG_SUBJECT LIKE ?)";
             $arrWhere[] = "%" . $arrParameters['searchText'] . "%";
             $arrWhere[] = "%" . $arrParameters['searchText'] . "%";
         }
 
         $query .= " ORDER BY " . $strOrderBy . " " . $strOrderDir;
-
+        
         ///////////////////////////////////////////////////////////////////////////////////////////////
         //
         //      Pagination
@@ -168,14 +178,15 @@ class NotificationsFactory
 
         foreach ($arrResults as $key => $arrResult) {
 
-            $objNotifications = new \Notification();
-            $objNotifications->setRecipient ($arrResult['recipient']);
-            $objNotifications->setBody ($arrResult['message']);
-            $objNotifications->setSubject ($arrResult['subject']);
+            $objNotifications = new \AppMessage();
+            $objNotifications->setAppMsgTo ($arrResult['recipient']);
+            $objNotifications->setAppMsgBody ($arrResult['message']);
+            $objNotifications->setAppMsgSubject ($arrResult['subject']);
             $objNotifications->setHasRead ($arrResult['has_read']);
-            $objNotifications->setDateSent ($arrResult['date_sent']);
-            $objNotifications->setId ($arrResult['id']);
+            $objNotifications->setAppMsgSendDate ($arrResult['date_sent']);
+            $objNotifications->setAppMsgUid ($arrResult['id']);
             $objNotifications->setStepName ($arrResult['step_name']);
+            $objNotifications->setAppMsgFrom($arrResult['APP_MSG_FROM']);
 
             if ( !empty ($arrResult['case_id']) )
             {
@@ -186,6 +197,11 @@ class NotificationsFactory
                 $arrAllMessages[$key]['notifications'] = $objNotifications;
             }
         }
+        
+        echo $query;
+        print_r($arrParameters);
+        echo '<pre>';
+        print_r($arrAllMessages);
 
         return $arrAllMessages;
     }
