@@ -83,7 +83,7 @@ class EmailServer
         try {
             //Set variables
             $arrayEmailServerData = ($emailServerUid == "") ? array() : $this->getEmailServer ($emailServerUid, true);
-            $flagInsert = ($emailServerUid == "") ? true : false;
+          
             $arrayFinalData = array_merge ($arrayEmailServerData, $arrayData);
             //Verify data
 
@@ -121,7 +121,7 @@ class EmailServer
             {
                 $arrayTestConnectionResult = $this->testConnection ($arrayFinalData);
                 $msg = "";
-                foreach ($arrayTestConnectionResult as $key => $value) {
+                foreach ($arrayTestConnectionResult as $value) {
                     $arrayTest = $value;
                     if ( !$arrayTest["result"] )
                     {
@@ -187,7 +187,7 @@ class EmailServer
 
                 if ( $emailServer->validate () )
                 {
-                    $result = $emailServer->save ();
+                    $emailServer->save ();
 
                     if ( isset ($arrayData["MESS_DEFAULT"]) && (int) ($arrayData["MESS_DEFAULT"]) == 1 )
                     {
@@ -510,7 +510,7 @@ class EmailServer
                 case "MAIL":
                     $arrayDataAux = $arrayData;
                     $arrayDataAux["MESS_TRY_SEND_INMEDIATLY"] = 1;
-                    $arrayDataAux["MAIL_TO"] = "admin@processmaker.com";
+                    $arrayDataAux["MAIL_TO"] = "admin@easyflow.com";
                     $arrayResult[$arrayMailTestName[1]] = $this->testConnectionByStep ($arrayDataAux);
                     $arrayResult[$arrayMailTestName[1]]["title"] = "ID_EMAIL_SERVER_TEST_CONNECTION_VERIFYING_MAIL";
                     if ( isset ($arrayData["MESS_TRY_SEND_INMEDIATLY"]) && (int) ($arrayData["MESS_TRY_SEND_INMEDIATLY"]) == 1 && $arrayData['MAIL_TO'] != '' )
@@ -520,7 +520,7 @@ class EmailServer
                     }
                     break;
                 case "PHPMAILER":
-                    $arrayData['MAIL_TO'] = "bluetiger_uan@yahoo.com";
+                    $arrayData['MAIL_TO'] = "admin@easyflow.com";
                     $numSteps = ($arrayData['MAIL_TO'] != '') ? count ($arrayPhpMailerTestName) :
                             count ($arrayPhpMailerTestName) - 1;
                     for ($step = 1; $step <= $numSteps; $step++) {
@@ -569,7 +569,7 @@ class EmailServer
                 $arrayDataMail = array();
                 $eregMail = "/^[0-9a-zA-Z]+(?:[._][0-9a-zA-Z]+)*@[0-9a-zA-Z]+(?:[._-][0-9a-zA-Z]+)*\.[0-9a-zA-Z]{2,3}$/";
                 $arrayDataMail["FROM_EMAIL"] = ($arrayData["MESS_FROM_MAIL"] != "" && preg_match ($eregMail, $arrayData["MESS_FROM_MAIL"])) ? $arrayData["MESS_FROM_MAIL"] : "";
-                $arrayDataMail["FROM_NAME"] = ($arrayData["MESS_FROM_NAME"] != "") ? $arrayData["MESS_FROM_NAME"] : \G::LoadTranslation ("ID_MESS_TEST_BODY");
+                $arrayDataMail["FROM_NAME"] = ($arrayData["MESS_FROM_NAME"] != "") ? $arrayData["MESS_FROM_NAME"] : "test body";
                 $arrayDataMail["MESS_ENGINE"] = "MAIL";
                 $arrayDataMail["MESS_SERVER"] = "localhost";
                 $arrayDataMail["MESS_PORT"] = 25;
@@ -688,7 +688,6 @@ class EmailServer
             $sFrom = $this->buildFrom ($aConfiguration);
 
             $sSubject = "test subject";
-            $msg = "test body";
 
             switch ($arrayData["MESS_ENGINE"]) {
                 case "MAIL":
