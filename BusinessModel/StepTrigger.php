@@ -164,11 +164,11 @@ class StepTrigger
             $arrTrigger['event_type'] = isset ($arrTrigger['event_type']) && trim ($arrTrigger['event_type']) !== "" ? $arrTrigger['event_type'] : "INTERMEDIATE";
 
             switch ($arrTrigger['event_type']) {
-                
+
                 case "script":
-                    
-                 break;   
-                
+
+                    break;
+
                 case "START":
 
                     $projectId = $this->parentId;
@@ -540,7 +540,13 @@ class StepTrigger
         {
             $template = PATH_DATA_MAILTEMPLATES . $templateName . ".html";
 
-            $content = file_get_contents ($template);
+            $content = "DEFAULT BODY";
+
+            if ( file_exists ($template) )
+            {
+                $content = file_get_contents ($template);
+            }
+
             $subject = "CASE HAS BEEN " . $arrTrigger['event_type'] . " BY [USER]";
 
             $objSendNotification = new \SendNotification();

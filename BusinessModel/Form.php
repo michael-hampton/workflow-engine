@@ -341,7 +341,7 @@ class Form extends FieldFactory
             }
             $objFormBuilder->buildDocHTML ($arrDocuments);
         }
-
+        
         $outPutDocuments = $objCases->getAllGeneratedDocumentsCriteria ($projectId, $elementId, new \Task ($stepId), $objUser);
 
         if ( !empty ($outPutDocuments) )

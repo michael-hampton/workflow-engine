@@ -193,6 +193,7 @@ class DocumentVersion extends BaseDocumentVersion
             if ( $objVersioning->validate () )
             {
                 $id = $objVersioning->save ();
+
                 return $id;
             }
             else

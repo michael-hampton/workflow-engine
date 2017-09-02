@@ -1059,16 +1059,25 @@ class Cases
             $objDocumentVersion = new \DocumentVersion (array());
             $lastDocVersion = $objDocumentVersion->getLastDocVersionByFilename ($sFilename);
 
+            /** Create Folder **/
+            $pathOutput = OUTPUT_DOCUMENTS . $projectId . "/";
+            $arrPaths = explode("/", $pathOutput);
+            
+            $arrPaths = array_slice(array_filter($arrPaths), -2, 3, true);
+            
+            $folderPath = implode("/", $arrPaths);
+            
+            $objFolder = new \AppFolder();
+            $folderId = $objFolder->createFromPath($folderPath);
+
             if ( ($aOD->getOutDocVersioning () ) )
             {
-
                 $lastDocVersion++;
-                $objDocumentVersion->create (array("filename" => $sFilename, "app_uid" => $projectId, "document_id" => $aOD->getOutDocUid (), "document_type" => "OUTPUT"), $objUser);
+
+                $objDocumentVersion->create (array("folderId" => $folderId, "filename" => $sFilename, "app_uid" => $projectId, "document_id" => $aOD->getOutDocUid (), "document_type" => "OUTPUT"), $objUser);
             }
 
             $sFilename = $aOD->getOutDocUid () . "_" . $lastDocVersion;
-
-            $pathOutput = OUTPUT_DOCUMENTS . $projectId . "/";
 
             $objFile = new \BusinessModel\FileUpload();
             $objFile->mk_dir ($pathOutput);

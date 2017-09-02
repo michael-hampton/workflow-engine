@@ -262,7 +262,7 @@ class WorkflowStep
     {
         foreach ($products as $key => $product) {
             if ( isset ($product[$field]) && $product[$field] === $value ) {
-                return $key
+                return $key;
             }
         }
         return false;
@@ -536,7 +536,7 @@ class WorkflowStep
         if ( isset ($arrCompleteData['status']) && $arrCompleteData['status'] === "AUTO_ASSIGN" )
         {
             if ( !isset ($arrCompleteData['claimed']) ) {
-                $arrUsers = (new \BusinessModel\Task())->getTaskAssigneesAll ($this->workflowId, $this->_stepId, '', 0, 100, "user")
+                $arrUsers = (new \BusinessModel\Task())->getTaskAssigneesAll ($this->workflowId, $this->_stepId, '', 0, 100, "user");
             }
         }
 

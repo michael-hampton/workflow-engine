@@ -173,6 +173,7 @@ class AppFolder extends BaseAppFolder
 
         $folderPathParsedArray = explode ("/", $folderPath);
         $folderRoot = "/"; //Always starting from Root
+
         foreach ($folderPathParsedArray as $folderName) {
             if ( trim ($folderName) != "" )
             {
