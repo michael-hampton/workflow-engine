@@ -5,7 +5,6 @@ class WorkflowStep
 
     private $_workflowStepId;
     private $_stepId;
-    private $objWorkflow;
     private $objAudit;
     private $objMike;
     private $nextStep;
@@ -262,8 +261,9 @@ class WorkflowStep
     private function searchArray ($products, $field, $value)
     {
         foreach ($products as $key => $product) {
-            if ( isset ($product[$field]) && $product[$field] === $value )
-                return $key;
+            if ( isset ($product[$field]) && $product[$field] === $value ) {
+                return $key
+            }
         }
         return false;
     }
@@ -474,7 +474,7 @@ class WorkflowStep
                 switch ($taskType) {
                     case "PARALLEL":
                         $blTaskUsersCompleted = 0;
-                        foreach ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers'] as $key => $parallelUser) {
+                        foreach ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers'] as $parallelUser) {
                             if ( isset ($parallelUser['dateCompleted']) && trim ($parallelUser['dateCompleted']) !== "" )
                             {
                                 $blTaskUsersCompleted++;
@@ -499,7 +499,7 @@ class WorkflowStep
                         }
                         if ( $blHasValidUser !== true && $blProcessSupervisor !== true )
                         {
-//                            $arrWorkflow['current_step'] = $this->_workflowStepId;
+//                          $arrWorkflow['current_step'] = $this->_workflowStepId;
                             throw new Exception ("Invalid task user");
                         }
                         /*                         * ************************** Process Triggers ********************************************* */
@@ -535,8 +535,9 @@ class WorkflowStep
         }
         if ( isset ($arrCompleteData['status']) && $arrCompleteData['status'] === "AUTO_ASSIGN" )
         {
-            if ( !isset ($arrCompleteData['claimed']) )
-                $arrUsers = (new \BusinessModel\Task())->getTaskAssigneesAll ($this->workflowId, $this->_stepId, '', 0, 100, "user");
+            if ( !isset ($arrCompleteData['claimed']) ) {
+                $arrUsers = (new \BusinessModel\Task())->getTaskAssigneesAll ($this->workflowId, $this->_stepId, '', 0, 100, "user")
+            }
         }
 
         $objScriptTask = new BusinessModel\ScriptTask();
@@ -567,7 +568,7 @@ class WorkflowStep
         // check permissions
         $objCase = new \BusinessModel\Cases();
         $isValidUser = $objCase->doPostReassign (
-                $objTask, array(
+        $objTask, array(
             "cases" => array(
                 0 => array(
                     "elementId" => $this->elementId,
