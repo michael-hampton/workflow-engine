@@ -72,7 +72,7 @@ class FormAdmin
      *
      * return bool Return true if a DynaForm is assigned some Steps, false otherwise
      */
-    public function dynaFormDepends ($dynUid, $proUid)
+    /*public function dynaFormDepends ($dynUid, $proUid)
     {
         $oCriteria = new \Criteria();
 
@@ -168,7 +168,7 @@ class FormAdmin
             }
             return '';
         }
-    }
+    }*/
 
     /**
      * Verify if a DynaForm has relation with a Step Supervisor
@@ -203,7 +203,7 @@ class FormAdmin
      *
      * @return void
      */
-    private function throwExceptionDynaFormDoesNotExist ($dynaFormUid)
+    private function throwExceptionDynaFormDoesNotExist ()
     {
         throw new \Exception (
         'ID_DYNAFORM_DOES_NOT_EXIST'
@@ -286,7 +286,7 @@ class FormAdmin
      *
      * @return array Returns an array with DynaForm record, ThrowTheException/FALSE otherwise
      */
-    public function getDynaFormRecordByPk ($dynaFormUid, array $arrayVariableNameForException, $throwException = true)
+    public function getDynaFormRecordByPk ($dynaFormUid, $throwException = true)
     {
         try {
             $obj = $this->retrieveByPK ($dynaFormUid);
@@ -412,7 +412,7 @@ class FormAdmin
 
             //Delete
             //In table DYNAFORM
-            $result = $dynaForm->remove ($dynaFormUid);
+            $dynaForm->remove ($dynaFormUid);
             //In table STEP
 
             $step = new \Step();
@@ -561,8 +561,8 @@ class FormAdmin
 
             //Get data
             $criteria = $this->getDynaFormCriteria ();
-            $sql .= "WHERE DYN_UID = ?";
-            $results = $this->objMysql->_query ($sql, [$dynaFormUid]);
+            $criteria .= " WHERE DYN_UID = ?";
+            $results = $this->objMysql->_query ($criteria, [$dynaFormUid]);
 
 
             //Return
@@ -580,7 +580,7 @@ class FormAdmin
      *
      * return array Return an array with data of a DynaForm
      */
-    public function getDynaFormFields ($projectUid, $dynaFormUid)
+    /*public function getDynaFormFields ($projectUid, $dynaFormUid)
     {
         try {
             $arrayVariables = array();
@@ -597,7 +597,7 @@ class FormAdmin
 
             $results = $this->objMysql->_query ($sql, [$dynaFormUid]);
 
-            foreach ($results as $key => $value) {
+            foreach ($results as $value) {
                 $valueType = (isset ($value[0]["valueType"])) ? $value[0]["valueType"] : null;
                 $maxLength = (isset ($value[0]["maxlength"])) ? $value[0]["maxlength"] : null;
                 $label = (isset ($value[0]["label"])) ? $value[0]["label"] : null;
@@ -688,7 +688,7 @@ class FormAdmin
         } catch (\Exception $e) {
             throw $e;
         }
-    }
+    }*/
 
     public function checkFormExists ($taskId)
     {
