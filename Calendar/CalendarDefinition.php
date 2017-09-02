@@ -26,7 +26,7 @@ class CalendarDefinition extends BaseCalendarDefinition
     public function getCalendarInfo ($CalendarUid)
     {
         //if exists the row in the database propel will update it, otherwise will insert.
-        $tr = CalendarDefinitionPeer::retrieveByPK ($CalendarUid);
+        $tr = $this->retrieveByPK ($CalendarUid);
         $defaultCalendar['CALENDAR_UID'] = "00000000000000000000000000000001";
         $defaultCalendar['CALENDAR_NAME'] = 'DEFAULT_CALENDAR';
         $defaultCalendar['CALENDAR_CREATE_DATE'] = date ("Y-m-d");
@@ -56,7 +56,7 @@ class CalendarDefinition extends BaseCalendarDefinition
             $this->saveCalendarInfo ($fields);
             $fields['CALENDAR_WORK_DAYS'] = "1|2|3|4|5";
             $fields['CALENDAR_WORK_DAYS_A'] = explode ("|", "1|2|3|4|5");
-            $tr = CalendarDefinitionPeer::retrieveByPK ($CalendarUid);
+            $tr = $this->retrieveByPK ($CalendarUid);
         }
         $CalendarBusinessHoursObj = new CalendarBusinessHours();
         $CalendarBusinessHours = $CalendarBusinessHoursObj->getCalendarBusinessHours ($CalendarUid);
@@ -73,7 +73,7 @@ class CalendarDefinition extends BaseCalendarDefinition
     public function getCalendarInfoE ($CalendarUid)
     {
         //if exists the row in the database propel will update it, otherwise will insert.
-        $tr = CalendarDefinitionPeer::retrieveByPK ($CalendarUid);
+        $tr = $this->retrieveByPK ($CalendarUid);
         $defaultCalendar['CALENDAR_UID'] = "00000000000000000000000000000001";
         $defaultCalendar['CALENDAR_NAME'] = 'DEFAULT_CALENDAR';
         $defaultCalendar['CALENDAR_CREATE_DATE'] = date ("Y-m-d");
@@ -103,7 +103,7 @@ class CalendarDefinition extends BaseCalendarDefinition
             $this->saveCalendarInfo ($fields);
             $fields['CALENDAR_WORK_DAYS'] = "1|2|3|4|5";
             $fields['CALENDAR_WORK_DAYS_A'] = explode ("|", "1|2|3|4|5");
-            $tr = CalendarDefinitionPeer::retrieveByPK ($CalendarUid);
+            $tr = $this->retrieveByPK ($CalendarUid);
         }
         $CalendarBusinessHoursObj = new CalendarBusinessHours();
         $CalendarBusinessHours = $CalendarBusinessHoursObj->getCalendarBusinessHours ($CalendarUid);
@@ -132,7 +132,7 @@ class CalendarDefinition extends BaseCalendarDefinition
                 throw (new Exception ("You must define at least one Business Day for all days"));
             }
             $workingDaysOK = array();
-            foreach ($workingDays as $key => $day) {
+            foreach ($workingDays as $day) {
                 $workingDaysOK[$day] = false;
             }
             $sw_all = false;
@@ -292,7 +292,6 @@ class CalendarDefinition extends BaseCalendarDefinition
             foreach ($validationFailuresArray as $objValidationFailure) {
                 $msg .= $objValidationFailure->getMessage () . "<br/>";
             }
-            G::SendMessage ("ERROR", $msg);
             //return array ( 'codError' => -100, 'rowsAffected' => 0, 'message' => $msg );
         }
     }
@@ -348,7 +347,7 @@ class CalendarDefinition extends BaseCalendarDefinition
 
         $results = $this->objMysql->_query ($sql, [$type]);
 
-        $aCounter = Array();
+        $aCounter = array();
 
         foreach ($results as $row) {
             $aCounter[$row['CALENDAR_UID']] = $row['CNT'];
@@ -358,7 +357,7 @@ class CalendarDefinition extends BaseCalendarDefinition
 
     public function calendarName ($calendarUid)
     {
-        $tr = CalendarDefinitionPeer::retrieveByPK ($calendarUid);
+        $tr = $this->retrieveByPK ($calendarUid);
         if ( (is_object ($tr) && get_class ($tr) == 'CalendarDefinition' ) )
         {
             return $tr->getCalendarName ();

@@ -524,7 +524,7 @@ class EmailServer
                     $numSteps = ($arrayData['MAIL_TO'] != '') ? count ($arrayPhpMailerTestName) :
                             count ($arrayPhpMailerTestName) - 1;
                     for ($step = 1; $step <= $numSteps; $step++) {
-                        $arrayResult[$arrayPhpMailerTestName[$step]] = $this->testConnectionByStep ($arrayData, $step);
+                        $arrayResult[$arrayPhpMailerTestName[$step]] = $this->testConnectionByStep ($arrayData);
                         switch ($step) {
                             case 1:
                                 $arrayResult[$arrayPhpMailerTestName[$step]]["title"] = ("ID_EMAIL_SERVER_TEST_CONNECTION_RESOLVING_NAME");
@@ -560,7 +560,7 @@ class EmailServer
      *
      * return array Return array with result of test connection by step
      */
-    public function testConnectionByStep (array $arrayData, $step = 0)
+    public function testConnectionByStep (array $arrayData)
     {
         try {
             // MAIL
@@ -626,7 +626,7 @@ class EmailServer
                 }
                 else
                 {
-                    $from .= ' <info@' . ((isset ($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] != '') ? $_SERVER['HTTP_HOST'] : 'processmaker.com') . '>';
+                    $from .= ' <info@' . ((defined (HOST) && HOST != '') ? HOST : 'easyflow.com') . '>';
                 }
             }
         }

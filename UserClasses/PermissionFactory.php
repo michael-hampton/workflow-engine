@@ -9,7 +9,7 @@ class PermissionFactory
      * return void
      */
     private $objMysql;
-    
+
     use Validator;
 
     public function __construct ()
@@ -19,9 +19,9 @@ class PermissionFactory
 
     private function retrieveByPK ($roleId, $permId)
     {
-        
+
         $result = $this->objMysql->_select ("user_management.role_perms", array(), array("role_id" => $roleId, "perm_id" => $permId));
-        
+
         return $result;
     }
 
@@ -40,13 +40,13 @@ class PermissionFactory
             $obj = $this->retrieveByPK ($roleUid, $permissionUid);
             if ( !empty ($obj) )
             {
-                throw new Exception("ID_ROLE_PERMISSION_IS_ALREADY_ASSIGNED");
+                throw new Exception ("ID_ROLE_PERMISSION_IS_ALREADY_ASSIGNED");
             }
         } catch (Exception $e) {
             throw $e;
         }
     }
-    
+
     /**
      * Verify if not role exists
      *
@@ -54,27 +54,28 @@ class PermissionFactory
      *
      * return void Throw exception if doesnt exist
      */
-    public function throwExceptionIfNotExistsRole($roleId)
+    public function throwExceptionIfNotExistsRole ($roleId)
     {
-        $result = $this->objMysql->_select("user_management.roles", array(), array("role_id" => $roleId));
-        
-        if(isset($result[0]) && !empty($result[0])) {
+        $result = $this->objMysql->_select ("user_management.roles", array(), array("role_id" => $roleId));
+
+        if ( isset ($result[0]) && !empty ($result[0]) )
+        {
             return true;
         }
-        
-        throw new Exception("Role doesnt exist");
-        
+
+        throw new Exception ("Role doesnt exist");
     }
-    
-    public function throwExceptionIfNotExistsPermission($permId)
+
+    public function throwExceptionIfNotExistsPermission ($permId)
     {
-        $result = $this->objMysql->_select("user_management.permissions", array(), array("perm_id" => $permId));
-        
-         if(isset($result[0]) && !empty($result[0])) {
+        $result = $this->objMysql->_select ("user_management.permissions", array(), array("perm_id" => $permId));
+
+        if ( isset ($result[0]) && !empty ($result[0]) )
+        {
             return true;
         }
-        
-        throw new Exception("Permission doesnt exist");
+
+        throw new Exception ("Permission doesnt exist");
     }
 
     /**
@@ -112,21 +113,20 @@ class PermissionFactory
         try {
             //Verify data
 
-            $this->throwExceptionIfDataIsEmpty($arrayData);
+            $this->throwExceptionIfDataIsEmpty ($arrayData);
             //Set data
-
             //Verify data
             $role = new Role();
             $this->throwExceptionIfNotExistsRole ($roleUid);
-          
+
             $this->throwExceptionIfNotExistsPermission ($arrayData["perm_id"]);
             $this->throwExceptionIfItsAssignedPermissionToRole ($roleUid, $arrayData["perm_id"]);
-            
+
             //Create
 
-           $role->setRoleId($roleUid);
-           $role->setPermId($arrayData['perm_id']);
-           $role->addRolePerms();
+            $role->setRoleId ($roleUid);
+            $role->setPermId ($arrayData['perm_id']);
+            $role->addRolePerms ();
 
             return $arrayData;
         } catch (Exception $e) {
@@ -151,11 +151,11 @@ class PermissionFactory
             $this->throwExceptionIfNotExistsRole ($roleUid);
             $this->throwExceptionIfNotExistsPermission ($permissionUid);
             $this->throwExceptionIfNotItsAssignedPermissionToRole ($roleUid, $permissionUid);
-          
-           
-            $role->setRoleId($roleUid);
-            $role->setPermId($permissionUid);
-            $role->deleteRolePerms();
+
+
+            $role->setRoleId ($roleUid);
+            $role->setPermId ($permissionUid);
+            $role->deleteRolePerms ();
         } catch (Exception $e) {
             throw $e;
         }
@@ -172,7 +172,7 @@ class PermissionFactory
     public function getPermissionCriteria ($roleUid, array $arrayPermissionUidExclude = null)
     {
         try {
-            
+
             $criteria = "SELECT p.perm_id, p.perm_name, rp.role_id, r.role_name FROM user_management.permissions p";
             $criteriaWhere = " WHERE 1=1";
             $arrWhere = array();
@@ -188,11 +188,11 @@ class PermissionFactory
             if ( !is_null ($arrayPermissionUidExclude) && is_array ($arrayPermissionUidExclude) )
             {
                 $criteriaWhere .= " AND perm_id NOT IN (?)";
-                $arrWhere[] = implode(",", $arrayPermissionUidExclude);
+                $arrWhere[] = implode (",", $arrayPermissionUidExclude);
             }
-            
+
             $criteria = $criteria . $criteriaWhere;
-            
+
             return array("sql" => $criteria, "where" => $arrWhere);
         } catch (Exception $e) {
             throw $e;
@@ -209,13 +209,13 @@ class PermissionFactory
     public function getPermissionDataFromRecord (array $record)
     {
         try {
-          $objRole = new Role();
-          $objRole->setPermId($record['perm_id']);
-          $objRole->setPermName($record['perm_name']);
-          $objRole->setRoleId($record['role_id']);
-          $objRole->setRoleName($record['role_name']);
-          
-          return $objRole;
+            $objRole = new Role();
+            $objRole->setPermId ($record['perm_id']);
+            $objRole->setPermName ($record['perm_name']);
+            $objRole->setRoleId ($record['role_id']);
+            $objRole->setRoleName ($record['role_name']);
+
+            return $objRole;
         } catch (Exception $e) {
             throw $e;
         }
@@ -239,9 +239,9 @@ class PermissionFactory
         try {
             $arrayPermission = array();
             //Verify data
-            
+
             $this->throwExceptionIfNotExistsRole ($roleUid);
-          
+
             //Get data
             if ( !is_null ($limit) && $limit . "" == "0" )
             {
@@ -255,17 +255,15 @@ class PermissionFactory
                     $criteria = $this->getPermissionCriteria ($roleUid);
                     $arrWhere = $criteria['where'];
                     $criteria = $criteria['sql'];
-                    
-                    
+
+
                     break;
                 case "AVAILABLE-PERMISSIONS":
                     //Get Uids
                     $arrayUid = array();
                     $criteria = $this->getPermissionCriteria ($roleUid);
-                    $rsCriteria = \PermissionsPeer::doSelectRS ($criteria);
-                    $rsCriteria->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
-                    while ($rsCriteria->next ()) {
-                        $row = $rsCriteria->getRow ();
+                    $results4 = $this->objMysql->_query($criteria);
+                    foreach ($results4 as $row) {
                         $arrayUid[] = $row["PER_UID"];
                     }
                     //Criteria
@@ -276,23 +274,22 @@ class PermissionFactory
             {
                 $criteria .= " AND p.perm_name LIKE '%" . $arrayFilterData["filter"] . "%'";
             }
-            
+
             //SQL
             if ( !is_null ($sortField) && trim ($sortField) != "" )
             {
                 $sortField = trim ($sortField);
-               
             }
             else
             {
                 $sortField = "p.perm_name";
             }
-            
+
             $criteria .= " ORDER BY " . $sortField;
-            
+
             if ( !is_null ($sortDir) && trim ($sortDir) != "" && strtoupper ($sortDir) == "DESC" )
             {
-               $criteria .= " DESC";
+                $criteria .= " DESC";
             }
             else
             {
@@ -300,19 +297,19 @@ class PermissionFactory
             }
             if ( !is_null ($start) )
             {
-               $criteria .= " OFFSET " . ((int) ($start));
+                $criteria .= " OFFSET " . ((int) ($start));
             }
             if ( !is_null ($limit) )
             {
                 $criteria .= " LIMIT " . ((int) ($limit));
             }
-            
-            $results = $this->objMysql->_query($criteria, $arrWhere);
-            
+
+            $results = $this->objMysql->_query ($criteria, $arrWhere);
+
             foreach ($results as $row) {
                 $arrayPermission[] = $this->getPermissionDataFromRecord ($row);
             }
-            
+
             //Return
             return $arrayPermission;
         } catch (Exception $e) {

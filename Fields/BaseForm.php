@@ -237,7 +237,8 @@ abstract class BaseForm implements Persistent
         }
         elseif ( !is_int ($this->dyn_update_date) )
         {
-// a non-timestamp value was set externally, so we convert it
+
+            // a non-timestamp value was set externally, so we convert it
             $ts = strtotime ($this->dyn_update_date);
             if ( $ts === -1 || $ts === false )
             {
@@ -271,8 +272,8 @@ abstract class BaseForm implements Persistent
     public function setDynUid ($v)
     {
 
-// Since the native PHP type for this column is string,
-// we will cast the input to a string (if it is not).
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
         if ( $v !== null && !is_string ($v) )
         {
             $v = (string) $v;
@@ -292,9 +293,6 @@ abstract class BaseForm implements Persistent
      */
     public function setDynTitle ($v)
     {
-
-// Since the native PHP type for this column is string,
-// we will cast the input to a string (if it is not).
         if ( $v !== null && !is_string ($v) )
         {
             $v = (string) $v;
@@ -314,9 +312,6 @@ abstract class BaseForm implements Persistent
      */
     public function setDynDescription ($v)
     {
-
-// Since the native PHP type for this column is string,
-// we will cast the input to a string (if it is not).
         if ( $v !== null && !is_string ($v) )
         {
             $v = (string) $v;
@@ -336,9 +331,6 @@ abstract class BaseForm implements Persistent
      */
     public function setProUid ($v)
     {
-
-// Since the native PHP type for this column is string,
-// we will cast the input to a string (if it is not).
         if ( $v !== null && !is_string ($v) )
         {
             $v = (string) $v;
@@ -358,9 +350,6 @@ abstract class BaseForm implements Persistent
      */
     public function setDynType ($v)
     {
-
-// Since the native PHP type for this column is string,
-// we will cast the input to a string (if it is not).
         if ( $v !== null && !is_string ($v) )
         {
             $v = (string) $v;
@@ -380,9 +369,6 @@ abstract class BaseForm implements Persistent
      */
     public function setDynFilename ($v)
     {
-
-// Since the native PHP type for this column is string,
-// we will cast the input to a string (if it is not).
         if ( $v !== null && !is_string ($v) )
         {
             $v = (string) $v;
@@ -402,9 +388,6 @@ abstract class BaseForm implements Persistent
      */
     public function setDynContent ($v)
     {
-
-// Since the native PHP type for this column is string,
-// we will cast the input to a string (if it is not).
         if ( $v !== null && !is_string ($v) )
         {
             $v = (string) $v;
@@ -424,9 +407,6 @@ abstract class BaseForm implements Persistent
      */
     public function setDynLabel ($v)
     {
-
-// Since the native PHP type for this column is string,
-// we will cast the input to a string (if it is not).
         if ( $v !== null && !is_string ($v) )
         {
             $v = (string) $v;
@@ -446,9 +426,6 @@ abstract class BaseForm implements Persistent
      */
     public function setColumns ($v)
     {
-
-// Since the native PHP type for this column is integer,
-// we will cast the input value to an int (if it is not).
         if ( $v !== null && !is_int ($v) && is_numeric ($v) )
         {
             $v = (int) $v;
@@ -468,9 +445,6 @@ abstract class BaseForm implements Persistent
      */
     public function setDynVersion ($v)
     {
-
-// Since the native PHP type for this column is integer,
-// we will cast the input value to an int (if it is not).
         if ( $v !== null && !is_int ($v) && is_numeric ($v) )
         {
             $v = (int) $v;
@@ -494,7 +468,7 @@ abstract class BaseForm implements Persistent
         if ( $v !== null && !is_int ($v) )
         {
             $ts = strtotime ($v);
-//Date/time accepts null values
+
             if ( $v == '' )
             {
                 $ts = null;
@@ -553,7 +527,7 @@ abstract class BaseForm implements Persistent
      * @throws     PropelException
      * @see        doSave()
      */
-    public function save ($con = null)
+    public function save ()
     {
 
         try {

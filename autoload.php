@@ -12,6 +12,7 @@ define ("OUTPUT_DOCUMENTS", UPLOADS_DIR . "OutputDocuments/");
 define ("PATH_IMAGES_ENVIRONMENT_USERS", HOME_DIR . PATH_DATA_PUBLIC . "img/users");
 define ("WEB_ENTRY_DIR", HOME_DIR . "core/public/webentry/");
 define ("WEB_ENTRY_TEMPLATES", WEB_ENTRY_DIR . "template.phtml");
+define("HOST", $_SERVER['HTTP_HOST']);
 
 require_once HOME_DIR . "/core/app/config/config.php";
 require_once HOME_DIR . '/core/app/library/Persistent.php';
