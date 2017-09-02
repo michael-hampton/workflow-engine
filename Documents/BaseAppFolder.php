@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Base class that represents a row from the 'APP_FOLDER' table.
  *
@@ -8,78 +7,65 @@
  */
 abstract class BaseAppFolder implements Persistent
 {
-
     /**
      * The value for the folder_uid field.
      * @var        string
      */
     protected $folder_uid = '';
-
     /**
      * The value for the folder_parent_uid field.
      * @var        string
      */
     protected $folder_parent_uid = '';
-
     /**
      * The value for the folder_name field.
      * @var        string
      */
     protected $folder_name;
-
     /**
      * The value for the folder_create_date field.
      * @var        int
      */
     protected $folder_create_date;
-
     /**
      * The value for the folder_update_date field.
      * @var        int
      */
     protected $folder_update_date;
-
     /**
      * Flag to prevent endless save loop, if this object is referenced
      * by another object which falls in this transaction.
      * @var        boolean
      */
     protected $alreadyInSave = false;
-
     /**
      * Flag to prevent endless validation loop, if this object is referenced
      * by another object which falls in this transaction.
      * @var        boolean
      */
     protected $alreadyInValidation = false;
-
     private $objMysql;
-
     private $arrFieldMapping = array(
         "FOLDER_NAME" => array("mutator" => "setFolderName", "accessor" => "getFolderName", "type" => "int", "required" => "true"),
         "FOLDER_PARENT" => array("mutator" => "setFolderParentUid", "accessor" => "getFolderParentUid", "type" => "int", "required" => "true"),
         "UPDATE_DATE" => array("mutator" => "setFolderUpdateDate", "accessor" => "getFolderUpdateDate", "type" => "int", "required" => "true"),
         "CREATE_DATE" => array("mutator" => "setFolderCreateDate", "accessor" => "getFolderCreateDate", "type" => "int", "required" => "true"),
     );
-
     public function __construct()
     {
         $this->objMysql = new Mysql2();
     }
-
     public function loadObject(array $arrData)
     {
         foreach ($arrData as $strFieldKey => $varFieldValue) {
             if (isset($this->arrFieldMapping[$strFieldKey])) {
                 $strMutatorMethod = $this->arrFieldMapping[$strFieldKey]['mutator'];
-
                 if (is_callable(array($this, $strMutatorMethod)) && $varFieldValue != "") {
                     call_user_func(array($this, $strMutatorMethod), $varFieldValue);
                 }
             }
         }
     }
-
     /**
      * Get the [folder_uid] column value.
      *
@@ -87,10 +73,8 @@ abstract class BaseAppFolder implements Persistent
      */
     public function getFolderUid()
     {
-
         return $this->folder_uid;
     }
-
     /**
      * Get the [folder_parent_uid] column value.
      *
@@ -98,10 +82,8 @@ abstract class BaseAppFolder implements Persistent
      */
     public function getFolderParentUid()
     {
-
         return $this->folder_parent_uid;
     }
-
     /**
      * Get the [folder_name] column value.
      *
@@ -109,10 +91,8 @@ abstract class BaseAppFolder implements Persistent
      */
     public function getFolderName()
     {
-
         return $this->folder_name;
     }
-
     /**
      * Get the [optionally formatted] [folder_create_date] column value.
      *
@@ -123,7 +103,6 @@ abstract class BaseAppFolder implements Persistent
      */
     public function getFolderCreateDate($format = 'Y-m-d H:i:s')
     {
-
         if ($this->folder_create_date === null || $this->folder_create_date === '') {
             return null;
         } elseif (!is_int($this->folder_create_date)) {
@@ -143,7 +122,6 @@ abstract class BaseAppFolder implements Persistent
             return date($format, $ts);
         }
     }
-
     /**
      * Get the [optionally formatted] [folder_update_date] column value.
      *
@@ -154,7 +132,6 @@ abstract class BaseAppFolder implements Persistent
      */
     public function getFolderUpdateDate($format = 'Y-m-d H:i:s')
     {
-
         if ($this->folder_update_date === null || $this->folder_update_date === '') {
             return null;
         } elseif (!is_int($this->folder_update_date)) {
@@ -174,7 +151,6 @@ abstract class BaseAppFolder implements Persistent
             return date($format, $ts);
         }
     }
-
     /**
      * Set the value of [folder_uid] column.
      *
@@ -183,19 +159,15 @@ abstract class BaseAppFolder implements Persistent
      */
     public function setFolderUid($v)
     {
-
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
         if ($v !== null && !is_string($v)) {
             $v = (string) $v;
         }
-
         if ($this->folder_uid !== $v || $v === '') {
             $this->folder_uid = $v;
         }
-
     }
-
     /**
      * Set the value of [folder_parent_uid] column.
      *
@@ -204,19 +176,15 @@ abstract class BaseAppFolder implements Persistent
      */
     public function setFolderParentUid($v)
     {
-
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
         if ($v !== null && !is_string($v)) {
             $v = (string) $v;
         }
-
         if ($this->folder_parent_uid !== $v || $v === '') {
             $this->folder_parent_uid = $v;
         }
-
     }
-
     /**
      * Set the value of [folder_name] column.
      *
@@ -225,19 +193,15 @@ abstract class BaseAppFolder implements Persistent
      */
     public function setFolderName($v)
     {
-
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
         if ($v !== null && !is_string($v)) {
             $v = (string) $v;
         }
-
         if ($this->folder_name !== $v) {
             $this->folder_name = $v;
         }
-
     }
-
     /**
      * Set the value of [folder_create_date] column.
      *
@@ -246,7 +210,6 @@ abstract class BaseAppFolder implements Persistent
      */
     public function setFolderCreateDate($v)
     {
-
         if ($v !== null && !is_int($v)) {
             $ts = strtotime($v);
             //Date/time accepts null values
@@ -262,9 +225,7 @@ abstract class BaseAppFolder implements Persistent
         if ($this->folder_create_date !== $ts) {
             $this->folder_create_date = date("Y-m-d H:i:s", $ts);
         }
-
     }
-
     /**
      * Set the value of [folder_update_date] column.
      *
@@ -273,7 +234,6 @@ abstract class BaseAppFolder implements Persistent
      */
     public function setFolderUpdateDate($v)
     {
-
         if ($v !== null && !is_int($v)) {
             $ts = strtotime($v);
             //Date/time accepts null values
@@ -289,9 +249,7 @@ abstract class BaseAppFolder implements Persistent
         if ($this->folder_update_date !== $ts) {
             $this->folder_update_date = date("Y-m-d H:i:s", $ts);
         }
-
     }
-
     /**
      * Removes this object from datastore and sets delete attribute.
      *
@@ -300,9 +258,8 @@ abstract class BaseAppFolder implements Persistent
     public function delete()
     {
         $result = $this->objMysql->_delete("workflow.APP_FOLDER", ["FOLDER_UID" => $this->folder_uid]);
-	return $result;
+    return $result;
     }
-
     /**
      * Stores the object in the database.  If the object is new,
      * it inserts it; otherwise an update is performed. 
@@ -311,32 +268,28 @@ abstract class BaseAppFolder implements Persistent
      */
     public function save()
     {
-	if(trim($this->folder_uid) === "") {
-		$id = $this->objMysql->_insert("workflow.APP_FOLDER", [
-			"FOLDER_PARENT_UID" => $this->folder_parent_uid, 
-			"FOLDER_NAME" => $this->folder_name, 
-			"FOLDER_CREATE_DATE" => $this->folder_create_date, 
-			"FOLDER_UPDATE_DATE" => $this->folder_update_date
-			]);
-
-		return $id;
-
-	} else {
-		$this->objMysql->_update("workflow.APP_FOLDER", [
-			"FOLDER_PARENT_UID" => $this->folder_parent_uid, 
-			"FOLDER_NAME" => $this->folder_name, 
-			"FOLDER_CREATE_DATE" => $this->folder_create_date, 
-			"FOLDER_UPDATE_DATE" => $this->folder_update_date
-			], ["FOLDER_UID" => $this->folder_uid]);
-	}
+    if(trim($this->folder_uid) === "") {
+        $id = $this->objMysql->_insert("workflow.APP_FOLDER", [
+            "FOLDER_PARENT_UID" => $this->folder_parent_uid, 
+            "FOLDER_NAME" => $this->folder_name, 
+            "FOLDER_CREATE_DATE" => $this->folder_create_date, 
+            "FOLDER_UPDATE_DATE" => $this->folder_update_date
+            ]);
+        return $id;
+    } else {
+        $this->objMysql->_update("workflow.APP_FOLDER", [
+            "FOLDER_PARENT_UID" => $this->folder_parent_uid, 
+            "FOLDER_NAME" => $this->folder_name, 
+            "FOLDER_CREATE_DATE" => $this->folder_create_date, 
+            "FOLDER_UPDATE_DATE" => $this->folder_update_date
+            ], ["FOLDER_UID" => $this->folder_uid]);
     }
-
+    }
     /**
      * Array of ValidationFailed objects.
      * @var        array ValidationFailed[]
      */
     protected $validationFailures = array();
-
     /**
      * Gets any ValidationFailed objects that resulted from last call to validate().
      *
@@ -348,7 +301,6 @@ abstract class BaseAppFolder implements Persistent
     {
         return $this->validationFailures;
     }
-
     /**
      * Validates the objects modified field values and all objects related to this table.
      *
@@ -363,18 +315,14 @@ abstract class BaseAppFolder implements Persistent
     public function validate()
     {
         foreach ($this->arrFieldMapping as $strColumnName => $arrFieldMap) {
-
             $strFormattedColumn = ucfirst(str_replace("_", " ", $strColumnName));
             $strFormattedColumn = ucfirst(join(preg_split('/(?<=[a-z])(?=[A-Z])/x', $strColumnName), " "));
-
             if ($arrFieldMap['required'] === 'true') {
-
                 if (trim($this->{$arrFieldMap['accessor']}()) === "") {
                     $this->validationFailures[] = $strFormattedColumn . " is missing";
                 }
             }
         }
-
         return count($this->validationFailures) > 0 ? false : true;
     }
 }
