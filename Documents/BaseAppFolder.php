@@ -300,6 +300,7 @@ abstract class BaseAppFolder implements Persistent
     public function delete()
     {
         $result = $this->objMysql->_delete("workflow.APP_FOLDER", ["FOLDER_UID" => $this->folder_uid]);
+	return $result;
     }
 
     /**
