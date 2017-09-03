@@ -88,7 +88,7 @@ class SendNotification extends Notification
      * @param type $system
      * @return boolean
      */
-    public function buildEmail (Task $objTask, Users $objUser, $system = "task_manager", $blSendToAllParticipants = true)
+    public function buildEmail (Task $objTask, Users $objUser, $system = "task_manager")
     {
         try {
             $this->setVariables ($objTask->getStepId (), $system);
@@ -184,13 +184,8 @@ class SendNotification extends Notification
 
     private function getTo (Task $objTask)
     {
-        $sTo = null;
-
-        $sCc = null;
-
         $arrayResp = array();
-
-
+        
         $group = new TeamFunctions ();
 
         $oUser = new Users ();
