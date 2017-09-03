@@ -687,6 +687,7 @@ class EmailFunctions
             $this->status = 'success';
             $spool->updatePrevious ();
             $sUID = $spool->save ();
+            
             $spool->setAppMsgUid($sUID);
             
         }

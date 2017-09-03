@@ -90,7 +90,7 @@ abstract class BaseNotification implements Persistent
      * 
      * @param type $status
      */
-    protected function setStatus ($status)
+    public function setStatus ($status)
     {
         $this->status = $status;
     }

@@ -552,6 +552,8 @@ class StepTrigger
             $objSendNotification = new \SendNotification();
             $objSendNotification->setProjectId ($this->parentId);
             $recipients = $objSendNotification->getTaskUsers ();
+            $objSendNotification->setElementId($this->elementId);
+            $objSendNotification->setStatus($this->currentStep);
 
             if ( empty ($recipients) )
             {
