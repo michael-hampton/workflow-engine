@@ -72,6 +72,9 @@ require_once HOME_DIR . '/core/app/library/CalendarFunctions.php';
 require_once HOME_DIR . '/core/app/library/WorkflowClasses/BaseAppDelegation.php';
 require_once HOME_DIR . '/core/app/library/Event/AppDelegation.php';
 
+require_once HOME_DIR . '/core/app/library/WorkflowClasses/BaseAppDelay.php';
+require_once HOME_DIR . '/core/app/library/WorkflowClasses/AppDelay.php';
+
 require_once HOME_DIR . '/core/app/library/Event/BaseMessageTypeVariable.php';
 require_once HOME_DIR . '/core/app/library/Event/MessageTypeVariable.php';
 

@@ -303,7 +303,7 @@ class ReportTable
                 'ADD_TAB_TYPE' => $arrayData['REP_TAB_TYPE'],
                 'ADD_TAB_GRID' => $arrayData['REP_TAB_GRID']
             ];
-            
+
             if ( $arrayData['REP_TAB_UID'] == '' || (isset ($arrayData['forceUid']) && $arrayData['forceUid']) )
             {
                 //New report table
@@ -312,12 +312,13 @@ class ReportTable
                 $addTabUid = $additionalTable->create ($addTabData);
             }
             else
-            {                //Editing report table
+            {   
+                //Editing report table
                 //updating record
                 $addTabUid = $arrayData['REP_TAB_UID'];
                 $additionalTable->update ($addTabData);
-               
             }
+            
             //Updating pmtable fields
             $field = new \ReportField();
 
@@ -441,16 +442,16 @@ class ReportTable
                     {
                         $tableData->PRO_UID = $_POST['form']['PRO_UID'];
                     }
-                    
+
                     $flagIsPmTable = $contentSchema['PRO_UID'] === '';
-                    
+
                     if ( !$flagFromAdmin && !$flagIsPmTable )
                     {
                         $tableData->PRO_UID = $processUid;
                     }
-                    
+
                     $flagOverwrite2 = $flagOverwrite;
-                    
+
                     if ( in_array ($contentSchema['ADD_TAB_CLASS_NAME'], $arrayTablesToCreate) )
                     {
                         $flagOverwrite2 = false;
