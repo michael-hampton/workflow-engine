@@ -825,7 +825,6 @@ class Elements
         }
 
         $nextTask = $nextTaskSql[0]['id'];
-        $nextDel = $nextTaskSql[0]['step_from'];
 
         $sql3 = "SELECT 
                     APP_DELAY_UID, 
