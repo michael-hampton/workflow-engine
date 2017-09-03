@@ -435,13 +435,12 @@ class Elements
             $this->audit = json_decode ($auditResult[0]['audit_data'], true);
         }
     }
-    
+
     public function getAudit ()
     {
         return $this->audit;
     }
 
-    
     public function getOriginalDescription ()
     {
         return $this->originalDescription;
@@ -718,6 +717,157 @@ class Elements
     public function setDueDate ($dueDate)
     {
         $this->dueDate = $dueDate;
+    }
+
+    /**
+
+     *
+
+     * @name ThrowUnpauseDaemon
+
+     * author: erik@colosa.com
+
+     * Description: This method set all cases with the APP_DISABLE_ACTION_DATE for today
+
+     * @return void
+
+     */
+    public function ThrowUnpauseDaemon ($today, $cron = 0)
+    {
+        $today = (count (explode (" ", $today)) > 1) ? $today : $today . " 23:59:59";
+
+        $sql = "SELECT * FROM workflow.APP_DELAY WHERE (APP_DISABLE_ACTION_USER = 0 OR ISNULL(APP_DISABLE_ACTION_USER) ) 
+                AND (APP_DISABLE_ACTION_DATE <= '" . $today . "' OR APP_DISABLE_ACTION_DATE IS NOT NULL  )";
+
+        $results = $this->objMysql->_query ($sql);
+
+        foreach ($results as $aRow) {
+
+            if ( $cron == 1 )
+            {
+
+                $arrayCron = unserialize (trim (@file_get_contents (PATH_DATA . "cron")));
+
+                $arrayCron["processcTimeStart"] = time ();
+
+                @file_put_contents (PATH_DATA . "cron", serialize ($arrayCron));
+            }
+
+            $this->unpauseCase ($aRow['APP_UID'], $aRow['APP_THREAD_INDEX'], 'System Daemon');
+        }
+    }
+
+    /*
+
+     * unpause a case
+
+     *
+
+     * @name unpauseCase
+
+     * @param string $sApplicationUID
+
+     * @param string $iDelegation
+
+     * @param string $sUserUID
+
+     * @return object
+
+     */
+
+    public function unpauseCase ($sApplicationUID, $iDelegation, $sUserUID)
+    {
+
+        //Verify status of the case
+
+        $oDelay = new AppDelay();
+
+        if ( method_exists ($oDelay, 'isPaused') )
+        {
+
+            if ( $oDelay->isPaused ($sApplicationUID, $iDelegation) === false )
+            {
+
+                return false;
+            }
+        }
+
+
+        //get information about current $iDelegation row
+
+        $results2 = $this->objMysql->_select ("workflow.workflow_data", [], ["object_id" => $sApplicationUID]);
+
+        if ( !isset ($results2[0]) || empty ($results2[0]) )
+        {
+            return false;
+        }
+
+        $workflowData = json_decode ($results2[0]['workflow_data'], true);
+        $auditData = json_decode ($results2[0]['audit_data'], true);
+
+        $nextTaskSql = $this->objMysql->_query ("SELECT id, step_from FROM workflow.status_mapping WHERE step_from = (SELECT step_to FROM workflow.status_mapping WHERE id = 53)");
+
+        if ( !isset ($nextTaskSql[0]) || empty ($nextTaskSql[0]) )
+        {
+            return false;
+        }
+
+        $nextTask = $nextTaskSql[0]['id'];
+        $nextDel = $nextTaskSql[0]['step_from'];
+
+        $sql3 = "SELECT 
+                    APP_DELAY_UID, 
+                    APP_THREAD_INDEX, 
+                    APP_STATUS 
+                FROM workflow.APP_DELAY 
+                WHERE 
+                    APP_UID = ? AND 
+                    APP_THREAD_INDEX = ? 
+                    AND APP_TYPE = 'PAUSE'
+                    AND (APP_DISABLE_ACTION_USER = 0 OR ISNULL(APP_DISABLE_ACTION_USER) )";
+        $results3 = $this->objMysql->_query ($sql3, [$sApplicationUID, $iDelegation]);
+
+        if ( !isset ($results3[0]) || empty ($results3[0]) )
+        {
+            return false;
+        }
+
+        $caseId = null;
+
+        foreach ($workflowData['elements'] as $elementId => $element) {
+            if ( $element['current_step'] === $iDelegation )
+            {
+                $workflowData['elements'][$elementId]['current_step'] = $nextTask;
+                $caseId = $elementId;
+            }
+        }
+
+        $auditData['elements'][$caseId]['steps'][$iDelegation]['status'] = "CLOSED";
+        $auditData['elements'][$caseId]['steps'][$iDelegation]['finish_date'] = date ("Y-m-d H:i:s");
+
+        $auditData['elements'][$caseId]['steps'][$nextTask]['claimed'] = isset ($_SESSION['user']['username']) ? $_SESSION['user']['username'] : 'system';
+        $auditData['elements'][$caseId]['steps'][$nextTask]['dateCompleted'] = date ("Y-m-d H:i:s");
+
+        $this->objMysql->_update ("workflow.workflow_data", ["audit_data" => json_encode ($auditData), "workflow_data" => json_encode ($workflowData)], ["object_id" => $sApplicationUID]);
+
+        //update the DEL_INDEX ? in APP_THREAD table?
+
+        $aData['APP_DELAY_UID'] = $results3[0]['APP_DELAY_UID'];
+
+        $aData['APP_DISABLE_ACTION_USER'] = $sUserUID;
+
+        $aData['APP_DISABLE_ACTION_DATE'] = date ('Y-m-d H:i:s');
+
+        $oAppDelay = new AppDelay();
+
+        $oAppDelay->update ($aData);
+
+
+        // $this->getExecuteTriggerProcess ($sApplicationUID, "UNPAUSE");
+
+
+
+        /* ----------------------------------********--------------------------------- */
     }
 
 }

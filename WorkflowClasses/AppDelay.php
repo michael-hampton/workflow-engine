@@ -18,7 +18,7 @@ class AppDelay extends BaseAppDelay
 
     public function __construct ($id = null)
     {
-        parent::__construct();
+        parent::__construct ();
         $this->objMysql = new Mysql2();
     }
 
@@ -54,6 +54,34 @@ class AppDelay extends BaseAppDelay
         } catch (Exception $oError) {
             throw($oError);
         }
+    }
+
+    public function retrieveByPk ($pk)
+    {
+        $result = $this->objMysql->_select ("workflow.APP_DELAY", [], ["APP_DELAY_UID" => $pk]);
+
+        if ( !isset ($result[0]) || empty ($result[0]) )
+        {
+            return false;
+        }
+
+        $appDelay = new AppDelay();
+        $appDelay->setAppAutomaticDisabledDate ($result[0]['APP_AUTOMATIC_DISABLED_DATE']);
+        $appDelay->setAppDelIndex ($result[0]['APP_DEL_INDEX']);
+        $appDelay->setAppDelayUid ($result[0]['APP_DELAY_UID']);
+        $appDelay->setAppDelegationUser ($result[0]['APP_DELEGATION_USER']);
+        $appDelay->setAppDisableActionDate ($result[0]['APP_DISABLE_ACTION_DATE']);
+        $appDelay->setAppDisableActionUser ($result[0]['APP_DISABLE_ACTION_USER']);
+        $appDelay->setAppEnableActionDate ($result[0]['APP_ENABLE_ACTION_DATE']);
+        $appDelay->setAppEnableActionUser ($result[0]['APP_ENABLE_ACTION_USER']);
+        $appDelay->setAppNextTask ($result[0]['APP_NEXT_TASK']);
+        $appDelay->setAppStatus ($result[0]['APP_STATUS']);
+        $appDelay->setAppThreadIndex ($result[0]['APP_THREAD_INDEX']);
+        $appDelay->setAppType ($result[0]['APP_TYPE']);
+        $appDelay->setAppUid ($result[0]['APP_UID']);
+        $appDelay->setProUid ($result[0]['PRO_UID']);
+
+        return $appDelay;
     }
 
     /**

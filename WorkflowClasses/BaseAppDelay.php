@@ -43,7 +43,7 @@ abstract class BaseAppDelay implements Persistent
      * The value for the app_type field.
      * @var        string
      */
-    protected $app_type = '0';
+    protected $app_type = 'PAUSE';
 
     /**
      * The value for the app_status field.
