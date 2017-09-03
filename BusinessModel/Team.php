@@ -263,9 +263,11 @@ class Team
 
             $arrUsers = array();
 
-            if ( isset ($workflowData['elements']) && !empty ($workflowData['elements']) )
+            $arrElements = array_keys ($workflowData['elements']);
+
+            if ( !empty ($arrElements) )
             {
-                foreach ($workflowData['elements'] as $elementId => $element) {
+                foreach ($arrElements as $elementId) {
 
                     foreach ($auditData['elements'][$elementId]['steps'] as $audit) {
                         $arrUsers[] = $audit['claimed'];
@@ -447,7 +449,7 @@ class Team
      *
      * return array Return an array with data of a Group
      */
-    public function getGroup ($groupUid, $throwException)
+    public function getGroup ($groupUid)
     {
         try {
             //Verify data
@@ -587,7 +589,7 @@ class Team
             //SQL
             switch ($option) {
                 case "SUPERVISOR":
-                    $flagPermission = true;
+                    //$flagPermission = true;
                     //Criteria for Supervisor
                     $criteria = $this->getUserCriteria ($groupUid, $arrayFilterData);
                     break;
@@ -607,11 +609,13 @@ class Team
                     $criteria .= " AND u.team_id = null";
                     $results = $this->objMysql->_query ($criteria);
 
-                    foreach ($results as $row)
+                    foreach ($results as $row) {
                         if ( (int) $row['team_id'] === 0 )
                         {
                             $arrayUid[] = $row["usrid"];
                         }
+                    }
+
                     foreach ($arrayUid as $userId) {
                         $objUser = new \BusinessModel\UsersFactory();
                         $arrayUser[] = $objUser->getUser ($userId);
