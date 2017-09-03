@@ -18,6 +18,7 @@ class AppDelay extends BaseAppDelay
 
     public function __construct ($id = null)
     {
+        parent::__construct();
         $this->objMysql = new Mysql2();
     }
 

@@ -19,13 +19,13 @@ abstract class BaseAppDelay implements Persistent
      * The value for the pro_uid field.
      * @var        string
      */
-    protected $pro_uid = '0';
+    protected $pro_uid;
 
     /**
      * The value for the app_uid field.
      * @var        string
      */
-    protected $app_uid = '0';
+    protected $app_uid;
 
     /**
      * The value for the app_thread_index field.
@@ -67,7 +67,7 @@ abstract class BaseAppDelay implements Persistent
      * The value for the app_enable_action_user field.
      * @var        string
      */
-    protected $app_enable_action_user = '0';
+    protected $app_enable_action_user;
 
     /**
      * The value for the app_enable_action_date field.
@@ -754,7 +754,44 @@ abstract class BaseAppDelay implements Persistent
     {
 
         try {
-            
+            if ( trim ($this->app_delay_uid) === "" )
+            {
+                $id = $this->objMysql->_insert ("workflow.APP_DELAY", [
+                    "PRO_UID" => $this->pro_uid,
+                    "APP_UID" => $this->app_uid,
+                    "APP_THREAD_INDEX" => $this->app_thread_index,
+                    "APP_DEL_INDEX" => $this->app_del_index,
+                    "APP_TYPE" => $this->app_type,
+                    "APP_STATUS" => $this->app_status,
+                    "APP_NEXT_TASK" => $this->app_next_task,
+                    "APP_DELEGATION_USER" => $this->app_delegation_user,
+                    "APP_ENABLE_ACTION_USER" => $this->app_enable_action_user,
+                    "APP_ENABLE_ACTION_DATE" => $this->app_enable_action_date,
+                    "APP_DISABLE_ACTION_USER" => $this->app_disable_action_user,
+                    "APP_DISABLE_ACTION_DATE" => $this->app_disable_action_date,
+                    "APP_AUTOMATIC_DISABLED_DATE" => $this->app_automatic_disabled_date
+                        ]
+                );
+            }
+            else
+            {
+                $this->objMysql->_update ("workflow.APP_DELAY", [
+                    "PRO_UID" => $this->pro_uid,
+                    "APP_UID" => $this->app_uid,
+                    "APP_THREAD_INDEX" => $this->app_thread_index,
+                    "APP_DEL_INDEX" => $this->app_del_index,
+                    "APP_TYPE" => $this->app_type,
+                    "APP_STATUS" => $this->app_status,
+                    "APP_NEXT_TASK" => $this->app_next_task,
+                    "APP_DELEGATION_USER" => $this->app_delegation_user,
+                    "APP_ENABLE_ACTION_USER" => $this->app_enable_action_user,
+                    "APP_ENABLE_ACTION_DATE" => $this->app_enable_action_date,
+                    "APP_DISABLE_ACTION_USER" => $this->app_disable_action_user,
+                    "APP_DISABLE_ACTION_DATE" => $this->app_disable_action_date,
+                    "APP_AUTOMATIC_DISABLED_DATE" => $this->app_automatic_disabled_date
+                        ], ["APP_DELAY_UID" => $this->app_delay_uid]
+                );
+            }
         } catch (Exception $e) {
 
             throw $e;
