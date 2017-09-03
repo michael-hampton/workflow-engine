@@ -84,7 +84,7 @@ class Derivation
 
      */
 
-    function getAllUsersFromAnyTask ($sTasUid, $flagIncludeAdHocUsers = false)
+    public function getAllUsersFromAnyTask ($sTasUid, $flagIncludeAdHocUsers = false)
     {
         $users = array();
 
