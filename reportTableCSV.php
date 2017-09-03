@@ -474,10 +474,6 @@ class reportTableCSV
             }
             fclose ($f);
             
-            echo '<pre>';
-            print_r($arrayTableSchema);
-            die;
-            
             //First Validate the file
             $reportTable = new \BusinessModel\ReportTable();
             $arrayOverwrite = array();

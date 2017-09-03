@@ -428,9 +428,6 @@ class AdditionalTables extends BaseAdditionalTables
                 $sMessage = '';
                 $aValidationFailures = $oAdditionalTables->getValidationFailures ();
                 
-                print_r($aValidationFailures);
-                die;
-                
                 foreach ($aValidationFailures as $oValidationFailure) {
                     $sMessage .= $oValidationFailure . '<br />';
                 }
