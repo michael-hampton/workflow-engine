@@ -33,15 +33,15 @@ class Derivation
 
     public function getUsersFullNameFromArray ($aUsers)
     {
-        $oUser = new Users();
+        $oUser = new BusinessModel\UsersFactory();
 
         $aUsersData = array();
 
         if ( is_array ($aUsers) )
-        {
+        
             foreach ($aUsers as $val) {
                 
-                $arrUser = (new BusinessModel\UsersFactory())->getUser($val);
+                $arrUser = $oUser->getUser($val);
 
                 $auxFields['USR_UID'] = $arrUser->getUserId();
 
