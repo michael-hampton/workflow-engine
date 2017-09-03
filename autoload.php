@@ -151,6 +151,9 @@ require_once HOME_DIR . '/core/app/library/WorkflowClasses/Save.php';
 require_once HOME_DIR . '/core/app/library/WorkflowClasses/Elements.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/Cases.php';
 
+require_once HOME_DIR . '/core/app/library/Derivation.php';
+require_once HOME_DIR . '/core/app/library/TeamFunctions.php';
+
 /* * ************** Notification Classes *********************** */
 require_once HOME_DIR . '/core/app/library/Notifications/BaseNotification.php';
 require_once HOME_DIR . '/core/app/library/Notifications/Notification.php';
@@ -203,12 +206,12 @@ require_once HOME_DIR . '/core/app/library/Process/ProcessUser.php';
 /* * ******************* Users ******************************************* */
 //require_once HOME_DIR.'/core/app/library/Users.php'
 require_once HOME_DIR . '/core/app/library/BusinessModel/Password.php';
-;
+
 require_once HOME_DIR . '/core/app/library/UserClasses/BaseUser.php';
 require_once HOME_DIR . '/core/app/library/UserClasses/BasePermission.php';
 require_once HOME_DIR . '/core/app/library/UserClasses/Permission.php';
 require_once HOME_DIR . '/core/app/library/UserClasses/Users.php';
-;
+
 require_once HOME_DIR . '/core/app/library/BusinessModel/UsersFactory.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/RoleUser.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/Role.php';

@@ -3,13 +3,20 @@
 class Audit extends BaseAudit
 {
 
+    private $objMysql;
+
+    public function __construct ()
+    {
+        $this->objMysql = new Mysql2();
+    }
+
     public function insertHistory ($aData)
     {
         // id of project
         $this->setAppUid ($aData['APP_UID']);
-        
+
         // id of case
-        $this->setTasUid($aData['TAS_UID']);
+        $this->setTasUid ($aData['TAS_UID']);
 
         // id of process
         $this->setProUid ($aData['PRO_UID']);
@@ -19,13 +26,12 @@ class Audit extends BaseAudit
 
         // status
         //$this->setAppStatus ($aData['APP_STATUS']);
-
         // date
         $this->setHistoryDate ($aData['APP_UPDATE_DATE']);
 
         // additional data
         $this->setHistoryData ($aData['APP_DATA']);
-        
+
         if ( $this->validate () )
         {
             $res = $this->save ();
@@ -40,80 +46,87 @@ class Audit extends BaseAudit
             }
         }
     }
-    
-    public function getHistory($PRO_UID, $APP_UID) {
-        $oDataset = $this->database->_query("SELECT * FROM audits WHERE JSON_EXTRACT(data, '$.reference_number') = '0' AND source_id = 641");
 
-        foreach($oDataset as $aRow) {
-            $objElement = new \Element($PRO_UID, $APP_UID);
+    public function getHistory ($APP_ID, $CASE_ID)
+    {
 
-            $title = $objElement->getName();
+        /*$result = $this->objMysql->_select ("workflow.workflow_data", [], ["object_id" => $APP_ID]);
 
-            $aRow["DYN_TITLE"] = $title;
-            $arrData = json_decode($aRow['data'], true);
+        $workflowData = $result[0]['workflow_data'];
+        $auditData = $result[0]['audit_data'];*/
 
+        $html = "<table border='0' cellpadding='0' cellspacing='0'>";
+        $sw_add = false;
 
-            if(isset($arrData['before']) && !empty($arrData['before'])) {
-                $changedValues=unserialize($arrData['before']);
+        $audits = $this->objMysql->_select ("audit", [], ["project_id" => $APP_ID, "case_id" => $CASE_ID]);
 
-                $html="<table border='0' cellpadding='0' cellspacing='0'>";
-                $sw_add=false;
+        foreach ($audits as $audit) {
+            $sql2 = "SELECT usrid, firstName, lastName, CONCAT(lastName, ' ', firstName) AS USR_NAME FROM user_management.poms_users WHERE username = ?";
+            $result2 = $this->objMysql->_query ($sql2, [$audit['username']]);
 
-                foreach ($changedValues as $key => $value) {
-
-                    if (($value!=null) && (!is_array($value))) {
-                        $sw_add=true;
-                        $html.="<tr>";
-                        $html.="<td><b>$key:</b> </td>";
-                        $html.="<td>$value</td>";
-                        $html.="</tr>";
-                    }
-
-                    if (is_array($value)) {
-                        $html.="<tr>";
-                        $html.="<td><b>$key:</b> </td>";
-                        $html.="<td>";
-                        $html.="<table>";
-                        foreach ($value as $key1 => $value1) {
-
-                            $html.="<tr>";
-                            //$html.="<td><b>$key1</b></td>";
-                            $html.="<td>";
-                            if (is_array($value1)) {
-                                $sw_add=true;
-                                $html.="<table>";
-                                foreach ($value1 as $key2 => $value2) {
-                                    $html.="<tr>";
-                                    $html.="<td><b>$key2:</b></td>";
-                                    $html.="<td>$value2</td>";
-                                    $html.="</tr>";
-                                }
-                                $html.="</table>";
-                            } else {
-                                $html.= $value1;
-                            }
-                            $html.="</td>";
-                            $html.="</tr>";
-                        }
-                        $html.="</table>";
-                        $html.="</td>";
-                        $html.="</tr>";
-                        $html.="</td>";
-                    }
-                }
-
-                $html.="</table>";
-
-                $aRow['FIELDS']    = $html;
-
-                if ($sw_add) {
-                    $aDynHistory[] = $aRow;
-                }
+            if ( isset ($result2[0]) && !empty ($result2[0]) )
+            {
+                $username = $result2[0]['USR_NAME'];
+                $userId = $result2[0]['usrid'];
+                $firstName = $result2[0]['firstName'];
+                $lastName = $result2[0]['lastName'];
             }
 
+            $changedValues = unserialize ($audit['message']);
+
+            foreach ($changedValues as $key => $value) {
+                if ( ($value != null) && (!is_array ($value)) )
+                {
+                    $sw_add = true;
+                    $html.="<tr>";
+                    $html.="<td><b>$key:</b> </td>";
+                    $html.="<td>$value</td>";
+                    $html.="</tr>";
+                }
+                if ( is_array ($value) )
+                {
+                    $html.="<tr>";
+                    $html.="<td><b>$key (grid):</b> </td>";
+                    $html.="<td>";
+                    $html.="<table>";
+                    foreach ($value as $key1 => $value1) {
+                        $html.="<tr>";
+                        $html.="<td><b>$key1</b></td>";
+                        $html.="<td>";
+                        if ( is_array ($value1) )
+                        {
+                            $sw_add = true;
+                            $html.="<table>";
+                            foreach ($value1 as $key2 => $value2) {
+                                $html.="<tr>";
+                                $html.="<td><b>$key2</b></td>";
+                                $html.="<td>$value2</td>";
+                                $html.="</tr>";
+                            }
+                            $html.="</table>";
+                        }
+                        $html.="</td>";
+                        $html.="</tr>";
+                    }
+                    $html.="</table>";
+                    $html.="</td>";
+                    $html.="</tr>";
+                    $html.="</td>";
+
+                    if ( $sw_add )
+                    {
+                        $aDynHistory[] = $audit;
+                    }
+                }
+            }
         }
 
-      return $aDynHistory;
+        $html.="</table>";
+
+        $aDynHistory['FIELDS'] = $html;
+
+
+        return $aDynHistory;
     }
 
 }

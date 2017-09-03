@@ -355,7 +355,7 @@ class WorkflowStep
         return true;
     }
 
-    private function sendNotification ($objMike, array $arrCompleteData = [], $arrEmailAddresses = [])
+    private function sendNotification (Users $objUser, array $arrCompleteData = [], $arrEmailAddresses = [])
     {
         $objNotifications = new SendNotification();
         $objNotifications->setVariables ($this->_stepId, $this->_systemName);
@@ -367,7 +367,7 @@ class WorkflowStep
         }
         $objStep = new Task ($this->_stepId);
         $objStep->setStepId ($this->_stepId);
-        $objNotifications->buildEmail ($objStep);
+        $objNotifications->buildEmail ($objStep, $objUser);
     }
 
     private function completeWorkflowObject ($objMike, Users $objUser, $arrCompleteData, $complete = false, $arrEmailAddresses = array())
@@ -584,7 +584,7 @@ class WorkflowStep
         }
         $auditStatus = isset ($arrCompleteData['status']) ? $arrCompleteData['status'] : '';
         (new AppDelegation())->createAppDelegation ($this, $objMike, $objUser, $objTask, $this->_stepId, 3, false, -1, $hasEvent, $blIsParralelTask, $status, $auditStatus);
-        $this->sendNotification ($objMike, $arrCompleteData, $arrEmailAddresses);
+        $this->sendNotification ($objUser, $arrCompleteData, $arrEmailAddresses);
         $this->nextTask = $step;
     }
 

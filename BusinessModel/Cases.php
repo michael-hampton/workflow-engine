@@ -909,6 +909,13 @@ class Cases
 
         $objSteps = new \WorkflowStep (null, $objElement);
 
+        $arrAudit = $objElement->getAudit ();
+
+        if ( isset ($arrAudit['elements'][$objElement->getId ()]['steps'][$objSteps->getCurrentStep ()]['status']) && $arrAudit['elements'][$objElement->getId ()]['steps'][$objSteps->getCurrentStep ()]['status'] === "HELD" )
+        {
+            $objElement->unpauseCase ($objElement->getParentId (), $objSteps->getCurrentStep (), $objUser->getUserId (), false);
+        }
+
         if ( $status === "COMPLETE" )
         {
             $objSteps->complete ($objElement, $arrStepData, $objUser);
@@ -917,6 +924,55 @@ class Cases
         {
             $objSteps->save ($objElement, $arrStepData, $objUser);
         }
+    }
+
+    public function pauseCase (\Elements $objElement, \Users $objUser, $arrData)
+    {
+        $arrStepData = array(
+            'claimed' => $objUser->getUsername (),
+            "dateCompleted" => date ("Y-m-d H:i;s"),
+            "status" => "HELD",
+            "heldReason" => $arrData['pauseReason']
+        );
+
+        $objSteps = new \WorkflowStep (null, $objElement);
+
+        $appThreadIndex = $objSteps->getCurrentStep ();
+
+        $delIndex = $objSteps->getCurrentTask ();
+
+        $aData['PRO_UID'] = $objSteps->getWorkflowId ();
+
+        $aData['APP_UID'] = $objElement->getParentId ();
+
+        $aData['APP_THREAD_INDEX'] = $appThreadIndex;
+
+        $aData['APP_DEL_INDEX'] = $delIndex;
+
+        $aData['APP_TYPE'] = 'PAUSE';
+
+        $aData['APP_STATUS'] = "HELD";
+
+        $aData['APP_DELEGATION_USER'] = $objUser->getUserId ();
+
+        $aData['APP_ENABLE_ACTION_USER'] = $objUser->getUserId ();
+
+        $aData['APP_ENABLE_ACTION_DATE'] = date ('Y-m-d H:i:s');
+
+        $sUnpauseDate = $arrData['unpauseDate'];
+
+        if ( isset ($arrData['unpauseTime']) && trim ($arrData['unpauseTime']) !== "" )
+        {
+            $sUnpauseDate .= " " . $arrData['unpauseTime'];
+        }
+
+        $aData['APP_DISABLE_ACTION_DATE'] = $sUnpauseDate;
+
+        $oAppDelay = new \AppDelay();
+
+        $oAppDelay->create ($aData);
+
+        $objSteps->save ($objElement, $arrStepData, $objUser);
     }
 
     /**
@@ -1059,16 +1115,16 @@ class Cases
             $objDocumentVersion = new \DocumentVersion (array());
             $lastDocVersion = $objDocumentVersion->getLastDocVersionByFilename ($sFilename);
 
-            /** Create Folder **/
+            /** Create Folder * */
             $pathOutput = OUTPUT_DOCUMENTS . $projectId . "/";
-            $arrPaths = explode("/", $pathOutput);
-            
-            $arrPaths = array_slice(array_filter($arrPaths), -2, 3, true);
-            
-            $folderPath = implode("/", $arrPaths);
-            
+            $arrPaths = explode ("/", $pathOutput);
+
+            $arrPaths = array_slice (array_filter ($arrPaths), -2, 3, true);
+
+            $folderPath = implode ("/", $arrPaths);
+
             $objFolder = new \AppFolder();
-            $folderId = $objFolder->createFromPath($folderPath);
+            $folderId = $objFolder->createFromPath ($folderPath);
 
             if ( ($aOD->getOutDocVersioning () ) )
             {

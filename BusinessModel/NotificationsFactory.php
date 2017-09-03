@@ -139,7 +139,7 @@ class NotificationsFactory
 
         if ( isset ($arrParameters['parent_id']) && $arrParameters['parent_id'] !== null )
         {
-            $query .= " AND parent_id = ?";
+            $query .= " AND APP_UID = ?";
             $arrWhere[] = $arrParameters['parent_id'];
         }
 

@@ -27,6 +27,7 @@ class Elements
     private $dueDate;
     private $originalTitle;
     private $originalDescription;
+    private $heldReason;
     public $objJobFields = array(
         "location" => array("required" => "true", "type" => "string", "accessor" => "getLocation", "mutator" => "setLocation"),
         "batch" => array("required" => "true", "type" => "string", "accessor" => "getBatch", "mutator" => "setBatch"),
@@ -40,6 +41,7 @@ class Elements
         "rejectionReason" => array("required" => "false", "type" => "string", "accessor" => "getRejectionReason", "mutator" => "setRejectionReason"),
         "originalTitle" => array("required" => "false", "type" => "string", "accessor" => "getOriginalTitle", "mutator" => "setOriginalTitle"),
         "originalDescription" => array("required" => "false", "type" => "string", "accessor" => "getOriginalDescription", "mutator" => "setOriginalDescription"),
+        "heldReason" => array("required" => "false", "type" => "string", "accessor" => "getHeldReason", "mutator" => "setHeldReason"),
     );
     public $objSchedulerFields = array(
         "description" => array("fieldName" => "title", "required" => "true", "type" => "int"),
@@ -385,6 +387,16 @@ class Elements
     public function setProjectName ($projectName)
     {
         $this->projectName = $projectName;
+    }
+
+    public function getHeldReason ()
+    {
+        return $this->heldReason;
+    }
+
+    public function setHeldReason ($heldReason)
+    {
+        $this->heldReason = $heldReason;
     }
 
     public function getProjectById ()
@@ -775,7 +787,7 @@ class Elements
 
      */
 
-    public function unpauseCase ($sApplicationUID, $iDelegation, $sUserUID)
+    public function unpauseCase ($sApplicationUID, $iDelegation, $sUserUID, $moveTask = true)
     {
 
         //Verify status of the case
@@ -842,13 +854,17 @@ class Elements
             }
         }
 
-        $auditData['elements'][$caseId]['steps'][$iDelegation]['status'] = "CLOSED";
-        $auditData['elements'][$caseId]['steps'][$iDelegation]['finish_date'] = date ("Y-m-d H:i:s");
+        if ( $moveTask === true )
+        {
+            $auditData['elements'][$caseId]['steps'][$iDelegation]['status'] = "CLOSED";
+            $auditData['elements'][$caseId]['steps'][$iDelegation]['finish_date'] = date ("Y-m-d H:i:s");
 
-        $auditData['elements'][$caseId]['steps'][$nextTask]['claimed'] = isset ($_SESSION['user']['username']) ? $_SESSION['user']['username'] : 'system';
-        $auditData['elements'][$caseId]['steps'][$nextTask]['dateCompleted'] = date ("Y-m-d H:i:s");
+            $auditData['elements'][$caseId]['steps'][$nextTask]['claimed'] = isset ($_SESSION['user']['username']) ? $_SESSION['user']['username'] : 'system';
+            $auditData['elements'][$caseId]['steps'][$nextTask]['dateCompleted'] = date ("Y-m-d H:i:s");
 
-        $this->objMysql->_update ("workflow.workflow_data", ["audit_data" => json_encode ($auditData), "workflow_data" => json_encode ($workflowData)], ["object_id" => $sApplicationUID]);
+            $this->objMysql->_update ("workflow.workflow_data", ["audit_data" => json_encode ($auditData), "workflow_data" => json_encode ($workflowData)], ["object_id" => $sApplicationUID]);
+        }
+
 
         //update the DEL_INDEX ? in APP_THREAD table?
 
@@ -864,10 +880,6 @@ class Elements
 
 
         // $this->getExecuteTriggerProcess ($sApplicationUID, "UNPAUSE");
-
-
-
-        /* ----------------------------------********--------------------------------- */
     }
 
 }

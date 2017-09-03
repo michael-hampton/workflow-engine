@@ -83,7 +83,7 @@ class EmailServer
         try {
             //Set variables
             $arrayEmailServerData = ($emailServerUid == "") ? array() : $this->getEmailServer ($emailServerUid, true);
-          
+
             $arrayFinalData = array_merge ($arrayEmailServerData, $arrayData);
             //Verify data
 
@@ -744,6 +744,47 @@ class EmailServer
             }
 
             return $arrayTestMailResult;
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * Get Default Email Server
+     *
+     * return array Return an array with Email Server default
+     */
+    public function getEmailServerDefault ()
+    {
+        try {
+            $arrayData = array();
+
+            //SQL
+            $criteria = $this->getEmailServerCriteria ();
+
+            $criteria .= " WHERE MESS_DEFAULT = 1";
+
+            $results = $this->objMysql->_query ($criteria);
+
+
+            foreach ($results as $row) {
+
+                $arrayData["MESS_ENGINE"] = $row["MESS_ENGINE"];
+                $arrayData["MESS_SERVER"] = $row["MESS_SERVER"];
+                $arrayData["MESS_PORT"] = (int) ($row["MESS_PORT"]);
+                $arrayData["MESS_RAUTH"] = (int) ($row["MESS_RAUTH"]);
+                $arrayData["MESS_ACCOUNT"] = $row["MESS_ACCOUNT"];
+                $arrayData["MESS_PASSWORD"] = $row["MESS_PASSWORD"];
+                $arrayData["MESS_FROM_MAIL"] = $row["MESS_FROM_MAIL"];
+                $arrayData["MESS_FROM_NAME"] = $row["MESS_FROM_NAME"];
+                $arrayData["SMTPSECURE"] = $row["SMTPSECURE"];
+                $arrayData["MESS_TRY_SEND_INMEDIATLY"] = isset ($row["MESS_TRY_SEND_INMEDIATLY"]) ? (int) ($row["MESS_TRY_SEND_INMEDIATLY"]) : 1;
+                $arrayData["MAIL_TO"] = isset ($row["MAIL_TO"]) ? $row["MAIL_TO"] : 'bluetiger_uan@yahoo.com';
+                $arrayData["MESS_DEFAULT"] = (int) ($row["MESS_DEFAULT"]);
+            }
+
+            //Return
+            return $arrayData;
         } catch (\Exception $e) {
             throw $e;
         }
