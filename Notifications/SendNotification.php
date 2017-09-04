@@ -290,7 +290,7 @@ class SendNotification
 
             $sw = 1;
 
-            $oDerivation = new Derivation ();
+            $oDerivation = new WorkflowStep ();
 
             $userFields = $oDerivation->getUsersFullNameFromArray ($oDerivation->getAllUsersFromAnyTask ($objTask->getTasUid ()));
 
