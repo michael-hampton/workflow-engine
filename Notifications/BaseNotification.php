@@ -10,16 +10,8 @@ abstract class BaseNotification implements Persistent
     protected $body;
     protected $objMysql;
     protected $recipient;
-    protected $elementId;
-    protected $hasRead;
-    protected $dateSent;
     protected $triggeringStatus;
-    protected $projectId;
     protected $id;
-    protected $sentByUser;
-    protected $parentId;
-    protected $stepData;
-    protected $stepName;
     protected $cc;
     protected $bcc;
     protected $from;
@@ -47,11 +39,6 @@ abstract class BaseNotification implements Persistent
 
     public function __construct ()
     {
-        if ( !defined ("ENVIROMENT") )
-        {
-            define ("ENVIROMENT", "DEV");
-        }
-
         $this->objMysql = new Mysql2();
     }
 
@@ -124,10 +111,10 @@ abstract class BaseNotification implements Persistent
     }
 
     /**
-     * 
+     * DEPRECATED
      * @return boolean
      */
-    public function setMessage ()
+    /*public function setMessage ()
     {
         $objMysql = new Mysql2();
         $arrResult = $objMysql->_select ("auto_notifications", array(), array("triggering_status" => $this->status, "system" => $this->system));
@@ -144,7 +131,7 @@ abstract class BaseNotification implements Persistent
         $this->cc = trim ($arrResult[0]['cc']) !== "" ? $arrResult[0]['cc'] : '';
         $this->bcc = trim ($arrResult[0]['bcc']) !== "" ? $arrResult[0]['bcc'] : '';
         $this->sendToAll = $arrResult[0]['send_to_all'];
-    }
+    }*/
 
     public function getRecipient ()
     {
@@ -166,34 +153,6 @@ abstract class BaseNotification implements Persistent
         return $this->body;
     }
 
-    public function getHasRead ()
-    {
-        return $this->hasRead;
-    }
-
-    public function getDateSent ()
-    {
-        return $this->dateSent;
-    }
-
-    /**
-     * 
-     * @param type $hasRead
-     */
-    public function setHasRead ($hasRead)
-    {
-        $this->hasRead = $hasRead;
-    }
-
-    /**
-     * 
-     * @param type $dateSent
-     */
-    public function setDateSent ($dateSent)
-    {
-        $this->dateSent = $dateSent;
-    }
-
     public function getTriggeringStatus ()
     {
         return $this->triggeringStatus;
@@ -211,8 +170,6 @@ abstract class BaseNotification implements Persistent
     public function setTriggeringStatus ($triggeringStatus)
     {
         $this->triggeringStatus = $triggeringStatus;
-        $this->arrNotificationData['triggering_status'] = $triggeringStatus;
-        $this->arrNotificationData['system'] = "task_manager";
     }
 
     /**
@@ -231,8 +188,6 @@ abstract class BaseNotification implements Persistent
     public function setSubject ($subject)
     {
         $this->subject = $subject;
-        $this->arrNotificationData['message_subject'] = $subject;
-        $this->arrMessages['subject'] = $subject;
     }
 
     /**
@@ -242,8 +197,6 @@ abstract class BaseNotification implements Persistent
     public function setBody ($body)
     {
         $this->body = $body;
-        $this->arrNotificationData['message_body'] = $body;
-        $this->arrMessages['message'] = $body;
     }
 
     /**
@@ -253,78 +206,8 @@ abstract class BaseNotification implements Persistent
     public function setRecipient ($recipient)
     {
         $this->recipient = $recipient;
-        $this->arrNotificationData['to'] = $recipient;
-        $this->arrMessages['recipient'] = $recipient;
     }
-
-    public function getParentId ()
-    {
-        return $this->parentId;
-    }
-
-    /**
-     * 
-     * @param type $parentId
-     */
-    public function setParentId ($parentId)
-    {
-        $this->parentId = $parentId;
-        $this->arrMessages['parent_id'] = $parentId;
-    }
-
-    public function getProjectId ()
-    {
-        return $this->projectId;
-    }
-
-    /**
-     * 
-     * @param type $projectId
-     */
-    public function setProjectId ($projectId)
-    {
-        $this->projectId = $projectId;
-    }
-
-    public function getSentByUser ()
-    {
-        return $this->sentByUser;
-    }
-
-    /**
-     * 
-     * @param type $sentByUser
-     */
-    public function setSentByUser ($sentByUser)
-    {
-        $this->sentByUser = $sentByUser;
-        $this->arrMessages['sent_by_user'] = $sentByUser;
-    }
-
-    public function getStepData ()
-    {
-        return $this->stepData;
-    }
-
-    /**
-     * 
-     * @param type $stepData
-     */
-    public function setStepData ($stepData)
-    {
-        $this->stepData = $stepData;
-    }
-
-    public function getStepName ()
-    {
-        return $this->stepName;
-    }
-
-    public function setStepName ($stepName)
-    {
-        $this->stepName = $stepName;
-    }
-
+    
     public function getCc ()
     {
         return $this->cc;
@@ -424,17 +307,17 @@ abstract class BaseNotification implements Persistent
         $this->objMysql->_update ("workflow.APP_MESSAGE", $arrUpdate, array("APP_MSG_UID" => $id));
     }
 
-    public function saveNewMessage ()
+    /*public function saveNewMessage ()
     {
         $this->arrMessages['date_sent'] = date ("Y-m-d H:i:s");
         $this->arrMessages['status'] = 1;
         $this->objMysql->_insert ("workflow.notifications_sent", $this->arrMessages);
-    }
+    }*/
 
     /**
-     *
+     * DEPRECATED
      */
-    public function sendMessage ()
+    /*public function sendMessage ()
     {        
         $this->objMysql->_query ("UPDATE workflow.notifications_sent
                                 SET status = 2
@@ -457,6 +340,6 @@ abstract class BaseNotification implements Persistent
         );
 
         return $id;
-    }
+    }*/
 
 }
