@@ -1,6 +1,6 @@
 <?php
 
-class SendNotification extends Notification
+class SendNotification
 {
 
     private $arrEmailAddresses = array();
@@ -13,6 +13,7 @@ class SendNotification extends Notification
      */
     public function setVariables ($status, $system)
     {
+        $objNotification = new \BusinessModel\Notification();
         error_reporting (E_ALL);
         $this->setStatus ($status);
         $this->setSystem ("task_manager");
@@ -319,22 +320,22 @@ class SendNotification extends Notification
      */
     public function notificationEmail ($sendto, $message_subject, $message_body, Users $objUser)
     {
-
-
         $aConfiguration = $this->getEmailConfiguration ();
         $oSpool = new EmailFunctions();
 
         if ( !empty ($aConfiguration) )
         {
             $user = (new \BusinessModel\UsersFactory())->getUser ($objUser->getUserId ());
-            $from = $user->getFirstName () . " " . $user->getLastName () . ($user->getUser_email () != "" ? " <" . $user->getUser_email () . ">" : "");
-            $from = (new BusinessModel\EmailServer())->buildFrom ($aConfiguration, $from);
+            
+            if($this->from === '') {
+                $from = $user->getFirstName () . " " . $user->getLastName () . ($user->getUser_email () != "" ? " <" . $user->getUser_email () . ">" : "");
+            }
         }
-        else
-        {
+        
+        $from = (new BusinessModel\EmailServer())->buildFrom ($aConfiguration, $from);
+       
             $from = trim ($this->from) !== "" ? $this->from : $this->defaultFrom;
             $from = 'EasyFlow <' . $this->defaultFrom . '>';
-        }
 
         $msgError = "";
 
