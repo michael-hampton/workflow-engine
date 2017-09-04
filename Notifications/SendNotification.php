@@ -5,6 +5,11 @@ class SendNotification
 
     private $arrEmailAddresses = array();
     private $taskId;
+    private $subject;
+    private $body;
+    private $from;
+    private $cc;
+    private $bcc;
 
     /**
      *
@@ -14,10 +19,10 @@ class SendNotification
     public function setVariables ($status, $system)
     {
         $objNotification = new \BusinessModel\Notification();
-        error_reporting (E_ALL);
+        $arrNotification = $objNotification->getEmailEventData($status);
         $this->setStatus ($status);
         $this->setSystem ("task_manager");
-        $this->setMessage ();
+
     }
 
     /**
@@ -154,7 +159,11 @@ class SendNotification
     {
         $emailServer = new \BusinessModel\EmailServer();
 
-        $arrayEmailServerDefault = $emailServer->getEmailServerDefault ();
+        if(trim($this->from) !== '') {
+            
+        } else {
+            $arrayEmailServerDefault = $emailServer->getEmailServerDefault ();
+        }
 
         if ( count ($arrayEmailServerDefault) > 0 )
         {
@@ -323,20 +332,17 @@ class SendNotification
         $aConfiguration = $this->getEmailConfiguration ();
         $oSpool = new EmailFunctions();
 
-        if ( !empty ($aConfiguration) )
-        {
+       if(empty($aConfiguration)){
             $user = (new \BusinessModel\UsersFactory())->getUser ($objUser->getUserId ());
-            
-            if($this->from === '') {
-                $from = $user->getFirstName () . " " . $user->getLastName () . ($user->getUser_email () != "" ? " <" . $user->getUser_email () . ">" : "");
-            }
+            $from = $user->getFirstName () . " " . $user->getLastName () . ($user->getUser_email () != "" ? " <" . $user->getUser_email () . ">" : "");
         }
         
+
+       
+        $from = trim ($this->from) !== "" ? $this->from : $this->defaultFrom;
+        $from = 'EasyFlow <' . $this->defaultFrom . '>';
         $from = (new BusinessModel\EmailServer())->buildFrom ($aConfiguration, $from);
        
-            $from = trim ($this->from) !== "" ? $this->from : $this->defaultFrom;
-            $from = 'EasyFlow <' . $this->defaultFrom . '>';
-
         $msgError = "";
 
         if ( !isset ($aConfiguration['MESS_ENABLED']) || $aConfiguration['MESS_ENABLED'] != '1' )
@@ -360,7 +366,6 @@ class SendNotification
 
         if ( trim ($sendto) !== "" )
         {
-
             $oSpool->setConfig ($dataLastEmail['configuration']);
             $oSpool->create (array(
                 "msg_uid" => "",
