@@ -151,7 +151,6 @@ require_once HOME_DIR . '/core/app/library/WorkflowClasses/Save.php';
 require_once HOME_DIR . '/core/app/library/WorkflowClasses/Elements.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/Cases.php';
 
-require_once HOME_DIR . '/core/app/library/Derivation.php';
 require_once HOME_DIR . '/core/app/library/TeamFunctions.php';
 
 /* * ************** Notification Classes *********************** */
@@ -200,8 +199,6 @@ require_once HOME_DIR . '/core/app/library/BusinessModel/Process.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/ProcessSupervisor.php';
 require_once HOME_DIR . '/core/app/library/Process/BaseProcessUser.php';
 require_once HOME_DIR . '/core/app/library/Process/ProcessUser.php';
-
-
 
 /* * ******************* Users ******************************************* */
 //require_once HOME_DIR.'/core/app/library/Users.php'
