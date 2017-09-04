@@ -817,7 +817,7 @@ class Elements
         $workflowData = json_decode ($results2[0]['workflow_data'], true);
         $auditData = json_decode ($results2[0]['audit_data'], true);
 
-        $nextTaskSql = $this->objMysql->_query ("SELECT id, step_from FROM workflow.status_mapping WHERE step_from = (SELECT step_to FROM workflow.status_mapping WHERE id = 53)");
+        $nextTaskSql = $this->objMysql->_query ("SELECT sm.id, sm.step_from FROM workflow.status_mapping sm WHERE sm.step_from = (SELECT step_to FROM workflow.status_mapping WHERE id = ?)", [$iDelegation]);
 
         if ( !isset ($nextTaskSql[0]) || empty ($nextTaskSql[0]) )
         {
@@ -858,7 +858,7 @@ class Elements
             $auditData['elements'][$caseId]['steps'][$iDelegation]['status'] = "CLOSED";
             $auditData['elements'][$caseId]['steps'][$iDelegation]['finish_date'] = date ("Y-m-d H:i:s");
 
-            $auditData['elements'][$caseId]['steps'][$nextTask]['claimed'] = isset ($_SESSION['user']['username']) ? $_SESSION['user']['username'] : 'system';
+            $auditData['elements'][$caseId]['steps'][$nextTask]['claimed'] = 'auto_system';
             $auditData['elements'][$caseId]['steps'][$nextTask]['dateCompleted'] = date ("Y-m-d H:i:s");
 
             $this->objMysql->_update ("workflow.workflow_data", ["audit_data" => json_encode ($auditData), "workflow_data" => json_encode ($workflowData)], ["object_id" => $sApplicationUID]);
