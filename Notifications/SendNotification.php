@@ -19,7 +19,14 @@ class SendNotification
     public function setVariables ($status, $system)
     {
         $objNotification = new \BusinessModel\Notification();
-        $arrNotification = $objNotification->getEmailEventData($status);
+        $arrResult = $objNotification->getEmailEventData($status);
+        
+        $this->fromName = trim ($arrResult[0]['from_name']) !== "" ? $arrResult[0]['from_name'] : '';
+        $this->from = trim ($arrResult[0]['from_mail']) !== "" ? $arrResult[0]['from_mail'] : '';
+        $this->cc = trim ($arrResult[0]['cc']) !== "" ? $arrResult[0]['cc'] : '';
+        $this->bcc = trim ($arrResult[0]['bcc']) !== "" ? $arrResult[0]['bcc'] : '';
+        $this->sendToAll = $arrResult[0]['send_to_all'];
+        
         $this->setStatus ($status);
         $this->setSystem ("task_manager");
 
