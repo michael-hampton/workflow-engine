@@ -550,7 +550,9 @@ class WorkflowStep
                 {
                     throw new Exception ("No user given");
                 }
-                $arrUsers = (new \BusinessModel\Task())->getTaskAssigneesAll ($this->workflowId, $this->_stepId, '', 0, 100, "user");
+                
+                $arrUsers = $this->getUsersFullNameFromArray($this->getAllUsersFromAnyTask($this->_stepId));
+                
                 $objProcess = (new Workflow ($this->workflowId))->load ($this->workflowId);
                 switch ($taskType) {
                     case "PARALLEL":
@@ -572,8 +574,9 @@ class WorkflowStep
                     case "HELD";
                     case "ABANDONED":
                         $blHasValidUser = false;
+                        
                         foreach ($arrUsers as $arrUser) {
-                            if ( trim ($arrUser['aas_username']) === trim ($arrCompleteData['claimed']) )
+                            if ( trim ($arrUser['USR_USERNAME']) === trim ($arrCompleteData['claimed']) )
                             {
                                 $blHasValidUser = true;
                             }
@@ -586,20 +589,20 @@ class WorkflowStep
                         /*                         * ************************** Process Triggers ********************************************* */
                         if ( $taskType === "ABANDONED" && trim ($objProcess->getProTriCanceled ()) !== "" )
                         {
-                            $objTrigger->executeSendMail (null, $objProcess->getProTriCanceled ());
+                            $objTrigger->executeSendMail ($objUser, null, $objProcess->getProTriCanceled ());
                         }
                         if ( $taskType === "HELD" && trim ($objProcess->getProTriPaused ()) !== "" )
                         {
-                            $objTrigger->executeSendMail (null, $objProcess->getProTriPaused ());
+                            $objTrigger->executeSendMail ($objUser, null, $objProcess->getProTriPaused ());
                         }
                         if ( trim ($this->currentStatus) === "HELD" && trim ($objProcess->getProTriUnpaused ()) !== "NONE" )
                         {
-                            $objTrigger->executeSendMail (null, $objProcess->getProTriUnpaused ());
+                            $objTrigger->executeSendMail ($objUser, null, $objProcess->getProTriUnpaused ());
                         }
                         break;
                     case "CLAIMED":
                         foreach ($arrUsers as $arrUser) {
-                            if ( trim ($arrUser['aas_username']) === trim ($arrCompleteData['claimed']) )
+                            if ( trim ($arrUser['USR_USERNAME']) === trim ($arrCompleteData['claimed']) )
                             {
                                 $blHasValidUser = true;
                             }

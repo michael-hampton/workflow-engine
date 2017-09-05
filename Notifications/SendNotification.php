@@ -134,6 +134,7 @@ class SendNotification
      */
     public function buildEmail (Task $objTask, Users $objUser, $system = "task_manager")
     {
+        
         try {
             $this->setVariables ($objTask->getStepId (), $system);
 
@@ -258,8 +259,6 @@ class SendNotification
          */
         $taskType = trim ($objTask->getTasSelfserviceTimeUnit ()) !== "" ? 'SELF-SERVICE' : 'NORMAL';
         $blParallel = in_array ($objTask->getTasAssignType (), array("MULTIPLE_INSTANCE", "MULTIPLE_INSTANCE_VALUE_BASED")) ? true : false;
-
-        $blParallel = true;
 
         if ( $taskType === "SELF-SERVICE" )
         {

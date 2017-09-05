@@ -199,7 +199,7 @@ class StepTrigger
                     if ( $triggerType === "sendMail" )
                     {
                         $templateName = str_replace (" ", "_", $arrTrigger['template_name']);
-                        $this->executeSendMail ($templateName);
+                        $this->executeSendMail ($objUser, $templateName);
                     }
 
                     if ( $arrTrigger !== false && !empty ($arrTrigger) )
@@ -523,7 +523,7 @@ class StepTrigger
         return $triggerArray;
     }
 
-    public function executeSendMail ($templateName = null, $id = null)
+    public function executeSendMail (\Users $objUser, $templateName = null, $id = null)
     {
         if ( $templateName === null && $id === null )
         {
@@ -570,7 +570,7 @@ class StepTrigger
             {
                 $subject = $objCase->replaceDataField ($subject, $Fields);
                 $body = $objCase->replaceDataField ($content, $Fields);
-                $objSendNotification->notificationEmail ($recipients, $subject, $body);
+                $objSendNotification->notificationEmail ($recipients, $subject, $body, $objUser);
             }
         }
     }
