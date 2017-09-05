@@ -191,7 +191,7 @@ class EmailServer
 
                     if ( isset ($arrayData["MESS_DEFAULT"]) && (int) ($arrayData["MESS_DEFAULT"]) == 1 )
                     {
-                        //$this->setEmailServerDefaultByUid ($emailServerUid);
+                        $this->setEmailServerDefaultByUid ($emailServerUid);
                     }
 
                     //Return
@@ -267,6 +267,11 @@ class EmailServer
                 {
                     $emailServerUid = $emailServer->save ();
 
+                    if ( isset ($arrayData["MESS_DEFAULT"]) && (int) ($arrayData["MESS_DEFAULT"]) == 1 )
+                    {
+                        $this->setEmailServerDefaultByUid ($emailServerUid);
+                    }
+                    
                     //Return
                     return $this->getEmailServer ($emailServerUid);
                 }
@@ -282,6 +287,18 @@ class EmailServer
                 throw $e;
             }
         } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+    
+    public function setEmailServerDefaultByUid($emailServerUid)
+    {
+        try {
+            $arrayEmailServerData = $this->getEmailServer($emailServerUid, true);
+            
+            //Update
+            $this->objMysql->_query("UPDATE email_server SET MESS_DEFAULT = 0 WHERE MESS_UID != ?", [$emailServerUid]);
+        } catch (Exception $e) {
             throw $e;
         }
     }
