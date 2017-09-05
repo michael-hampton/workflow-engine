@@ -212,7 +212,7 @@ class SendNotification
          * else we get the assigned task users and put them into the array if they arent already there
          */
         $taskType = trim ($objTask->getTasSelfserviceTimeUnit ()) !== "" ? 'SELF-SERVICE' : 'NORMAL';
-        $blParallel = false;
+        $blParallel = in_array ($objTask->getTasAssignType (), array("MULTIPLE_INSTANCE", "MULTIPLE_INSTANCE_VALUE_BASED")) ? true : false;
 
         if ( $taskType === "SELF-SERVICE" )
         {
