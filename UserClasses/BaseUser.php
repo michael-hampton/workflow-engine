@@ -20,6 +20,7 @@ abstract class BaseUser implements Persistent
     private $objMysql;
     private $roleId;
     private $supervisor;
+    private $userReplaces;
 
     /**
      * Array of ValidationFailed objects.
@@ -97,6 +98,15 @@ abstract class BaseUser implements Persistent
      * 
      * @return type
      */
+    public function getUserReplaces ()
+    {
+        return $this->userReplaces;
+    }
+
+    /**
+     * 
+     * @return type
+     */
     function getStatus ()
     {
         return $this->status;
@@ -162,6 +172,19 @@ abstract class BaseUser implements Persistent
 
         $this->username = $username;
         $this->arrUser['username'] = $username;
+    }
+
+    public function setUserReplaces ($userReplaces)
+    {
+        // Since the native PHP type for this column is integer,
+        // we will cast the input value to an int (if it is not).
+        if ( $userReplaces !== null && !is_int ($userReplaces) && is_numeric ($userReplaces) )
+        {
+            $userReplaces = (int) $userReplaces;
+        }
+
+        $this->userReplaces = $userReplaces;
+        $this->arrUser['user_replaces'] = $userReplaces;
     }
 
     /**
@@ -446,7 +469,7 @@ abstract class BaseUser implements Persistent
             $id = $this->objMysql->_insert ("user_management.poms_users", $this->arrUser);
             return $id;
         }
-        
+
         return true;
     }
 
@@ -481,20 +504,22 @@ abstract class BaseUser implements Persistent
     {
         $this->objMysql->_update ("user_management.poms_users", array("status" => $this->status), array("userId" => $this->userId));
     }
-    
-    public function removeRolesFromUser($usrId, $roleId = null) {
+
+    public function removeRolesFromUser ($usrId, $roleId = null)
+    {
         $arrWhere['userId'] = $usrId;
-        
-        if($roleId !== null) {
+
+        if ( $roleId !== null )
+        {
             $arrWhere['roleId'] = $roleId;
         }
-        
-        $this->objMysql->_delete("user_management.user_roles", $arrWhere);
+
+        $this->objMysql->_delete ("user_management.user_roles", $arrWhere);
     }
-    
-    public function assignRoleToUser($userId, $roleId)
+
+    public function assignRoleToUser ($userId, $roleId)
     {
-        $this->objMysql->_insert("user_management.user_roles", array("userId" => $userId, "roleId" => $roleId));
+        $this->objMysql->_insert ("user_management.user_roles", array("userId" => $userId, "roleId" => $roleId));
     }
 
 }

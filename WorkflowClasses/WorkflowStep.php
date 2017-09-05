@@ -261,7 +261,8 @@ class WorkflowStep
     private function searchArray ($products, $field, $value)
     {
         foreach ($products as $key => $product) {
-            if ( isset ($product[$field]) && $product[$field] === $value ) {
+            if ( isset ($product[$field]) && $product[$field] === $value )
+            {
                 return $key;
             }
         }
@@ -294,6 +295,81 @@ class WorkflowStep
         return true;
     }
 
+    /* get next assigned user
+
+     *
+
+     * @param   Array   $tasInfo
+
+     * @return  Array   $userFields
+
+     */
+
+    private function getNextAssignedUser (Task $objTask, Users $objUser)
+    {
+        $objTask = (new Task())->retrieveByPk ($this->_stepId);
+
+        $type = trim ($objTask->getTasAssignType ());
+
+        switch ($type) {
+            case "REPORT_TO":
+
+                //default error user when the reportsTo is not assigned to that user
+                //look for USR_REPORTS_TO to this user
+
+                $userFields['USR_UID'] = '';
+
+                $userFields['USR_FULLNAME'] = 'Current user does not have a valid Reports To user';
+
+                $userFields['USR_USERNAME'] = 'Current user does not have a valid Reports To user';
+
+                $userFields['USR_FIRSTNAME'] = '';
+
+                $userFields['USR_LASTNAME'] = '';
+
+                $userFields['USR_EMAIL'] = '';
+
+                //get the report_to user & its full info
+
+                $useruid = ($objUser->getUserId () != "") ? $this->checkReplacedByUser ($this->getDenpendentUser ($objUser)) : "";
+
+                if ( isset ($useruid) && $useruid != '' )
+                {
+                    $userFields = $this->getUsersFullNameFromArray ($useruid);
+                }
+                // if there is no report_to user info, throw an exception indicating this
+
+                if ( !isset ($userFields) || $userFields['USR_UID'] == '' )
+                {
+
+                    throw (new Exception ('ID_MSJ_REPORSTO')); // "The current user does not have a valid Reports To user.  Please contact administrator.") ) ;
+                }
+
+                break;
+        }
+
+        return $userFields;
+    }
+
+    /* getDenpendentUser
+
+     *
+
+     * @param   string   $USR_UID
+
+     * @return  string   $aRow['USR_REPORTS_TO']
+
+     */
+
+    private function getDenpendentUser (Users $objUser)
+    {
+
+        $objDepartment = (new \BusinessModel\Department())->getDepartment ($objUser->getDept_id ());
+        $departmentManager = $objDepartment->getDepartmentManager ();
+
+        return $departmentManager;
+    }
+
     /**
      * Puts a task into review state if(incorrect data given or report_to task assign type is set
      * @param type $arrFormData
@@ -306,14 +382,18 @@ class WorkflowStep
         $objValidate = new FieldValidator ($this->_stepId);
         $arrErrorsCodes = $objValidate->validate ($arrFormData);
         $objTask = (new Task())->retrieveByPk ($this->_stepId);
+
         if ( !empty ($arrErrorsCodes) || trim ($objTask->getTasAssignType ()) === "REPORT_TO" )
         {
             // put into review if incorrect data
             if ( $this->searchArray ($arrErrorsCodes, "message", "incorrect_data") !== false || trim ($objTask->getTasAssignType ()) === "REPORT_TO" )
             {
                 $this->elementId = $objMike->getId ();
-                $objDepartment = (new \BusinessModel\Department())->getDepartment ($objUser->getDept_id ());
-                $departmentManager = $objDepartment->getDeptManagerUsername ();
+
+                $departmentManager = $this->getNextAssignedUser ($objTask, $objUser);
+
+                $departmentManager = $departmentManager['USR_USERNAME'];
+                
                 $isProcessSupervisor = (new BusinessModel\ProcessSupervisor())->isUserProcessSupervisor (new Workflow ($this->workflowId), $objUser);
                 if ( method_exists ($objMike, "getParentId") )
                 {
@@ -338,6 +418,7 @@ class WorkflowStep
                     if ( trim ($objTask->getTasAssignType ()) === "REPORT_TO" )
                     {
                         // notify department manager
+                        die ("Yes 2");
                     }
 
                     $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['status'] = "IN REVIEW";
@@ -535,7 +616,8 @@ class WorkflowStep
         }
         if ( isset ($arrCompleteData['status']) && $arrCompleteData['status'] === "AUTO_ASSIGN" )
         {
-            if ( !isset ($arrCompleteData['claimed']) ) {
+            if ( !isset ($arrCompleteData['claimed']) )
+            {
                 $arrUsers = (new \BusinessModel\Task())->getTaskAssigneesAll ($this->workflowId, $this->_stepId, '', 0, 100, "user");
             }
         }
@@ -568,7 +650,7 @@ class WorkflowStep
         // check permissions
         $objCase = new \BusinessModel\Cases();
         $isValidUser = $objCase->doPostReassign (
-        $objTask, array(
+                $objTask, array(
             "cases" => array(
                 0 => array(
                     "elementId" => $this->elementId,
@@ -688,45 +770,81 @@ class WorkflowStep
             }
         }
     }
-        
+
+    public function userVacation ($UsrUid = "")
+    {
+        $aFields = array();
+        $cnt = 0;
+        do {
+            if ( $UsrUid != "" && $cnt < 100 )
+            {
+                $aFields = $objUser = (new \BusinessModel\UsersFactory())->getUser ($UsrUid);
+                $UsrUid = $aFields->getUserReplaces ();
+            }
+            else
+            {
+                break;
+            }
+            $cnt ++;
+        }
+        while ((int) $aFields->getStatus () != 1);
+        return $aFields;
+    }
+
     /* get an array of users, and returns the same arrays with User's fullname and other fields
      *
      * @param   Array   $aUsers      the task uidUser
      * @return  Array   $aUsersData  an array with with User's fullname
      */
+
     public function getUsersFullNameFromArray ($aUsers)
     {
-        $oUser = new BusinessModel\UsersFactory();
         $aUsersData = array();
         if ( is_array ($aUsers) )
-        
+        {
             foreach ($aUsers as $val) {
-                
-                $arrUser = $oUser->getUser($val);
-                $auxFields['USR_UID'] = $arrUser->getUserId();
-                $auxFields['USR_USERNAME'] = $arrUser->getUsername();
-                $auxFields['USR_FIRSTNAME'] = $arrUser->getFirstName();
-                $auxFields['USR_LASTNAME'] = $arrUser->getLastName();
-                $auxFields['USR_FULLNAME'] = $arrUser->getLastName() . ($arrUser->getLastName() != '' ? ', ' : '') . $arrUser->getFirstName();
-                $auxFields['USR_EMAIL'] = $arrUser->getUser_email();
-                $auxFields['USR_STATUS'] = $arrUser->getStatus();
-                $auxFields['DEP_UID'] = $arrUser->getDepartment();
+
+                $userFields = $this->userVacation ($val);
+
+                $auxFields['USR_UID'] = $userFields->getUserId ();
+                $auxFields['USR_USERNAME'] = $userFields->getUsername ();
+                $auxFields['USR_FIRSTNAME'] = $userFields->getFirstName ();
+                $auxFields['USR_LASTNAME'] = $userFields->getLastName ();
+                $auxFields['USR_FULLNAME'] = $userFields->getLastName () . ($userFields->getLastName () != '' ? ', ' : '') . $userFields->getFirstName ();
+                $auxFields['USR_EMAIL'] = $userFields->getUser_email ();
+                $auxFields['USR_STATUS'] = $userFields->getStatus ();
+                $auxFields['DEP_UID'] = $userFields->getDepartment ();
                 $auxFields['USR_HIDDEN_FIELD'] = '';
                 $aUsersData[] = $auxFields;
             }
+
+            return $aUsersData;
         }
         else
         {
+            $userFields = $this->userVacation ($aUsers);
+
+            $auxFields['USR_UID'] = $userFields->getUserId ();
+            $auxFields['USR_USERNAME'] = $userFields->getUsername ();
+            $auxFields['USR_FIRSTNAME'] = $userFields->getFirstName ();
+            $auxFields['USR_LASTNAME'] = $userFields->getLastName ();
+            $auxFields['USR_FULLNAME'] = $userFields->getLastName () . ($userFields->getLastName () != '' ? ', ' : '') . $userFields->getFirstName ();
+            $auxFields['USR_EMAIL'] = $userFields->getUser_email ();
+            $auxFields['USR_STATUS'] = $userFields->getStatus ();
+            $auxFields['DEP_UID'] = $userFields->getDepartment ();
+            $auxFields['USR_HIDDEN_FIELD'] = '';
+
+            return $auxFields;
         }
-        return $aUsersData;
     }
-    
+
     /* get all users, from any task, if the task have Groups, the function expand the group
      *
      * @param   string  $sTasUid  the task uidUser
      * @param   bool    $flagIncludeAdHocUsers
      * @return  Array   $users an array with userID order by USR_UID
      */
+
     public function getAllUsersFromAnyTask ($sTasUid, $flagIncludeAdHocUsers = false)
     {
         $users = array();
@@ -757,16 +875,76 @@ class WorkflowStep
             else
             {
                 //filter to users that is in vacation or has an inactive estatus, and others
-                $oUser = (new Users())->retrieveByPk ($row['USR_UID']);
+                $oUser = (new \BusinessModel\UsersFactory())->getUser ($row['USR_UID']);
+
                 if ( $oUser !== false )
                 {
-                    $users[$row['USR_UID']] = $row['USR_UID'];
+
+                    if ( (int) $oUser->getStatus () == 1 )
+                    {
+
+                        $users[$row['USR_UID']] = $row['USR_UID'];
+                    }
+                    else
+                    {
+                        $userUID = $this->checkReplacedByUser ($oUser);
+
+                        if ( $userUID != '' )
+                        {
+
+                            $users[$userUID] = $userUID;
+                        }
+                    }
                 }
             }
         }
         //to do: different types of sort
         sort ($users);
-        
+
         return $users;
     }
+
+    function checkReplacedByUser ($user)
+    {
+
+        if ( is_string ($user) )
+        {
+
+            $userInstance = (new \BusinessModel\UsersFactory())->getUser ($user);
+        }
+        else
+        {
+
+            $userInstance = $user;
+        }
+
+        if ( !is_object ($userInstance) )
+        {
+
+            throw new Exception ("The user with the UID '$user' doesn't exist.");
+        }
+
+        if ( (int) $userInstance->getStatus () === 1 )
+        {
+
+            return $userInstance->getUserId ();
+        }
+        else
+        {
+
+            $userReplace = trim ($userInstance->getUserReplaces ());
+
+            if ( $userReplace != '' )
+            {
+
+                return $this->checkReplacedByUser ((new \BusinessModel\UsersFactory())->getUser ($userReplace));
+            }
+            else
+            {
+
+                return '';
+            }
+        }
+    }
+
 }

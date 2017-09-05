@@ -25,16 +25,25 @@ class EmailServer
         $this->objMysql = new \Mysql2();
     }
 
-    public function checkRecordByName ($accountName)
+    public function getRecordByName ($accountName)
     {
         $result = $this->objMysql->_select ("email_server", [], ["MESS_ACCOUNT" => $accountName]);
 
         if ( isset ($result[0]) && !empty ($result[0]) )
         {
-            return true;
+            return $result;
         }
 
         return false;
+    }
+
+    public function checkRecordByName ($accountName)
+    {
+        if($this->getRecordByName ($accountName) === false) {
+            return false;
+        }
+        
+        return true;
     }
 
     public function retrieveByPK ($pk)
@@ -120,6 +129,7 @@ class EmailServer
             if ( isset ($_SERVER["SERVER_NAME"]) )
             {
                 $arrayTestConnectionResult = $this->testConnection ($arrayFinalData);
+
                 $msg = "";
                 foreach ($arrayTestConnectionResult as $value) {
                     $arrayTest = $value;
@@ -271,7 +281,7 @@ class EmailServer
                     {
                         $this->setEmailServerDefaultByUid ($emailServerUid);
                     }
-                    
+
                     //Return
                     return $this->getEmailServer ($emailServerUid);
                 }
@@ -290,14 +300,14 @@ class EmailServer
             throw $e;
         }
     }
-    
-    public function setEmailServerDefaultByUid($emailServerUid)
+
+    public function setEmailServerDefaultByUid ($emailServerUid)
     {
         try {
-            $arrayEmailServerData = $this->getEmailServer($emailServerUid, true);
-            
+            $arrayEmailServerData = $this->getEmailServer ($emailServerUid, true);
+
             //Update
-            $this->objMysql->_query("UPDATE email_server SET MESS_DEFAULT = 0 WHERE MESS_UID != ?", [$emailServerUid]);
+            $this->objMysql->_query ("UPDATE email_server SET MESS_DEFAULT = 0 WHERE MESS_UID != ?", [$emailServerUid]);
         } catch (Exception $e) {
             throw $e;
         }
@@ -580,6 +590,8 @@ class EmailServer
     public function testConnectionByStep (array $arrayData)
     {
         try {
+            $arrayData['MESS_ENGINE'] = isset ($arrayData['MESS_ENGINE']) && trim ($arrayData['MESS_ENGINE']) !== "" ? $arrayData['MESS_ENGINE'] : "MAIL";
+
             // MAIL
             if ( $arrayData["MESS_ENGINE"] == "MAIL" )
             {
@@ -612,6 +624,15 @@ class EmailServer
                     $arrayResult["message"] = "ID_SENDMAIL_NOT_INSTALLED";
                 }
                 //Return
+                return $arrayResult;
+            }
+            else
+            {
+                $arrayResult = array(
+                    "result" => true,
+                    "message" => ""
+                );
+
                 return $arrayResult;
             }
         } catch (Exception $ex) {

@@ -103,14 +103,13 @@ class Notification
      */
     public function update ($emailEventUid, array $arrayData)
     {
-
         try {
             //Verify data
             $this->throwExceptionIfDataIsNotArray ($arrayData);
             $this->throwExceptionIfDataIsEmpty ($arrayData);
             //Verify data
             $this->verifyIfEmailEventExists ($emailEventUid);
-
+            
             //Update
             try {
                 $emailEvent = new \Notification();
@@ -118,6 +117,7 @@ class Notification
                 $emailEvent->loadObject ($arrayData);
                 $emailEvent->setId ($emailEventUid);
                 $result = $emailEvent->save ();
+                
                 return $result;
             } catch (\Exception $e) {
                 throw $e;

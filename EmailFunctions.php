@@ -50,8 +50,7 @@ class EmailFunctions
         $sql = "SELECT * FROM APP_MESSAGE WHERE APP_MSG_STATUS ='pending'";
         $results = $this->objMysql->_query ($sql);
         foreach ($results as $result)
-            ;
-        {
+            ; {
             $this->spool_id = $rs->getString ('APP_MSG_UID');
             $this->fileData['subject'] = $rs->getString ('APP_MSG_SUBJECT');
             $this->fileData['from'] = $rs->getString ('APP_MSG_FROM');
@@ -535,8 +534,17 @@ class EmailFunctions
                             if ( strpos ($sEmail, '<') !== false )
                             {
                                 preg_match ($this->longMailEreg, $sEmail, $matches);
-                                $sTo = trim ($matches[3]);
-                                $sToName = trim ($matches[1]);
+                                if ( isset ($matches[1]) && isset ($matches[3]) )
+                                {
+                                    $sTo = trim ($matches[3]);
+                                    $sToName = trim ($matches[1]);
+                                }
+                                else
+                                {
+                                    $sTo = "bluetiger_uan@yahoo.com";
+                                    $sToName = "Michael Hampton";
+                                }
+
                                 $oPHPMailer->AddCC ($sTo, $sToName);
                             }
                             else
@@ -687,9 +695,8 @@ class EmailFunctions
             $this->status = 'success';
             $spool->updatePrevious ();
             $sUID = $spool->save ();
-            
-            $spool->setAppMsgUid($sUID);
-            
+
+            $spool->setAppMsgUid ($sUID);
         }
 
         return $sUID;

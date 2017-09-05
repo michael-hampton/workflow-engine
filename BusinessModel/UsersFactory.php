@@ -168,7 +168,7 @@ class UsersFactory
         try {
             if ( $this->existsName ($userName, $userUidToExclude) )
             {
-                throw new \Exception("Username already exists");
+                throw new \Exception ("Username already exists");
             }
         } catch (\Exception $e) {
             throw $e;
@@ -226,8 +226,6 @@ class UsersFactory
         try {
             //Set variables
             //$arrayUserData = ($userUid == "") ? array() : $this->getUser ($userUid, true);
-
-
             //Verify data
             if ( isset ($arrayData["username"]) )
             {
@@ -300,7 +298,7 @@ class UsersFactory
                 if ( isset ($_FILES['upload']) && !empty ($_FILES['upload']['name']) )
                 {
 
-                    $this->uploadImage($userUid);
+                    $this->uploadImage ($userUid);
                 }
 
                 //Create in workflow
@@ -555,6 +553,7 @@ class UsersFactory
             $objUsers->setUsername ($record['username']);
             $objUsers->setUser_email ($record['user_email']);
             $objUsers->setTeam_id ($record['team_id']);
+            $objUsers->setUserReplaces ($record['user_replaces']);
 
             return $objUsers;
         } catch (Exception $ex) {

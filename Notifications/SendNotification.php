@@ -10,26 +10,57 @@ class SendNotification
     private $from;
     private $cc;
     private $bcc;
+    private $status;
+    private $system;
+    private $to;
+    private $sendToAll;
+
+    public function getSystem ()
+    {
+        return $this->system;
+    }
+
+    public function setSystem ($system)
+    {
+        $this->system = $system;
+    }
+
+    public function getStatus ()
+    {
+        return $this->status;
+    }
+
+    public function setStatus ($status)
+    {
+        $this->status = $status;
+    }
 
     /**
      *
      * @param type $status
      * @param type $system
      */
-    public function setVariables ($status, $system)
+    public function setVariables ($status)
     {
         $objNotification = new \BusinessModel\Notification();
-        $arrResult = $objNotification->getEmailEventData($status);
-        
+        $arrResult = $objNotification->getEmailEventData ($status);
+
+        if ( !isset ($arrResult[0]) || empty ($arrResult[0]) )
+        {
+            return false;
+        }
+
         $this->fromName = trim ($arrResult[0]['from_name']) !== "" ? $arrResult[0]['from_name'] : '';
         $this->from = trim ($arrResult[0]['from_mail']) !== "" ? $arrResult[0]['from_mail'] : '';
         $this->cc = trim ($arrResult[0]['cc']) !== "" ? $arrResult[0]['cc'] : '';
         $this->bcc = trim ($arrResult[0]['bcc']) !== "" ? $arrResult[0]['bcc'] : '';
         $this->sendToAll = $arrResult[0]['send_to_all'];
-        
+        $this->body = $arrResult[0]['message_body'];
+        $this->subject = $arrResult[0]['message_subject'];
+        $this->to = trim ($arrResult[0]['to']) !== "" ? $arrResult[0]['to'] : '';
+
         $this->setStatus ($status);
         $this->setSystem ("task_manager");
-
     }
 
     /**
@@ -106,17 +137,10 @@ class SendNotification
         try {
             $this->setVariables ($objTask->getStepId (), $system);
 
-            if ( empty ($this->message) )
-            {
-                return false;
-            }
-
-            $this->subject = $this->message['message_subject'];
-            $this->body = $this->message['message_body'];
-
             $this->taskId = $objTask->getTasUid ();
 
             $noteRecipientsList = array();
+
 
             if ( !empty ($this->arrEmailAddresses) )
             {
@@ -127,17 +151,36 @@ class SendNotification
             {
                 $objTask = (new Task())->retrieveByPk ($this->taskId);
                 $participants = $this->getTo ($objTask);
-                $noteRecipientsList = array_merge ($noteRecipientsList, $participants['to']);
 
-                if ( isset ($participants['cc']) && !empty ($participants['cc']) )
+
+                if ( isset ($participants['to']) && !empty ($participants['to']) && is_array ($participants['to']) )
+                {
+                    $noteRecipientsList = array_merge ($noteRecipientsList, $participants['to']);
+                }
+                else
+                {
+                    if ( isset ($participants['to']) )
+                    {
+                        array_push ($noteRecipientsList, $participants['to']);
+                    }
+                }
+
+                if ( isset ($participants['cc']) && !empty ($participants['cc']) && is_array ($participants['cc']) )
                 {
                     $this->cc = implode (",", $participants['cc']);
                 }
+                else
+                {
+                    if ( isset ($participants['cc']) )
+                    {
+                        $this->cc = $participants['cc'];
+                    }
+                }
             }
 
-            if ( !in_array ($this->message['to'], $noteRecipientsList) && trim ($this->message['to']) !== '' )
+            if ( !in_array ($this->to, $noteRecipientsList) && trim ($this->to) !== '' )
             {
-                $noteRecipientsList[] = $this->message['to'];
+                $noteRecipientsList[] = $this->to;
             }
 
             $noteRecipients = implode (",", $noteRecipientsList);
@@ -150,8 +193,6 @@ class SendNotification
 
             $this->subject = $objCases->replaceDataField ($this->subject, $Fields);
             $this->body = $objCases->replaceDataField ($this->body, $Fields);
-
-            $this->sendMessage ();
 
             //	sending email notification
             $this->notificationEmail ($this->recipient, $this->subject, $this->body, $objUser);
@@ -166,9 +207,13 @@ class SendNotification
     {
         $emailServer = new \BusinessModel\EmailServer();
 
-        if(trim($this->from) !== '') {
-            
-        } else {
+        if ( trim ($this->from) !== '' )
+        {
+            $record = $emailServer->getRecordByName ($this->from);
+            $arrayEmailServerDefault = $record[0];
+        }
+        else
+        {
             $arrayEmailServerDefault = $emailServer->getEmailServerDefault ();
         }
 
@@ -184,8 +229,8 @@ class SendNotification
                 "MESS_FROM_MAIL" => $arrayEmailServerDefault["MESS_FROM_MAIL"],
                 "MESS_FROM_NAME" => $arrayEmailServerDefault["MESS_FROM_NAME"],
                 "SMTPSecure" => $arrayEmailServerDefault["SMTPSECURE"],
-                "MESS_TRY_SEND_INMEDIATLY" => (int) ($arrayEmailServerDefault["MESS_TRY_SEND_INMEDIATLY"]),
-                "MAIL_TO" => $arrayEmailServerDefault["MAIL_TO"],
+                "MESS_TRY_SEND_INMEDIATLY" => isset ($arrayEmailServerDefault["MESS_TRY_SEND_INMEDIATLY"]) ? (int) ($arrayEmailServerDefault["MESS_TRY_SEND_INMEDIATLY"]) : 1,
+                "MAIL_TO" => isset ($arrayEmailServerDefault["MAIL_TO"]) ? $arrayEmailServerDefault["MAIL_TO"] : 'bluetiger_uan@yahoo.com',
                 "MESS_DEFAULT" => (int) ($arrayEmailServerDefault["MESS_DEFAULT"]),
                 "MESS_ENABLED" => 1,
                 "MESS_BACKGROUND" => "",
@@ -202,7 +247,7 @@ class SendNotification
     private function getTo (Task $objTask)
     {
         $arrayResp = array();
-        
+
         $group = new TeamFunctions ();
 
         $oUser = new Users ();
@@ -214,6 +259,8 @@ class SendNotification
         $taskType = trim ($objTask->getTasSelfserviceTimeUnit ()) !== "" ? 'SELF-SERVICE' : 'NORMAL';
         $blParallel = in_array ($objTask->getTasAssignType (), array("MULTIPLE_INSTANCE", "MULTIPLE_INSTANCE_VALUE_BASED")) ? true : false;
 
+        $blParallel = true;
+
         if ( $taskType === "SELF-SERVICE" )
         {
             if ( trim ($objTask->getTasUid ()) === "" )
@@ -222,7 +269,6 @@ class SendNotification
                 $arrayTaskUser = array();
 
                 $arrayAux1 = $objTask->getGroupsOfTask ($objTask->getTasUid (), 1);
-
 
                 $arrDone = [];
 
@@ -283,7 +329,6 @@ class SendNotification
         }
         elseif ( $blParallel === true )
         {
-
             $to = null;
 
             $cc = null;
@@ -321,7 +366,30 @@ class SendNotification
         }
         else
         {
-            $arrayResp ['to'] = $this->getTaskUsers ();
+            $taskUsers = $this->getTaskUsers ();
+            $sw = 1;
+
+            foreach ($taskUsers as $row) {
+
+                if ( $sw == 1 )
+                {
+
+                    $to = $row;
+
+                    $sw = 0;
+                }
+                else
+                {
+
+                    $cc = $cc . (($cc != null) ? "," : null) . $row;
+                }
+            }
+
+            $arrayResp ['to'] = $to;
+            $arrayResp ['cc'] = $cc;
+
+
+            // $arrayResp ['to'] = 
         }
 
 
@@ -339,17 +407,13 @@ class SendNotification
         $aConfiguration = $this->getEmailConfiguration ();
         $oSpool = new EmailFunctions();
 
-       if(empty($aConfiguration)){
-            $user = (new \BusinessModel\UsersFactory())->getUser ($objUser->getUserId ());
-            $from = $user->getFirstName () . " " . $user->getLastName () . ($user->getUser_email () != "" ? " <" . $user->getUser_email () . ">" : "");
-        }
-        
 
-       
-        $from = trim ($this->from) !== "" ? $this->from : $this->defaultFrom;
-        $from = 'EasyFlow <' . $this->defaultFrom . '>';
+        $user = (new \BusinessModel\UsersFactory())->getUser ($objUser->getUserId ());
+        $from = $user->getFirstName () . " " . $user->getLastName () . ($user->getUser_email () != "" ? " <" . $user->getUser_email () . ">" : "");
+
+
         $from = (new BusinessModel\EmailServer())->buildFrom ($aConfiguration, $from);
-       
+
         $msgError = "";
 
         if ( !isset ($aConfiguration['MESS_ENABLED']) || $aConfiguration['MESS_ENABLED'] != '1' )
