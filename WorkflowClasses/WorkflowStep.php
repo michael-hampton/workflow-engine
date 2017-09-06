@@ -310,7 +310,7 @@ class WorkflowStep
         $objTask = (new Task())->retrieveByPk ($this->_stepId);
 
         $type = trim ($objTask->getTasAssignType ());
-        
+
         switch ($type) {
             case "REPORT_TO":
 
@@ -346,9 +346,9 @@ class WorkflowStep
                 }
 
                 break;
-                
+
             default:
-                $userFields = $this->getUsersFullNameFromArray($this->getAllUsersFromAnyTask($this->_stepId));
+                $userFields = $this->getUsersFullNameFromArray ($this->getAllUsersFromAnyTask ($this->_stepId));
                 break;
         }
 
@@ -397,7 +397,7 @@ class WorkflowStep
                 $departmentManager = $this->getNextAssignedUser ($objTask, $objUser);
 
                 $departmentManager = $departmentManager['USR_USERNAME'];
-                
+
                 $isProcessSupervisor = (new BusinessModel\ProcessSupervisor())->isUserProcessSupervisor (new Workflow ($this->workflowId), $objUser);
                 if ( method_exists ($objMike, "getParentId") )
                 {
@@ -554,9 +554,17 @@ class WorkflowStep
                 {
                     throw new Exception ("No user given");
                 }
-                
-                $arrUsers = $this->getNextAssignedUser($objTask, $objUser);
-                
+
+                $arrUsers = $this->getNextAssignedUser ($objTask, $objUser);
+
+                $arrWorkflowData = $this->getWorkflowData ();
+                $auditData = json_decode ($arrWorkflowData[0]['audit_data'], true);
+
+                if ( isset ($auditData['elements'][$this->elementId]['steps'][$this->_workflowStepId]['claimed']) && trim ($objUser->getUsername ()) !== trim ($auditData['elements'][$this->elementId]['steps'][$this->_workflowStepId]['claimed']) )
+                {
+                    throw new Exception ("Invalid User given");
+                }
+
                 $objProcess = (new Workflow ($this->workflowId))->load ($this->workflowId);
                 switch ($taskType) {
                     case "PARALLEL":
@@ -578,7 +586,7 @@ class WorkflowStep
                     case "HELD";
                     case "ABANDONED":
                         $blHasValidUser = false;
-                        
+
                         foreach ($arrUsers as $arrUser) {
                             if ( trim ($arrUser['USR_USERNAME']) === trim ($arrCompleteData['claimed']) )
                             {

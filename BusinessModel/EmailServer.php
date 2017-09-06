@@ -654,7 +654,7 @@ class EmailServer
             $port = (int) ($arrayData["MESS_PORT"]);
             $auth_required = (int) ($arrayData["MESS_RAUTH"]);
             $useSecureCon = $arrayData["SMTPSECURE"];
-            $sendTestMail = (int) ($arrayData["MESS_TRY_SEND_INMEDIATLY"]);
+            $sendTestMail = isset($arrayData["MESS_TRY_SEND_INMEDIATLY"]) ? (int) ($arrayData["MESS_TRY_SEND_INMEDIATLY"]) : 1;
             $mailTo = $arrayData["MAIL_TO"];
             $smtpSecure = $arrayData["SMTPSECURE"];
             $serverNet = new \NET ($server);

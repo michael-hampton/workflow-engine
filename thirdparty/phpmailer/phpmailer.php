@@ -1070,7 +1070,7 @@ class PHPMailer
      */
     protected function SmtpSend ($header, $body)
     {
-        require_once $this->PluginDir . 'class.smtp.php';
+        require_once PATH_THIRDPARTY . "phpmailer/SMTP.php";
         $bad_rcpt = array();
 
         if ( !$this->SmtpConnect () )
@@ -1548,7 +1548,7 @@ class PHPMailer
             $pathTrunk = implode ('/', $docuroot) . '/';
         }
         // Set the boundaries
-        $uniq_id = md5(uniqid (time ()));
+        $uniq_id = md5 (uniqid (time ()));
         $this->boundary[1] = 'b1_' . $uniq_id;
         $this->boundary[2] = 'b2_' . $uniq_id;
         $this->boundary[3] = 'b3_' . $uniq_id;

@@ -48,17 +48,22 @@ class SendNotification
 
         if ( !isset ($arrResult[0]) || empty ($arrResult[0]) )
         {
-            return false;
+            // default subject and body if none has been set by user
+            $this->sendToAll = 1;
+            $this->subject = '[WORKFLOW_NAME] has been moved to [STEP_NAME] by [USER]';
+            $this->body = 'PROJECT <span style="font-weight: bold; text-decoration-line: underline;">DETAILS </span>id: [PROJECT_ID] project name: [PROJECT_NAME] status [PROJECT_STATUS]  Element Details Id: [ELEMENT_ID] Name: [ELEMENT_NAME] Status: [ELEMENT_STATUS] Step: [STEP_NAME]';
         }
-
-        $this->fromName = trim ($arrResult[0]['from_name']) !== "" ? $arrResult[0]['from_name'] : '';
-        $this->from = trim ($arrResult[0]['from_mail']) !== "" ? $arrResult[0]['from_mail'] : '';
-        $this->cc = trim ($arrResult[0]['cc']) !== "" ? $arrResult[0]['cc'] : '';
-        $this->bcc = trim ($arrResult[0]['bcc']) !== "" ? $arrResult[0]['bcc'] : '';
-        $this->sendToAll = $arrResult[0]['send_to_all'];
-        $this->body = $arrResult[0]['message_body'];
-        $this->subject = $arrResult[0]['message_subject'];
-        $this->to = trim ($arrResult[0]['to']) !== "" ? $arrResult[0]['to'] : '';
+        else
+        {
+            $this->fromName = trim ($arrResult[0]['from_name']) !== "" ? $arrResult[0]['from_name'] : '';
+            $this->from = trim ($arrResult[0]['from_mail']) !== "" ? $arrResult[0]['from_mail'] : '';
+            $this->cc = trim ($arrResult[0]['cc']) !== "" ? $arrResult[0]['cc'] : '';
+            $this->bcc = trim ($arrResult[0]['bcc']) !== "" ? $arrResult[0]['bcc'] : '';
+            $this->sendToAll = $arrResult[0]['send_to_all'];
+            $this->body = $arrResult[0]['message_body'];
+            $this->subject = $arrResult[0]['message_subject'];
+            $this->to = trim ($arrResult[0]['to']) !== "" ? $arrResult[0]['to'] : '';
+        }
 
         $this->setStatus ($status);
         $this->setSystem ("task_manager");
@@ -162,9 +167,17 @@ class SendNotification
                 $participants = $this->getTo ($objTask);
             }
 
-            $this->cc = trim ($participants['cc']) !== "" ? trim ($participants['cc']) . "," . $noteRecipients : $noteRecipients;
+            $this->cc = isset ($participants['cc']) && trim ($participants['cc']) !== "" ? trim ($participants['cc']) . "," . $noteRecipients : $noteRecipients;
 
-            $this->recipient = $participants['to'];
+            if ( isset ($participants['to']) )
+            {
+                $this->recipient = $participants['to'];
+            }
+            else
+            {
+                //trigger_error ("NO RECIPIENTS FOUND FOR TASK NOTIFICATION " . $objTask->getTasUid ());
+                $this->recipient = "bluetiger_uan@yahoo.com";
+            }
 
             $objCases = new \BusinessModel\Cases();
 
@@ -348,6 +361,8 @@ class SendNotification
             $taskUsers = $oDerivation->getUsersFullNameFromArray ($oDerivation->getAllUsersFromAnyTask ($objTask->getTasUid ()));
 
             $sw = 1;
+            $to = null;
+            $cc = null;
 
             foreach ($taskUsers as $row) {
 
@@ -397,7 +412,7 @@ class SendNotification
         {
             $user = (new \BusinessModel\UsersFactory())->getUser ($objUser->getUserId ());
             $from = $user->getFirstName () . " " . $user->getLastName () . ($user->getUser_email () != "" ? " <" . $user->getUser_email () . ">" : "");
-        }    
+        }
 
         $from = (new BusinessModel\EmailServer())->buildFrom ($aConfiguration, $from);
 
@@ -448,7 +463,11 @@ class SendNotification
                         ($dataLastEmail['configuration']["MESS_TRY_SEND_INMEDIATLY"] == "1")
                 )
                 {
-                    $oSpool->sendMail ();
+                    try {
+                        $oSpool->sendMail ();
+                    } catch (Exception $ex) {
+                        //trigger_error ($ex, E_USER_WARNING);
+                    }
                 }
             }
         }
