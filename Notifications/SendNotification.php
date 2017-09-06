@@ -14,6 +14,7 @@ class SendNotification
     private $system;
     private $to;
     private $sendToAll;
+    private $fromName;
 
     public function getSystem ()
     {
@@ -134,7 +135,7 @@ class SendNotification
      */
     public function buildEmail (Task $objTask, Users $objUser, $system = "task_manager")
     {
-        
+
         try {
             $this->setVariables ($objTask->getStepId (), $system);
 
@@ -148,37 +149,6 @@ class SendNotification
                 $noteRecipientsList[] = $this->arrEmailAddresses;
             }
 
-            if ( (int) $this->sendToAll === 1 )
-            {
-                $objTask = (new Task())->retrieveByPk ($this->taskId);
-                $participants = $this->getTo ($objTask);
-
-
-                if ( isset ($participants['to']) && !empty ($participants['to']) && is_array ($participants['to']) )
-                {
-                    $noteRecipientsList = array_merge ($noteRecipientsList, $participants['to']);
-                }
-                else
-                {
-                    if ( isset ($participants['to']) )
-                    {
-                        array_push ($noteRecipientsList, $participants['to']);
-                    }
-                }
-
-                if ( isset ($participants['cc']) && !empty ($participants['cc']) && is_array ($participants['cc']) )
-                {
-                    $this->cc = implode (",", $participants['cc']);
-                }
-                else
-                {
-                    if ( isset ($participants['cc']) )
-                    {
-                        $this->cc = $participants['cc'];
-                    }
-                }
-            }
-
             if ( !in_array ($this->to, $noteRecipientsList) && trim ($this->to) !== '' )
             {
                 $noteRecipientsList[] = $this->to;
@@ -186,7 +156,15 @@ class SendNotification
 
             $noteRecipients = implode (",", $noteRecipientsList);
 
-            $this->recipient = $noteRecipients;
+            if ( (int) $this->sendToAll === 1 )
+            {
+                $objTask = (new Task())->retrieveByPk ($this->taskId);
+                $participants = $this->getTo ($objTask);
+            }
+
+            $this->cc = trim ($participants['cc']) !== "" ? trim ($participants['cc']) . "," . $noteRecipients : $noteRecipients;
+
+            $this->recipient = $participants['to'];
 
             $objCases = new \BusinessModel\Cases();
 
@@ -196,7 +174,7 @@ class SendNotification
             $this->body = $objCases->replaceDataField ($this->body, $Fields);
 
             //	sending email notification
-            $this->notificationEmail ($this->recipient, $this->subject, $this->body, $objUser);
+            $this->notificationEmail ($objUser);
 
             return true;
         } catch (Exception $ex) {
@@ -365,22 +343,27 @@ class SendNotification
         }
         else
         {
-            $taskUsers = $this->getTaskUsers ();
+            $oDerivation = new WorkflowStep ();
+
+            $taskUsers = $oDerivation->getUsersFullNameFromArray ($oDerivation->getAllUsersFromAnyTask ($objTask->getTasUid ()));
+
             $sw = 1;
 
             foreach ($taskUsers as $row) {
 
+                $toAux = ((($row ["USR_FIRSTNAME"] != "") || ($row ["USR_LASTNAME"] != "")) ? $row ["USR_FIRSTNAME"] . " " . $row ["USR_LASTNAME"] . " " : "") . "<" . $row ["USR_EMAIL"] . ">";
+
                 if ( $sw == 1 )
                 {
 
-                    $to = $row;
+                    $to = $toAux;
 
                     $sw = 0;
                 }
                 else
                 {
 
-                    $cc = $cc . (($cc != null) ? "," : null) . $row;
+                    $cc = $cc . (($cc != null) ? "," : null) . $toAux;
                 }
             }
 
@@ -401,15 +384,20 @@ class SendNotification
      * @param type $message_subject
      * @param type $message_body
      */
-    public function notificationEmail ($sendto, $message_subject, $message_body, Users $objUser)
+    public function notificationEmail (Users $objUser)
     {
         $aConfiguration = $this->getEmailConfiguration ();
         $oSpool = new EmailFunctions();
 
-
-        $user = (new \BusinessModel\UsersFactory())->getUser ($objUser->getUserId ());
-        $from = $user->getFirstName () . " " . $user->getLastName () . ($user->getUser_email () != "" ? " <" . $user->getUser_email () . ">" : "");
-
+        if ( trim ($this->fromName) !== "" && trim ($this->from) !== "" )
+        {
+            $from = $this->fromName . ($this->from != "" ? " <" . $this->from . ">" : "");
+        }
+        else
+        {
+            $user = (new \BusinessModel\UsersFactory())->getUser ($objUser->getUserId ());
+            $from = $user->getFirstName () . " " . $user->getLastName () . ($user->getUser_email () != "" ? " <" . $user->getUser_email () . ">" : "");
+        }    
 
         $from = (new BusinessModel\EmailServer())->buildFrom ($aConfiguration, $from);
 
@@ -428,13 +416,13 @@ class SendNotification
 
         $dataLastEmail['msgError'] = $msgError;
         $dataLastEmail['configuration'] = $aConfiguration;
-        $dataLastEmail['subject'] = $message_subject;
+        $dataLastEmail['subject'] = $this->subject;
         $dataLastEmail['pathEmail'] = '';
         $dataLastEmail['swtplDefault'] = 0;
-        $dataLastEmail['body'] = $message_body;
+        $dataLastEmail['body'] = $this->body;
         $dataLastEmail['from'] = $from;
 
-        if ( trim ($sendto) !== "" )
+        if ( trim ($this->recipient) !== "" )
         {
             $oSpool->setConfig ($dataLastEmail['configuration']);
             $oSpool->create (array(
@@ -443,10 +431,10 @@ class SendNotification
                 'app_uid' => $this->projectId,
                 'del_index' => $this->status,
                 "app_msg_type" => "DERIVATION",
-                "app_msg_subject" => $message_subject,
+                "app_msg_subject" => $this->subject,
                 'app_msg_from' => $from,
-                "app_msg_to" => $sendto,
-                'app_msg_body' => $message_body,
+                "app_msg_to" => $this->recipient,
+                'app_msg_body' => $this->body,
                 "app_msg_cc" => $this->cc,
                 "app_msg_bcc" => $this->bcc,
                 "app_msg_attach" => "",

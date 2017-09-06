@@ -39,10 +39,11 @@ class EmailServer
 
     public function checkRecordByName ($accountName)
     {
-        if($this->getRecordByName ($accountName) === false) {
+        if ( $this->getRecordByName ($accountName) === false )
+        {
             return false;
         }
-        
+
         return true;
     }
 
@@ -547,26 +548,24 @@ class EmailServer
                     }
                     break;
                 case "PHPMAILER":
-                    $arrayData['MAIL_TO'] = "admin@easyflow.com";
-                    $numSteps = ($arrayData['MAIL_TO'] != '') ? count ($arrayPhpMailerTestName) :
-                            count ($arrayPhpMailerTestName) - 1;
-                    for ($step = 1; $step <= $numSteps; $step++) {
-                        $arrayResult[$arrayPhpMailerTestName[$step]] = $this->testConnectionByStep ($arrayData);
+                    for ($step = 1; $step <= 5; $step++) {
+                        $arrayResult[$arrayPhpMailerTestName[$step]] = $this->testConnectionByStep ($arrayData, $step);
+
                         switch ($step) {
                             case 1:
-                                $arrayResult[$arrayPhpMailerTestName[$step]]["title"] = ("ID_EMAIL_SERVER_TEST_CONNECTION_RESOLVING_NAME");
+                                $arrayResult[$arrayPhpMailerTestName[$step]]["title"] = "ID_EMAIL_SERVER_TEST_CONNECTION_RESOLVING_NAME " . implode(",", array($arrayData["MESS_SERVER"]));
                                 break;
                             case 2:
-                                $arrayResult[$arrayPhpMailerTestName[$step]]["title"] = ("ID_EMAIL_SERVER_TEST_CONNECTION_CHECK_PORT");
+                                $arrayResult[$arrayPhpMailerTestName[$step]]["title"] = "ID_EMAIL_SERVER_TEST_CONNECTION_CHECK_PORT " . implode(",", array($arrayData["MESS_PORT"]));
                                 break;
                             case 3:
-                                $arrayResult[$arrayPhpMailerTestName[$step]]["title"] = ("ID_EMAIL_SERVER_TEST_CONNECTION_ESTABLISHING_CON_HOST");
+                                $arrayResult[$arrayPhpMailerTestName[$step]]["title"] = "ID_EMAIL_SERVER_TEST_CONNECTION_ESTABLISHING_CON_HOST " . implode(",", array($arrayData["MESS_SERVER"] . ":" . $arrayData["MESS_PORT"]));
                                 break;
                             case 4:
-                                $arrayResult[$arrayPhpMailerTestName[$step]]["title"] = ("ID_EMAIL_SERVER_TEST_CONNECTION_LOGIN");
+                                $arrayResult[$arrayPhpMailerTestName[$step]]["title"] = "ID_EMAIL_SERVER_TEST_CONNECTION_LOGIN " . implode (",", array($arrayData["MESS_ACCOUNT"], $arrayData["MESS_SERVER"]));
                                 break;
                             case 5:
-                                $arrayResult[$arrayPhpMailerTestName[$step]]["title"] = ("ID_EMAIL_SERVER_TEST_CONNECTION_SENDING_EMAIL");
+                                $arrayResult[$arrayPhpMailerTestName[$step]]["title"] = "ID_EMAIL_SERVER_TEST_CONNECTION_SENDING_EMAIL " . implode (",", array($arrayData["MAIL_TO"]));
                                 break;
                         }
                     }
@@ -587,7 +586,7 @@ class EmailServer
      *
      * return array Return array with result of test connection by step
      */
-    public function testConnectionByStep (array $arrayData)
+    public function testConnectionByStep (array $arrayData, $step = 0)
     {
         try {
             $arrayData['MESS_ENGINE'] = isset ($arrayData['MESS_ENGINE']) && trim ($arrayData['MESS_ENGINE']) !== "" ? $arrayData['MESS_ENGINE'] : "MAIL";
@@ -626,171 +625,209 @@ class EmailServer
                 //Return
                 return $arrayResult;
             }
-              
+
             $server = $arrayData["MESS_SERVER"];
             $user = $arrayData["MESS_ACCOUNT"];
             $passwd = $arrayData["MESS_PASSWORD"];
             $fromMail = $arrayData["MESS_FROM_MAIL"];
             $passwdHide = $arrayData["MESS_PASSWORD"];
-            if (trim($passwdHide) != "") {
+            if ( trim ($passwdHide) != "" )
+            {
                 $passwd = $passwdHide;
                 $passwdHide = "";
             }
-            $passwdDec = \G::decrypt($passwd,"EMAILENCRYPT");
-            $auxPass = explode("hash:", $passwdDec);
-            if (count($auxPass) > 1) {
-                if (count($auxPass) == 2) {
+            $passwdDec = $this->decrypt ($passwd, "EMAILENCRYPT");
+            $auxPass = explode ("hash:", $passwdDec);
+            if ( count ($auxPass) > 1 )
+            {
+                if ( count ($auxPass) == 2 )
+                {
                     $passwd = $auxPass[1];
-                } else {
-                    array_shift($auxPass);
-                    $passwd = implode("", $auxPass);
+                }
+                else
+                {
+                    array_shift ($auxPass);
+                    $passwd = implode ("", $auxPass);
                 }
             }
             $arrayData["MESS_PASSWORD"] = $passwd;
-            $port = (int)($arrayData["MESS_PORT"]);
-            $auth_required = (int)($arrayData["MESS_RAUTH"]);
+            $port = (int) ($arrayData["MESS_PORT"]);
+            $auth_required = (int) ($arrayData["MESS_RAUTH"]);
             $useSecureCon = $arrayData["SMTPSECURE"];
-            $sendTestMail = (int)($arrayData["MESS_TRY_SEND_INMEDIATLY"]);
+            $sendTestMail = (int) ($arrayData["MESS_TRY_SEND_INMEDIATLY"]);
             $mailTo = $arrayData["MAIL_TO"];
             $smtpSecure = $arrayData["SMTPSECURE"];
-            $serverNet = new \NET($server);
+            $serverNet = new \NET ($server);
+
+            require_once PATH_THIRDPARTY . "phpmailer/SMTP.php";
+
             $smtp = new \SMTP();
             $timeout = 10;
             $hostinfo = array();
             $srv = $arrayData["MESS_SERVER"];
             $arrayResult = array();
+
             switch ($step) {
                 case 1:
-                    $arrayResult["result"] = $serverNet->getErrno() == 0;
+                    $arrayResult["result"] = $serverNet->getErrno () == 0;
                     $arrayResult["message"] = $serverNet->error;
                     break;
                 case 2:
-                    $serverNet->scannPort($port);
-                    $arrayResult["result"] = $serverNet->getErrno() == 0;
+                    $serverNet->scannPort ($port);
+                    $arrayResult["result"] = $serverNet->getErrno () == 0;
                     $arrayResult["message"] = $serverNet->error;
                     break;
                 case 3:
                     //Try to connect to host
-                    if (preg_match("/^(.+):([0-9]+)$/", $srv, $hostinfo)) {
+                    if ( preg_match ("/^(.+):([0-9]+)$/", $srv, $hostinfo) )
+                    {
                         $server = $hostinfo[1];
                         $port = $hostinfo[2];
-                    } else {
+                    }
+                    else
+                    {
                         $host = $srv;
                     }
-                    $tls = (strtoupper($smtpSecure) == "tls");
-                    $ssl = (strtoupper($smtpSecure) == "ssl");
-                    $arrayResult["result"] = $smtp->Connect(($ssl ? "ssl://" : "") . $server, $port, $timeout);
+                    $tls = (strtoupper ($smtpSecure) == "tls");
+                    $ssl = (strtoupper ($smtpSecure) == "ssl");
+                    $arrayResult["result"] = $smtp->Connect (($ssl ? "ssl://" : "") . $server, $port, $timeout);
                     $arrayResult["message"] = $serverNet->error;
                     break;
                 case 4:
                     //Try login to host
-                    if ($auth_required == 1) {
+                    if ( $auth_required == 1 )
+                    {
                         try {
-                            if (preg_match("/^(.+):([0-9]+)$/", $srv, $hostinfo)) {
+                            if ( preg_match ("/^(.+):([0-9]+)$/", $srv, $hostinfo) )
+                            {
                                 $server = $hostinfo[1];
                                 $port = $hostinfo[2];
-                            } else {
+                            }
+                            else
+                            {
                                 $server = $srv;
                             }
-                            if (strtoupper($useSecureCon)=="TLS") {
+                            if ( strtoupper ($useSecureCon) == "TLS" )
+                            {
                                 $tls = "tls";
                             }
-                            if (strtoupper($useSecureCon)=="SSL") {
+                            if ( strtoupper ($useSecureCon) == "SSL" )
+                            {
                                 $tls = "ssl";
                             }
-                            $tls = (strtoupper($useSecureCon) == "tls");
-                            $ssl = (strtoupper($useSecureCon) == "ssl");
+                            $tls = (strtoupper ($useSecureCon) == "tls");
+                            $ssl = (strtoupper ($useSecureCon) == "ssl");
                             $server = $arrayData["MESS_SERVER"];
-                            if (strtoupper($useSecureCon) == "SSL") {
-                                $resp = $smtp->Connect(("ssl://") . $server, $port, $timeout);
-                            } else {
-                                $resp = $smtp->Connect($server, $port, $timeout);
+                            if ( strtoupper ($useSecureCon) == "SSL" )
+                            {
+                                $resp = $smtp->Connect (("ssl://") . $server, $port, $timeout);
                             }
-                            if ($resp) {
+                            else
+                            {
+                                $resp = $smtp->Connect ($server, $port, $timeout);
+                            }
+                            if ( $resp )
+                            {
                                 $hello = $_SERVER["SERVER_NAME"];
-                                $smtp->Hello($hello);
-                                if (strtoupper($useSecureCon) == "TLS") {
-                                    $smtp->Hello($hello);
+                                $smtp->Hello ($hello);
+                                if ( strtoupper ($useSecureCon) == "TLS" )
+                                {
+                                    $smtp->Hello ($hello);
                                 }
-                                if ($smtp->Authenticate($user, $passwd) ) {
+                                if ( $smtp->Authenticate ($user, $passwd) )
+                                {
                                     $arrayResult["result"] = true;
-                                } else {
-                                    if (strtoupper($useSecureCon) == "TLS") {
+                                }
+                                else
+                                {
+                                    if ( strtoupper ($useSecureCon) == "TLS" )
+                                    {
                                         $arrayResult["result"] = true;
-                                    } else {
+                                    }
+                                    else
+                                    {
                                         $arrayResult["result"] = false;
-                                        $smtpError = $smtp->getError();
+                                        $smtpError = $smtp->getError ();
                                         $arrayResult["message"] = $smtpError["error"];
                                     }
                                 }
-                            } else {
+                            }
+                            else
+                            {
                                 $arrayResult["result"] = false;
-                                $smtpError = $smtp->getError();
+                                $smtpError = $smtp->getError ();
                                 $arrayResult["message"] = $smtpError["error"];
                             }
                         } catch (Exception $e) {
                             $arrayResult["result"] = false;
-                            $arrayResult["message"] = $e->getMessage();
+                            $arrayResult["message"] = $e->getMessage ();
                         }
-                    } else {
+                    }
+                    else
+                    {
                         $arrayResult["result"] = true;
                         $arrayResult["message"] = "No authentication required!";
                     }
                     break;
                 case 5:
-                    if ($sendTestMail == 1) {
+                    if ( $sendTestMail == 1 )
+                    {
                         try {
                             $arrayDataPhpMailer = array();
                             $eregMail = "/^[0-9a-zA-Z]+(?:[._][0-9a-zA-Z]+)*@[0-9a-zA-Z]+(?:[._-][0-9a-zA-Z]+)*\.[0-9a-zA-Z]{2,3}$/";
-                            $arrayDataPhpMailer["FROM_EMAIL"]    = ($fromMail != "" && preg_match($eregMail, $fromMail))? $fromMail : "";
-                            $arrayDataPhpMailer["FROM_NAME"]     = $arrayData["MESS_FROM_NAME"] != "" ? $arrayData["MESS_FROM_NAME"] : \G::LoadTranslation("ID_MESS_TEST_BODY");
-                            $arrayDataPhpMailer["MESS_ENGINE"]   = "PHPMAILER";
-                            $arrayDataPhpMailer["MESS_SERVER"]   = $server;
-                            $arrayDataPhpMailer["MESS_PORT"]     = $port;
-                            $arrayDataPhpMailer["MESS_ACCOUNT"]  = $user;
+                            $arrayDataPhpMailer["FROM_EMAIL"] = ($fromMail != "" && preg_match ($eregMail, $fromMail)) ? $fromMail : "";
+                            $arrayDataPhpMailer["FROM_NAME"] = $arrayData["MESS_FROM_NAME"] != "" ? $arrayData["MESS_FROM_NAME"] : \G::LoadTranslation ("ID_MESS_TEST_BODY");
+                            $arrayDataPhpMailer["MESS_ENGINE"] = "PHPMAILER";
+                            $arrayDataPhpMailer["MESS_SERVER"] = $server;
+                            $arrayDataPhpMailer["MESS_PORT"] = $port;
+                            $arrayDataPhpMailer["MESS_ACCOUNT"] = $user;
                             $arrayDataPhpMailer["MESS_PASSWORD"] = $passwd;
-                            $arrayDataPhpMailer["TO"]            = $mailTo;
-                            if ($auth_required == 1) {
+                            $arrayDataPhpMailer["TO"] = $mailTo;
+                            if ( $auth_required == 1 )
+                            {
                                 $arrayDataPhpMailer["MESS_RAUTH"] = true;
-                            } else {
+                            }
+                            else
+                            {
                                 $arrayDataPhpMailer["MESS_RAUTH"] = false;
                             }
-                            if (strtolower($arrayData["SMTPSECURE"]) != "no") {
+                            if ( strtolower ($arrayData["SMTPSECURE"]) != "no" )
+                            {
                                 $arrayDataPhpMailer["SMTPSecure"] = $arrayData["SMTPSECURE"];
                             }
-                            $arrayTestMailResult = $this->sendTestMail($arrayDataPhpMailer);
-                
-                                                        $arrayTestMailResult = $this->sendTestMail($arrayDataPhpMailer);
-                            if ($arrayTestMailResult["status"] . "" == "1") {
+                            $arrayTestMailResult = $this->sendTestMail ($arrayDataPhpMailer);
+
+                            $arrayTestMailResult = $this->sendTestMail ($arrayDataPhpMailer);
+                            if ( $arrayTestMailResult["status"] . "" == "1" )
+                            {
                                 $arrayResult["result"] = true;
-                            } else {
+                            }
+                            else
+                            {
                                 $arrayResult["result"] = false;
-                                $smtpError = $smtp->getError();
+                                $smtpError = $smtp->getError ();
                                 $arrayResult["message"] = $smtpError["error"];
                             }
                         } catch (Exception $e) {
                             $arrayResult["result"] = false;
-                            $arrayResult["message"] = $e->getMessage();
+                            $arrayResult["message"] = $e->getMessage ();
                         }
-                    } else {
+                    }
+                    else
+                    {
                         $arrayResult["result"] = true;
                         $arrayResult["message"] = "Jump this step";
                     }
                     break;
             }
-            
-                        if (!isset($arrayResult["message"])) {
+
+            if ( !isset ($arrayResult["message"]) )
+            {
                 $arrayResult["message"] = "";
             }
+
             //Return
-
-                $arrayResult = array(
-                    "result" => true,
-                    "message" => ""
-                );
-
-                return $arrayResult;
-            }
+            return $arrayResult;
         } catch (Exception $ex) {
             
         }
@@ -836,7 +873,7 @@ class EmailServer
             }
             else if ( $configuration['MESS_FROM_NAME'] != '' )
             {
-                $from = $configuration['MESS_FROM_NAME'] . ' <info@' . ((isset ($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] != '') ? $_SERVER['HTTP_HOST'] : 'processmaker.com') . '>';
+                $from = $configuration['MESS_FROM_NAME'] . ' <info@' . ((defined (HOST) && HOST != '') ? HOST : 'easyflow.com') . '>';
             }
             else if ( $configuration['MESS_FROM_MAIL'] != '' )
             {
@@ -848,11 +885,11 @@ class EmailServer
             }
             else if ( $configuration['MESS_ENGINE'] == 'PHPMAILER' && $configuration['MESS_ACCOUNT'] != '' && !preg_match ('/(.+)@(.+)\.(.+)/', $configuration['MESS_ACCOUNT'], $match) )
             {
-                $from = $configuration['MESS_ACCOUNT'] . ' <info@' . ((isset ($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] != '') ? $_SERVER['HTTP_HOST'] : 'processmaker.com') . '>';
+                $from = $configuration['MESS_ACCOUNT'] . ' <info@' . ((defined (HOST) && HOST != '') ? HOST : 'easyflow.com') . '>';
             }
             else
             {
-                $from = 'info@' . ((isset ($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] != '') ? $_SERVER['HTTP_HOST'] : 'processmaker.com');
+                $from = 'info@' . ((defined (HOST) && HOST != '') ? HOST : 'easyflow.com');
             }
         }
         return $from;

@@ -440,7 +440,7 @@ class EmailFunctions
                 switch ($this->config['MESS_ENGINE']) {
                     case 'MAIL':
                     case 'PHPMAILER':
-                        require_once PATH_THIRDPARTY . "phpmailer.php";
+                        require_once PATH_THIRDPARTY . "phpmailer/phpmailer.php";
 
                         switch ($this->config['MESS_ENGINE']) {
                             case 'MAIL':

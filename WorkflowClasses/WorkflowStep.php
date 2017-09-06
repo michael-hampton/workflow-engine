@@ -310,7 +310,7 @@ class WorkflowStep
         $objTask = (new Task())->retrieveByPk ($this->_stepId);
 
         $type = trim ($objTask->getTasAssignType ());
-
+        
         switch ($type) {
             case "REPORT_TO":
 
@@ -345,6 +345,10 @@ class WorkflowStep
                     throw (new Exception ('ID_MSJ_REPORSTO')); // "The current user does not have a valid Reports To user.  Please contact administrator.") ) ;
                 }
 
+                break;
+                
+            default:
+                $userFields = $this->getUsersFullNameFromArray($this->getAllUsersFromAnyTask($this->_stepId));
                 break;
         }
 
@@ -551,7 +555,7 @@ class WorkflowStep
                     throw new Exception ("No user given");
                 }
                 
-                $arrUsers = $this->getUsersFullNameFromArray($this->getAllUsersFromAnyTask($this->_stepId));
+                $arrUsers = $this->getNextAssignedUser($objTask, $objUser);
                 
                 $objProcess = (new Workflow ($this->workflowId))->load ($this->workflowId);
                 switch ($taskType) {
@@ -748,7 +752,7 @@ class WorkflowStep
         }
     }
 
-    public function checkEvents (Users $objUser)
+    private function checkEvents (Users $objUser)
     {
         $objEvent = new \BusinessModel\Event();
         $arrEvents = $objEvent->getEvent ($this->_workflowStepId);
@@ -774,7 +778,7 @@ class WorkflowStep
         }
     }
 
-    public function userVacation ($UsrUid = "")
+    private function userVacation ($UsrUid = "")
     {
         $aFields = array();
         $cnt = 0;
@@ -907,7 +911,7 @@ class WorkflowStep
         return $users;
     }
 
-    function checkReplacedByUser ($user)
+    private function checkReplacedByUser ($user)
     {
 
         if ( is_string ($user) )

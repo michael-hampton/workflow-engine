@@ -20,6 +20,7 @@ require_once HOME_DIR . '/core/app/library/Log.php';
 require_once HOME_DIR . '/core/app/library/BaseConfiguration.php';
 require_once HOME_DIR . '/core/app/library/Configuration.php';
 require_once HOME_DIR . '/core/app/library/class.configuration.php';
+require_once HOME_DIR . '/core/app/library/netClass.php';
 
 
 require_once HOME_DIR . '/core/app/library/BusinessModel/Validator.php';
