@@ -23,7 +23,7 @@ class ErrorHandler
      * @param mixed $context
      * @return boolean
      */
-    function handleError ($code, $description, $file = null, $line = null, $context = null)
+    public function handleError ($code, $description, $file = null, $line = null, $context = null)
     {
         $displayErrors = ini_get ("display_errors");
         $displayErrors = strtolower ($displayErrors);
@@ -55,7 +55,7 @@ class ErrorHandler
      * @param string $fileName
      * @return boolean
      */
-    function fileLog ($logData, $fileName = ERROR_LOG_FILE)
+    private function fileLog ($logData, $fileName = ERROR_LOG_FILE)
     {
         $fh = fopen ($fileName, 'a+');
         if ( is_array ($logData) )
@@ -74,7 +74,7 @@ class ErrorHandler
      * @param int $code Error code to map
      * @return array Array of error word, and log location.
      */
-    function mapErrorCode ($code)
+    private function mapErrorCode ($code)
     {
         $error = $log = null;
         switch ($code) {
