@@ -305,7 +305,6 @@ class EmailServer
     public function setEmailServerDefaultByUid ($emailServerUid)
     {
         try {
-            $arrayEmailServerData = $this->getEmailServer ($emailServerUid, true);
 
             //Update
             $this->objMysql->_query ("UPDATE email_server SET MESS_DEFAULT = 0 WHERE MESS_UID != ?", [$emailServerUid]);
@@ -686,7 +685,7 @@ class EmailServer
                     }
                     else
                     {
-                        $host = $srv;
+                        //$host = $srv;
                     }
                     $tls = (strtoupper ($smtpSecure) == "tls");
                     $ssl = (strtoupper ($smtpSecure) == "ssl");
@@ -776,7 +775,7 @@ class EmailServer
                             $arrayDataPhpMailer = array();
                             $eregMail = "/^[0-9a-zA-Z]+(?:[._][0-9a-zA-Z]+)*@[0-9a-zA-Z]+(?:[._-][0-9a-zA-Z]+)*\.[0-9a-zA-Z]{2,3}$/";
                             $arrayDataPhpMailer["FROM_EMAIL"] = ($fromMail != "" && preg_match ($eregMail, $fromMail)) ? $fromMail : "";
-                            $arrayDataPhpMailer["FROM_NAME"] = $arrayData["MESS_FROM_NAME"] != "" ? $arrayData["MESS_FROM_NAME"] : \G::LoadTranslation ("ID_MESS_TEST_BODY");
+                            $arrayDataPhpMailer["FROM_NAME"] = $arrayData["MESS_FROM_NAME"] != "" ? $arrayData["MESS_FROM_NAME"] : "ID_MESS_TEST_BODY";
                             $arrayDataPhpMailer["MESS_ENGINE"] = "PHPMAILER";
                             $arrayDataPhpMailer["MESS_SERVER"] = $server;
                             $arrayDataPhpMailer["MESS_PORT"] = $port;
