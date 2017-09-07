@@ -58,7 +58,7 @@ class Task
             }
             else
             {
-                throw new \Exception (\G::LoadTranslation ("ID_ROW_DOES_NOT_EXIST"));
+                throw new \Exception ("ID_ROW_DOES_NOT_EXIST");
             }
         } catch (\Exception $e) {
             throw $e;
@@ -250,7 +250,7 @@ class Task
 
                 $teamSql .= " AND t.status = 1";
 
-                $teamQuery = $TeamSelect . $teamSql;
+                //$teamQuery = $TeamSelect . $teamSql;
 
                 $selectCount = "SELECT COUNT(t.team_id) AS NUM_REC ";
 
@@ -621,7 +621,6 @@ class Task
             $arrayProperty["TAS_UID"] = $act_uid;
             $arrayProperty["PRO_UID"] = $prj_uid;
             $task = new \Task();
-            $aTaskInfo = $task->retrieveByPk ($arrayProperty["TAS_UID"]);
 
             $arrayResult = array();
 
