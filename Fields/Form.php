@@ -82,11 +82,9 @@ class Form extends BaseForm
             {
                 $this->setDynTitleContent ($dynTitle);
                 $this->setDynDescriptionContent ($dynDescription);
-                $res = $this->save ();
-
-                //Add Audit Log
-                $mode = isset ($aData['MODE']) ? $aData['MODE'] : 'Determined by Fields';
-                $description = "";
+                $this->save ();
+                
+                $description = '';
 
                 if ( $pmTableUid != '' )
                 {
@@ -220,9 +218,6 @@ class Form extends BaseForm
             $oPro = $this->retrieveByPK ($ProUid);
             if ( $oPro === false )
             {
-                $title = $oPro->getDynTitle ();
-                $type = $oPro->getDynType ();
-                $description = $oPro->getDynDescription ();
 
                 $iResult = $oPro->delete ();
 
@@ -303,7 +298,6 @@ class Form extends BaseForm
      */
     public function verifyDynaformAssignDynaform ($dynUid, $proUid)
     {
-        $res = array();
 
         $sql = "SELECT DYN_UID FROM workflow.form WHERE PRO_UID = ? AND DYN_UID != ?";
         $results = $this->objMysql->_query ($sql, [$proUid, $dynUid]);
