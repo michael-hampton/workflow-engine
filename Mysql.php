@@ -104,12 +104,14 @@ class Mysql2 extends D
         try {
             $indexed = $data == array_values ($data);
             foreach ($data as $k => $v) {
-                if ( is_string ($v) )
+                if ( is_string ($v) ) {
                     $v = "'$v'";
-                if ( $indexed )
+			
+                if ( $indexed ) {
                     $string = preg_replace ('/\?/', $v, $string, 1);
-                else
+               } else {
                     $string = str_replace (":$k", $v, $string);
+			
             }
 
             return $string;
