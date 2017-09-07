@@ -282,10 +282,10 @@ class WorkflowStep
         }
         if ( $isParallel === true && isset ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers']) )
         {
-            if ( isset ($arrCompleteData['claimed']) && trim ($arrCompleteData['claimed']) !== "" )
+            if ( trim ($objUser->getUsername()) !== "" )
             {
                 foreach ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers'] as $key => $parallelUser) {
-                    if ( trim ($parallelUser['username']) === trim ($arrCompleteData['claimed']) )
+                    if ( trim ($parallelUser['username']) === trim ($objUser->getUsername()) )
                     {
                         $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers'][$key]['dateCompleted'] = date ("Y-m-d H:i:s");
                     }
@@ -440,7 +440,7 @@ class WorkflowStep
         return true;
     }
 
-    private function sendNotification (Users $objUser, array $arrCompleteData = [], $arrEmailAddresses = [])
+    private function sendNotification (Users $objUser, $arrEmailAddresses = [])
     {
         $objNotifications = new SendNotification();
         $objNotifications->setVariables ($this->_stepId, $this->_systemName);
@@ -681,7 +681,7 @@ class WorkflowStep
         }
         $auditStatus = isset ($arrCompleteData['status']) ? $arrCompleteData['status'] : '';
         (new AppDelegation())->createAppDelegation ($this, $objMike, $objUser, $objTask, $this->_stepId, 3, false, -1, $hasEvent, $blIsParralelTask, $status, $auditStatus);
-        $this->sendNotification ($objUser, $arrCompleteData, $arrEmailAddresses);
+        $this->sendNotification ($objUser, $arrEmailAddresses);
         $this->nextTask = $step;
     }
 
@@ -793,7 +793,7 @@ class WorkflowStep
         do {
             if ( $UsrUid != "" && $cnt < 100 )
             {
-                $aFields = $objUser = (new \BusinessModel\UsersFactory())->getUser ($UsrUid);
+                $aFields = (new \BusinessModel\UsersFactory())->getUser ($UsrUid);
                 $UsrUid = $aFields->getUserReplaces ();
             }
             else
