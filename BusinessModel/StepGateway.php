@@ -29,8 +29,9 @@ class StepGateway
     {
         
         $result = $this->objMysql->_select ("workflow.gateways", [], ["step_id" => $this->stepId]);
-
-        foreach ($result as $key => $res) {
+        $keys = array_keys($result);
+        
+        foreach ($keys as $key) {
             $result[$key]['trigger_type'] = "gateway";
         }
 
