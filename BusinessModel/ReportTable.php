@@ -378,7 +378,6 @@ class ReportTable
 
             if ( $flagNew == 1 )
             {
-                $pmTablesProxy = new \reportTableCSV();
                 $obj = new \stdClass();
                 $obj->rows = json_encode ([['id' => $additionalTableUid, 'type' => '']]);
                 //Delete Report Table
