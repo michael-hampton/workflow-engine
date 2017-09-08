@@ -36,6 +36,11 @@ class SendNotification
     {
         $this->status = $status;
     }
+    
+    public function setTemplate($template)
+    {
+        $this->template($template);
+    }
 
     /**
      *
