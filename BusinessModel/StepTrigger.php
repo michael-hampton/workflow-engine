@@ -538,31 +538,32 @@ class StepTrigger
 
         if ( !empty ($arrTrigger) )
         {
-            $template = PATH_DATA_MAILTEMPLATES . $templateName . ".html";
+            /*$template = PATH_DATA_MAILTEMPLATES . $templateName . ".html";
 
             $content = "DEFAULT BODY";
 
             if ( file_exists ($template) )
             {
                 $content = file_get_contents ($template);
-            }
+            }*/
 
             $subject = "CASE HAS BEEN " . $arrTrigger['event_type'] . " BY [USER]";
 
             $objSendNotification = new \SendNotification();
             $objSendNotification->setProjectId ($this->parentId);
-            $recipients = $objSendNotification->getTaskUsers ();
+            //$recipients = $objSendNotification->getTaskUsers ();
             $objSendNotification->setElementId($this->elementId);
             $objSendNotification->setStatus($this->currentStep);
-
-            if ( empty ($recipients) )
+            $objSendNotification->setTemplate($template);
+            
+            /*if ( empty ($recipients) )
             {
                 return false;
-            }
+            }*/
 
-            $objCase = new \BusinessModel\Cases();
+            //$objCase = new \BusinessModel\Cases();
 
-            $recipients = implode (",", $recipients);
+            /*$recipients = implode (",", $recipients);
 
             $Fields = $objCase->getCaseVariables ((int) $this->elementId, (int) $this->parentId, (int) $this->currentStep);
 
@@ -571,7 +572,7 @@ class StepTrigger
                 $subject = $objCase->replaceDataField ($subject, $Fields);
                 $body = $objCase->replaceDataField ($content, $Fields);
                 $objSendNotification->notificationEmail ($recipients, $subject, $body, $objUser);
-            }
+            }*/
         }
     }
 
