@@ -122,7 +122,6 @@ class CaseTracker
     public function getAvailableCaseTrackerObjects ($processUid)
     {
         try {
-            $arrayAvailableCaseTrackerObject = array();
             //Verify data
             $process = new Process();
             $process->throwExceptionIfNotExistsProcess ($processUid);
