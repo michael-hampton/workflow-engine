@@ -555,6 +555,7 @@ class StepTrigger
             $objSendNotification->setElementId($this->elementId);
             $objSendNotification->setStatus($this->currentStep);
             $objSendNotification->setTemplate($template);
+            $objSendNotification->buildEmail($objTask, $objUser, "trigger");
             
             /*if ( empty ($recipients) )
             {
