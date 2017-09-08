@@ -60,7 +60,7 @@ class CalendarBusinessHours extends BaseCalendarBusinessHours
     {
         $toDelete = $this->getCalendarBusinessHours ($CalendarUid);
 
-        foreach ($toDelete as $key => $businessHoursInfo) {
+        foreach ($toDelete as $businessHoursInfo) {
             $CalendarUid = $businessHoursInfo['CALENDAR_UID'];
             $CalendarBusinessDay = $businessHoursInfo['CALENDAR_BUSINESS_DAY'];
             $CalendarBusinessStart = $businessHoursInfo['CALENDAR_BUSINESS_START'];
