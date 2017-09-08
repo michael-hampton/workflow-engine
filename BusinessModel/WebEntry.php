@@ -432,8 +432,6 @@ class WebEntry
         try {
             if ( $record["WE_METHOD"] == "WS" )
             {
-
-                $http = "http://";
                 $url = WEB_ENTRY_DIR . $record["PRO_UID"];
 
                 $record["WE_DATA"] = $url . "/" . $record["WE_DATA"];
