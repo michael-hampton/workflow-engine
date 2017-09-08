@@ -127,8 +127,9 @@ class AppDelay extends BaseAppDelay
     public function isPaused ($appUid, $delIndex)
     {
 
-        $result = "SELECT * FROM APP_DELAY WHERE APP_UID = ? AND (APP_DISABLE_ACTION_USER = 0 or ISNULL(APP_DISABLE_ACTION_USER))";
-        $arrParameters = [$appUid];
+        $sql = "SELECT * FROM APP_DELAY WHERE APP_UID = ? AND (APP_DISABLE_ACTION_USER = 0 or ISNULL(APP_DISABLE_ACTION_USER))";
+        $arrParameters[] = $appUid;
+        $result = $this->objMysql->_query($sql, $arrParameters);
 
         if ( isset ($result[0]) && !empty ($result[0]) )
         {
