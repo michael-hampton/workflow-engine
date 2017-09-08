@@ -220,7 +220,7 @@ class Department
      * @return array Return an array with all Users of a Department, ThrowTheException/FALSE otherwise
      */
     public function getUsers (
-    $departmentUid, $option, array $arrayFilterData = null, $sortField = null, $sortDir = null, $start = null, $limit = null, $flagRecord = true, $throwException = true
+    $departmentUid, $option, array $arrayFilterData = null, $sortField = null, $sortDir = null, $start = null, $limit = null, $throwException = true
     )
     {
         try {
@@ -375,7 +375,7 @@ class Department
      * @return array Returns an array with Department record, ThrowTheException/FALSE otherwise
      */
     public function getDepartmentRecordByPk (
-    $departmentUid, array $arrayVariableNameForException, $throwException = true
+    $departmentUid, $throwException = true
     )
     {
         try {
