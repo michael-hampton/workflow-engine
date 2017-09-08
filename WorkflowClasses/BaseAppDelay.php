@@ -772,6 +772,8 @@ abstract class BaseAppDelay implements Persistent
                     "APP_AUTOMATIC_DISABLED_DATE" => $this->app_automatic_disabled_date
                         ]
                 );
+                
+                return $id;
             }
             else
             {
