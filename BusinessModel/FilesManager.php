@@ -662,7 +662,7 @@ class FilesManager
     public function getProcessFileManager ($sProcessUID, $prfUid)
     {
         try {
-            $oProcessFiles = \ProcessFilesPeer::retrieveByPK ($prfUid);
+            $oProcessFiles = $this->retrieveByPK ($prfUid);
             $fcontent = file_get_contents ($oProcessFiles->getPrfPath ());
             $pth = $oProcessFiles->getPrfPath ();
             $pth = str_replace ("\\", "/", $pth);
