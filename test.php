@@ -1,59 +1,82 @@
- function checkReplacedByUser ($user)
-    {
-        if (is_string( $user )) {
-            $userInstance = UsersPeer::retrieveByPK( $user );
-        } else {
-            $userInstance = $user;
-        }
-        if (! is_object( $userInstance )) {
-            throw new Exception( "The user with the UID '$user' doesn't exist." );
-        }
-        if ($userInstance->getUsrStatus() == 'ACTIVE') {
-            return $userInstance->getUsrUid();
-        } else {
-            $userReplace = trim( $userInstance->getUsrReplacedBy() );
-            if ($userReplace != '') {
-                return $this->checkReplacedByUser( UsersPeer::retrieveByPK( $userReplace ) );
-            } else {
-                return '';
-            }
-        }
-    }
+case 'SELF_SERVICE':
+                $to = '';
+                $cc = '';
+		$arrWhere = [];
 
+                //Query
+               $sql "SELECT usrid, username, firstName, lastName, email_address FROM user_management.poms_users WHERE status != 0";
 
-REPORTS TO
- do {
-                    $userTasInfo = $this->getDenpendentUser($userTasInfo);
-                    $useruid = $this->checkReplacedByUser($userTasInfo);
-                    //When the lastManager is INACTIVE/VACATION and does not have a Replace by, the REPORT_TO is himself
-                    if($lastManager === $userTasInfo){
-                        $useruid = $tasInfo["USER_UID"];
-                    } else {
-                        $lastManager = $userTasInfo;
+                if (trim($task->getTasGroupVariable()) != '') {
+                    //SELF_SERVICE_VALUE
+                    $variable = trim($task->getTasGroupVariable(), ' @#%?$=');
+
+                    //Query
+                    if (isset($arrayData[$variable])) {
+                        $data = $arrayData[$variable];
+
+                        switch (gettype($data)) {
+                            case 'string':
+				$sql .= " AND team_id = ?";
+				$arrWhere[] = $data;
+
+                                $results = $this->objMysql->_query($sql, $arrWhere);
+
+                                break;
+                            case 'array':
+				$sql .= " AND usrid IN( ".implode(",", $data)." )";
+				$results = $this->objMysql->_query($sql, $arrWhere);
+                                break;
+                        }
                     }
-                } while ($useruid === '');
+                } else {
+                    //SELF_SERVICE
+                    $arrayTaskUser = [];
 
-                if (isset( $useruid ) && $useruid != '') {
-                    $userFields = $this->getUsersFullNameFromArray( $useruid );
+                    $arrayAux1 = $tasks->getGroupsOfTask($taskUid, 1);
+
+                    foreach ($arrayAux1 as $arrayGroup) {
+                        $arrayAux2 = $group->getUsersOfGroup($arrayGroup['GRP_UID']);
+
+                        foreach ($arrayAux2 as $arrayUser) {
+                            $arrayTaskUser [] = $arrayUser ['USR_UID'];
+                        }
+                    }
+
+                    $arrayAux1 = $tasks->getUsersOfTask($taskUid, 1);
+
+                    foreach ($arrayAux1 as $arrayUser) {
+                        $arrayTaskUser[] = $arrayUser['USR_UID'];
+                    }
+
+
+                    //Query
+		    $sql .= " AND usrid IN( ".implode(",", $arrayTaskUser)." )";
+
+                    $results = $this->objMysql->_query($sql, $arrWhere);
                 }
 
-                // if there is no report_to user info, throw an exception indicating this
-                if (! isset( $userFields ) || $userFields['USR_UID'] == '') {
-                    throw (new Exception( G::LoadTranslation( 'ID_MSJ_REPORSTO' ) )); // "The current user does not have a valid Reports To user.  Please contact administrator.") ) ;
+                if (isset($results[0]) && !empty($results[0])) {
+
+                    foreach($results as $record) {
+
+                        $toAux = (($record['firstName'] != '' || $record['lastName'] != '')? $record['firstName'] . ' ' . $record['lastName'] . ' ' : '') . '<' . $record['email_address'] . '>';
+
+                        if ($to == '') {
+                            $to = $toAux;
+                        } else {
+                            $cc .= (($cc != '')? ',' : '') . $toAux;
+                        }
+                    }
                 }
-}
 
-/* getDenpendentUser
-     *
-     * @param   string   $USR_UID
-     * @return  string   $aRow['USR_REPORTS_TO']
-     */
-    function getDenpendentUser ($USR_UID)
-    {
-        $user = new \ProcessMaker\BusinessModel\User();
+                $arrayResp['to'] = $to;
+                $arrayResp['cc'] = $cc;
 
-        $manager = $user->getUsersManager($USR_UID);
 
-        //Return
-        return ($manager !== false)? $manager : $USR_UID;
-    }
+
+		if(trim($this->template) !== "") {
+
+			$pathEmail = PATH_DATA_SITE . "mailTemplates" . PATH_SEP . $aTaskInfo["PRO_UID"] . PATH_SEP;
+			$fileTemplate = $pathEmail . $this->template;
+                	$sBody = file_get_contents($fileTemplate);
+		}
