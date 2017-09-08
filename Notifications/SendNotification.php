@@ -15,6 +15,7 @@ class SendNotification
     private $to;
     private $sendToAll;
     private $fromName;
+    private $template;
 
     public function getSystem ()
     {
@@ -142,13 +143,14 @@ class SendNotification
     {
 
         try {
-            $this->setVariables ($objTask->getStepId (), $system);
+            if($system === "task_manager") {
+                $this->setVariables ($objTask->getStepId (), $system);
+            }
 
             $this->taskId = $objTask->getTasUid ();
 
             $noteRecipientsList = array();
-
-
+            
             if ( !empty ($this->arrEmailAddresses) )
             {
                 $noteRecipientsList[] = $this->arrEmailAddresses;
@@ -184,7 +186,16 @@ class SendNotification
             $Fields = $objCases->getCaseVariables ((int) $this->elementId, (int) $this->projectId, (int) $objTask->getStepId ());
 
             $this->subject = $objCases->replaceDataField ($this->subject, $Fields);
-            $this->body = $objCases->replaceDataField ($this->body, $Fields);
+            
+            if(trim($this->template) !== '') {
+                if(file_exists($this->template)) {
+                $body = file_get_contents($this->template);
+                $this->body = $objCases->replaceDataField ($this->body, $Fields);
+                } else {
+                }
+            } else {
+                $this->body = $objCases->replaceDataField ($this->body, $Fields);
+            }
 
             //	sending email notification
             $this->notificationEmail ($objUser);
