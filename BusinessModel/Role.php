@@ -1,4 +1,5 @@
 <?php
+
 namespace BusinessModel;
 
 /*
@@ -387,7 +388,7 @@ class Role
         try {
             //Verify data
             $this->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
-            
+
             //Verify data
             $this->throwExceptionIfNotExistsRole ($roleUid);
 
@@ -429,7 +430,7 @@ class Role
                 throw new Exception ("ID_ROLES_CAN_NOT_DELETE");
             }
             //Delete
-           $role->removeRole ($roleUid);
+            $role->removeRole ($roleUid);
         } catch (\Exception $e) {
             throw $e;
         }

@@ -897,7 +897,7 @@ class TimerEvent
 
                     if ( $flagCase )
                     {
-                        
+
                         $objUser = (new UsersFactory())->getUser ($_SESSION['user']['usrid']);
                         $variables = array("name" => "NAME", "description" => "DESCRIPTION");
                         $arrCase = $case->addCase (new \Workflow ($arrayTimerEventData['workflow_id']), $objUser, array("form" => $variables), [], true, null, true);
@@ -945,18 +945,18 @@ class TimerEvent
                 }
                 else
                 {
-                   $arrCases = $case->getCasesForTask(new \Flow($result['EVN_UID']));
-                   
-                   $total = $arrCases['total'];
-                   $dates = $arrCases['dates'];
-                   $rows = $arrCases['rows'];
+                    $arrCases = $case->getCasesForTask (new \Flow ($result['EVN_UID']));
+
+                    $total = $arrCases['total'];
+                    $dates = $arrCases['dates'];
+                    $rows = $arrCases['rows'];
 
                     $counter = 0;
                     $flagRecord = false;
 
                     do {
                         $flagNextRecord = false;
-                        
+
                         foreach ($rows as $projectId => $elementId) {
                             if ( $counter + 1 > $total )
                             {
@@ -969,7 +969,7 @@ class TimerEvent
                             $arrayApplicationData = $case->getCaseInfo ($projectId, $elementId);
 
                             $continueCaseDate = str_replace (";", ":", $dates[$projectId]);
-                            
+
                             switch ($arrayTimerEventData["TMREVN_OPTION"]) {
                                 case "WAIT-FOR":
                                     if ( $arrayTimerEventData["TMREVN_DAY"] . "" != "" )
@@ -993,7 +993,7 @@ class TimerEvent
                             }
 
                             $arrayContinueCaseDateData = $this->getYearMonthDayHourMinuteSecondByDatetime ($continueCaseDate);
-                            
+
                             if ( !empty ($arrayContinueCaseDateData) )
                             {
                                 $flagCase = false;

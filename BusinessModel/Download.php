@@ -1,4 +1,5 @@
 <?php
+
 namespace BusinessModel;
 
 class Download
@@ -324,4 +325,5 @@ class Download
     }
 
 }
+
 ?>

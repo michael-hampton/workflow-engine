@@ -226,7 +226,7 @@ class Task
                         " . $joinType . " JOIN workflow.TASK_USER p ON u.team_id = p.USR_UID AND p.TU_RELATION = 2
                          LEFT JOIN user_management.teams t ON t.team_id = u.team_id
                          WHERE 1=1";
-                
+
                 switch ($option) {
                     case "ASSIGNED":
 
@@ -286,11 +286,11 @@ class Task
 
                         break;
                 }
-                     
+
                 if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"]) && trim ($arrayFilterData["filter"]) != "" )
                 {
                     $search = isset ($arrayFilterData["filter"]) ? $arrayFilterData["filter"] : "";
-                    
+
                     $userSql .= " AND (u.username LIKE '%" . $search . "%' OR u.firstName LIKE '%" . $search . "%' OR lastName LIKE '%" . $search . "%')";
                 }
 
@@ -580,7 +580,7 @@ class Task
                 $limit = count ($aUsersGroups) + 1;
             }
             $aUsersGroups = $this->arrayPagination ($aUsersGroups, $start, $limit);
-            
+
             return $aUsersGroups;
         } catch (\Exception $e) {
             throw $e;

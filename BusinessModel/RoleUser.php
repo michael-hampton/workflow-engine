@@ -1,4 +1,5 @@
 <?php
+
 namespace BusinessModel;
 
 /*
@@ -163,5 +164,5 @@ class RoleUser
             throw($oError);
         }
     }
+
 }
-    

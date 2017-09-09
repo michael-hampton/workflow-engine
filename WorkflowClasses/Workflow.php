@@ -194,16 +194,16 @@ class Workflow extends BaseProcess
             $process['PRO_DESCRIPTION'] = $proDescription;
             $process['PRO_STATUS_LABEL'] = "ACTIVE";
             $process['PRO_CREATE_USER_LABEL'] = $userOwner;
-            
-            /*if ( $counters )
-            {
-                $process['CASES_COUNT_TO_DO'] = (isset ($casesCnt[$process['PRO_UID']]['TO_DO']) ? $casesCnt[$process['PRO_UID']]['TO_DO'] : 0);
-                $process['CASES_COUNT_COMPLETED'] = (isset ($casesCnt[$process['PRO_UID']]['COMPLETED']) ? $casesCnt[$process['PRO_UID']]['COMPLETED'] : 0);
-                $process['CASES_COUNT_DRAFT'] = (isset ($casesCnt[$process['PRO_UID']]['DRAFT']) ? $casesCnt[$process['PRO_UID']]['DRAFT'] : 0);
-                $process['CASES_COUNT_CANCELLED'] = (isset ($casesCnt[$process['PRO_UID']]['CANCELLED']) ? $casesCnt[$process['PRO_UID']]['CANCELLED'] : 0);
-                $process['CASES_COUNT'] = $casesCountTotal;
-            }*/
-            
+
+            /* if ( $counters )
+              {
+              $process['CASES_COUNT_TO_DO'] = (isset ($casesCnt[$process['PRO_UID']]['TO_DO']) ? $casesCnt[$process['PRO_UID']]['TO_DO'] : 0);
+              $process['CASES_COUNT_COMPLETED'] = (isset ($casesCnt[$process['PRO_UID']]['COMPLETED']) ? $casesCnt[$process['PRO_UID']]['COMPLETED'] : 0);
+              $process['CASES_COUNT_DRAFT'] = (isset ($casesCnt[$process['PRO_UID']]['DRAFT']) ? $casesCnt[$process['PRO_UID']]['DRAFT'] : 0);
+              $process['CASES_COUNT_CANCELLED'] = (isset ($casesCnt[$process['PRO_UID']]['CANCELLED']) ? $casesCnt[$process['PRO_UID']]['CANCELLED'] : 0);
+              $process['CASES_COUNT'] = $casesCountTotal;
+              } */
+
             $aProcesses[] = $process;
         }
         if ( $limit == '' )
@@ -313,18 +313,19 @@ class Workflow extends BaseProcess
 
     public function getCasesCountForProcess ($pro_uid)
     {
-        if(trim($pro_uid) === "") {
+        if ( trim ($pro_uid) === "" )
+        {
             return false;
         }
-        
-        /*$oCriteria = new Criteria ('workflow');
-        $oCriteria->addSelectColumn ('COUNT(*) AS TOTAL_CASES');
-        $oCriteria->add (ApplicationPeer::PRO_UID, $pro_uid);
-        $oDataset = ApplicationPeer::doSelectRS ($oCriteria, Propel::getDbConnection ('workflow_ro'));
-        $oDataset->setFetchmode (ResultSet::FETCHMODE_ASSOC);
-        $oDataset->next ();
-        $cases = $oDataset->getRow ();
-        return (int) $cases['TOTAL_CASES'];*/
+
+        /* $oCriteria = new Criteria ('workflow');
+          $oCriteria->addSelectColumn ('COUNT(*) AS TOTAL_CASES');
+          $oCriteria->add (ApplicationPeer::PRO_UID, $pro_uid);
+          $oDataset = ApplicationPeer::doSelectRS ($oCriteria, Propel::getDbConnection ('workflow_ro'));
+          $oDataset->setFetchmode (ResultSet::FETCHMODE_ASSOC);
+          $oDataset->next ();
+          $cases = $oDataset->getRow ();
+          return (int) $cases['TOTAL_CASES']; */
     }
 
     public function getAllProcessesByCategory ()

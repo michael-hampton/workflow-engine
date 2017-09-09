@@ -358,7 +358,6 @@ class Department
             $objUser->setSupervisor ($record['USR_SUPERVISOR']);
 
             return $objUser;
-
         } catch (\Exception $e) {
             throw $e;
         }

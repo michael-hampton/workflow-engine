@@ -198,7 +198,6 @@ abstract class BaseCalendarDefinition implements Persistent
         {
             // a non-timestamp value was set externally, so we convert it
             $ts = strtotime ($this->calendar_update_date);
-           
         }
         else
         {
@@ -351,7 +350,6 @@ abstract class BaseCalendarDefinition implements Persistent
             {
                 $ts = null;
             }
-           
         }
         else
         {
@@ -441,7 +439,7 @@ abstract class BaseCalendarDefinition implements Persistent
             $this->calendar_status = $v;
         }
     }
-    
+
     /**
      * Removes this object from datastore and sets delete attribute.
      *
@@ -467,18 +465,17 @@ abstract class BaseCalendarDefinition implements Persistent
     {
         if ( trim ($this->calendar_uid) !== "" )
         {
-              $id = $this->objMysql->_update ("calendar.calendar", [
+            $id = $this->objMysql->_update ("calendar.calendar", [
                 "CALENDAR_NAME" => $this->calendar_name,
                 "CALENDAR_STATUS" => $this->calendar_status,
                 "CALENDAR_CREATE_DATE" => $this->calendar_create_date,
                 "CALENDAR_UPDATE_DATE" => $this->calendar_update_date,
                 "CALENDAR_WORK_DAYS" => $this->calendar_work_days,
                 "CALENDAR_DESCRIPTION" => $this->calendar_description
-                    ],
-                      ["CALENDAR_UID" => $this->calendar_uid]
+                    ], ["CALENDAR_UID" => $this->calendar_uid]
             );
-              
-              return $this->calendar_uid;
+
+            return $this->calendar_uid;
         }
         else
         {
@@ -492,7 +489,7 @@ abstract class BaseCalendarDefinition implements Persistent
                     ]
             );
         }
-        
+
         return $id;
     }
 

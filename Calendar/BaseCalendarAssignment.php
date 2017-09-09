@@ -106,7 +106,6 @@ abstract class BaseCalendarAssignment implements Persistent
      * @param      string $v new value
      * @return     void
      */
-
     public function setCalendarUid ($v)
     {
         // Since the native PHP type for this column is string,
@@ -128,7 +127,6 @@ abstract class BaseCalendarAssignment implements Persistent
      * @param      string $v new value
      * @return     void
      */
-
     public function setObjectType ($v)
     {
         // Since the native PHP type for this column is string,

@@ -146,7 +146,7 @@ class MessageEventDefinition
                     throw new \Exception ("ID_EVENT_NOT_EXIST");
                 }
 
-               
+
 
                 if ( $arrayData['messageType'] == "send" )
                 {

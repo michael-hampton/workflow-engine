@@ -322,7 +322,7 @@ class MessageApplication
 
                                     //Start and derivate new Case
                                     $arrCase = $case->addCase ((new \Workflow ($arrayMessageApplicationData['workflow_id'])), $objUser, array("form" => $variables), [], true, null, true);
-                                    
+
                                     $aInfo = array(
                                         'action' => 'CREATED-NEW-CASE'
                                         , 'usrUid' => $objUser->getUserId ()
@@ -331,7 +331,7 @@ class MessageApplication
                                         , 'appUid' => $arrCase['case_id']
                                         , 'workflowId' => $processUid
                                     );
-                                  
+
 
                                     (new \Log (LOG_FILE))->log (
                                             $aInfo, \Log::NOTICE);
@@ -373,7 +373,7 @@ class MessageApplication
                                 );
 
                                 (new \Log (LOG_FILE))->log (
-                                       $aInfo, \Log::NOTICE);
+                                        $aInfo, \Log::NOTICE);
 
                                 $flagCatched = true;
                                 break;
@@ -487,4 +487,5 @@ class MessageApplication
             throw $e;
         }
     }
+
 }

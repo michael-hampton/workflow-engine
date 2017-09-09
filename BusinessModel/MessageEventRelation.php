@@ -11,6 +11,7 @@
  *
  * @author michael.hampton
  */
+
 namespace BusinessModel;
 
 class MessageEventRelation
@@ -286,7 +287,7 @@ class MessageEventRelation
     public function create ($projectUid, array $arrayData)
     {
         try {
-            
+
             //Verify data
             $this->throwExceptionIfDataIsNotArray ($arrayData, "\$arrayData");
             $this->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
@@ -302,7 +303,7 @@ class MessageEventRelation
                 $messageEventRelation = new \MessageEventRelation();
                 $messageEventRelation->loadObject ($arrayData);
                 $messageEventRelation->setPrjUid ($projectUid);
-                
+
                 if ( $messageEventRelation->validate () )
                 {
                     $messageEventRelationUid = $messageEventRelation->save ();

@@ -312,13 +312,13 @@ class ReportTable
                 $addTabUid = $additionalTable->create ($addTabData);
             }
             else
-            {   
+            {
                 //Editing report table
                 //updating record
                 $addTabUid = $arrayData['REP_TAB_UID'];
                 $additionalTable->update ($addTabData);
             }
-            
+
             //Updating pmtable fields
             $field = new \ReportField();
 

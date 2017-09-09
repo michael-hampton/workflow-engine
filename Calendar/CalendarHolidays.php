@@ -18,7 +18,7 @@ class CalendarHolidays extends BaseCalendarHolidays
 
     public function __construct ()
     {
-        parent::__construct();
+        parent::__construct ();
         $this->objMysql = new Mysql2();
     }
 
@@ -52,7 +52,7 @@ class CalendarHolidays extends BaseCalendarHolidays
     private function retrieveByPK ($CalendarUid, $CalendarHolidayName)
     {
         $result = $this->objMysql->_select ("calendar.calendar_holidays", [], ["CALENDAR_UID" => $CalendarUid, "CALENDAR_HOLIDAY_NAME" => $CalendarHolidayName]);
-        
+
         if ( !isset ($result[0]) || empty ($result[0]) )
         {
             return false;

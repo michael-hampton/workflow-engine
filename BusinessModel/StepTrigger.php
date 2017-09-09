@@ -200,7 +200,7 @@ class StepTrigger
                     {
                         $templateName = str_replace (" ", "_", $arrTrigger['template_name']);
                         $objTask = new \Task();
-                        $objTask->setTasUid($objWorkflowStep->getStepId());
+                        $objTask->setTasUid ($objWorkflowStep->getStepId ());
 
                         $this->executeSendMail ($objUser, $objTask, $templateName);
                     }
@@ -540,7 +540,7 @@ class StepTrigger
         }
 
         if ( isset ($templateName) && trim ($templateName) !== "" )
-        {            
+        {
             $subject = "CASE HAS BEEN " . (isset ($arrTrigger['event_type']) ? $arrTrigger['event_type'] : $templateName) . " BY [USER]";
             $objSendNotification = new \SendNotification();
             $objSendNotification->setProjectId ($this->parentId);
@@ -548,7 +548,7 @@ class StepTrigger
             $objSendNotification->setStatus ($this->currentStep);
             $objSendNotification->setTemplate ($templateName);
             $objSendNotification->setSubject ($subject);
-            $objSendNotification->setSendToAll(1);
+            $objSendNotification->setSendToAll (1);
             $objSendNotification->buildEmail ($objTask, $objUser, "trigger");
         }
     }

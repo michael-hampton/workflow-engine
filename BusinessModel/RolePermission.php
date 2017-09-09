@@ -1,4 +1,5 @@
 <?php
+
 namespace BusinessModel;
 
 class RolePermission

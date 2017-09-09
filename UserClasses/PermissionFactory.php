@@ -262,7 +262,7 @@ class PermissionFactory
                     //Get Uids
                     $arrayUid = array();
                     $criteria = $this->getPermissionCriteria ($roleUid);
-                    $results4 = $this->objMysql->_query($criteria);
+                    $results4 = $this->objMysql->_query ($criteria);
                     foreach ($results4 as $row) {
                         $arrayUid[] = $row["PER_UID"];
                     }

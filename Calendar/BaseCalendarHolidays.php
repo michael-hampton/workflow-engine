@@ -190,7 +190,6 @@ abstract class BaseCalendarHolidays implements Persistent
      * @param      string $v new value
      * @return     void
      */
-
     public function setCalendarHolidayName ($v)
     {
         // Since the native PHP type for this column is string,
@@ -212,7 +211,6 @@ abstract class BaseCalendarHolidays implements Persistent
      * @param      int $v new value
      * @return     void
      */
-
     public function setCalendarHolidayStart ($v)
     {
         if ( $v !== null && !is_int ($v) )
@@ -246,7 +244,6 @@ abstract class BaseCalendarHolidays implements Persistent
      * @param      int $v new value
      * @return     void
      */
-
     public function setCalendarHolidayEnd ($v)
     {
         if ( $v !== null && !is_int ($v) )
@@ -287,7 +284,6 @@ abstract class BaseCalendarHolidays implements Persistent
      * @return     int next starting column
      * @throws     PropelException  - Any caught Exception will be rewrapped as a PropelException.
      */
-
     public function hydrate (ResultSet $rs, $startcol = 1)
     {
         try {
@@ -395,7 +391,6 @@ abstract class BaseCalendarHolidays implements Persistent
      * Array of ValidationFailed objects.
      * @var        array ValidationFailed[]
      */
-
     protected $validationFailures = array();
 
     /**

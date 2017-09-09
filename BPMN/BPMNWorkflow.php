@@ -450,12 +450,12 @@ class BPMNWorkflow extends BPMN
                 {
                     $objBPMN->saveFlow ($from, $to, $this->workflow, $key, json_encode ($arrConditions), $arrSteps[$mapping['from']]['loc']);
                 }
-                
-                $objLog->log(
-                            array(
-                        "message" => "CREATED MAPPING",
-                        'step' => $from,
-                            ), \Log::NOTICE);
+
+                $objLog->log (
+                        array(
+                    "message" => "CREATED MAPPING",
+                    'step' => $from,
+                        ), \Log::NOTICE);
 
                 $objTrigger = new Trigger ($from);
 
@@ -503,9 +503,13 @@ class BPMNWorkflow extends BPMN
         $numberCheck = false;
         foreach ($array as $k => $val) {
             if ( is_array ($val) )
-                $array[$k] = $this->fix_keys ($val); //recurse
+            {
+                $array[$k] = $this->fix_keys ($val);
+            }//recurse
             if ( is_numeric ($k) )
+            {
                 $numberCheck = true;
+            }
         }
         if ( $numberCheck === true )
         {

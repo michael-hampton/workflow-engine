@@ -25,7 +25,7 @@ class StepPermission
      */
     public function __construct (\Task $objStep = null)
     {
-        
+
         if ( $objStep !== null )
         {
             $this->stepId = $objStep->getTasUid ();
@@ -45,7 +45,7 @@ class StepPermission
      * @return array
      */
     public function getProcessPermissions ()
-    {        
+    {
         $arrPermissions = [];
         $this->validateStepUid ();
 
@@ -226,7 +226,7 @@ class StepPermission
         $permissions = $this->getProcessPermissions ();
         $teamId = $objUser->getTeam_id ();
         $userId = $objUser->getUserId ();
-        
+
         // 1 for master 2 for RO
 
         if ( empty ($permissions) )
@@ -355,7 +355,7 @@ class StepPermission
                 return TRUE;
             }
         }
-        
+
         return false;
     }
 

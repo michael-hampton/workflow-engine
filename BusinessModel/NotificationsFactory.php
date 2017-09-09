@@ -78,15 +78,15 @@ class NotificationsFactory
         return $total;
     }
 
-  /**
-   * 
-   * @param type $arrParameters
-   * @param type $pageLimit
-   * @param type $page
-   * @param type $strOrderBy
-   * @param type $strOrderDir
-   * @return \Notification
-   */
+    /**
+     * 
+     * @param type $arrParameters
+     * @param type $pageLimit
+     * @param type $page
+     * @param type $strOrderBy
+     * @param type $strOrderDir
+     * @return \Notification
+     */
     public function getNotifications ($arrParameters, $pageLimit = 10, $page = 0, $strOrderBy = "ns.APP_MSG_SEND_DATE", $strOrderDir = "DESC")
     {
 
@@ -120,10 +120,10 @@ class NotificationsFactory
             $query .= " AND APP_MSG_SHOW_MESSAGE = ?";
             $arrWhere[] = $arrParameters['status'];
         }
-        
+
         if ( isset ($arrParameters['is_important']) && $arrParameters['is_important'] !== null && $arrParameters['is_important'] != 0 )
         {
-            $query .= " AND IS_IMPORTANT = 1";            
+            $query .= " AND IS_IMPORTANT = 1";
         }
 
         if ( isset ($arrParameters['has_read']) && $arrParameters['has_read'] !== null && $arrParameters['has_read'] != 0 )
@@ -151,7 +151,7 @@ class NotificationsFactory
         }
 
         $query .= " ORDER BY " . $strOrderBy . " " . $strOrderDir;
-        
+
         ///////////////////////////////////////////////////////////////////////////////////////////////
         //
         //      Pagination
@@ -167,7 +167,7 @@ class NotificationsFactory
         $_SESSION["pagination"]["current_page"] = $current_page;
 
         // calculating displaying pages
-        $_SESSION["pagination"]["total_pages"] = ceil((int) $total_pages);
+        $_SESSION["pagination"]["total_pages"] = ceil ((int) $total_pages);
 
         $query .= " LIMIT " . $page . ", " . $pageLimit;
 
@@ -186,7 +186,7 @@ class NotificationsFactory
             $objNotifications->setAppMsgSendDate ($arrResult['date_sent']);
             $objNotifications->setAppMsgUid ($arrResult['id']);
             $objNotifications->setStepName ($arrResult['step_name']);
-            $objNotifications->setAppMsgFrom($arrResult['APP_MSG_FROM']);
+            $objNotifications->setAppMsgFrom ($arrResult['APP_MSG_FROM']);
 
             if ( !empty ($arrResult['case_id']) )
             {
@@ -197,11 +197,11 @@ class NotificationsFactory
                 $arrAllMessages[$key]['notifications'] = $objNotifications;
             }
         }
-        
+
         echo $query;
-        print_r($arrParameters);
+        print_r ($arrParameters);
         echo '<pre>';
-        print_r($arrAllMessages);
+        print_r ($arrAllMessages);
 
         return $arrAllMessages;
     }

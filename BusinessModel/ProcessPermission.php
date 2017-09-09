@@ -1,5 +1,7 @@
 <?php
+
 namespace BusinessModel;
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -65,7 +67,7 @@ class ProcessPermission
                                         GROUP BY `permission_type`, workflow_id");
 
         $processPermissions = [];
-        
+
         foreach ($results as $result) {
             $processPermissions[$result['workflow_id']][$result['permission_type']] = explode (",", $result['users']);
         }
@@ -83,8 +85,8 @@ class ProcessPermission
         $objProcessPermissions = new \ProcessPermission();
 
         $currentLists = $this->getProcessPermissions ();
-        $userList = isset($currentLists['user']) ? explode (",", $currentLists['user']) : array();
-        $teamList = isset( $currentLists['team']) ? explode (",", $currentLists['team']) : array();
+        $userList = isset ($currentLists['user']) ? explode (",", $currentLists['user']) : array();
+        $teamList = isset ($currentLists['team']) ? explode (",", $currentLists['team']) : array();
 
         $arrUsers = [];
         $arrTeams = [];

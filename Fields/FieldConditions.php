@@ -15,7 +15,7 @@ class FieldConditions
      */
     public function getAllBySyepUid ($StepUid)
     {
-        $aRows = Array();
+        $aRows = array();
         $results = $this->objMysql->_query ("SELECT dt.*, sf.field_conditions FROM workflow.step_fields sf 
                                             INNER JOIN workflow.data_types dt ON dt.field_id = sf.field_id
                                             WHERE sf.step_id = ?", [$StepUid]);

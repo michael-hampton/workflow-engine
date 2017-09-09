@@ -552,13 +552,13 @@ class EmailServer
 
                         switch ($step) {
                             case 1:
-                                $arrayResult[$arrayPhpMailerTestName[$step]]["title"] = "ID_EMAIL_SERVER_TEST_CONNECTION_RESOLVING_NAME " . implode(",", array($arrayData["MESS_SERVER"]));
+                                $arrayResult[$arrayPhpMailerTestName[$step]]["title"] = "ID_EMAIL_SERVER_TEST_CONNECTION_RESOLVING_NAME " . implode (",", array($arrayData["MESS_SERVER"]));
                                 break;
                             case 2:
-                                $arrayResult[$arrayPhpMailerTestName[$step]]["title"] = "ID_EMAIL_SERVER_TEST_CONNECTION_CHECK_PORT " . implode(",", array($arrayData["MESS_PORT"]));
+                                $arrayResult[$arrayPhpMailerTestName[$step]]["title"] = "ID_EMAIL_SERVER_TEST_CONNECTION_CHECK_PORT " . implode (",", array($arrayData["MESS_PORT"]));
                                 break;
                             case 3:
-                                $arrayResult[$arrayPhpMailerTestName[$step]]["title"] = "ID_EMAIL_SERVER_TEST_CONNECTION_ESTABLISHING_CON_HOST " . implode(",", array($arrayData["MESS_SERVER"] . ":" . $arrayData["MESS_PORT"]));
+                                $arrayResult[$arrayPhpMailerTestName[$step]]["title"] = "ID_EMAIL_SERVER_TEST_CONNECTION_ESTABLISHING_CON_HOST " . implode (",", array($arrayData["MESS_SERVER"] . ":" . $arrayData["MESS_PORT"]));
                                 break;
                             case 4:
                                 $arrayResult[$arrayPhpMailerTestName[$step]]["title"] = "ID_EMAIL_SERVER_TEST_CONNECTION_LOGIN " . implode (",", array($arrayData["MESS_ACCOUNT"], $arrayData["MESS_SERVER"]));
@@ -653,7 +653,7 @@ class EmailServer
             $port = (int) ($arrayData["MESS_PORT"]);
             $auth_required = (int) ($arrayData["MESS_RAUTH"]);
             $useSecureCon = $arrayData["SMTPSECURE"];
-            $sendTestMail = isset($arrayData["MESS_TRY_SEND_INMEDIATLY"]) ? (int) ($arrayData["MESS_TRY_SEND_INMEDIATLY"]) : 1;
+            $sendTestMail = isset ($arrayData["MESS_TRY_SEND_INMEDIATLY"]) ? (int) ($arrayData["MESS_TRY_SEND_INMEDIATLY"]) : 1;
             $mailTo = $arrayData["MAIL_TO"];
             $smtpSecure = $arrayData["SMTPSECURE"];
             $serverNet = new \NET ($server);

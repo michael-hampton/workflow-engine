@@ -244,7 +244,8 @@ class FormBuilder
 
     private function setAttribute ($attribute, $value)
     {
-        if ( isset ($this->_attributes) ) {
+        if ( isset ($this->_attributes) )
+        {
             $this->_attributes[$attribute] = $value;
         }
     }
@@ -252,7 +253,8 @@ class FormBuilder
     private function getAttribute ($attribute)
     {
         $value = "";
-        if ( isset ($this->_attributes[$attribute]) ) {
+        if ( isset ($this->_attributes[$attribute]) )
+        {
             $value = $this->_attributes[$attribute];
         }
 

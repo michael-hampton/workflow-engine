@@ -341,7 +341,7 @@ class Form extends FieldFactory
             }
             $objFormBuilder->buildDocHTML ($arrDocuments);
         }
-        
+
         $outPutDocuments = $objCases->getAllGeneratedDocumentsCriteria ($projectId, $elementId, new \Task ($stepId), $objUser);
 
         if ( !empty ($outPutDocuments) )
@@ -449,4 +449,5 @@ class Form extends FieldFactory
     {
         throw new \Exception ('ID_DYNAFORM_DOES_NOT_EXIST');
     }
+
 }

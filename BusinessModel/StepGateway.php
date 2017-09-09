@@ -11,6 +11,7 @@
  *
  * @author michael.hampton
  */
+
 namespace BusinessModel;
 
 class StepGateway
@@ -27,10 +28,10 @@ class StepGateway
 
     public function getGateways ()
     {
-        
+
         $result = $this->objMysql->_select ("workflow.gateways", [], ["step_id" => $this->stepId]);
-        $keys = array_keys($result);
-        
+        $keys = array_keys ($result);
+
         foreach ($keys as $key) {
             $result[$key]['trigger_type'] = "gateway";
         }

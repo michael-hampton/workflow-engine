@@ -1,11 +1,11 @@
 <?php
+
 namespace BusinessModel;
 
 class Lists
 {
 
     use Validator;
-
 
     private $audit;
     private $projectId;
@@ -41,7 +41,7 @@ class Lists
     {
         if ( isset ($this->lastStep['claimed']) && trim ($this->lastStep['claimed']) != "" )
         {
-            if ( $this->lastStep['claimed'] == $this->username)
+            if ( $this->lastStep['claimed'] == $this->username )
             {
                 return array("parentId" => $this->parentId, "projectId" => $this->projectId);
             }
@@ -63,7 +63,7 @@ class Lists
     {
         if ( isset ($this->lastStep['status']) && trim ($this->lastStep['status']) != "" )
         {
-            if ( $this->lastStep['status'] == "REJECTED" || $this->lastStep['status'] == "REJECT")
+            if ( $this->lastStep['status'] == "REJECTED" || $this->lastStep['status'] == "REJECT" )
             {
                 return array("parentId" => $this->parentId, "projectId" => $this->projectId);
             }
@@ -96,7 +96,7 @@ class Lists
     {
         $inboxCount = 0;
         $draftCount = 0;
-        
+
         $response = array();
 
         if ( $objUser !== null && is_object ($objUser) )
@@ -106,27 +106,27 @@ class Lists
             $inboxCount = $objNotificationsFactory->countNotifications (array("user" => $objUser->getUser_email (), "status" => 1), "ns.date_sent", "DESC");
             $draftCount = $objNotificationsFactory->countNotifications (array("user" => $objUser->getUser_email (), "status" => 2), "ns.date_sent", "DESC");
         }
-        
+
         $allFunctions = array('abandoned', 'assigned', 'rejected', 'paused', 'completed', 'participated');
         $count = 0;
         foreach ($allFunctions as $allFunction) {
-            $list = $this->loadLists($allFunction);
-            $response[$count]['count'] = count($list);
-            $response[$count]['item'] = strtoupper($allFunction);
-            
+            $list = $this->loadLists ($allFunction);
+            $response[$count]['count'] = count ($list);
+            $response[$count]['item'] = strtoupper ($allFunction);
+
             $count++;
         }
-        
+
         $count++;
-        
+
         $response[$count]['count'] = $inboxCount;
         $response[$count]['item'] = "CASES_INBOX";
-        
+
         $count++;
-        
+
         $response[$count]['count'] = $draftCount;
         $response[$count]['item'] = "CASES_DRAFT";
-        
+
         return $response;
     }
 
@@ -139,14 +139,14 @@ class Lists
 
     public function loadList ($listName = '', \Users $objUser, $dataList = array())
     {
-        if ( trim ($objUser->getUserId()) === "")
+        if ( trim ($objUser->getUserId ()) === "" )
         {
 
             throw (new \Exception ("ID_USER_NOT_EXIST"));
         }
 
-            $this->validateUserId ($objUser->getUserId());
-            $this->username = $objUser->getUsername();
+        $this->validateUserId ($objUser->getUserId ());
+        $this->username = $objUser->getUsername ();
 
         if ( isset ($dataList['page']) && is_numeric ($dataList['page']) )
         {
@@ -159,7 +159,7 @@ class Lists
         }
 
         //error_reporting (0);
-        
+
         $objNotificationsFactory = new \BusinessModel\NotificationsFactory();
 
         switch ($listName) {
@@ -214,7 +214,7 @@ class Lists
 
                 return $arrrPaginated;
             }
-            
+
             return $arrProjects;
         }
     }

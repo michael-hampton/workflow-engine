@@ -72,103 +72,103 @@ class FormAdmin
      *
      * return bool Return true if a DynaForm is assigned some Steps, false otherwise
      */
-    /*public function dynaFormDepends ($dynUid, $proUid)
-    {
-        $oCriteria = new \Criteria();
+    /* public function dynaFormDepends ($dynUid, $proUid)
+      {
+      $oCriteria = new \Criteria();
 
-        $sql = "SELECT DYN_TYPE FROM workflow.form WHERE DYN_UID = ? AND PRO_UID = ?";
-        $results = $this->objMysql->_query ($sql, [$dynUid, $proUid]);
+      $sql = "SELECT DYN_TYPE FROM workflow.form WHERE DYN_UID = ? AND PRO_UID = ?";
+      $results = $this->objMysql->_query ($sql, [$dynUid, $proUid]);
 
-        $dataDyna = $results[0];
+      $dataDyna = $results[0];
 
-        if ( $dataDyna['DYN_TYPE'] == 'grid' )
-        {
-            $formsDepend = array();
+      if ( $dataDyna['DYN_TYPE'] == 'grid' )
+      {
+      $formsDepend = array();
 
-            $sql2 = "SELECT DYN_UID, DYN_TITLE FROM workflow.form WHERE PRO_UID = ? AND DYN_TYPE = ?";
-            $results2 = $this->objMysql->_query ($sql2, [$proUid, "xmlform"]);
+      $sql2 = "SELECT DYN_UID, DYN_TITLE FROM workflow.form WHERE PRO_UID = ? AND DYN_TYPE = ?";
+      $results2 = $this->objMysql->_query ($sql2, [$proUid, "xmlform"]);
 
-            foreach ($results2 as $result) {
-                $dynFields = $dynHandler->getFields ();
-                foreach ($dynFields as $field) {
-                    $sType = \Step::getAttribute ($field, 'type');
-                    if ( $sType == 'grid' )
-                    {
-                        $sxmlgrid = \Step::getAttribute ($field, 'xmlgrid');
-                        $aGridInfo = explode ("/", $sxmlgrid);
-                        if ( $aGridInfo[0] == $proUid && $aGridInfo[1] == $dynUid )
-                        {
-                            $formsDepend[] = $dataForms["DYN_TITLE"];
-                        }
-                    }
-                }
-            }
-            if ( !empty ($formsDepend) )
-            {
-                $message = "You can not delete the grid '$dynUid', because it is in the ";
-                $message .= (count ($formsDepend) == 1) ? 'form' : 'forms';
-                $message .= ': ' . implode (', ', $formsDepend);
-                return $message;
-            }
-        }
-        else
-        {
-            $flagDepend = false;
-            $stepsDepends = \Step::verifyDynaformAssigStep ($dynUid, $proUid);
-            $messageSteps = '(0) Depends in steps';
-            if ( !empty ($stepsDepends) )
-            {
-                $flagDepend = true;
-                $countSteps = count ($stepsDepends);
-                $messTemp = '';
-                foreach ($stepsDepends as $value) {
-                    $messTemp .= ", the task '" . $value['CON_VALUE'] . "' position " . $value['STEP_POSITION'];
-                }
-                $messageSteps = "($countSteps) Depends in steps in" . $messTemp;
-            }
-            $stepSupervisorsDepends = \StepSupervisor::verifyDynaformAssigStepSupervisor ($dynUid, $proUid);
-            $messageStepsSupervisors = '(0) Depends in steps supervisor';
-            if ( !empty ($stepSupervisorsDepends) )
-            {
-                $flagDepend = true;
-                $countSteps = count ($stepSupervisorsDepends);
-                $messageStepsSupervisors = "($countSteps) Depends in steps supervisor";
-            }
-            $objectPermissionDepends = \ObjectPermission::verifyDynaformAssigObjectPermission ($dynUid, $proUid);
-            $messageObjectPermission = '(0) Depends in permissions';
-            if ( !empty ($objectPermissionDepends) )
-            {
-                $flagDepend = true;
-                $countSteps = count ($objectPermissionDepends);
-                $messageObjectPermission = "($countSteps) Depends in permissions";
-            }
-            $caseTrackerDepends = \CaseTrackerObject::verifyDynaformAssigCaseTracker ($dynUid, $proUid);
-            $messageCaseTracker = '(0) Depends in case traker';
-            if ( !empty ($caseTrackerDepends) )
-            {
-                $flagDepend = true;
-                $countSteps = count ($caseTrackerDepends);
-                $messageCaseTracker = "($countSteps) Depends in case traker";
-            }
-            $dynaformDepends = \Dynaform::verifyDynaformAssignDynaform ($dynUid, $proUid);
-            $messageDynaform = '(0) Depends in case traker';
-            if ( !empty ($dynaformDepends) )
-            {
-                $flagDepend = true;
-                $countSteps = count ($dynaformDepends);
-                $messageDynaform = "($countSteps) Depends in dynaform";
-            }
-            if ( $flagDepend )
-            {
-                $message = "You can not delete the dynaform '$dynUid', because it has the following dependencies: \n\n";
-                $message .= $messageSteps . ".\n" . $messageStepsSupervisors . ".\n";
-                $message .= $messageObjectPermission . ".\n" . $messageCaseTracker . "\n";
-                $message .= $messageDynaform;
-                return $message;
-            }
-            return '';
-        }
-    }*/
+      foreach ($results2 as $result) {
+      $dynFields = $dynHandler->getFields ();
+      foreach ($dynFields as $field) {
+      $sType = \Step::getAttribute ($field, 'type');
+      if ( $sType == 'grid' )
+      {
+      $sxmlgrid = \Step::getAttribute ($field, 'xmlgrid');
+      $aGridInfo = explode ("/", $sxmlgrid);
+      if ( $aGridInfo[0] == $proUid && $aGridInfo[1] == $dynUid )
+      {
+      $formsDepend[] = $dataForms["DYN_TITLE"];
+      }
+      }
+      }
+      }
+      if ( !empty ($formsDepend) )
+      {
+      $message = "You can not delete the grid '$dynUid', because it is in the ";
+      $message .= (count ($formsDepend) == 1) ? 'form' : 'forms';
+      $message .= ': ' . implode (', ', $formsDepend);
+      return $message;
+      }
+      }
+      else
+      {
+      $flagDepend = false;
+      $stepsDepends = \Step::verifyDynaformAssigStep ($dynUid, $proUid);
+      $messageSteps = '(0) Depends in steps';
+      if ( !empty ($stepsDepends) )
+      {
+      $flagDepend = true;
+      $countSteps = count ($stepsDepends);
+      $messTemp = '';
+      foreach ($stepsDepends as $value) {
+      $messTemp .= ", the task '" . $value['CON_VALUE'] . "' position " . $value['STEP_POSITION'];
+      }
+      $messageSteps = "($countSteps) Depends in steps in" . $messTemp;
+      }
+      $stepSupervisorsDepends = \StepSupervisor::verifyDynaformAssigStepSupervisor ($dynUid, $proUid);
+      $messageStepsSupervisors = '(0) Depends in steps supervisor';
+      if ( !empty ($stepSupervisorsDepends) )
+      {
+      $flagDepend = true;
+      $countSteps = count ($stepSupervisorsDepends);
+      $messageStepsSupervisors = "($countSteps) Depends in steps supervisor";
+      }
+      $objectPermissionDepends = \ObjectPermission::verifyDynaformAssigObjectPermission ($dynUid, $proUid);
+      $messageObjectPermission = '(0) Depends in permissions';
+      if ( !empty ($objectPermissionDepends) )
+      {
+      $flagDepend = true;
+      $countSteps = count ($objectPermissionDepends);
+      $messageObjectPermission = "($countSteps) Depends in permissions";
+      }
+      $caseTrackerDepends = \CaseTrackerObject::verifyDynaformAssigCaseTracker ($dynUid, $proUid);
+      $messageCaseTracker = '(0) Depends in case traker';
+      if ( !empty ($caseTrackerDepends) )
+      {
+      $flagDepend = true;
+      $countSteps = count ($caseTrackerDepends);
+      $messageCaseTracker = "($countSteps) Depends in case traker";
+      }
+      $dynaformDepends = \Dynaform::verifyDynaformAssignDynaform ($dynUid, $proUid);
+      $messageDynaform = '(0) Depends in case traker';
+      if ( !empty ($dynaformDepends) )
+      {
+      $flagDepend = true;
+      $countSteps = count ($dynaformDepends);
+      $messageDynaform = "($countSteps) Depends in dynaform";
+      }
+      if ( $flagDepend )
+      {
+      $message = "You can not delete the dynaform '$dynUid', because it has the following dependencies: \n\n";
+      $message .= $messageSteps . ".\n" . $messageStepsSupervisors . ".\n";
+      $message .= $messageObjectPermission . ".\n" . $messageCaseTracker . "\n";
+      $message .= $messageDynaform;
+      return $message;
+      }
+      return '';
+      }
+      } */
 
     /**
      * Verify if a DynaForm has relation with a Step Supervisor
@@ -580,115 +580,115 @@ class FormAdmin
      *
      * return array Return an array with data of a DynaForm
      */
-    /*public function getDynaFormFields ($projectUid, $dynaFormUid)
-    {
-        try {
-            $arrayVariables = array();
-            $arrayVariablesDef = array();
-            //Verify data
-            $this->proUid ($projectUid);
+    /* public function getDynaFormFields ($projectUid, $dynaFormUid)
+      {
+      try {
+      $arrayVariables = array();
+      $arrayVariablesDef = array();
+      //Verify data
+      $this->proUid ($projectUid);
 
-            $this->throwExceptionIfNotExistsDynaForm ($dynaFormUid, "");
+      $this->throwExceptionIfNotExistsDynaForm ($dynaFormUid, "");
 
-            $sql = "SELECT f.*,  IF(rf.field_id IS NOT NULL, 1, 0) as required_field FROM workflow.fields f
-                    INNER JOIN workflow.step_fields sf ON sf.field_id = f.field_id
-                    LEFT JOIN workflow.required_fields rf ON rf.field_id = f.field_id AND rf.step_id = sf.step_id
-                    WHERE sf.step_id = ? ";
+      $sql = "SELECT f.*,  IF(rf.field_id IS NOT NULL, 1, 0) as required_field FROM workflow.fields f
+      INNER JOIN workflow.step_fields sf ON sf.field_id = f.field_id
+      LEFT JOIN workflow.required_fields rf ON rf.field_id = f.field_id AND rf.step_id = sf.step_id
+      WHERE sf.step_id = ? ";
 
-            $results = $this->objMysql->_query ($sql, [$dynaFormUid]);
+      $results = $this->objMysql->_query ($sql, [$dynaFormUid]);
 
-            foreach ($results as $value) {
-                $valueType = (isset ($value[0]["valueType"])) ? $value[0]["valueType"] : null;
-                $maxLength = (isset ($value[0]["maxlength"])) ? $value[0]["maxlength"] : null;
-                $label = (isset ($value[0]["label"])) ? $value[0]["label"] : null;
-                $defaultValue = (isset ($value[0]["default_value"])) ? $value[0]["default_value"] : null;
-                $required = (isset ($value[0]["required_field"])) ? $value[0]["required_field"] : null;
+      foreach ($results as $value) {
+      $valueType = (isset ($value[0]["valueType"])) ? $value[0]["valueType"] : null;
+      $maxLength = (isset ($value[0]["maxlength"])) ? $value[0]["maxlength"] : null;
+      $label = (isset ($value[0]["label"])) ? $value[0]["label"] : null;
+      $defaultValue = (isset ($value[0]["default_value"])) ? $value[0]["default_value"] : null;
+      $required = (isset ($value[0]["required_field"])) ? $value[0]["required_field"] : null;
 
-                if ( isset ($value[0]["variable"]) )
-                {
-                    $variable = $value[0]["variable"];
-                    $criteria = new \Criteria ("workflow");
-                    $criteria->addSelectColumn (\ProcessVariablesPeer::VAR_NAME);
-                    $criteria->addSelectColumn (\ProcessVariablesPeer::VAR_FIELD_TYPE);
-                    $criteria->addSelectColumn (\ProcessVariablesPeer::VAR_FIELD_SIZE);
-                    $criteria->addSelectColumn (\ProcessVariablesPeer::VAR_LABEL);
-                    $criteria->addSelectColumn (\ProcessVariablesPeer::VAR_DBCONNECTION);
-                    $criteria->addSelectColumn (\ProcessVariablesPeer::VAR_SQL);
-                    $criteria->addSelectColumn (\ProcessVariablesPeer::VAR_NULL);
-                    $criteria->addSelectColumn (\ProcessVariablesPeer::VAR_DEFAULT);
-                    $criteria->addSelectColumn (\ProcessVariablesPeer::VAR_ACCEPTED_VALUES);
-                    $criteria->add (\ProcessVariablesPeer::PRJ_UID, $projectUid, \Criteria::EQUAL);
-                    $criteria->add (\ProcessVariablesPeer::VAR_NAME, $variable, \Criteria::EQUAL);
-                    $rsCriteria = \ProcessVariablesPeer::doSelectRS ($criteria);
-                    $rsCriteria->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
-                    $rsCriteria->next ();
-                    while ($aRow = $rsCriteria->getRow ()) {
-                        $valueTypeMerged = ($valueType == null && $valueType == '') ? $aRow['VAR_FIELD_TYPE'] : $valueType;
-                        $maxLengthMerged = ($maxLength == null && $maxLength == '') ? (int) $aRow['VAR_FIELD_SIZE'] : $maxLength;
-                        $labelMerged = ($label == null && $label == '') ? $aRow['VAR_LABEL'] : $label;
-                        $defaultValueMerged = ($defaultValue == null && $defaultValue == '') ? $aRow['VAR_DEFAULT'] : $defaultValue;
-                        $requiredMerged = ($required == null && $required == '') ? ($aRow['VAR_NULL'] == 1) ? false : true : $required;
-                        $dbConnectionMerged = ($dbConnection == null && $dbConnection == '') ? $aRow['VAR_DBCONNECTION'] : $dbConnection;
-                        $sqlMerged = ($sql == null && $sql == '') ? $aRow['VAR_SQL'] : $sql;
-                        $optionsMerged = ($options == null && $options == '') ? $aRow['VAR_ACCEPTED_VALUES'] : $options;
-                        $aVariables = array('valueType' => $valueTypeMerged,
-                            'maxLength' => $maxLengthMerged,
-                            'label' => $labelMerged,
-                            'defaultValue' => $defaultValueMerged,
-                            'required' => $requiredMerged,
-                            'dbConnection' => $dbConnectionMerged,
-                            'sql' => $sqlMerged,
-                            'options' => $optionsMerged);
-                        //fields properties
-                        if ( isset ($value[0]["pickType"]) )
-                        {
-                            $aVariables = array_merge (array('pickType' => $value[0]["pickType"]), $aVariables);
-                        }
-                        if ( isset ($value[0]["placeHolder"]) )
-                        {
-                            $aVariables = array_merge (array('placeHolder' => $value[0]["placeHolder"]), $aVariables);
-                        }
-                        if ( isset ($value[0]["dependentsField"]) )
-                        {
-                            $aVariables = array_merge (array('dependentsField' => $value[0]["dependentsField"]), $aVariables);
-                        }
-                        if ( isset ($value[0]["hint"]) )
-                        {
-                            $aVariables = array_merge (array('hint' => $value[0]["hint"]), $aVariables);
-                        }
-                        if ( isset ($value[0]["readonly"]) )
-                        {
-                            $aVariables = array_merge (array('readonly' => $value[0]["readonly"]), $aVariables);
-                        }
-                        if ( isset ($value[0]["colSpan"]) )
-                        {
-                            $aVariables = array_merge (array('colSpan' => $value[0]["colSpan"]), $aVariables);
-                        }
-                        if ( isset ($value[0]["type"]) )
-                        {
-                            $aVariables = array_merge (array('type' => $value[0]["type"]), $aVariables);
-                        }
-                        if ( isset ($value[0]["name"]) )
-                        {
-                            $aVariables = array_merge (array('name' => $value[0]["name"]), $aVariables);
-                        }
-                        $aVariables = array_merge (array('variable' => $variable), $aVariables);
-                        $arrayVariables[] = $aVariables;
-                        $rsCriteria->next ();
-                    }
-                }
-                else
-                {
-                    $arrayVariablesDef[] = $value[0];
-                }
-            }
-            $arrayVariables = array_merge ($arrayVariables, $arrayVariablesDef);
-            //Return
-            return $arrayVariables;
-        } catch (\Exception $e) {
-            throw $e;
-        }
-    }*/
+      if ( isset ($value[0]["variable"]) )
+      {
+      $variable = $value[0]["variable"];
+      $criteria = new \Criteria ("workflow");
+      $criteria->addSelectColumn (\ProcessVariablesPeer::VAR_NAME);
+      $criteria->addSelectColumn (\ProcessVariablesPeer::VAR_FIELD_TYPE);
+      $criteria->addSelectColumn (\ProcessVariablesPeer::VAR_FIELD_SIZE);
+      $criteria->addSelectColumn (\ProcessVariablesPeer::VAR_LABEL);
+      $criteria->addSelectColumn (\ProcessVariablesPeer::VAR_DBCONNECTION);
+      $criteria->addSelectColumn (\ProcessVariablesPeer::VAR_SQL);
+      $criteria->addSelectColumn (\ProcessVariablesPeer::VAR_NULL);
+      $criteria->addSelectColumn (\ProcessVariablesPeer::VAR_DEFAULT);
+      $criteria->addSelectColumn (\ProcessVariablesPeer::VAR_ACCEPTED_VALUES);
+      $criteria->add (\ProcessVariablesPeer::PRJ_UID, $projectUid, \Criteria::EQUAL);
+      $criteria->add (\ProcessVariablesPeer::VAR_NAME, $variable, \Criteria::EQUAL);
+      $rsCriteria = \ProcessVariablesPeer::doSelectRS ($criteria);
+      $rsCriteria->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
+      $rsCriteria->next ();
+      while ($aRow = $rsCriteria->getRow ()) {
+      $valueTypeMerged = ($valueType == null && $valueType == '') ? $aRow['VAR_FIELD_TYPE'] : $valueType;
+      $maxLengthMerged = ($maxLength == null && $maxLength == '') ? (int) $aRow['VAR_FIELD_SIZE'] : $maxLength;
+      $labelMerged = ($label == null && $label == '') ? $aRow['VAR_LABEL'] : $label;
+      $defaultValueMerged = ($defaultValue == null && $defaultValue == '') ? $aRow['VAR_DEFAULT'] : $defaultValue;
+      $requiredMerged = ($required == null && $required == '') ? ($aRow['VAR_NULL'] == 1) ? false : true : $required;
+      $dbConnectionMerged = ($dbConnection == null && $dbConnection == '') ? $aRow['VAR_DBCONNECTION'] : $dbConnection;
+      $sqlMerged = ($sql == null && $sql == '') ? $aRow['VAR_SQL'] : $sql;
+      $optionsMerged = ($options == null && $options == '') ? $aRow['VAR_ACCEPTED_VALUES'] : $options;
+      $aVariables = array('valueType' => $valueTypeMerged,
+      'maxLength' => $maxLengthMerged,
+      'label' => $labelMerged,
+      'defaultValue' => $defaultValueMerged,
+      'required' => $requiredMerged,
+      'dbConnection' => $dbConnectionMerged,
+      'sql' => $sqlMerged,
+      'options' => $optionsMerged);
+      //fields properties
+      if ( isset ($value[0]["pickType"]) )
+      {
+      $aVariables = array_merge (array('pickType' => $value[0]["pickType"]), $aVariables);
+      }
+      if ( isset ($value[0]["placeHolder"]) )
+      {
+      $aVariables = array_merge (array('placeHolder' => $value[0]["placeHolder"]), $aVariables);
+      }
+      if ( isset ($value[0]["dependentsField"]) )
+      {
+      $aVariables = array_merge (array('dependentsField' => $value[0]["dependentsField"]), $aVariables);
+      }
+      if ( isset ($value[0]["hint"]) )
+      {
+      $aVariables = array_merge (array('hint' => $value[0]["hint"]), $aVariables);
+      }
+      if ( isset ($value[0]["readonly"]) )
+      {
+      $aVariables = array_merge (array('readonly' => $value[0]["readonly"]), $aVariables);
+      }
+      if ( isset ($value[0]["colSpan"]) )
+      {
+      $aVariables = array_merge (array('colSpan' => $value[0]["colSpan"]), $aVariables);
+      }
+      if ( isset ($value[0]["type"]) )
+      {
+      $aVariables = array_merge (array('type' => $value[0]["type"]), $aVariables);
+      }
+      if ( isset ($value[0]["name"]) )
+      {
+      $aVariables = array_merge (array('name' => $value[0]["name"]), $aVariables);
+      }
+      $aVariables = array_merge (array('variable' => $variable), $aVariables);
+      $arrayVariables[] = $aVariables;
+      $rsCriteria->next ();
+      }
+      }
+      else
+      {
+      $arrayVariablesDef[] = $value[0];
+      }
+      }
+      $arrayVariables = array_merge ($arrayVariables, $arrayVariablesDef);
+      //Return
+      return $arrayVariables;
+      } catch (\Exception $e) {
+      throw $e;
+      }
+      } */
 
     public function checkFormExists ($taskId)
     {

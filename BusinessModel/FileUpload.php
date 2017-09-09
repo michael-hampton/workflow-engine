@@ -141,8 +141,8 @@ class FileUpload
             $file = str_replace ('\\', '/', $file);
             $file = end (explode ("/", $file));
         }
-        
-        $file = trim($file) === "" ? $name : $file; 
+
+        $file = trim ($file) === "" ? $name : $file;
 
         $path = str_replace ($file, '', $path);
 
@@ -371,7 +371,7 @@ class FileUpload
         {
             throw new Exception ("Could not get image information");
         }
-        
+
         list ($width, $height) = $imageInfo;
         $percentHeight = $resHeight / $height;
         $percentWidth = $resWidth / $width;
@@ -386,7 +386,6 @@ class FileUpload
 
         $background = imagecolorallocate ($image_p, 0, 0, 0);
         ImageColorTransparent ($image_p, $background); // make the new temp image all transparent
-        
 //Assume 3 channels if we can't find that information
         if ( !array_key_exists ("channels", $imageInfo) )
         {

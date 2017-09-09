@@ -257,7 +257,6 @@ class WebEntry
                     $dynaForm = new Form (new \Task ($arrayWebEntryData["DYN_UID"]));
                     $arrayDynaFormData = $dynaForm->getFields ();
                     //Creating sys.info;
-                   
                     //Creating the first file
                     $weTitle = $this->sanitizeFilename ($arrayWebEntryData["WE_TITLE"]);
                     $fileName = $weTitle;
@@ -321,13 +320,13 @@ class WebEntry
             //Verify data
             $this->throwExceptionIfDataIsNotArray ($arrayData, "\$arrayData");
             $this->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
-            
+
             //Set data
             unset ($arrayData["WE_UID"]);
             unset ($arrayData["WE_DATA"]);
             //Verify data
             $this->throwExceptionIfDataIsInvalid ("", $processUid, $arrayData);
-                        
+
             //Create
             try {
                 $webEntry = new \WebEntry();
@@ -335,7 +334,7 @@ class WebEntry
                 $webEntry->setProUid ($processUid);
                 $webEntry->setWeCreateUsrUid ($userUidCreator);
                 $webEntry->setWeCreateDate (date ("Y-m-d H:i:s"));
-                
+
                 if ( $webEntry->validate () )
                 {
                     $webEntryUid = $webEntry->save ();

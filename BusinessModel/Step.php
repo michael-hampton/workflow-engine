@@ -310,7 +310,7 @@ class Step
 
             foreach ($results as $row) {
                 $arrayData = $step->getStep ($row["STEP_UID"], $type);
-                
+
                 if ( count ($arrayData) > 0 )
                 {
                     $arrayStep[] = $arrayData;
@@ -344,14 +344,15 @@ class Step
 
             //Verify data
             $this->throwExceptionIfNotExistsStep ($stepUid);
-           
+
             //Get data
             $arrWhere = array("STEP_UID" => $stepUid);
-            
-            if($type !== "") {
+
+            if ( $type !== "" )
+            {
                 $arrWhere['STEP_TYPE_OBJ'] = $type;
             }
-            
+
             $results = $this->objMysql->_select ("workflow.step", [], $arrWhere);
 
             $arrayStep = array();
@@ -359,7 +360,7 @@ class Step
             $descriptionObj = '';
 
             foreach ($results as $row) {
-                
+
                 switch ($row["STEP_TYPE_OBJ"]) {
                     case "DYNAFORM":
                         //$dynaform = new \Dynaform();
@@ -369,10 +370,9 @@ class Step
                     case "INPUT_DOCUMENT":
                         //$inputDocument = new \InputDocument();
                         //$arrayData = $inputDocument->getByUid ($row["STEP_UID_OBJ"]);
-
                         //if ( $arrayData === false )
                         //{
-                            //return $arrayStep;
+                        //return $arrayStep;
                         //}
 
                         break;
@@ -385,8 +385,8 @@ class Step
                             return $arrayStep;
                         }
 
-                        $titleObj = $arrayData->getOutDocTitle();
-                        $descriptionObj = $arrayData->getOutDocDescription();
+                        $titleObj = $arrayData->getOutDocTitle ();
+                        $descriptionObj = $arrayData->getOutDocDescription ();
 
                         break;
                     case "EXTERNAL":
@@ -410,8 +410,8 @@ class Step
                 $objStep->setStepMode ($row["STEP_MODE"]);
                 $objStep->setStepCondition ($row["STEP_CONDITION"]);
                 $objStep->setStepUidObj ($row["STEP_UID_OBJ"]);
-                $objStep->setTitle($titleObj);
-                $objStep->setDescription($descriptionObj);
+                $objStep->setTitle ($titleObj);
+                $objStep->setDescription ($descriptionObj);
 
                 //Return
                 $arrayStep[] = $objStep;

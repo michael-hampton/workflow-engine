@@ -266,7 +266,7 @@ class Process
         {
             $arrayProcessData['PRO_SUBPROCESS'] = (int) $arrayProcessData['PRO_SUBPROCESS'];
         }
-        
+
         $process = new \Workflow();
 
         switch ($option) {

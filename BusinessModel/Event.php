@@ -4,8 +4,8 @@ namespace BusinessModel;
 
 class Event
 {
-    private $objMysql;
 
+    private $objMysql;
 
     public function __construct ()
     {
@@ -63,19 +63,20 @@ class Event
             throw (new \Exception ("TASK ID DOESNT EXIST"));
         }
         $oProcess = new \Flow();
-        $oProcess->throwExceptionIfNotExistsTask($taskId);
+        $oProcess->throwExceptionIfNotExistsTask ($taskId);
         return $taskId;
     }
-    
-    public function getEvent($taskId)
+
+    public function getEvent ($taskId)
     {
-        $result = $this->objMysql->_select("workflow.status_mapping", ['step_condition'], ['id' => $taskId]);
-        
-        if(!isset($result[0]) || empty($result[0])) {
+        $result = $this->objMysql->_select ("workflow.status_mapping", ['step_condition'], ['id' => $taskId]);
+
+        if ( !isset ($result[0]) || empty ($result[0]) )
+        {
             return false;
         }
-        
-       return $result;
+
+        return $result;
     }
 
 }

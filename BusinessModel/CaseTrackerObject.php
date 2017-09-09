@@ -157,15 +157,16 @@ class CaseTrackerObject
         $results = $this->objMysql->_query ("SELECT `CTO_TYPE_OBJ`, GROUP_CONCAT(`CTO_UID_OBJ`) AS ids FROM `case_tracker_objects` WHERE `PRO_UID` = ? GROUP BY  `CTO_TYPE_OBJ`", [$processUid]);
 
         $arrObjects = [];
-        
-        if(!isset($results[0]) || empty($results[0])) {
+
+        if ( !isset ($results[0]) || empty ($results[0]) )
+        {
             return false;
         }
-        
+
         foreach ($results as $result) {
-            $arrObjects[$result['CTO_TYPE_OBJ']] = explode(",", $result['ids']);
+            $arrObjects[$result['CTO_TYPE_OBJ']] = explode (",", $result['ids']);
         }
-        
+
         return $arrObjects;
     }
 
