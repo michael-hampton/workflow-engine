@@ -146,12 +146,13 @@ class SendNotification
      */
     public function buildEmail (Task $objTask, Users $objUser, $system = "task_manager")
     {
+        $htmlContent = '';
 
         try {
             if($system === "task_manager") {
                 $this->setVariables ($objTask->getStepId (), $system);
             } else {
-                $this->emailActions($objTask, $system);
+                $htmlContent = $this->emailActions($objTask, $system);
             }
 
             $this->taskId = $objTask->getTasUid ();
@@ -197,11 +198,20 @@ class SendNotification
             if(trim($this->template) !== '') {
                 if(file_exists($this->template)) {
                 $body = file_get_contents($this->template);
+                    
+                if(trim($htmlContent) !== '') {
+                    $body .= $htmlContent;
+                }
+                    
                 $this->body = $objCases->replaceDataField ($this->body, $Fields);
                 } else {
                 }
             } else {
                 $this->body = $objCases->replaceDataField ($this->body, $Fields);
+                
+                if(trim($htmlContent) !== '') {
+                    $this->body .= $htmlContent;
+                }
             }
 
             //	sending email notification
