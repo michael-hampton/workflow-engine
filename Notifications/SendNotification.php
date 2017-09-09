@@ -150,6 +150,8 @@ class SendNotification
         try {
             if($system === "task_manager") {
                 $this->setVariables ($objTask->getStepId (), $system);
+            } else {
+                $this->emailActions($objTask, $system);
             }
 
             $this->taskId = $objTask->getTasUid ();
@@ -208,6 +210,25 @@ class SendNotification
             return true;
         } catch (Exception $ex) {
             throw $ex;
+        }
+    }
+    
+    private function emailActions($objTask, $type)
+    {
+        switch($type) {
+            case "accept":
+                
+                break;
+                
+            case "reject":
+                
+                break;
+                
+            case "sendForm":
+            case "sendFormLink":
+                
+                break;
+                
         }
     }
 
