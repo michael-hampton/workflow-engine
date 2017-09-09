@@ -875,6 +875,12 @@ class Cases
     private function getPreviousStep ($currentStep, $workflowId)
     {
         $result1 = $this->objMysql->_select ("workflow.status_mapping", array("step_from"), array("id" => $currentStep, "workflow_id" => $workflowId));
+
+        if ( !isset ($result1[0]) || empty ($result1[0]) )
+        {
+            return false;
+        }
+
         $result = $this->objMysql->_select ("workflow.status_mapping", array("id"), array("step_to" => $result1[0]['step_from'], "workflow_id" => $workflowId));
 
         if ( isset ($result[0]) && !empty ($result[0]) )

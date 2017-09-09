@@ -199,7 +199,10 @@ class StepTrigger
                     if ( $triggerType === "sendMail" )
                     {
                         $templateName = str_replace (" ", "_", $arrTrigger['template_name']);
-                        $this->executeSendMail ($objUser, $templateName);
+                        $objTask = new \Task();
+                        $objTask->setTasUid($objWorkflowStep->getStepId());
+
+                        $this->executeSendMail ($objUser, $objTask, $templateName);
                     }
 
                     if ( $arrTrigger !== false && !empty ($arrTrigger) )
@@ -523,7 +526,7 @@ class StepTrigger
         return $triggerArray;
     }
 
-    public function executeSendMail (\Users $objUser, $templateName = null, $id = null)
+    public function executeSendMail (\Users $objUser, \Task $objTask, $templateName = null, $id = null)
     {
         if ( $templateName === null && $id === null )
         {
@@ -536,44 +539,17 @@ class StepTrigger
             $templateName = $arrTrigger['template_name'];
         }
 
-        if ( !empty ($arrTrigger) )
-        {
-            /*$template = PATH_DATA_MAILTEMPLATES . $templateName . ".html";
-
-            $content = "DEFAULT BODY";
-
-            if ( file_exists ($template) )
-            {
-                $content = file_get_contents ($template);
-            }*/
-
-            $subject = "CASE HAS BEEN " . $arrTrigger['event_type'] . " BY [USER]";
-
+        if ( isset ($templateName) && trim ($templateName) !== "" )
+        {            
+            $subject = "CASE HAS BEEN " . (isset ($arrTrigger['event_type']) ? $arrTrigger['event_type'] : $templateName) . " BY [USER]";
             $objSendNotification = new \SendNotification();
             $objSendNotification->setProjectId ($this->parentId);
-            //$recipients = $objSendNotification->getTaskUsers ();
-            $objSendNotification->setElementId($this->elementId);
-            $objSendNotification->setStatus($this->currentStep);
-            $objSendNotification->setTemplate($template);
-            $objSendNotification->buildEmail($objTask, $objUser, "trigger");
-            
-            /*if ( empty ($recipients) )
-            {
-                return false;
-            }*/
-
-            //$objCase = new \BusinessModel\Cases();
-
-            /*$recipients = implode (",", $recipients);
-
-            $Fields = $objCase->getCaseVariables ((int) $this->elementId, (int) $this->parentId, (int) $this->currentStep);
-
-            if ( trim ($content) !== "" && trim ($subject) !== "" )
-            {
-                $subject = $objCase->replaceDataField ($subject, $Fields);
-                $body = $objCase->replaceDataField ($content, $Fields);
-                $objSendNotification->notificationEmail ($recipients, $subject, $body, $objUser);
-            }*/
+            $objSendNotification->setElementId ($this->elementId);
+            $objSendNotification->setStatus ($this->currentStep);
+            $objSendNotification->setTemplate ($templateName);
+            $objSendNotification->setSubject ($subject);
+            $objSendNotification->setSendToAll(1);
+            $objSendNotification->buildEmail ($objTask, $objUser, "trigger");
         }
     }
 

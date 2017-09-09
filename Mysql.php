@@ -106,12 +106,13 @@ class Mysql2 extends D
             foreach ($data as $k => $v) {
                 if ( is_string ($v) ) {
                     $v = "'$v'";
+                }
 			
                 if ( $indexed ) {
                     $string = preg_replace ('/\?/', $v, $string, 1);
                } else {
                     $string = str_replace (":$k", $v, $string);
-			
+               }	
             }
 
             return $string;

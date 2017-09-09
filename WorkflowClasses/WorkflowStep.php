@@ -269,29 +269,33 @@ class WorkflowStep
         return false;
     }
 
-    private function validateParallelUsers (Users $objUser, array $arrCompleteData = [], $isParallel = false)
+    private function validateParallelUsers (Users $objUser, Task $objTask, $isParallel = false)
     {
         if ( $isParallel === true && !isset ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers']) )
         {
-            $arrUsers = (new \BusinessModel\Task())->getTaskAssigneesAll ($this->workflowId, $this->_stepId, '', 0, 100, "user");
+            $arrUsers = $this->getNextAssignedUser ($objTask, $objUser);
+
             $parallelUsers = [];
+
             foreach ($arrUsers as $key => $user) {
-                $parallelUsers[$key]['username'] = $user['aas_username'];
+                $parallelUsers[$key]['username'] = $user['USR_USERNAME'];
             }
+
             $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers'] = $parallelUsers;
         }
         if ( $isParallel === true && isset ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers']) )
         {
-            if ( trim ($objUser->getUsername()) !== "" )
+            if ( trim ($objUser->getUsername ()) !== "" )
             {
                 foreach ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers'] as $key => $parallelUser) {
-                    if ( trim ($parallelUser['username']) === trim ($objUser->getUsername()) )
+                    if ( trim ($parallelUser['username']) === trim ($objUser->getUsername ()) )
                     {
                         $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers'][$key]['dateCompleted'] = date ("Y-m-d H:i:s");
                     }
                 }
             }
         }
+
         return true;
     }
 
@@ -346,6 +350,20 @@ class WorkflowStep
                 }
 
                 break;
+
+            case "MULTIPLE_INSTANCE":
+
+                $userFields = $this->getUsersFullNameFromArray ($this->getAllUsersFromAnyTask ($objTask->getTasUid ()));
+
+                if ( empty ($userFields) )
+                {
+
+                    throw (new Exception ('ID_NO_USERS'));
+                }
+
+                break;
+                
+                
 
             default:
                 $userFields = $this->getUsersFullNameFromArray ($this->getAllUsersFromAnyTask ($this->_stepId));
@@ -422,7 +440,6 @@ class WorkflowStep
                     if ( trim ($objTask->getTasAssignType ()) === "REPORT_TO" )
                     {
                         // notify department manager
-                        die ("Yes 2");
                     }
 
                     $this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['status'] = "IN REVIEW";
@@ -535,7 +552,7 @@ class WorkflowStep
                 {
                     $this->objAudit = json_decode ($arrData[0]['audit_data'], true);
                 }
-                $this->validateParallelUsers ($objUser, $arrCompleteData, $blIsParralelTask);
+                $this->validateParallelUsers ($objUser, $objTask, $blIsParralelTask);
                 $strAudit = json_encode ($this->objAudit);
                 $this->objMysql->_update ("workflow.workflow_data", ["audit_data" => $strAudit], ["id" => $arrData[0]['id']]);
             }
@@ -601,18 +618,19 @@ class WorkflowStep
                         /*                         * ************************** Process Triggers ********************************************* */
                         if ( $taskType === "ABANDONED" && trim ($objProcess->getProTriCanceled ()) !== "" )
                         {
-                            $objTrigger->executeSendMail ($objUser, null, $objProcess->getProTriCanceled ());
+                            $objTrigger->executeSendMail ($objUser, $objTask, null, $objProcess->getProTriCanceled ());
                         }
                         if ( $taskType === "HELD" && trim ($objProcess->getProTriPaused ()) !== "" )
                         {
-                            $objTrigger->executeSendMail ($objUser, null, $objProcess->getProTriPaused ());
+                            $objTrigger->executeSendMail ($objUser, $objTask, null, $objProcess->getProTriPaused ());
                         }
                         if ( trim ($this->currentStatus) === "HELD" && trim ($objProcess->getProTriUnpaused ()) !== "NONE" )
                         {
-                            $objTrigger->executeSendMail ($objUser, null, $objProcess->getProTriUnpaused ());
+                            $objTrigger->executeSendMail ($objUser, $objTask, null, $objProcess->getProTriUnpaused ());
                         }
                         break;
                     case "CLAIMED":
+                        
                         foreach ($arrUsers as $arrUser) {
                             if ( trim ($arrUser['USR_USERNAME']) === trim ($arrCompleteData['claimed']) )
                             {
@@ -625,6 +643,7 @@ class WorkflowStep
                         }
                         $step2 = $this->_workflowStepId;
                         $objTask->setStepId ($step2);
+                        $objTask->setTasAssignType("SELF-SERVICE");
                         break;
                 }
             }

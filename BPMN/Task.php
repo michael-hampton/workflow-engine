@@ -325,6 +325,7 @@ class Task extends BaseTask
         $objFlow = new Task();
         $objFlow->setTasTimeunit ($result[0]['TAS_TIMEUNIT']);
         $objFlow->setTasDuration ($result[0]['TAS_DURATION']);
+        $objFlow->setProUid($result[0]['PRO_UID']);
 
         $objCalendar = new CalendarAssignment();
         $objAssignment = $objCalendar->retrieveByPk ($result[0]['TAS_UID'], "TASK");

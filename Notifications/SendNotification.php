@@ -22,24 +22,58 @@ class SendNotification
         return $this->system;
     }
 
+    /**
+     * 
+     * @param type $system
+     */
     public function setSystem ($system)
     {
         $this->system = $system;
     }
 
+    /**
+     * 
+     * @param type $subject
+     */
+    public function setSubject ($subject)
+    {
+        $this->subject = $subject;
+    }
+
+    /**
+     * 
+     * @return type
+     */
     public function getStatus ()
     {
         return $this->status;
     }
 
+    /**
+     * 
+     * @param type $status
+     */
     public function setStatus ($status)
     {
         $this->status = $status;
     }
-    
-    public function setTemplate($template)
+
+    /**
+     * 
+     * @param type $template
+     */
+    public function setTemplate ($template)
     {
-        $this->template($template);
+        $this->template = $template;
+    }
+
+    /**
+     * 
+     * @param type $sendToAll
+     */
+    public function setSendToAll ($sendToAll)
+    {
+        $this->sendToAll = $sendToAll;
     }
 
     /**
@@ -149,16 +183,20 @@ class SendNotification
         $htmlContent = '';
 
         try {
-            if($system === "task_manager") {
+            if ( $system === "task_manager" )
+            {
                 $this->setVariables ($objTask->getStepId (), $system);
-            } else {
-                $htmlContent = $this->emailActions($objTask, $system);
+            }
+            else
+            {
+                $system = "sendForm";
+                $htmlContent = $this->emailActions ($objTask, $system);
             }
 
             $this->taskId = $objTask->getTasUid ();
 
             $noteRecipientsList = array();
-            
+
             if ( !empty ($this->arrEmailAddresses) )
             {
                 $noteRecipientsList[] = $this->arrEmailAddresses;
@@ -194,24 +232,41 @@ class SendNotification
             $Fields = $objCases->getCaseVariables ((int) $this->elementId, (int) $this->projectId, (int) $objTask->getStepId ());
 
             $this->subject = $objCases->replaceDataField ($this->subject, $Fields);
-            
-            if(trim($this->template) !== '') {
-                if(file_exists($this->template)) {
-                $body = file_get_contents($this->template);
-                    
-                if(trim($htmlContent) !== '') {
-                    $body .= $htmlContent;
+
+            if ( trim ($this->template) !== '' )
+            {
+
+                $template = PATH_DATA_MAILTEMPLATES . $this->template . ".html";
+
+                if ( file_exists ($template) )
+                {
+
+                    $this->body = file_get_contents ($template);
                 }
-                    
-                $this->body = $objCases->replaceDataField ($this->body, $Fields);
-                } else {
+            }
+
+            if ( strpos ($this->body, '<subject>') !== false )
+            {
+                preg_match_all ('/<subject>(.*?)<\/subject>/s', $this->body, $matches);
+
+                if ( isset ($matches[1]) && !empty ($matches[1]) )
+                {
+                    $this->subject = $matches[1][0];
+
+                    $out = $this->delete_all_between ('<subject>', '</subject>', $this->body);
+
+                    if ( trim ($out) !== "" )
+                    {
+                        $this->body = $out;
+                    }
                 }
-            } else {
-                $this->body = $objCases->replaceDataField ($this->body, $Fields);
-                
-                if(trim($htmlContent) !== '') {
-                    $this->body .= $htmlContent;
-                }
+            }
+
+            $this->body = $objCases->replaceDataField ($this->body, $Fields);
+
+            if ( trim ($htmlContent) !== '' )
+            {
+                $this->body .= $htmlContent;
             }
 
             //	sending email notification
@@ -222,23 +277,42 @@ class SendNotification
             throw $ex;
         }
     }
-    
-    private function emailActions($objTask, $type)
+
+    private function delete_all_between ($beginning, $end, $string)
     {
-        switch($type) {
+        $beginningPos = strpos ($string, $beginning);
+        $endPos = strpos ($string, $end);
+        if ( $beginningPos === false || $endPos === false )
+        {
+            return $string;
+        }
+
+        $textToDelete = substr ($string, $beginningPos, ($endPos + strlen ($end)) - $beginningPos);
+
+        return str_replace ($textToDelete, '', $string);
+    }
+
+    private function emailActions ($objTask, $type)
+    {
+        switch ($type) {
             case "accept":
-                
+
                 break;
-                
+
             case "reject":
-                
+
                 break;
-                
+
             case "sendForm":
             case "sendFormLink":
-                $dynaForm = new Form ($objTask);
+
+                $processUid = $objTask->getProUid ();
+
+                $objTask->setStepId ($objTask->getTasUid());
+
+                $dynaForm = new \BusinessModel\Form ($objTask);
                 $arrayDynaFormData = $dynaForm->getFields ();
-                 
+
                 //Creating the first file
                 //$weTitle = $this->sanitizeFilename ($arrayWebEntryData["WE_TITLE"]);
                 //$fileName = $weTitle;
@@ -248,29 +322,29 @@ class SendNotification
                 $header .= "  \$_DBArray = array();\n";
                 $header .= "}\n";
                 $header .= "\$_SESSION[\"PROCESS\"] = \"" . $processUid . "\";\n";
-                $header .= "\$_SESSION[\"CURRENT_DYN_UID\"] = \"" . $objTask->getTasUid() . "\";\n";
+                $header .= "\$_SESSION[\"CURRENT_DYN_UID\"] = \"" . $objTask->getTasUid () . "\";\n";
                 $header .= "?>";
                 $header .= '<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>';
-                   
+
                 //Creating the second file, the  post file who receive the post form.
                 $pluginTpl = WEB_ENTRY_TEMPLATES;
-                $objFormBuilder = new FormBuilder ("AddNewForm");
+                $objFormBuilder = new BusinessModel\FormBuilder ("AddNewForm");
                 $objFormBuilder->buildForm ($arrayDynaFormData);
                 $html = $objFormBuilder->render ();
                 $html .= '<input type="hidden" id="workflowid" name="workflowid" value="' . $processUid . '">';
-                $html .= '<input type="hidden" id="stepId" name="stepId" value="' . $dynaFormUid . '">';
-                $fileTemplate = file_get_contents ($pluginTpl);
-                $fileTemplate = str_replace ("<!-- CONTENT -->", $html, $fileTemplate);
-                $fileContent = $header . $fileTemplate;
-                  
-                if($type === 'sendFormLink') {
-                    file_put_contents ($pathDataPublicProcess . PATH_SEP . $fileName . ".php", $fileContent);
-                      return "<a href='".$pathDataPublicProcess . PATH_SEP . $fileName . ".php'>link</a>";
-                } else {
-                    return $fileContent;
+                $html .= '<input type="hidden" id="stepId" name="stepId" value="' . $objTask->getStepId () . '">';
+
+                if ( $type === 'sendFormLink' )
+                {
+                    $fileTemplate = file_get_contents ($pluginTpl);
+                    $fileTemplate = str_replace ("<!-- CONTENT -->", $html, $fileTemplate);
+                    $fileContent = $header . $fileTemplate;
+                    $fileName = 'mail_' . date ('Y_m_d_His');
+                    file_put_contents (PATH_DATA_MAILTEMPLATES . PATH_SEP . $fileName . ".php", $fileContent);
+                    return "<a href='" . PATH_DATA_MAILTEMPLATES . $fileName . ".php'>link</a>";
                 }
-    
-           break;
+
+                return $html;
         }
     }
 
@@ -321,8 +395,6 @@ class SendNotification
 
         $group = new TeamFunctions ();
 
-        $oUser = new Users ();
-
         /**
          * If task is a self service task we only send to users whi have participated in the case which has been done previously (to already populated)
          * else we get the assigned task users and put them into the array if they arent already there
@@ -332,7 +404,7 @@ class SendNotification
 
         if ( $taskType === "SELF-SERVICE" )
         {
-            if ( trim ($objTask->getTasUid ()) === "" )
+            if ( trim ($objTask->getTasUid ()) !== "" )
             {
 
                 $arrayTaskUser = array();
@@ -472,12 +544,10 @@ class SendNotification
         return $arrayResp;
     }
 
-    /**
-     *
-     * @param type $sendto
-     * @param type $message_subject
-     * @param type $message_body
-     */
+   /**
+    * 
+    * @param Users $objUser
+    */
     public function notificationEmail (Users $objUser)
     {
         $aConfiguration = $this->getEmailConfiguration ();
