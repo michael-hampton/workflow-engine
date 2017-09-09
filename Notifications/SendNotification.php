@@ -226,9 +226,41 @@ class SendNotification
                 
             case "sendForm":
             case "sendFormLink":
-                
-                break;
-                
+                $dynaForm = new Form ($objTask);
+                $arrayDynaFormData = $dynaForm->getFields ();
+                 
+                //Creating the first file
+                //$weTitle = $this->sanitizeFilename ($arrayWebEntryData["WE_TITLE"]);
+                //$fileName = $weTitle;
+                $header = "<?php\n";
+                $header .= "global \$_DBArray;\n";
+                $header .= "if (!isset(\$_DBArray)) {\n";
+                $header .= "  \$_DBArray = array();\n";
+                $header .= "}\n";
+                $header .= "\$_SESSION[\"PROCESS\"] = \"" . $processUid . "\";\n";
+                $header .= "\$_SESSION[\"CURRENT_DYN_UID\"] = \"" . $objTask->getTasUid() . "\";\n";
+                $header .= "?>";
+                $header .= '<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>';
+                   
+                //Creating the second file, the  post file who receive the post form.
+                $pluginTpl = WEB_ENTRY_TEMPLATES;
+                $objFormBuilder = new FormBuilder ("AddNewForm");
+                $objFormBuilder->buildForm ($arrayDynaFormData);
+                $html = $objFormBuilder->render ();
+                $html .= '<input type="hidden" id="workflowid" name="workflowid" value="' . $processUid . '">';
+                $html .= '<input type="hidden" id="stepId" name="stepId" value="' . $dynaFormUid . '">';
+                $fileTemplate = file_get_contents ($pluginTpl);
+                $fileTemplate = str_replace ("<!-- CONTENT -->", $html, $fileTemplate);
+                $fileContent = $header . $fileTemplate;
+                  
+                if($type === 'sendFormLink') {
+                    file_put_contents ($pathDataPublicProcess . PATH_SEP . $fileName . ".php", $fileContent);
+                      return "<a href='".$pathDataPublicProcess . PATH_SEP . $fileName . ".php'>link</a>";
+                } else {
+                    return $fileContent;
+                }
+    
+           break;
         }
     }
 
