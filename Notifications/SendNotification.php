@@ -16,6 +16,7 @@ class SendNotification
     private $sendToAll;
     private $fromName;
     private $template;
+    private $id;
 
     public function getSystem ()
     {
@@ -90,6 +91,7 @@ class SendNotification
         {
             // default subject and body if none has been set by user
             $this->sendToAll = 1;
+            $this->id = $arrResult[0]['id'];
             $this->subject = '[WORKFLOW_NAME] has been moved to [STEP_NAME] by [USER]';
             $this->body = 'PROJECT <span style="font-weight: bold; text-decoration-line: underline;">DETAILS </span>id: [PROJECT_ID] project name: [PROJECT_NAME] status [PROJECT_STATUS]  Element Details Id: [ELEMENT_ID] Name: [ELEMENT_NAME] Status: [ELEMENT_STATUS] Step: [STEP_NAME]';
         }
@@ -182,6 +184,8 @@ class SendNotification
     {
         $htmlContent = '';
 
+        $system = "sendForm";
+
         try {
             if ( $system === "task_manager" )
             {
@@ -189,9 +193,10 @@ class SendNotification
             }
             else
             {
-                $system = "sendForm";
+                $this->setSystem ($system);
                 $htmlContent = $this->emailActions ($objTask, $system);
             }
+
 
             $this->taskId = $objTask->getTasUid ();
 
@@ -308,10 +313,44 @@ class SendNotification
 
                 $processUid = $objTask->getProUid ();
 
-                $objTask->setStepId ($objTask->getTasUid());
+                $objTask->setStepId ($objTask->getTasUid ());
 
                 $dynaForm = new \BusinessModel\Form ($objTask);
                 $arrayDynaFormData = $dynaForm->getFields ();
+
+                $objCase = new BusinessModel\Cases();
+                $objVariables = new \BusinessModel\StepVariable();
+
+                foreach ($arrayDynaFormData as $objField) {
+
+                    // This eventually needs to be replaced so that everything comes from the variables
+                    $fieldId = $objField->getFieldId ();
+
+                    if ( isset ($objCase->objJobFields[$fieldId]) )
+                    {
+                        $accessor = $objCase->objJobFields[$fieldId]['accessor'];
+                        $value = call_user_func (array($objCase, $accessor));
+
+                        if ( trim ($value) !== "" )
+                        {
+                            $objField->setValue (trim ($value));
+                        }
+                    }
+                    else
+                    {
+                        $objVariable = $objVariables->getVariableForField ($fieldId);
+
+                        if ( !empty ($objVariable) )
+                        {
+                            $variable = $objVariable->getVariableName ();
+
+                            if ( trim ($variable) !== "" && isset ($objCase->arrElement[$variable]) )
+                            {
+                                $objField->setValue ($objCase->arrElement[$variable]);
+                            }
+                        }
+                    }
+                }
 
                 //Creating the first file
                 //$weTitle = $this->sanitizeFilename ($arrayWebEntryData["WE_TITLE"]);
@@ -544,10 +583,10 @@ class SendNotification
         return $arrayResp;
     }
 
-   /**
-    * 
-    * @param Users $objUser
-    */
+    /**
+     * 
+     * @param Users $objUser
+     */
     public function notificationEmail (Users $objUser)
     {
         $aConfiguration = $this->getEmailConfiguration ();
@@ -616,6 +655,44 @@ class SendNotification
                         $oSpool->sendMail ();
                     } catch (Exception $ex) {
                         //trigger_error ($ex, E_USER_WARNING);
+                    }
+
+                    $abeRequest = array();
+
+                    $abeRequest['ABE_REQ_UID'] = '';
+                    $abeRequest['APP_UID'] = $this->projectId;
+                    $abeRequest['DEL_INDEX'] = $this->taskId;
+                    $abeRequest['ABE_REQ_SENT_TO'] = $this->recipient;
+                    $abeRequest['ABE_REQ_SUBJECT'] = $this->subject;
+                    $abeRequest['ABE_REQ_BODY'] = '';
+                    $abeRequest['ABE_REQ_ANSWERED'] = 0;
+                    $abeRequest['ABE_REQ_STATUS'] = 'PENDING';
+
+                    try {
+                        if ( !in_array ($this->system, array("task_manager", "trigger")) )
+                        {
+
+                            $abeRequestsInstance = new AbeRequest();
+                            $abeRequest['ABE_REQ_UID'] = $abeRequestsInstance->createOrUpdate ($abeRequest);
+
+                            $abeRequest['ABE_REQ_STATUS'] = 'SENT';
+
+                            $messageSent = (new Mysql2())->_query ('SELECT `APP_MSG_BODY` FROM workflow.`APP_MESSAGE` ORDER BY `APP_MSG_SEND_DATE` DESC LIMIT 1');
+
+                            if ( isset ($messageSent[0]) && !empty ($messageSent[0]) && is_array ($messageSent) )
+                            {
+                                $body = $messageSent[0]['APP_MSG_BODY'];
+                            }
+
+                            $abeRequest['ABE_REQ_BODY'] = $body;
+
+                            $abeRequestsInstance->createOrUpdate ($abeRequest);
+
+
+                            die ("Yes 9");
+                        }
+                    } catch (Exception $ex) {
+                        
                     }
                 }
             }
