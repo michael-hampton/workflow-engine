@@ -3,26 +3,131 @@
 class WorkflowStep
 {
 
+    /**
+     *
+     * @var type 
+     */
     private $_workflowStepId;
+
+    /**
+     *
+     * @var type 
+     */
     private $_stepId;
+
+    /**
+     *
+     * @var type 
+     */
     private $objAudit;
+
+    /**
+     *
+     * @var type 
+     */
     private $objMike;
+
+    /**
+     *
+     * @var type 
+     */
     private $nextStep;
+
+    /**
+     *
+     * @var type 
+     */
     private $workflowId;
+
+    /**
+     *
+     * @var type 
+     */
     private $fieldValidation;
+
+    /**
+     *
+     * @var type 
+     */
     private $collectionId;
+
+    /**
+     *
+     * @var type 
+     */
     private $parentId;
+
+    /**
+     *
+     * @var type 
+     */
     private $elementId;
+
+    /**
+     *
+     * @var type 
+     */
     private $workflowName;
+
+    /**
+     *
+     * @var type 
+     */
     private $_systemName;
+
+    /**
+     *
+     * @var type 
+     */
     private $_stepName;
+
+    /**
+     *
+     * @var type 
+     */
     private $objMysql;
+
+    /**
+     *
+     * @var type 
+     */
     private $objectId;
+
+    /**
+     *
+     * @var type 
+     */
     private $currentStep;
+
+    /**
+     *
+     * @var type 
+     */
     private $nextTask;
+
+    /**
+     *
+     * @var type 
+     */
     private $currentTask;
+
+    /**
+     *
+     * @var type 
+     */
     private $blReview = false;
+
+    /**
+     *
+     * @var type 
+     */
     private $currentStatus;
+
+    /**
+     *
+     * @var type 
+     */
+    private $hasEvent;
 
     public function __construct ($intWorkflowStepId = null, $objMike = null)
     {
@@ -49,6 +154,11 @@ class WorkflowStep
         $this->objMike = $objMike;
     }
 
+    public function getParentId ()
+    {
+        return $this->parentId;
+    }
+
     public function getWorkflowStepId ()
     {
         return $this->_workflowStepId;
@@ -67,6 +177,11 @@ class WorkflowStep
     public function getWorkflowId ()
     {
         return $this->workflowId;
+    }
+
+    public function getHasEvent ()
+    {
+        return $this->hasEvent;
     }
 
     public function getStepId ()
@@ -362,8 +477,8 @@ class WorkflowStep
                 }
 
                 break;
-                
-                
+
+
 
             default:
                 $userFields = $this->getUsersFullNameFromArray ($this->getAllUsersFromAnyTask ($this->_stepId));
@@ -630,7 +745,7 @@ class WorkflowStep
                         }
                         break;
                     case "CLAIMED":
-                        
+
                         foreach ($arrUsers as $arrUser) {
                             if ( trim ($arrUser['USR_USERNAME']) === trim ($arrCompleteData['claimed']) )
                             {
@@ -643,7 +758,7 @@ class WorkflowStep
                         }
                         $step2 = $this->_workflowStepId;
                         $objTask->setStepId ($step2);
-                        $objTask->setTasAssignType("SELF-SERVICE");
+                        $objTask->setTasAssignType ("SELF-SERVICE");
                         break;
                 }
             }
@@ -663,6 +778,8 @@ class WorkflowStep
         $objScriptTask->execScriptByActivityUid ($objTask, $fields);
         /*         * ***************** Check events for task ************************** */
         $hasEvent = isset ($arrCompleteData['hasEvent']) ? 'true' : 'false';
+        $this->hasEvent = $hasEvent;
+
         if ( $hasEvent !== 'true' )
         {
             $this->checkEvents ($objUser);
@@ -699,7 +816,14 @@ class WorkflowStep
             throw new Exception ("Invalid user given. Cannot complete workflow step " . $step . " - " . $this->workflowId);
         }
         $auditStatus = isset ($arrCompleteData['status']) ? $arrCompleteData['status'] : '';
-        (new AppDelegation())->createAppDelegation ($this, $objMike, $objUser, $objTask, $this->_stepId, 3, false, -1, $hasEvent, $blIsParralelTask, $status, $auditStatus);
+
+        // create app delegation
+        (new AppDelegation())->createAppDelegation ($this, $objMike, $objUser, $objTask, $this->_stepId, 3, false, $auditStatus);
+
+        // create app thread
+        (new AppThread())->createAppThread ($this, $objMike, $objUser, $objTask, $this->_stepId, $status);
+
+        // send notifications
         $this->sendNotification ($objUser, $arrEmailAddresses);
         $this->nextTask = $step;
     }

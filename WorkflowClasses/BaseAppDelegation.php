@@ -47,12 +47,6 @@ abstract class BaseAppDelegation implements Persistent
     protected $del_last_index = 0;
 
     /**
-     * The value for the pro_uid field.
-     * @var        string
-     */
-    protected $pro_uid = '';
-
-    /**
      * The value for the tas_uid field.
      * @var        string
      */
@@ -191,24 +185,6 @@ abstract class BaseAppDelegation implements Persistent
     protected $tas_id = 0;
 
     /**
-     * The value for the request_id field.
-     * @var        int
-     */
-    protected $requestId;
-
-    /**
-     * The value for the hasEvent field.
-     * @var        int
-     */
-    protected $hasEvent;
-
-    /**
-     * The value for the status field.
-     * @var        int
-     */
-    protected $status;
-
-    /**
      * Flag to prevent endless save loop, if this object is referenced
      * by another object which falls in this transaction.
      * @var        boolean
@@ -222,11 +198,6 @@ abstract class BaseAppDelegation implements Persistent
      */
     protected $alreadyInValidation = false;
     private $objMysql;
-
-    public function __construct ()
-    {
-        $this->objMysql = new Mysql2();
-    }
 
     private function getConnection ()
     {
@@ -279,36 +250,6 @@ abstract class BaseAppDelegation implements Persistent
     }
 
     /**
-     * Get the [request_id] column value.
-     * 
-     * @return     int
-     */
-    public function getRequestId ()
-    {
-        return $this->requestId;
-    }
-
-    /**
-     * Get the [hasEvent] column value.
-     * 
-     * @return     int
-     */
-    public function getHasEvent ()
-    {
-        return $this->hasEvent;
-    }
-
-    /**
-     * Get the [status] column value.
-     * 
-     * @return     string
-     */
-    public function getStatus ()
-    {
-        return $this->status;
-    }
-
-    /**
      * Get the [del_previous] column value.
      * 
      * @return     int
@@ -336,16 +277,6 @@ abstract class BaseAppDelegation implements Persistent
     public function getDelLastIndex ()
     {
         return $this->del_last_index;
-    }
-
-    /**
-     * Get the [pro_uid] column value.
-     * 
-     * @return     string
-     */
-    public function getProUid ()
-    {
-        return $this->pro_uid;
     }
 
     /**
@@ -829,46 +760,6 @@ abstract class BaseAppDelegation implements Persistent
     }
 
     /**
-     * Set the value of [app_number] column.
-     * 
-     * @param      int $v new value
-     * @return     void
-     */
-    public function setCollectionId ($v)
-    {
-        // Since the native PHP type for this column is integer,
-        // we will cast the input value to an int (if it is not).
-        if ( $v !== null && !is_int ($v) && is_numeric ($v) )
-        {
-            $v = (int) $v;
-        }
-        if ( $this->requestId !== $v || $v === 0 )
-        {
-            $this->requestId = $v;
-        }
-    }
-
-    /**
-     * Set the value of [hasEvent] column.
-     * 
-     * @param      int $v new value
-     * @return     void
-     */
-    public function setHasEvent ($v)
-    {
-        // Since the native PHP type for this column is integer,
-        // we will cast the input value to an int (if it is not).
-        if ( $v !== null && !is_int ($v) && is_numeric ($v) )
-        {
-            $v = (int) $v;
-        }
-        if ( $this->hasEvent !== $v || $v === 0 )
-        {
-            $this->hasEvent = $v;
-        }
-    }
-
-    /**
      * Set the value of [del_previous] column.
      * 
      * @param      int $v new value
@@ -905,46 +796,6 @@ abstract class BaseAppDelegation implements Persistent
         if ( $this->del_last_index !== $v || $v === 0 )
         {
             $this->del_last_index = $v;
-        }
-    }
-
-    /**
-     * Set the value of [pro_uid] column.
-     * 
-     * @param      string $v new value
-     * @return     void
-     */
-    public function setProUid ($v)
-    {
-        // Since the native PHP type for this column is string,
-        // we will cast the input to a string (if it is not).
-        if ( $v !== null && !is_string ($v) )
-        {
-            $v = (string) $v;
-        }
-        if ( $this->pro_uid !== $v || $v === '' )
-        {
-            $this->pro_uid = $v;
-        }
-    }
-
-    /**
-     * Set the value of [status] column.
-     * 
-     * @param      string $v new value
-     * @return     void
-     */
-    public function setStatus ($v)
-    {
-        // Since the native PHP type for this column is string,
-        // we will cast the input to a string (if it is not).
-        if ( $v !== null && !is_string ($v) )
-        {
-            $v = (string) $v;
-        }
-        if ( $this->status !== $v || $v === '' )
-        {
-            $this->status = $v;
         }
     }
 
@@ -1424,7 +1275,7 @@ abstract class BaseAppDelegation implements Persistent
         }
     }
 
-    public function getObjectIfExists ()
+    private function getObjectIfExists ()
     {
         if ( $this->objMysql === null )
         {
@@ -1463,30 +1314,10 @@ abstract class BaseAppDelegation implements Persistent
 
         if ( $workflowData !== false )
         {
-            $workflowObject = json_decode ($workflowData['0']['workflow_data'], true);
             $auditObject = json_decode ($workflowData[0]['audit_data'], true);
         }
 
-        $workflowObject['elements'][$this->app_number]['request_id'] = $this->requestId;
-        $workflowObject['elements'][$this->app_number]['current_step'] = $this->tas_uid;
-        $workflowObject['elements'][$this->app_number]['status'] = $this->status;
-
-        if ( !isset ($workflowObject['elements'][$this->app_number]['workflow_id']) )
-        {
-            $workflowObject['elements'][$this->app_number]['workflow_id'] = $this->pro_uid;
-        }
-
-        $workflowObject['elements'][$this->app_number]['hasEvent'] = $this->hasEvent;
-
         // Thread
-        $workflowObject['elements'][$this->app_number]['del_type'] = $this->del_type;
-        $workflowObject['elements'][$this->app_number]['del_thread'] = $this->del_thread;
-        $workflowObject['elements'][$this->app_number]['del_priority'] = $this->del_priority;
-        $workflowObject['elements'][$this->app_number]['del_thread_status'] = $this->del_thread_status;
-        $workflowObject['elements'][$this->app_number]['del_duration'] = $this->del_duration;
-        $workflowObject['elements'][$this->app_number]['del_delay_duration'] = $this->del_delay_duration;
-        $workflowObject['elements'][$this->app_number]['del_delayed'] = $this->del_delayed;
-        $workflowObject['elements'][$this->app_number]['app_overdue_percentage'] = $this->app_overdue_percentage;
 
         $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['claimed'] = $this->usr_id;
         $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['dateCompleted'] = $this->del_delegate_date;
@@ -1498,11 +1329,14 @@ abstract class BaseAppDelegation implements Persistent
         $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['del_delayed'] = $this->del_delayed;
         $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['app_overdue_percentage'] = $this->app_overdue_percentage;
         $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['finish_date'] = $this->del_finished;
+        $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['del_thread_status'] = $this->del_thread_status;
+        $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['del_priority'] = $this->del_priority;
+        $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['del_type'] = $this->del_type;
+        $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['del_thread'] = $this->del_thread;
 
         if ( $workflowData === false )
         {
             $id = $this->objMysql->_insert ("workflow.workflow_data", [
-                "workflow_data" => json_encode ($workflowObject),
                 "audit_data" => json_encode ($auditObject),
                 "object_id" => $this->app_uid,
                 "DEL_LAST_INDEX" => $this->del_last_index,
@@ -1517,7 +1351,6 @@ abstract class BaseAppDelegation implements Persistent
         }
 
         $this->objMysql->_update ("workflow.workflow_data", [
-            "workflow_data" => json_encode ($workflowObject),
             "audit_data" => json_encode ($auditObject),
             "DEL_LAST_INDEX" => $this->del_last_index,
             "DEL_INDEX" => $this->del_index,
@@ -1568,46 +1401,53 @@ abstract class BaseAppDelegation implements Persistent
     }
 
     /**
-     * Validates the objects modified field values and all objects related to this table.
-     *
-     * If $columns is either a column name or an array of column names
-     * only those columns are validated.
-     *
-     * @param      mixed $columns Column name or an array of column names.
-     * @return     boolean Whether all columns pass validation.
-     * @see        doValidate()
-     * @see        getValidationFailures()
-     */
-    public function validate ($columns = null)
-    {
-        $res = $this->doValidate ($columns);
-        if ( $res === true )
-        {
-            $this->validationFailures = array();
-            return true;
-        }
-        else
-        {
-            $this->validationFailures = $res;
-            return false;
-        }
-    }
-
-    /**
      * This function performs the validation work for complex object models.
      *
      * In addition to checking the current object, all related objects will
      * also be validated.  If all pass then <code>true</code> is returned; otherwise
      * an aggreagated array of ValidationFailed objects will be returned.
      *
-     * @param      array $columns Array of column names to validate.
      * @return     mixed <code>true</code> if all validations pass; 
       array of <code>ValidationFailed</code> objects otherwise.
      */
-    protected function doValidate ($columns = null)
+    public function validate ($columns = null)
     {
+        if ( trim ($this->app_number) === "" )
+        {
+            $this->validationFailures[] = "App Number is missing";
+        }
 
-        return true;
+        if ( trim ($this->app_uid) === "" )
+        {
+            $this->validationFailures[] = "App Id is missing";
+        }
+
+        if ( trim ($this->auditStatus) === "" )
+        {
+            $this->validationFailures[] = "Status is missing";
+        }
+
+        if ( trim ($this->tas_uid) === "" )
+        {
+            $this->validationFailures[] = "Task Id is missing";
+        }
+
+        if ( trim ($this->del_priority) === "" )
+        {
+            $this->validationFailures[] = "Priority is missing";
+        }
+
+        if ( trim ($this->del_delegate_date) === "" )
+        {
+            $this->validationFailures[] = "Date is missing";
+        }
+
+        if ( trim ($this->usr_id) === "" )
+        {
+            $this->validationFailures[] = "User Id is missing";
+        }
+        
+        return count ($this->validationFailures) > 0 ? false : true;
     }
 
 }

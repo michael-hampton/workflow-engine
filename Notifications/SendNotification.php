@@ -687,9 +687,7 @@ class SendNotification
                             $abeRequest['ABE_REQ_BODY'] = $body;
 
                             $abeRequestsInstance->createOrUpdate ($abeRequest);
-
-
-                            die ("Yes 9");
+                            
                         }
                     } catch (Exception $ex) {
                         

@@ -69,6 +69,8 @@ require_once HOME_DIR . '/core/app/library/Calendar/BaseCalendarDefinition.php';
 require_once HOME_DIR . '/core/app/library/Calendar/CalendarDefinition.php';
 require_once HOME_DIR . '/core/app/library/CalendarFunctions.php';
 
+require_once HOME_DIR . '/core/app/library/WorkflowClasses/BaseAppThread.php';
+require_once HOME_DIR . '/core/app/library/WorkflowClasses/AppThread.php';
 
 require_once HOME_DIR . '/core/app/library/WorkflowClasses/BaseAppDelegation.php';
 require_once HOME_DIR . '/core/app/library/Event/AppDelegation.php';

@@ -38,12 +38,10 @@ class AppDelegation extends BaseAppDelegation
      * @return delegation index of the application delegation.
      */
     public function createAppDelegation (
-    WorkflowStep $objWorkflowStep, $objElement, Users $objUser, Task $objTask, $step, $iPriority = 3, $isSubprocess = false, $sPrevious = -1, $hasEvent = null, $flagControlMulInstance = false, $status, $status2, $delPrevious = 0, $taskId = 0, $userId = 0, $proId = 0)
+    WorkflowStep $objWorkflowStep, $objElement, Users $objUser, Task $objTask, $step, $iPriority = 3, $isSubprocess = false, $status2)
     {
-        if ( strlen ($objWorkflowStep->getWorkflowId ()) == 0 )
-        {
-            throw (new Exception ('Column "PRO_UID" cannot be null.'));
-        }
+        $sPrevious = -1;
+
         if ( method_exists ($objElement, "getSource_id") && strlen ($objElement->getSource_id ()) == 0 )
         {
             throw (new Exception ('Column "APP_UID" cannot be null.'));
@@ -94,7 +92,6 @@ class AppDelegation extends BaseAppDelegation
         }
 
         $this->setAppUid (method_exists ($objElement, "getSource_id") ? $objElement->getSource_id () : $objElement->getId ());
-        $this->setProUid ($objWorkflowStep->getWorkflowId ());
         $this->setTasUid ($objTask->getStepId ());
         $this->setDelIndex ($delIndex);
         $this->setDelLastIndex (1);
@@ -105,11 +102,7 @@ class AppDelegation extends BaseAppDelegation
         $this->setDelThreadStatus ('OPEN');
         $this->setDelDelegateDate ('now');
         $this->setTasId ($objTask->getStepId ());
-        $this->setCollectionId ((int) $objWorkflowStep->getCollectionId ());
-        $this->setHasEvent ((int) $hasEvent);
         $this->setUsrId ($objUser->getUsername ());
-        $this->setProId ($objWorkflowStep->getWorkflowId ());
-        $this->setStatus ($status);
         $this->setAppNumber ($objElement->getId ());
         $this->setAuditStatus ($status2);
 
@@ -162,27 +155,7 @@ class AppDelegation extends BaseAppDelegation
             throw (new Exception ('Failed Data validation. ' . $msg));
         }
         $delIndex = $this->getDelIndex ();
-        // Hook for the trigger PM_CREATE_NEW_DELEGATION
-        /* if ( defined ('PM_CREATE_NEW_DELEGATION') )
-          {
-          $bpmn = new \ProcessMaker\Project\Bpmn();
-          $flagActionsByEmail = true;
-          $arrayAppDelegationPrevious = $this->getPreviousDelegationValidTask ($sAppUid, $delIndex);
-          $data = new stdclass();
-          $data->TAS_UID = $sTasUid;
-          $data->APP_UID = $sAppUid;
-          $data->DEL_INDEX = $delIndex;
-          $data->USR_UID = $sUsrUid;
-          $data->PREVIOUS_USR_UID = ($arrayAppDelegationPrevious !== false) ? $arrayAppDelegationPrevious['USR_UID'] : $delPreviusUsrUid;
-          if ( $bpmn->exists ($sProUid) )
-          {
-          }
-          if ( $flagActionsByEmail )
-          {
-          //$oPluginRegistry = &PMPluginRegistry::getSingleton ();
-          //$oPluginRegistry->executeTriggers (PM_CREATE_NEW_DELEGATION, $data);
-          }
-          } */
+
         return $delIndex;
     }
 
@@ -322,7 +295,7 @@ class AppDelegation extends BaseAppDelegation
 
         if ( $calendar->pmCalendarUid == "" )
         {
-            $calendar->getCalendar (null, $this->getProUid (), $objTask->getTasUid ());
+            $calendar->getCalendar (null, $objTask->getProUid (), $objTask->getTasUid ());
             $arrayCalendarData = $calendar->getCalendarData ($aCalendarUID);
         }
 
@@ -458,7 +431,7 @@ class AppDelegation extends BaseAppDelegation
         {
             return null;
         }
-        
+
         return new DateTime ($stringDate);
     }
 
