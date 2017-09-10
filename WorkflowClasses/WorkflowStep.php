@@ -598,6 +598,10 @@ class WorkflowStep
         {
             $this->parentId = $objMike->getId ();
         }
+
+        $objAppThread = new AppThread();
+        $objAppDelegation = new AppDelegation();
+
         /*         * ************** Determine next step if there is one else stay at current step ********************** */
         $blHasTrigger = false;
         $objTrigger = new \BusinessModel\StepTrigger ($this->_workflowStepId, $this->nextStep);
@@ -607,6 +611,13 @@ class WorkflowStep
         }
         if ( $complete === true && $this->nextStep !== 0 && $this->nextStep != "" )
         {
+            $openThreads = $objAppThread->GetOpenThreads ($objMike);
+
+            if ( $openThreads > 1 )
+            {
+                throw new Exception ("Task cannot be completed. Some tasks havent been completed");
+            }
+
             if ( $blHasTrigger === true )
             {
                 $arrWorkflowObject = $objTrigger->arrWorkflowObject;
@@ -618,7 +629,8 @@ class WorkflowStep
                 $step = $this->nextTask;
                 $step2 = isset ($step2) && trim ($step2) !== "" ? $step2 : $this->nextStep;
 
-                (new AppDelegation())->CloseCurrentDelegation ($objMike, $this);
+                $objAppDelegation->CloseCurrentDelegation ($objMike, $this);
+                $objAppThread->closeAppThread ($objMike, $this);
                 (new \Log (LOG_FILE))->log (
                         array(
                     "message" => "STEP COMPLETED",
@@ -638,9 +650,11 @@ class WorkflowStep
             if ( $this->nextStep == 0 || $this->nextStep == "" )
             {
                 $status = "WORKFLOW COMPLETE";
+                $arrCompleteData['status'] = !isset ($arrCompleteData['status']) ? "WORKFLOW COMPLETE" : $arrCompleteData['status'];
             }
             else
             {
+                $arrCompleteData['status'] = !isset ($arrCompleteData['status']) ? "SAVED" : $arrCompleteData['status'];
                 $status = "SAVED";
             }
         }

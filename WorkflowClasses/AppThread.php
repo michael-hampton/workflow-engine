@@ -61,7 +61,7 @@ class AppThread extends BaseAppThread
         $this->setStatus ('OPEN');
         $this->setTasUid ($objTask->getStepId ());
         $this->setHasEvent ($objWorkflowStep->getHasEvent ());
-        
+
         if ( $this->validate () )
         {
             try {
@@ -83,10 +83,41 @@ class AppThread extends BaseAppThread
         return $iAppThreadIndex;
     }
 
+    private function retrieveByPK ($appId, $caseId)
+    {
+        $result = $this->objMysql->_select ("workflow.workflow_data", [], ["object_id" => $appId]);
+
+        if ( !isset ($result[0]) || empty ($result[0]) )
+        {
+            return false;
+        }
+
+        $arrObject = json_decode ($result[0]['workflow_data'], true);
+
+        if ( !isset ($arrObject['elements'][$caseId]) )
+        {
+            return false;
+        }
+
+        $workflowData = $arrObject['elements'][$caseId];
+
+        $appThread = new AppThread();
+        $appThread->setAppNumber ($caseId);
+        $appThread->setAppThreadIndex ($result[0]['APP_THREAD_INDEX']);
+        $appThread->setAppUid ($appId);
+        $appThread->setCollectionId ($workflowData['request_id']);
+        $appThread->setHasEvent ($workflowData['hasEvent']);
+        $appThread->setProUid ($workflowData['workflow_id']);
+        $appThread->setStatus ($workflowData['status']);
+        $appThread->setTasUid ($workflowData['current_step']);
+
+        return $appThread;
+    }
+
     public function update ($aData)
     {
         try {
-            $oApp = $this->retrieveByPK ($aData['APP_UID'], $aData['APP_THREAD_INDEX']);
+            $oApp = $this->retrieveByPK ($aData['APP_UID'], $aData['APP_NUMBER']);
 
             if ( is_object ($oApp) && get_class ($oApp) == 'AppThread' )
             {
@@ -111,6 +142,87 @@ class AppThread extends BaseAppThread
             }
         } catch (Exception $oError) {
             throw($oError);
+        }
+    }
+
+    /*
+
+     * GetOpenThreads
+
+     * @name GetOpenThreads
+
+     * @param string $sAppUid
+
+     * @return $row (number of APP_DELEGATION rows)
+
+     */
+
+    public function GetOpenThreads ($objElement)
+    {
+
+        try {
+
+            $objectId = method_exists ($objElement, "getSource_id") ? $objElement->getSource_id () : $objElement->getId ();
+
+            $sql = "SELECT * FROM workflow.workflow_data WHERE object_id = ?";
+            $arrParameters = array($objectId);
+            $results = $this->objMysql->_query ($sql, $arrParameters);
+
+            if ( !isset ($results[0]) || empty ($results[0]) )
+            {
+                return 0;
+            }
+
+            $count = 0;
+
+            foreach ($results as $result) {
+                $workflowData = json_decode ($result['workflow_data'], true);
+
+                foreach ($workflowData['elements'] as $elementId => $element) {
+
+                    if ( isset ($element['status']) && trim ($element['status']) === "OPEN" && (int) $elementId === (int) $objElement->getId () )
+                    {
+                        $count++;
+                    }
+                }
+            }
+
+            return intval ($count);
+        } catch (exception $e) {
+
+            throw ($e);
+        }
+    }
+
+    /*
+
+     * This function changes the status to CLOSED in appThread
+     * @param type $objElement
+     * @param WorkflowStep $objWorkflowStep
+     * @return boolean
+     * @throws type
+     */
+
+    public function closeAppThread ($objElement, WorkflowStep $objWorkflowStep)
+    {
+
+        try {
+
+            $aData = array();
+
+            $objectId = method_exists ($objElement, "getSource_id") ? $objElement->getSource_id () : $objElement->getId ();
+
+            $aData['APP_UID'] = $objectId;
+            $aData['APP_NUMBER'] = $objElement->getId ();
+
+            $aData['APP_THREAD_STATUS'] = 'CLOSED';
+
+            $this->update ($aData);
+
+            return true;
+        } catch (exception $e) {
+
+            throw ($e);
         }
     }
 

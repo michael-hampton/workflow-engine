@@ -199,14 +199,49 @@ abstract class BaseAppDelegation implements Persistent
     protected $alreadyInValidation = false;
     private $objMysql;
 
+    /**
+     *
+     * @var type 
+     */
+    private $arrFieldMapping = array(
+        "APP_UID" => array("accessor" => "getAppUid", "mutator" => "setAppUid"),
+        "APP_NUMBER" => array("accessor" => "getAppNumber", "mutator" => "setAppNumber"),
+        "TAS_UID" => array("accessor" => "getTasUid", "mutator" => "setTasUid"),
+        "APP_DELEGATION_STATUS" => array("accessor" => "getAuditStatus", "mutator" => "setAuditStatus"),
+        "DEL_THREAD_STATUS" => array("accessor" => "getDelThreadStatus", "mutator" => "setDelThreadStatus"),
+        "FINISH_DATE" => array("accessor" => "getDelFinishDate", "mutator" => "setDelFinishDate"),
+    );
+
     private function getConnection ()
     {
         $this->objMysql = new Mysql2();
     }
 
+    /**
+     * 
+     * @param type $arrNotification
+     * @return boolean
+     */
     public function loadObject (array $arrData)
     {
         
+        foreach ($arrData as $formField => $formValue) {
+
+            if ( isset ($this->arrFieldMapping[$formField]) )
+            {
+                $mutator = $this->arrFieldMapping[$formField]['mutator'];
+
+                if ( method_exists ($this, $mutator) && is_callable (array($this, $mutator)) )
+                {
+                    if ( isset ($this->arrFieldMapping[$formField]) && trim ($formValue) != "" )
+                    {
+                        call_user_func (array($this, $mutator), $formValue);
+                    }
+                }
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -1328,7 +1363,7 @@ abstract class BaseAppDelegation implements Persistent
         $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['del_delay_duration'] = $this->del_delay_duration;
         $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['del_delayed'] = $this->del_delayed;
         $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['app_overdue_percentage'] = $this->app_overdue_percentage;
-        $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['finish_date'] = $this->del_finished;
+        $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['finish_date'] = $this->del_finish_date;
         $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['del_thread_status'] = $this->del_thread_status;
         $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['del_priority'] = $this->del_priority;
         $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['del_type'] = $this->del_type;
@@ -1359,27 +1394,6 @@ abstract class BaseAppDelegation implements Persistent
             "DEL_PREVIOUS" => $this->del_previous
                 ], ["object_id" => $this->app_uid]
         );
-    }
-
-    public function completeAudit ()
-    {
-        if ( $this->objMysql === null )
-        {
-            $this->getConnection ();
-        }
-
-        $workflowData = $this->getObjectIfExists ();
-
-        if ( $workflowData !== false )
-        {
-            $workflowObject = json_decode ($workflowData['0']['workflow_data'], true);
-            $auditObject = json_decode ($workflowData[0]['audit_data'], true);
-        }
-
-        $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['finish_date'] = $this->del_finish_date;
-        $auditObject['elements'][$this->app_number]['steps'][$this->tas_uid]['status'] = $this->del_thread_status;
-
-        $this->objMysql->_update ("workflow.workflow_data", ['audit_data' => json_encode ($auditObject)], ['object_id' => $this->app_uid]);
     }
 
     /**
@@ -1446,7 +1460,7 @@ abstract class BaseAppDelegation implements Persistent
         {
             $this->validationFailures[] = "User Id is missing";
         }
-        
+
         return count ($this->validationFailures) > 0 ? false : true;
     }
 

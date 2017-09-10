@@ -91,12 +91,12 @@ class SendNotification
         {
             // default subject and body if none has been set by user
             $this->sendToAll = 1;
-            $this->id = $arrResult[0]['id'];
             $this->subject = '[WORKFLOW_NAME] has been moved to [STEP_NAME] by [USER]';
             $this->body = 'PROJECT <span style="font-weight: bold; text-decoration-line: underline;">DETAILS </span>id: [PROJECT_ID] project name: [PROJECT_NAME] status [PROJECT_STATUS]  Element Details Id: [ELEMENT_ID] Name: [ELEMENT_NAME] Status: [ELEMENT_STATUS] Step: [STEP_NAME]';
         }
         else
         {
+            $this->id = $arrResult[0]['id'];
             $this->fromName = trim ($arrResult[0]['from_name']) !== "" ? $arrResult[0]['from_name'] : '';
             $this->from = trim ($arrResult[0]['from_mail']) !== "" ? $arrResult[0]['from_mail'] : '';
             $this->cc = trim ($arrResult[0]['cc']) !== "" ? $arrResult[0]['cc'] : '';
@@ -183,8 +183,6 @@ class SendNotification
     public function buildEmail (Task $objTask, Users $objUser, $system = "task_manager")
     {
         $htmlContent = '';
-
-        $system = "sendForm";
 
         try {
             if ( $system === "task_manager" )
@@ -299,91 +297,95 @@ class SendNotification
 
     private function emailActions ($objTask, $type)
     {
-        switch ($type) {
-            case "accept":
+        try {
+            switch ($type) {
+                case "accept":
 
-                break;
+                    break;
 
-            case "reject":
+                case "reject":
 
-                break;
+                    break;
 
-            case "sendForm":
-            case "sendFormLink":
+                case "sendForm":
+                case "sendFormLink":
 
-                $processUid = $objTask->getProUid ();
+                    $processUid = $objTask->getProUid ();
 
-                $objTask->setStepId ($objTask->getTasUid ());
+                    $objTask->setStepId ($objTask->getTasUid ());
 
-                $dynaForm = new \BusinessModel\Form ($objTask);
-                $arrayDynaFormData = $dynaForm->getFields ();
+                    $dynaForm = new \BusinessModel\Form ($objTask);
+                    $arrayDynaFormData = $dynaForm->getFields ();
 
-                $objCase = new BusinessModel\Cases();
-                $objVariables = new \BusinessModel\StepVariable();
+                    $objCase = new BusinessModel\Cases();
+                    $objVariables = new \BusinessModel\StepVariable();
 
-                foreach ($arrayDynaFormData as $objField) {
+                    foreach ($arrayDynaFormData as $objField) {
 
-                    // This eventually needs to be replaced so that everything comes from the variables
-                    $fieldId = $objField->getFieldId ();
+                        // This eventually needs to be replaced so that everything comes from the variables
+                        $fieldId = $objField->getFieldId ();
 
-                    if ( isset ($objCase->objJobFields[$fieldId]) )
-                    {
-                        $accessor = $objCase->objJobFields[$fieldId]['accessor'];
-                        $value = call_user_func (array($objCase, $accessor));
-
-                        if ( trim ($value) !== "" )
+                        if ( isset ($objCase->objJobFields[$fieldId]) )
                         {
-                            $objField->setValue (trim ($value));
-                        }
-                    }
-                    else
-                    {
-                        $objVariable = $objVariables->getVariableForField ($fieldId);
+                            $accessor = $objCase->objJobFields[$fieldId]['accessor'];
+                            $value = call_user_func (array($objCase, $accessor));
 
-                        if ( !empty ($objVariable) )
-                        {
-                            $variable = $objVariable->getVariableName ();
-
-                            if ( trim ($variable) !== "" && isset ($objCase->arrElement[$variable]) )
+                            if ( trim ($value) !== "" )
                             {
-                                $objField->setValue ($objCase->arrElement[$variable]);
+                                $objField->setValue (trim ($value));
+                            }
+                        }
+                        else
+                        {
+                            $objVariable = $objVariables->getVariableForField ($fieldId);
+
+                            if ( !empty ($objVariable) )
+                            {
+                                $variable = $objVariable->getVariableName ();
+
+                                if ( trim ($variable) !== "" && isset ($objCase->arrElement[$variable]) )
+                                {
+                                    $objField->setValue ($objCase->arrElement[$variable]);
+                                }
                             }
                         }
                     }
-                }
 
-                //Creating the first file
-                //$weTitle = $this->sanitizeFilename ($arrayWebEntryData["WE_TITLE"]);
-                //$fileName = $weTitle;
-                $header = "<?php\n";
-                $header .= "global \$_DBArray;\n";
-                $header .= "if (!isset(\$_DBArray)) {\n";
-                $header .= "  \$_DBArray = array();\n";
-                $header .= "}\n";
-                $header .= "\$_SESSION[\"PROCESS\"] = \"" . $processUid . "\";\n";
-                $header .= "\$_SESSION[\"CURRENT_DYN_UID\"] = \"" . $objTask->getTasUid () . "\";\n";
-                $header .= "?>";
-                $header .= '<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>';
+                    //Creating the first file
+                    //$weTitle = $this->sanitizeFilename ($arrayWebEntryData["WE_TITLE"]);
+                    //$fileName = $weTitle;
+                    $header = "<?php\n";
+                    $header .= "global \$_DBArray;\n";
+                    $header .= "if (!isset(\$_DBArray)) {\n";
+                    $header .= "  \$_DBArray = array();\n";
+                    $header .= "}\n";
+                    $header .= "\$_SESSION[\"PROCESS\"] = \"" . $processUid . "\";\n";
+                    $header .= "\$_SESSION[\"CURRENT_DYN_UID\"] = \"" . $objTask->getTasUid () . "\";\n";
+                    $header .= "?>";
+                    $header .= '<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>';
 
-                //Creating the second file, the  post file who receive the post form.
-                $pluginTpl = WEB_ENTRY_TEMPLATES;
-                $objFormBuilder = new BusinessModel\FormBuilder ("AddNewForm");
-                $objFormBuilder->buildForm ($arrayDynaFormData);
-                $html = $objFormBuilder->render ();
-                $html .= '<input type="hidden" id="workflowid" name="workflowid" value="' . $processUid . '">';
-                $html .= '<input type="hidden" id="stepId" name="stepId" value="' . $objTask->getStepId () . '">';
+                    //Creating the second file, the  post file who receive the post form.
+                    $pluginTpl = WEB_ENTRY_TEMPLATES;
+                    $objFormBuilder = new BusinessModel\FormBuilder ("AddNewForm");
+                    $objFormBuilder->buildForm ($arrayDynaFormData);
+                    $html = $objFormBuilder->render ();
+                    $html .= '<input type="hidden" id="workflowid" name="workflowid" value="' . $processUid . '">';
+                    $html .= '<input type="hidden" id="stepId" name="stepId" value="' . $objTask->getStepId () . '">';
 
-                if ( $type === 'sendFormLink' )
-                {
-                    $fileTemplate = file_get_contents ($pluginTpl);
-                    $fileTemplate = str_replace ("<!-- CONTENT -->", $html, $fileTemplate);
-                    $fileContent = $header . $fileTemplate;
-                    $fileName = 'mail_' . date ('Y_m_d_His');
-                    file_put_contents (PATH_DATA_MAILTEMPLATES . PATH_SEP . $fileName . ".php", $fileContent);
-                    return "<a href='" . PATH_DATA_MAILTEMPLATES . $fileName . ".php'>link</a>";
-                }
+                    if ( $type === 'sendFormLink' )
+                    {
+                        $fileTemplate = file_get_contents ($pluginTpl);
+                        $fileTemplate = str_replace ("<!-- CONTENT -->", $html, $fileTemplate);
+                        $fileContent = $header . $fileTemplate;
+                        $fileName = 'mail_' . date ('Y_m_d_His');
+                        file_put_contents (PATH_DATA_MAILTEMPLATES . PATH_SEP . $fileName . ".php", $fileContent);
+                        return "<a href='" . PATH_DATA_MAILTEMPLATES . $fileName . ".php'>link</a>";
+                    }
 
-                return $html;
+                    return $html;
+            }
+        } catch (Exception $ex) {
+            
         }
     }
 
@@ -687,7 +689,6 @@ class SendNotification
                             $abeRequest['ABE_REQ_BODY'] = $body;
 
                             $abeRequestsInstance->createOrUpdate ($abeRequest);
-                            
                         }
                     } catch (Exception $ex) {
                         

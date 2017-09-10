@@ -470,6 +470,76 @@ class AppDelegation extends BaseAppDelegation
         );
     }
 
+    private function retrieveByPK ($appId, $caseId, $taskId)
+    {
+        $result = $this->objMysql->_select ("workflow.workflow_data", [], ["object_id" => $appId]);
+
+        if ( !isset ($result[0]) || empty ($result[0]) )
+        {
+            return false;
+        }
+
+        $arrObject = json_decode ($result[0]['audit_data'], true);
+
+        if ( !isset ($arrObject['elements'][$caseId]['steps'][$taskId]) )
+        {
+            return false;
+        }
+
+        $workflowData = $arrObject['elements'][$caseId]['steps'][$taskId];
+
+        $appThread = new AppDelegation();
+        $appThread->setDelDelegateDate ($workflowData['dateCompleted']);
+        $appThread->setAppNumber ($appId);
+        $appThread->setAppNumber ($caseId);
+        $appThread->setAuditStatus ($workflowData['status']);
+        $appThread->setDelDelayDuration ($workflowData['del_delay_duration']);
+        $appThread->setUsrId ($workflowData['claimed']);
+        $appThread->setDelTaskDueDate ($workflowData['due_date']);
+        $appThread->setDelRiskDate ($workflowData['risk_date']);
+        $appThread->setDelDuration ($workflowData['del_duration']);
+        $appThread->setDelDelayed ($workflowData['del_delayed']);
+        $appThread->setAppOverduePercentage ($workflowData['app_overdue_percentage']);
+        $appThread->setDelFinished ($workflowData['finish_date']);
+        $appThread->setDelThreadStatus ($workflowData['del_thread_status']);
+        $appThread->setDelPriority ($workflowData['del_priority']);
+        $appThread->setDelType ($workflowData['del_type']);
+        $appThread->setDelThread ($workflowData['del_thread']);
+
+        return $appThread;
+    }
+
+    public function update ($aData)
+    {
+        try {
+            $oApp = $this->retrieveByPK ($aData['APP_UID'], $aData['APP_NUMBER'], $aData['TAS_UID']);
+
+            if ( is_object ($oApp) && get_class ($oApp) == 'AppDelegation' )
+            {
+                $oApp->loadObject ($aData);
+
+                if ( $oApp->validate () )
+                {
+                    $oApp->save ();
+                }
+                else
+                {
+                    $msg = '';
+                    foreach ($this->getValidationFailures () as $objValidationFailure) {
+                        $msg .= $objValidationFailure . "<br/>";
+                    }
+                    throw ( new Exception ('The AppThread row cannot be created! ' . $msg) );
+                }
+            }
+            else
+            {
+                throw(new Exception ("This AppThread row doesn't exist!"));
+            }
+        } catch (Exception $oError) {
+            throw($oError);
+        }
+    }
+
     /*
 
      * With this we can change the status to CLOSED in APP_DELEGATION
@@ -486,22 +556,29 @@ class AppDelegation extends BaseAppDelegation
 
      */
 
-    public function CloseCurrentDelegation ($objMike, WorkflowStep $objWorkflowStep)
+    public function CloseCurrentDelegation ($objElement, WorkflowStep $objWorkflowStep)
     {
 
         try {
-            $this->setDelFinishDate ('now');
-            $this->setDelThreadStatus ("CLOSED");
-            $this->setAppNumber ($objMike->getId ());
-            $this->setAppUid ($objMike->getSource_id ());
-            $this->setTasUid ($objWorkflowStep->getCurrentStep ());
 
-            if ( $this->validate () )
-            {
-                $this->completeAudit ();
-            }
-        } catch (Exception $ex) {
-            throw $ex;
+            $aData = array();
+
+            $objectId = method_exists ($objElement, "getSource_id") ? $objElement->getSource_id () : $objElement->getId ();
+
+            $aData['APP_UID'] = $objectId;
+            $aData['APP_NUMBER'] = $objElement->getId ();
+            $aData['TAS_UID'] = $objWorkflowStep->getWorkflowStepId ();
+            $aData['FINISH_DATE'] = date ("Y-m-d H:i:s");
+
+            $aData['APP_DELEGATION_STATUS'] = 'CLOSED';
+            $aData['DEL_THREAD_STATUS'] = 'CLOSED';
+
+            $this->update ($aData);
+
+            return true;
+        } catch (exception $e) {
+
+            throw ($e);
         }
     }
 

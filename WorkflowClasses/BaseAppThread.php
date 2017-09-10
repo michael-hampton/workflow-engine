@@ -63,6 +63,17 @@ abstract class BaseAppThread implements Persistent
     protected $hasEvent;
     private $objMysql;
 
+    /**
+     *
+     * @var type 
+     */
+    private $arrFieldMapping = array(
+        "APP_UID" => array("accessor" => "getAppUid", "mutator" => "setAppUid"),
+        "APP_NUMBER" => array("accessor" => "getAppNumber", "mutator" => "setAppNumber"),
+        "TAS_UID" => array("accessor" => "getTasUid", "mutator" => "setTasUid"),
+        "APP_THREAD_STATUS" => array("accessor" => "getStatus", "mutator" => "setStatus"),
+    );
+
     private function getConnection ()
     {
         $this->objMysql = new Mysql2();
@@ -308,9 +319,30 @@ abstract class BaseAppThread implements Persistent
         }
     }
 
+    /**
+     * 
+     * @param type $arrNotification
+     * @return boolean
+     */
     public function loadObject (array $arrData)
     {
-        
+        foreach ($arrData as $formField => $formValue) {
+
+            if ( isset ($this->arrFieldMapping[$formField]) )
+            {
+                $mutator = $this->arrFieldMapping[$formField]['mutator'];
+
+                if ( method_exists ($this, $mutator) && is_callable (array($this, $mutator)) )
+                {
+                    if ( isset ($this->arrFieldMapping[$formField]) && trim ($formValue) != "" )
+                    {
+                        call_user_func (array($this, $mutator), $formValue);
+                    }
+                }
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -435,12 +467,12 @@ abstract class BaseAppThread implements Persistent
 
             return $id;
         }
-
+        
         $this->objMysql->_update ("workflow.workflow_data", [
-            "APP_THREAD_INDEX" => $this->app_thread_index,
             "workflow_data" => json_encode ($workflowObject),
                 ], ["object_id" => $this->app_uid]
         );
+               
     }
 
 }
