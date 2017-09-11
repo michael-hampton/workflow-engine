@@ -136,18 +136,6 @@ class Mysql2 extends D
         }
     }
 
-    public function isAjax ()
-    {
-        if ( !empty ($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower ($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest' )
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
     public function lastInsertId ()
     {
         return $this->db->lastInsertId ();
@@ -155,10 +143,10 @@ class Mysql2 extends D
 
     public function _query ($sql, $arrParameters = array())
     {
-        return $this->queryDatabase ($sql, $arrParameters, TRUE);
+        return $this->queryDatabase ($sql, $arrParameters, true);
     }
 
-    public function _select ($table, $fields_array = array(), $where_params_array = array(), $order_array = array(), $limit = NULL, $offset = NULL)
+    public function _select ($table, $fields_array = array(), $where_params_array = array(), $order_array = array(), $limit = null, $offset = null)
     {
 
         // if fields have been specified then set them to be included in the query,
@@ -226,13 +214,13 @@ class Mysql2 extends D
         }
 
         // if an OFFSET setting has been received then add it to the query
-        if ( $limit !== null && $offset != NULL )
+        if ( $limit !== null && $offset != null )
         {
             if ( !is_int ($offset) )
             {
 
                 throw new Exception('Non integer passed to function as OFFSET value');
-                return FALSE;
+                return false;
             }
 
             $query.= "
@@ -240,13 +228,13 @@ class Mysql2 extends D
             ";
         }
 
-        return $this->queryDatabase ($query, $bind_params_array, TRUE);
+        return $this->queryDatabase ($query, $bind_params_array, true);
     }
 
     public function queryDatabase ($query, $arrParameters, $isSelect)
     {
         //die($this->parms($query, $arrParameters));
-        if ( $isSelect === TRUE )
+        if ( $isSelect === true )
         {
             try {
                 $result = $this->db->query ($query, $arrParameters);
@@ -391,7 +379,7 @@ class Mysql2 extends D
 
             // DELETE all from table has been disabled as a safeguard in case anyone
             // accidentally forgets to pass the second parameter
-            return FALSE;
+            return false;
         }
 
         return $this->queryDatabase ($query, $bind_params_array, false);
