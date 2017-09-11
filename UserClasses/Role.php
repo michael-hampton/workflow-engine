@@ -22,7 +22,7 @@ class Role extends BaseRole
         $this->objMysql = new Mysql2();
     }
 
-    function createRole ($aData)
+    public function createRole ($aData)
     {
         try {
             $sRolCode = $aData['role_code'];
@@ -86,19 +86,19 @@ class Role extends BaseRole
         }
     }
 
-    function deleteUserRole ($ROL_UID, $USR_UID)
+    public function deleteUserRole ($ROL_UID, $USR_UID)
     {
         $objUser = new Users();
         $objUser->removeRoleFromUser ($USR_UID, $ROL_UID);
     }
 
-    function assignUserToRole ($aData)
+    public function assignUserToRole ($aData)
     {
         $objUser = new Users();
         $objUser->assignRoleToUser ($aData['USR_UID'], $aData['ROL_UID']);
     }
 
-    function removeRole ($ROL_UID)
+    public function removeRole ($ROL_UID)
     {
         try {
             $this->setRoleId ($ROL_UID);
@@ -111,14 +111,14 @@ class Role extends BaseRole
         }
     }
 
-    function numUsersWithRole ($ROL_UID)
+    private function numUsersWithRole ($ROL_UID)
     {
         $result = $this->objMysql->_select ("user_management.user_roles", [], ["roleId" => $ROL_UID]);
 
         return count ($result);
     }
     
-     function assignPermissionRole(Role $objRole, Permission $objPermission) {
+     public function assignPermissionRole(Role $objRole, Permission $objPermission) {
         $o = new RolePermissions();
         
         $o->setPerUid($objPermission->getPermId ());
@@ -128,7 +128,7 @@ class Role extends BaseRole
       
     }
     
-     function deletePermissionRole(Role $objRole, Permission $objPermission) {
+     public function deletePermissionRole(Role $objRole, Permission $objPermission) {
         $o = new RolePermissions();
         $o->setPerUid($objPermission->getPermId ());
         $o->setRolUid($objRole->getRoleId ());
