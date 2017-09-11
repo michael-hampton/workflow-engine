@@ -67,7 +67,7 @@ class AppMessage extends BaseAppMessage
             $this->error_spool = $spool->getValidationFailures ();
             $this->status_spool = 'error';
             $error_msg = "AppMessage::quickSave(): Validation error: \n";
-            foreach ($errors as $key => $value) {
+            foreach ($this->error_spool as $key => $value) {
                 $error_msg .= $value->getMessage ($key) . "\n";
             }
             throw new Exception ($error_msg);
@@ -86,7 +86,7 @@ class AppMessage extends BaseAppMessage
     {
         if ( isset ($aData['app_msg_uid']) )
         {
-            $o = EmployeePeer::retrieveByPk ($aData['app_msg_uid']);
+            $o = $this->retrieveByPk ($aData['app_msg_uid']);
         }
         if ( isset ($o) && is_object ($o) && get_class ($o) == 'AppMessage' )
         {
@@ -106,7 +106,7 @@ class AppMessage extends BaseAppMessage
 
     public function updateStatus ($msgUid, $msgStatus)
     {
-        $message = AppMessagePeer::retrieveByPk ($msgUid);
+        $message = $this->retrieveByPk ($msgUid);
         $message->loadObject ($message);
         $message->setAppMsgStatus ($msgStatus);
         $message->save ();
