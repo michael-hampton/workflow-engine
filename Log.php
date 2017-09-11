@@ -20,7 +20,7 @@ class Log
      * 
      * @var resource
      */
-    protected $fileHandle = NULL;
+    protected $fileHandle = null;
 
     /**
      * The time format to show in the log.
@@ -45,7 +45,7 @@ class Log
      */
     public function __construct ($logfile)
     {
-        if ( $this->fileHandle == NULL )
+        if ( $this->fileHandle == null )
         {
             $this->openLogFile ($logfile);
         }
@@ -67,7 +67,7 @@ class Log
      */
     public function log ($message, $messageType = Log::WARNING)
     {
-        if ( $this->fileHandle == NULL )
+        if ( $this->fileHandle == null )
         {
             throw new FileLoggerException ('Logfile is not opened.');
         }
@@ -134,10 +134,10 @@ class Log
      */
     protected function closeLogFile ()
     {
-        if ( $this->fileHandle != NULL )
+        if ( $this->fileHandle != null )
         {
             fclose ($this->fileHandle);
-            $this->fileHandle = NULL;
+            $this->fileHandle = null;
         }
     }
 
