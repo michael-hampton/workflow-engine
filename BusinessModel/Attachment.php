@@ -46,7 +46,7 @@ class Attachment
                 $this->projectId = $arrData['source_id'];
                 $this->workflowId = $arrData['step']->getWorkflowId ();
 
-                $result = $this->uploadDocument ($arrData['files'], $arrData, $objUser);
+                $result = $this->uploadDocument ($arrData['files'], $objUser);
 
                 return $result;
             }
@@ -55,7 +55,7 @@ class Attachment
                 $objVersioning = new \DocumentVersion();
                 $folderId = (new \AppFolder())->createFromPath (basename (UPLOADS_DIR));
                 $id = $objVersioning->create (array("folderId" => $folderId, "filename" => $arrData['filename'], "document_id" => 10000, "app_uid" => $arrData['source_id']), $objUser);
-                $this->upload ($arrData['source_id'], $id);
+                $this->upload ($id);
             }
         }
     }
@@ -67,7 +67,7 @@ class Attachment
      * @return type
      * @throws Exception
      */
-    public function upload ($prjUid, $prfUid)
+    public function upload ($prfUid)
     {
         try {
             $aRow = $this->retrieveByPK ($prfUid);
@@ -81,9 +81,9 @@ class Attachment
 
             $objFileUpload = new \BusinessModel\FileUpload();
 
-            if ( isset ($_FILES['fileUpload']) )
+            if ( isset ($this->files['fileUpload']) )
             {
-                foreach ($_FILES['fileUpload']['name'] as $key => $name) {
+                foreach ($this->files['fileUpload']['name'] as $key => $name) {
                     $objFileUpload->doUpload ($name, $path, $this->files['fileUpload']['error'][$key], $this->files['fileUpload']['tmp_name'][$key]);
                 }
             }
@@ -106,7 +106,7 @@ class Attachment
      * @return boolean
      * @throws Exception
      */
-    private function uploadDocument ($arrFiles, $arrData, \Users $objUser)
+    private function uploadDocument ($arrFiles, \Users $objUser)
     {
         $stepDocument = new \BusinessModel\InputDocument (new \Task ($this->stepId));
 
@@ -206,7 +206,7 @@ class Attachment
                 }
 
                 $objFile = new \BusinessModel\FileUpload();
-                $objFile->verifyPath ($dir, TRUE);
+                $objFile->verifyPath ($dir, true);
 
                 $folderId = (new \AppFolder())->createFromPath ($dir2);
             }
@@ -287,7 +287,7 @@ class Attachment
      * @param type $type
      * @return type
      */
-    function formatSizeUnits ($bytes, $type)
+    private function formatSizeUnits ($bytes, $type)
     {
         //$GB = number_format ($bytes / 1073741824, 2);
 
