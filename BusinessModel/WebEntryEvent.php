@@ -190,7 +190,7 @@ class WebEntryEvent
             if ( isset ($arrayData["EVN_UID"]) )
             {
                 $obj = (new \Flow())->retrieveByPk ($arrayData['EVN_UID']);
-                if ( $obj === FALSE )
+                if ( $obj === false )
                 {
                     throw new \Exception ("ID_EVENT_NOT_EXIST");
                 }
@@ -633,7 +633,7 @@ class WebEntryEvent
             $results = $this->objMysql->_query ($criteria, [$projectUid]);
             if ( !isset ($results[0]) || empty ($results[0]) )
             {
-                return FALSE;
+                return false;
             }
             foreach ($results as $result) {
                 $arrayWebEntryEvent[] = $this->getWebEntryEventDataFromRecord ($result);
