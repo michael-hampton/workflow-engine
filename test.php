@@ -1,82 +1,142 @@
-case 'SELF_SERVICE':
-                $to = '';
-                $cc = '';
-		$arrWhere = [];
+try {
+	//Validations
+       	if (!isset($_REQUEST['APP_UID'])) {
+        	$_REQUEST['APP_UID'] = '';
+        }
 
-                //Query
-               $sql "SELECT usrid, username, firstName, lastName, email_address FROM user_management.poms_users WHERE status != 0";
+       if (!isset($_REQUEST['DEL_INDEX'])) {
+       		$_REQUEST['DEL_INDEX'] = '';
+       }
 
-                if (trim($task->getTasGroupVariable()) != '') {
-                    //SELF_SERVICE_VALUE
-                    $variable = trim($task->getTasGroupVariable(), ' @#%?$=');
+      if ($_REQUEST['APP_UID'] == '') {
+      	throw new Exception('The parameter APP_UID is empty.');
+     }
 
-                    //Query
-                    if (isset($arrayData[$variable])) {
-                        $data = $arrayData[$variable];
+     if ($_REQUEST['DEL_INDEX'] == '') {
+     	throw new Exception('The parameter DEL_INDEX is empty.');
+    }
 
-                        switch (gettype($data)) {
-                            case 'string':
-				$sql .= " AND team_id = ?";
-				$arrWhere[] = $data;
+   	$_REQUEST['APP_UID'] = urldecode(utf8_encode($_REQUEST['APP_UID']));
+        $_REQUEST['DEL_INDEX'] = urldecode(utf8_encode($_REQUEST['DEL_INDEX']));
+       	$_REQUEST['FIELD'] = urldecode(utf8_encode($_REQUEST['FIELD']));
+        $_REQUEST['VALUE'] = urldecode(utf8_encode($_REQUEST['VALUE']));
+        $_REQUEST['ABER'] = urldecode(utf8_encode($_REQUEST['ABER']));
 
-                                $results = $this->objMysql->_query($sql, $arrWhere);
+       	$case = new Cases();
+	$caseFieldsABE = $case->loadCase($_REQUEST['APP_UID'], $_REQUEST['DEL_INDEX']);
 
-                                break;
-                            case 'array':
-				$sql .= " AND usrid IN( ".implode(",", $data)." )";
-				$results = $this->objMysql->_query($sql, $arrWhere);
-                                break;
+       if (is_null($caseFieldsABE['DEL_FINISH_DATE'])) {
+       		$dataField = [];
+                $dataField[$_REQUEST['FIELD']] = $_REQUEST['VALUE'];
+               	$caseFieldsABE ['APP_DATA'] = array_merge($caseFieldsABE ['APP_DATA'], $dataField);
+
+               	$dataResponses = [];
+                $dataResponses['ABE_REQ_UID'] = $_REQUEST['ABER'];
+                $dataResponses['ABE_RES_CLIENT_IP'] = $_SERVER['REMOTE_ADDR'];
+               	$dataResponses['ABE_RES_DATA'] = serialize($_REQUEST['VALUE']);
+                $dataResponses['ABE_RES_STATUS'] = 'PENDING';
+                $dataResponses['ABE_RES_MESSAGE'] = '';
+
+               try {
+			$abeAbeResponsesInstance = new AbeResponses();
+                        $dataResponses['ABE_RES_UID'] = $abeAbeResponsesInstance->createOrUpdate($dataResponses);
+               } catch (Exception $e) {
+               		throw $e;
+               }
+
+              	$case->updateCase($_REQUEST['APP_UID'], $caseFieldsABE);
+
+                $result = $ws->derivateCase(
+                	$caseFieldsABE['CURRENT_USER_UID'], $_REQUEST['APP_UID'], $_REQUEST['DEL_INDEX'], true
+                );
+
+                $code = (is_array($result))? $result['status_code'] : $result->status_code;
+
+               if ($code != 0) {
+              		throw new Exception(
+                        	'An error occurred while the application was being processed.<br /><br />
+                                Error code: ' . $result->status_code . '<br />
+                                Error message: ' . $result->message . '<br /><br />'
+                            );
                         }
-                    }
-                } else {
-                    //SELF_SERVICE
-                    $arrayTaskUser = [];
 
-                    $arrayAux1 = $tasks->getGroupsOfTask($taskUid, 1);
+                        //Update
+                        $dataResponses['ABE_RES_STATUS'] = ($code == 0)? 'SENT' : 'ERROR';
+                        $dataResponses['ABE_RES_MESSAGE'] = ($code == 0)? '-' : $result->message;
 
-                    foreach ($arrayAux1 as $arrayGroup) {
-                        $arrayAux2 = $group->getUsersOfGroup($arrayGroup['GRP_UID']);
-
-                        foreach ($arrayAux2 as $arrayUser) {
-                            $arrayTaskUser [] = $arrayUser ['USR_UID'];
+                        try {
+                            $abeAbeResponsesInstance = new AbeResponses();
+                            $abeAbeResponsesInstance->createOrUpdate($dataResponses);
+                        } catch (Exception $e) {
+                            throw $e;
                         }
+
+                        $message = '<strong>The answer has been submited. Thank you</strong>';
+
+                        $dataAbeRequests = loadAbeRequest($_REQUEST['ABER']);
+                        $dataAbeConfiguration = loadAbeConfiguration($dataAbeRequests['ABE_UID']);
+
+                        if ($dataAbeConfiguration['ABE_CASE_NOTE_IN_RESPONSE'] == 1) {
+                            $response = new stdClass();
+                            $response->usrUid = $caseFieldsABE['APP_DATA']['USER_LOGGED'];
+                            $response->appUid = $_REQUEST['APP_UID'];
+                            $response->noteText = 'Check the information that was sent for the receiver: ' .
+                                $dataAbeRequests['ABE_REQ_SENT_TO'];
+
+                            postNote($response);
+                        }
+
+                        $dataAbeRequests['ABE_REQ_ANSWERED'] = 1;
+                        $code == 0 ? uploadAbeRequest($dataAbeRequests) : '';
+                    } else {
+                        $message = '<strong>The response has already been sent.</strong>';
                     }
 
-                    $arrayAux1 = $tasks->getUsersOfTask($taskUid, 1);
-
-                    foreach ($arrayAux1 as $arrayUser) {
-                        $arrayTaskUser[] = $arrayUser['USR_UID'];
-                    }
-
-
-                    //Query
-		    $sql .= " AND usrid IN( ".implode(",", $arrayTaskUser)." )";
-
-                    $results = $this->objMysql->_query($sql, $arrWhere);
+                   echo $message;
+                } catch (Exception $e) {
+                   echo $e->getMessage() . 'Please contact to your system administrator.';
                 }
 
-                if (isset($results[0]) && !empty($results[0])) {
-
-                    foreach($results as $record) {
-
-                        $toAux = (($record['firstName'] != '' || $record['lastName'] != '')? $record['firstName'] . ' ' . $record['lastName'] . ' ' : '') . '<' . $record['email_address'] . '>';
-
-                        if ($to == '') {
-                            $to = $toAux;
-                        } else {
-                            $cc .= (($cc != '')? ',' : '') . $toAux;
-                        }
-                    }
-                }
-
-                $arrayResp['to'] = $to;
-                $arrayResp['cc'] = $cc;
 
 
+function postNote($httpData)
+{
+    //extract(getExtJSParams());
+    $appUid = (isset($httpData->appUid))? $httpData->appUid : '';
 
-		if(trim($this->template) !== "") {
+    $usrUid = (isset($httpData->usrUid))? $httpData->usrUid : '' ;
 
-			$pathEmail = PATH_DATA_SITE . "mailTemplates" . PATH_SEP . $aTaskInfo["PRO_UID"] . PATH_SEP;
-			$fileTemplate = $pathEmail . $this->template;
-                	$sBody = file_get_contents($fileTemplate);
-		}
+    require_once ( "classes/model/AppNotes.php" );
+
+    $appNotes = new AppNotes();
+    $noteContent = addslashes($httpData->noteText);
+
+    $result = $appNotes->postNewNote($appUid, $usrUid, $noteContent, false);
+    //return true;
+
+    //die();
+    //send the response to client
+    @ini_set('implicit_flush', 1);
+    ob_start();
+    //echo G::json_encode($result);
+    @ob_flush();
+    @flush();
+    @ob_end_flush();
+    ob_implicit_flush(1);
+    //return true;
+    //send notification in background
+    $noteRecipientsList = array();
+    G::LoadClass('case');
+    $oCase = new Cases();
+
+    $p = $oCase->getUsersParticipatedInCase($appUid);
+
+    foreach ($p['array'] as $key => $userParticipated) {
+        $noteRecipientsList[] = $key;
+    }
+
+    $noteRecipients = implode(",", $noteRecipientsList);
+
+    $appNotes->sendNoteNotification($appUid, $usrUid, $noteContent, $noteRecipients);
+
+}
