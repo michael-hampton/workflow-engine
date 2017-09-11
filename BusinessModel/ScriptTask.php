@@ -60,11 +60,11 @@ class ScriptTask
                         $pmScript->setFields ($arrayApplicationData);
                         $pmScript->setScript ($trigger['template_name']);
 
-                        $result = $pmScript->execute ();
+                        $pmScript->execute ();
 
                         if ( isset ($pmScript->aFields["__ERROR__"]) )
                         {
-                            \G::log ("Case Uid: " . $arrayApplicationData["APP_UID"] . ", Error: " . $pmScript->aFields["__ERROR__"], PATH_DATA . "log/ScriptTask.log");
+                            //\G::log ("Case Uid: " . $arrayApplicationData["APP_UID"] . ", Error: " . $pmScript->aFields["__ERROR__"], PATH_DATA . "log/ScriptTask.log");
                         }
 
                         $arrayApplicationData["APP_DATA"] = $pmScript->aFields;
@@ -151,11 +151,7 @@ class ScriptTask
         try {
             //Set variables
             $arrayScriptTaskData = ($scriptTaskUid == "") ? array() : $this->getScriptTask ($scriptTaskUid, true);
-            $flagInsert = ($scriptTaskUid == "") ? true : false;
-
-            $arrayFinalData = array_merge ($arrayScriptTaskData, $arrayData);
-
-            //---
+            
             if ( isset ($arrayData["ACT_UID"]) )
             {
                 $obj = (new \Task())->retrieveByPk ($arrayData["ACT_UID"]);
