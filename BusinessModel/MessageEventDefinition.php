@@ -45,7 +45,7 @@ class MessageEventDefinition
      *
      * return bool Return true if exists the Event of a Message-Event-Definition, false otherwise
      */
-    public function existsEvent ($projectUid, $eventUid, $messageEventDefinitionUidToExclude = "")
+    public function existsEvent ($eventUid, $messageEventDefinitionUidToExclude = "")
     {
         try {
 
@@ -96,10 +96,10 @@ class MessageEventDefinition
      *
      * return void Throw exception if is registered the Event
      */
-    public function throwExceptionIfEventIsRegistered ($projectUid, $eventUid, $messageEventDefinitionUidToExclude = "")
+    public function throwExceptionIfEventIsRegistered ($eventUid, $messageEventDefinitionUidToExclude = "")
     {
         try {
-            if ( $this->existsEvent ($projectUid, $eventUid, $messageEventDefinitionUidToExclude) )
+            if ( $this->existsEvent ($eventUid, $messageEventDefinitionUidToExclude) )
             {
                 throw new \Exception ("ID_MESSAGE_EVENT_DEFINITION_ALREADY_REGISTERED");
             }
@@ -122,7 +122,6 @@ class MessageEventDefinition
         try {
             //Set variables
             $arrayMessageEventDefinitionData = ($messageEventDefinitionUid == "") ? array() : $this->getMessageEventDefinition ($messageEventDefinitionUid, true);
-            $flagInsert = ($messageEventDefinitionUid == "") ? true : false;
             $arrayFinalData = array_merge ($arrayMessageEventDefinitionData, $arrayData);
             //Verify data - Field definition
             //$process = new \ProcessMaker\BusinessModel\Process();
@@ -131,7 +130,7 @@ class MessageEventDefinition
             //Verify data
             if ( isset ($arrayData["EVN_UID"]) )
             {
-                $this->throwExceptionIfEventIsRegistered ($projectUid, $arrayData["EVN_UID"], $messageEventDefinitionUid);
+                $this->throwExceptionIfEventIsRegistered ($arrayData["EVN_UID"], $messageEventDefinitionUid);
             }
             if ( isset ($arrayData["EVN_UID"]) )
             {
@@ -432,7 +431,7 @@ class MessageEventDefinition
      *
      * return array Return an array with data of a Message-Event-Definition by unique id of Event
      */
-    public function getMessageEventDefinitionByEvent ($projectUid, $eventUid, $flagGetRecord = false)
+    public function getMessageEventDefinitionByEvent ($eventUid, $flagGetRecord = false)
     {
         try {
             //Verify data
