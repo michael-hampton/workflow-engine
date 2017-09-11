@@ -1424,7 +1424,7 @@ abstract class BaseAppDelegation implements Persistent
      * @return     mixed <code>true</code> if all validations pass; 
       array of <code>ValidationFailed</code> objects otherwise.
      */
-    public function validate ($columns = null)
+    public function validate ()
     {
         if ( trim ($this->app_number) === "" )
         {
