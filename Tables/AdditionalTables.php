@@ -313,7 +313,7 @@ class AdditionalTables extends BaseAdditionalTables
 
         if ( !isset ($results[0]) || empty ($results[0]) )
         {
-            return FALSE;
+            return false;
         }
 
         foreach ($results as $result) {
@@ -339,7 +339,7 @@ class AdditionalTables extends BaseAdditionalTables
 
             if ( isset ($record[0]) && !empty ($record[0]) )
             {
-                $objSaveReport->setBlUpdate (TRUE);
+                $objSaveReport->setBlUpdate (true);
             }
 
             $objSaveReport->setTableName ($className);
@@ -358,7 +358,7 @@ class AdditionalTables extends BaseAdditionalTables
                     // parsing empty values to null
                     if ( !is_array ($objElement->arrElement) )
                     {
-                        $objElement->arrElement = json_decode ($objElement->arrElement, TRUE);
+                        $objElement->arrElement = json_decode ($objElement->arrElement, true);
                     }
 
                     foreach ($objElement->arrElement as $i => $v) {
