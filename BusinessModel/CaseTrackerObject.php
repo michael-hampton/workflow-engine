@@ -302,12 +302,14 @@ class CaseTrackerObject
             $dynaform = new \Dynaform();
             $inputDocument = new \InputDocument();
             $outputDocument = new \OutputDocument();
-            $criteria = new \Criteria ("workflow");
-            $criteria->add (\CaseTrackerObjectPeer::CTO_UID, $caseTrackerObjectUid, \Criteria::EQUAL);
-            $rsCriteria = \CaseTrackerObjectPeer::doSelectRS ($criteria);
-            $rsCriteria->setFetchmode (\ResultSet::FETCHMODE_ASSOC);
-            $rsCriteria->next ();
-            $row = $rsCriteria->getRow ();
+       
+            $results = $this->objMysql->_query ("SELECT * FROM `case_tracker_objects` WHERE `CTO_UID` = ? ", [$caseTrackerObjectUid]);
+            
+            if(!isset($results[0]) || empty($results[0])) {
+                return false;
+            }
+            
+            $row = $results[0];
             $titleObj = "";
             $descriptionObj = "";
             switch ($row["CTO_TYPE_OBJ"]) {
@@ -346,9 +348,6 @@ class CaseTrackerObject
      * @var string $cto_uid. Uid for Process
      * @var string $pro_uid. Uid for Task
      * @var string $cto_pos. Position for Step
-     *
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
      *
      * @return void
      */
@@ -410,10 +409,6 @@ class CaseTrackerObject
     /**
      * Validate Process Uid
      * @var string $pro_uid. Uid for process
-     *
-     * @author Brayan Pereyra (Cochalo) <brayan@colosa.com>
-     * @copyright Colosa - Bolivia
-     *
      * @return string
      */
     public function changePosCaseTrackerObject ($cto_uid, $pos)
