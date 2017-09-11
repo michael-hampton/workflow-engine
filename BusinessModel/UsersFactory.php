@@ -38,7 +38,7 @@ class UsersFactory
      * @param type $strOrderDir
      * @return type
      */
-    public function countUsers (array $arrayWhere = null, $sortField = null, $sortDir = null, $start = null, $limit = null, $flagRecord = true, $throwException = true)
+    public function countUsers (array $arrayWhere = null, $sortDir = null, $start = null, $limit = null, $flagRecord = true, $throwException = true)
     {
         $arrWhere = array();
         $flag = !is_null ($arrayWhere) && is_array ($arrayWhere);
@@ -335,7 +335,7 @@ class UsersFactory
             $this->throwExceptionIfNotExistsUser ($userUid);
             $this->throwExceptionIfDataIsInvalid ($userUid, $arrayData);
             //Permission Admin
-            $countPermission = 0;
+            //$countPermission = 0;
             //$permission = $this->loadUserRolePermission ("PROCESSMAKER", $userUidLogged);
             //foreach ($permission as $key => $value) {
             //if ( preg_match ('/^(?:PM_USERS|PM_EDITPERSONALINFO)$/', $value['PER_CODE']) )
@@ -466,7 +466,7 @@ class UsersFactory
                 $arrWhere[] = "%" . $search . "%";
             }
             //Number records total
-            $numRecTotal = $this->countUsers ($arrayWhere, $sortField, $sortDir, $start, $limit, $flagRecord, $throwException);
+            $numRecTotal = $this->countUsers ($arrayWhere, $sortDir, $start, $limit, $flagRecord, $throwException);
             //Query
 
             $criteria .= " GROUP BY u.usrid ";
