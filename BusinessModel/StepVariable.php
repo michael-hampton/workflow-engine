@@ -42,7 +42,7 @@ class StepVariable
 
             if ( isset ($arrayData['VAR_SQL']) && trim ($arrayData['VAR_SQL']) !== "" )
             {
-                $this->throwExceptionIfSomeRequiredVariableSqlIsMissingInVariables ($arrayData["VAR_NAME"], $arrayData["VAR_SQL"], array());
+                $this->throwExceptionIfSomeRequiredVariableSqlIsMissingInVariables ($arrayData["VAR_SQL"], array());
 
                 $arrSql = $this->buildSql ($arrayData["VAR_SQL"]);
 
@@ -193,7 +193,7 @@ class StepVariable
      *
      * return void Throw exception if some required variable in the SQL is missing in the variables
      */
-    public function throwExceptionIfSomeRequiredVariableSqlIsMissingInVariables ($variableName, $variableSql, array $arrayVariable)
+    public function throwExceptionIfSomeRequiredVariableSqlIsMissingInVariables ($variableSql, array $arrayVariable)
     {
         try {
             $arrayResult = array_diff (array_unique ($this->sqlGetRequiredVariables ($variableSql)), array_keys ($arrayVariable));
@@ -246,7 +246,7 @@ class StepVariable
             $this->throwExceptionIfNotExistsVariable ($variableUid);
             //Verify variable
 
-            $isUsed = $this->isUsed ($processUid, $variable);
+            $isUsed = $this->isUsed ($processUid);
 
             if ( $isUsed !== false )
             {
@@ -298,7 +298,7 @@ class StepVariable
      *
      * return array Return an array with data of a Variable
      */
-    public function getVariable ($fieldId, $variableUid)
+    public function getVariable ($variableUid)
     {
         try {
             $result = $this->objMysql->_select ("workflow.workflow_variables", array(), array("id" => $variableUid));
