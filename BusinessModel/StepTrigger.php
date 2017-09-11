@@ -465,7 +465,7 @@ class StepTrigger
             }
             else
             {
-                throw (new \Exception ("The row '$StepUid, $TasUid, $TriUid, $StType' in table StepTrigger doesn't exist!"));
+                throw (new \Exception ("The row '$StepUid, $TriUid, $StType' in table StepTrigger doesn't exist!"));
             }
         } catch (Exception $oError) {
             throw ($oError);
@@ -518,7 +518,7 @@ class StepTrigger
      *
      * @return array
      */
-    public function getDataTrigger ($sTriggerUID = NULL)
+    public function getDataTrigger ($sTriggerUID = null)
     {
         $triggerO = new \Trigger();
         $triggerArray = $triggerO->load ($sTriggerUID);
