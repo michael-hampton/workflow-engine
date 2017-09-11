@@ -38,7 +38,7 @@ class UsersFactory
      * @param type $strOrderDir
      * @return type
      */
-    public function countUsers (array $arrayWhere = null, $sortDir = null, $start = null, $limit = null, $flagRecord = true, $throwException = true)
+    public function countUsers (array $arrayWhere = null, $flagRecord = true, $throwException = true)
     {
         $arrWhere = array();
         $flag = !is_null ($arrayWhere) && is_array ($arrayWhere);
@@ -298,7 +298,7 @@ class UsersFactory
                 if ( isset ($_FILES['upload']) && !empty ($_FILES['upload']['name']) )
                 {
 
-                    $this->uploadImage ($userUid);
+                    $this->uploadImage ($userUid, $_FILES);
                 }
 
                 //Create in workflow
@@ -466,7 +466,7 @@ class UsersFactory
                 $arrWhere[] = "%" . $search . "%";
             }
             //Number records total
-            $numRecTotal = $this->countUsers ($arrayWhere, $sortDir, $start, $limit, $flagRecord, $throwException);
+            $numRecTotal = $this->countUsers ($arrayWhere, $flagRecord, $throwException);
             //Query
 
             $criteria .= " GROUP BY u.usrid ";
@@ -567,30 +567,30 @@ class UsersFactory
      * @param string $userUid Unique id of User
      *
      */
-    public function uploadImage ($userUid)
+    public function uploadImage ($userUid, $arrFiles)
     {
         try {
 
             //Verify data
             $this->throwExceptionIfNotExistsUser ($userUid);
-            if ( !$_FILES )
+            if ( !$arrFiles )
             {
                 throw new Exception ("ID_UPLOAD_ERR_NO_FILE");
             }
 
-            if ( !isset ($_FILES["upload"]) )
+            if ( !isset ($arrFiles["upload"]) )
             {
                 throw new Exception ("ID_UNDEFINED_VALUE_IS_REQUIRED");
             }
 
-            if ( $_FILES['upload']['error'] != 1 )
+            if ( $arrFiles['upload']['error'] != 1 )
             {
-                if ( $_FILES['upload']['tmp_name'] != '' )
+                if ( $arrFiles['upload']['tmp_name'] != '' )
                 {
                     $objFile = new \BusinessModel\FileUpload();
 
-                    $aAux = explode ('.', $_FILES['upload']['name']);
-                    $objFile->uploadFile ($_FILES['upload']['tmp_name'], PATH_IMAGES_ENVIRONMENT_USERS, $userUid . '.' . $aAux[1]);
+                    $aAux = explode ('.', $arrFiles['upload']['name']);
+                    $objFile->uploadFile ($arrFiles['upload']['tmp_name'], PATH_IMAGES_ENVIRONMENT_USERS, $userUid . '.' . $aAux[1]);
                     $objFile->resizeImage (PATH_IMAGES_ENVIRONMENT_USERS . $userUid . '.' . $aAux[1], 96, 96, PATH_IMAGES_ENVIRONMENT_USERS . $userUid . '.gif');
                 }
             }
