@@ -12,7 +12,7 @@ class Password
      * @param String $valType ( validate | sanitize )
      * @return String $value
      */
-    function validateInput ($value, $types = 'string', $valType = 'sanitize')
+    public function validateInput ($value, $types = 'string', $valType = 'sanitize')
     {
         if ( !isset ($value) || empty ($value) )
         {
@@ -57,7 +57,7 @@ class Password
      * @param $type
      * @return bool|int|mixed|string
      */
-    function sanitizeInputValue ($value, $type)
+    public function sanitizeInputValue ($value, $type)
     {
 
         switch ($type) {
@@ -98,7 +98,7 @@ class Password
      * @param $type
      * @throws Exception
      */
-    function validateInputValue ($value, $type)
+    public function validateInputValue ($value, $type)
     {
 
         switch ($type) {
