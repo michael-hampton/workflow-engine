@@ -47,25 +47,23 @@ class EmailActions
         $appNotes = new Comments();
         $noteContent = addslashes ($httpData->noteText);
 
-        $result = $appNotes->postNewNote ($appUid, $delIndex, $usrUid, $noteContent, false);
-        //return true;
-        //die();
+        $appNotes->postNewNote ($appUid, $delIndex, $usrUid, $noteContent, false);
+        
         //send the response to client
         @ini_set ('implicit_flush', 1);
         ob_start ();
-        //echo G::json_encode($result);
+       
         @ob_flush ();
         @flush ();
         @ob_end_flush ();
         ob_implicit_flush (1);
-        //return true;
+        
         //send notification in background
         $oCase = new BusinessModel\Cases();
         $p = $oCase->getUsersParticipatedInCase ($appUid);
 
         $noteRecipients = implode (",", $p);
-
-
+        
         $appNotes->sendNoteNotification ($appUid, $usrUid, $noteContent, $noteRecipients);
     }
 
