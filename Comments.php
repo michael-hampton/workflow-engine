@@ -31,8 +31,6 @@ class Comments extends BaseComments
         }
         else
         {
-            print_r ($this->getValidationFailures ());
-            die;
             $msg = '';
             $validationFailuresArray = $this->getValidationFailures ();
             foreach ($validationFailuresArray as $strValidationFailure) {
