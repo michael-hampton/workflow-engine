@@ -15,6 +15,8 @@ class AbeResponse extends BaseAbeResponse
 {
 
     private $objMysql;
+    private $filterThisFields = array('ABE_RES_UID', 'ABE_REQ_UID', 'ABE_RES_CLIENT_IP', 'ABE_RES_DATA',
+        'ABE_RES_DATE', 'ABE_RES_STATUS', 'ABE_RES_MESSAGE');
 
     public function __construct ()
     {
@@ -30,6 +32,28 @@ class AbeResponse extends BaseAbeResponse
         } catch (Exception $error) {
             throw $error;
         }
+    }
+
+    public function retrieveByPK ($pk)
+    {
+
+        $result = $this->objMysql->_select ("workflow.ABE_RESPONSE", [], ["ABE_RES_UID" => $pk]);
+
+        if ( !isset ($result[0]) || empty ($result[0]) )
+        {
+            return false;
+        }
+
+        $abeResponse = new AbeResponse();
+        $abeResponse->setAbeReqUid ($result[0]['ABE_REQ_UID']);
+        $abeResponse->setAbeResClientIp ($result[0]['ABE_RES_CLIENT_IP']);
+        $abeResponse->setAbeResData ($result[0]['ABE_RES_DATA']);
+        $abeResponse->setAbeResDate ($result[0]['ABE_RES_DATE']);
+        $abeResponse->setAbeResMessage ($result[0]['ABE_RES_MESSAGE']);
+        $abeResponse->setAbeResStatus ($result[0]['ABE_RES_STATUS']);
+        $abeResponse->setAbeResUid ($result[0]['ABE_RES_UID']);
+
+        return $abeResponse;
     }
 
     public function createOrUpdate ($data)
@@ -50,11 +74,17 @@ class AbeResponse extends BaseAbeResponse
             if ( $data['ABE_RES_UID'] == '' )
             {
                 $data['ABE_RES_DATE'] = date ('Y-m-d H:i:s');
-                $AbeResponsesInstance = new AbeResponses();
+                $AbeResponsesInstance = new AbeResponse();
             }
             else
             {
                 $AbeResponsesInstance = $this->retrieveByPK ($data['ABE_RES_UID']);
+            }
+
+
+            if ( $AbeResponsesInstance === false )
+            {
+                throw new Exception ("Row cannot be found");
             }
             //$data['ABE_RES_UPDATE'] = date('Y-m-d H:i:s');
             $AbeResponsesInstance->loadObject ($data);

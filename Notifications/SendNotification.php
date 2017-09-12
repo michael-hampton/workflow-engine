@@ -17,6 +17,7 @@ class SendNotification
     private $fromName;
     private $template;
     private $id;
+    private $abeRequest = array();
 
     public function getSystem ()
     {
@@ -185,6 +186,8 @@ class SendNotification
         $htmlContent = '';
 
         try {
+            $system = "accept";
+
             if ( $system === "task_manager" )
             {
                 $this->setVariables ($objTask->getStepId (), $system);
@@ -298,13 +301,24 @@ class SendNotification
     private function emailActions ($objTask, $type)
     {
         try {
+
+            $this->abeRequest['ABE_REQ_UID'] = '';
+            $this->abeRequest['APP_UID'] = $this->projectId;
+            $this->abeRequest['DEL_INDEX'] = $this->taskId;
+            $this->abeRequest['ABE_REQ_SENT_TO'] = $this->recipient;
+            $this->abeRequest['ABE_REQ_SUBJECT'] = $this->subject;
+            $this->abeRequest['ABE_REQ_BODY'] = '';
+            $this->abeRequest['ABE_REQ_ANSWERED'] = 0;
+            $this->abeRequest['ABE_REQ_STATUS'] = 'PENDING';
+
+            $abeRequestsInstance = new AbeRequest();
+            $this->abeRequest['ABE_REQ_UID'] = $abeRequestsInstance->createOrUpdate ($this->abeRequest);
+
             switch ($type) {
                 case "accept":
-
-                    break;
-
                 case "reject":
-
+                    $html = '<a href="/FormBuilder/tasks/emailActions?APP_UID=' . urlencode ($this->projectId) . '&DELINDEX=' . urlencode ($this->elementId) . '&FIELD=accept&VALUE=1&ABER=' . urlencode ($this->abeRequest['ABE_REQ_UID']) . '" class="btn btn-w-m btn-primary">Accept</a>';
+                    $html .= '<a href="/FormBuilder/tasks/emailActions?APP_UID=' . urlencode ($this->projectId) . '&DELINDEX=' . urlencode ($this->elementId) . '&FIELD=reject&VALUE=1&ABER=' . urlencode ($this->abeRequest['ABE_REQ_UID']) . '" class="btn btn-w-m btn-danger">Reject</a>';
                     break;
 
                 case "sendForm":
@@ -381,9 +395,9 @@ class SendNotification
                         file_put_contents (PATH_DATA_MAILTEMPLATES . PATH_SEP . $fileName . ".php", $fileContent);
                         return "<a href='" . PATH_DATA_MAILTEMPLATES . $fileName . ".php'>link</a>";
                     }
-
-                    return $html;
             }
+
+            return $html;
         } catch (Exception $ex) {
             
         }
@@ -659,25 +673,13 @@ class SendNotification
                         //trigger_error ($ex, E_USER_WARNING);
                     }
 
-                    $abeRequest = array();
-
-                    $abeRequest['ABE_REQ_UID'] = '';
-                    $abeRequest['APP_UID'] = $this->projectId;
-                    $abeRequest['DEL_INDEX'] = $this->taskId;
-                    $abeRequest['ABE_REQ_SENT_TO'] = $this->recipient;
-                    $abeRequest['ABE_REQ_SUBJECT'] = $this->subject;
-                    $abeRequest['ABE_REQ_BODY'] = '';
-                    $abeRequest['ABE_REQ_ANSWERED'] = 0;
-                    $abeRequest['ABE_REQ_STATUS'] = 'PENDING';
-
                     try {
-                        if ( !in_array ($this->system, array("task_manager", "trigger")) )
+                        if ( !in_array ($this->system, array("task_manager", "trigger")) && isset ($this->abeRequest['ABE_REQ_UID']) && is_numeric ($this->abeRequest['ABE_REQ_UID']) )
                         {
 
                             $abeRequestsInstance = new AbeRequest();
-                            $abeRequest['ABE_REQ_UID'] = $abeRequestsInstance->createOrUpdate ($abeRequest);
 
-                            $abeRequest['ABE_REQ_STATUS'] = 'SENT';
+                            $this->abeRequest['ABE_REQ_STATUS'] = 'SENT';
 
                             $messageSent = (new Mysql2())->_query ('SELECT `APP_MSG_BODY` FROM workflow.`APP_MESSAGE` ORDER BY `APP_MSG_SEND_DATE` DESC LIMIT 1');
 
@@ -686,12 +688,12 @@ class SendNotification
                                 $body = $messageSent[0]['APP_MSG_BODY'];
                             }
 
-                            $abeRequest['ABE_REQ_BODY'] = $body;
+                            $this->abeRequest['ABE_REQ_BODY'] = $body;
 
-                            $abeRequestsInstance->createOrUpdate ($abeRequest);
+                            $abeRequestsInstance->createOrUpdate ($this->abeRequest);
                         }
                     } catch (Exception $ex) {
-                        
+                        throw $ex;
                     }
                 }
             }

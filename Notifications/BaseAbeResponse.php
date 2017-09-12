@@ -69,17 +69,46 @@ abstract class BaseAbeResponse implements Persistent
      * @var        boolean
      */
     protected $alreadyInValidation = false;
-    
     private $objMysql;
+    private $arrFieldMapping = array(
+        "ABE_REQ_UID" => array("accessor" => "getAbeReqUid", "mutator" => "setAbeReqUid", "required" => "true"),
+        "ABE_RES_CLIENT_IP" => array("accessor" => "getAbeResClientIp", "mutator" => "setAbeResClientIp", "required" => "true"),
+        "ABE_RES_DATA" => array("accessor" => "getAbeResData", "mutator" => "setAbeResData", "required" => "true"),
+        "ABE_RES_STATUS" => array("accessor" => "getAbeResStatus", "mutator" => "setAbeResStatus", "required" => "true"),
+        "ABE_RES_MESSAGE" => array("accessor" => "getAbeResMessage", "mutator" => "setAbeResMessage", "required" => "true"),
+        "ABE_RES_UID" => array("accessor" => "getAbeResUid", "mutator" => "setAbeResUid", "required" => "true"),
+        "ABE_RES_DATE" => array("accessor" => "getAbeResDate", "mutator" => "setAbeResDate", "required" => "true"),
+    );
 
-    public function __construct ()
+    public function getConnection ()
     {
         $this->objMysql = new Mysql2();
     }
-    
+
+    /**
+     * 
+     * @param type $arrNotification
+     * @return boolean
+     */
     public function loadObject (array $arrData)
     {
-        
+        foreach ($arrData as $formField => $formValue) {
+
+            if ( isset ($this->arrFieldMapping[$formField]) )
+            {
+                $mutator = $this->arrFieldMapping[$formField]['mutator'];
+
+                if ( method_exists ($this, $mutator) && is_callable (array($this, $mutator)) )
+                {
+                    if ( isset ($this->arrFieldMapping[$formField]) && trim ($formValue) != "" )
+                    {
+                        call_user_func (array($this, $mutator), $formValue);
+                    }
+                }
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -291,7 +320,7 @@ abstract class BaseAbeResponse implements Persistent
         }
         if ( $this->abe_res_date !== $ts )
         {
-            $this->abe_res_date = $ts;
+            $this->abe_res_date = date ("Y-m-d H:i:s", $ts);
         }
     }
 
@@ -360,9 +389,38 @@ abstract class BaseAbeResponse implements Persistent
      */
     public function save ()
     {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
 
         try {
-            
+            if ( trim ($this->abe_res_uid) === "" )
+            {
+                $id = $this->objMysql->_insert ("workflow.ABE_RESPONSE", [
+                    "ABE_REQ_UID" => $this->abe_req_uid,
+                    "ABE_RES_CLIENT_IP" => $this->abe_res_client_ip,
+                    "ABE_RES_DATA" => $this->abe_res_data,
+                    "ABE_RES_DATE" => $this->abe_res_date,
+                    "ABE_RES_STATUS" => $this->abe_res_status,
+                    "ABE_RES_MESSAGE" => $this->abe_res_message,
+                        ]
+                );
+
+                return $id;
+            }
+            else
+            {
+                $this->objMysql->_update ("workflow.ABE_RESPONSE", [
+                    "ABE_REQ_UID" => $this->abe_req_uid,
+                    "ABE_RES_CLIENT_IP" => $this->abe_res_client_ip,
+                    "ABE_RES_DATA" => $this->abe_res_data,
+                    "ABE_RES_DATE" => $this->abe_res_date,
+                    "ABE_RES_STATUS" => $this->abe_res_status,
+                    "ABE_RES_MESSAGE" => $this->abe_res_message,
+                        ], ["ABE_RES_UID" => $this->abe_res_uid]
+                );
+            }
         } catch (Exception $e) {
             throw $e;
         }
@@ -397,9 +455,9 @@ abstract class BaseAbeResponse implements Persistent
      * @return     mixed <code>true</code> if all validations pass; 
       array of <code>ValidationFailed</code> objects otherwise.
      */
-    public function validate ($columns = null)
+    public function validate ()
     {
-        
+        return true;
     }
 
 }
