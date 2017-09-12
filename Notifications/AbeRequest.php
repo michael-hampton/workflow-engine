@@ -44,7 +44,7 @@ class AbeRequest extends BaseAbeRequest
         $abeRequest->setAbeUid ($result[0]['ABE_UID']);
         $abeRequest->setAppUid ($result[0]['APP_UID']);
         $abeRequest->setDelIndex ($result[0]['DEL_INDEX']);
-        
+
         return $abeRequest;
     }
 

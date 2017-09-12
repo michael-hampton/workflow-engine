@@ -31,6 +31,8 @@ class Comments extends BaseComments
         }
         else
         {
+            print_r ($this->getValidationFailures ());
+            die;
             $msg = '';
             $validationFailuresArray = $this->getValidationFailures ();
             foreach ($validationFailuresArray as $strValidationFailure) {
@@ -55,8 +57,8 @@ class Comments extends BaseComments
             if ( $noteRecipients == "" )
             {
                 $noteRecipientsA = array();
-                $oCase = new Cases();
-                $p = $oCase->getUsersParticipatedInCase ($appUid);
+                $oCase = new BusinessModel\Cases();
+                $p = $oCase->getUsersParticipatedInCase ($projectId);
 
                 foreach ($p as $userParticipated) {
                     $noteRecipientsA[] = $userParticipated;
@@ -212,7 +214,7 @@ class Comments extends BaseComments
             $sql .= " LIMIT " . $limit;
             $sql .= " OFFSET " . $start;
         }
-        
+
         $results = $this->objMysql->_query ($sql, $arrParameters);
 
         if ( !empty ($results) )

@@ -102,7 +102,7 @@ abstract class BaseAbeRequest implements Persistent
         "APP_UID" => array("accessor" => "getAppUid", "mutator" => "setAppUid", "required" => "true"),
         "DEL_INDEX" => array("accessor" => "getDelIndex", "mutator" => "setDelIndex", "required" => "true"),
         "ABE_REQ_SENT_TO" => array("accessor" => "getAbeReqSentTo", "mutator" => "setAbeReqSentTo", "required" => "true"),
-        "ABE_REQ_SUBJECT" => array("accessor" => "getRecipient", "mutator" => "setRecipient", "required" => "true"),
+        "ABE_REQ_SUBJECT" => array("accessor" => "getAbeReqSubject", "mutator" => "setAbeReqSubject", "required" => "true"),
         "ABE_REQ_BODY" => array("accessor" => "getAbeReqBody", "mutator" => "setAbeReqBody", "required" => "true"),
         "ABE_REQ_ANSWERED" => array("accessor" => "getAbeReqAnswered", "mutator" => "setAbeReqAnswered", "required" => "true"),
         "ABE_REQ_STATUS" => array("accessor" => "getAbeReqStatus", "mutator" => "setAbeReqStatus", "required" => "true"),

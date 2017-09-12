@@ -877,8 +877,10 @@ class Elements
 
         $oAppDelay->update ($aData);
 
+        $objTask = (new Task())->retrieveByPk ($nextTask);
+        $objUser = (new \BusinessModel\UsersFactory())->getUser ($_SESSION['user']['usrid']);
 
-        // $this->getExecuteTriggerProcess ($sApplicationUID, "UNPAUSE");
+        (new BusinessModel\StepTrigger())->executeSendMail ($objUser, $objTask, "pauseCase");
     }
 
 }
