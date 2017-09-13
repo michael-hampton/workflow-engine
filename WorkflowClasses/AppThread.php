@@ -225,5 +225,19 @@ class AppThread extends BaseAppThread
             throw ($e);
         }
     }
+    
+    public function closeAllThreads($projectId)
+    {
+        $arrElements = array();
+        
+        foreach ($arrElements as $arrElement) {
+                        
+            $aData['APP_UID'] = $projectId;
+            $aData['APP_NUMBER'] = $objElement->getId ();
 
+            $aData['APP_THREAD_STATUS'] = 'CLOSED';
+
+            $this->update ($aData);
+        }
+    }
 }
