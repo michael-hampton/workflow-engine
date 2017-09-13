@@ -100,7 +100,8 @@ class Comments extends BaseComments
                 $objUser = $arrUser['data'];
 
                 $sTo = ((($objUser[0]->getFirstName () != '') || ($objUser[0]->getLastName () != '')) ? $objUser[0]->getFirstName () . ' ' . $objUser[0]->getLastName () . ' ' : '') . '<' . $objUser[0]->getUser_email () . '>';
-                                
+                           
+                $sSubject = "NEW COMMENT ADDED";
                 $oSpool = new EmailFunctions();
                 $oSpool->setConfig($aConfiguration);
                 
