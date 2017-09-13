@@ -100,8 +100,34 @@ class Comments extends BaseComments
                 $objUser = $arrUser['data'];
 
                 $sTo = ((($objUser[0]->getFirstName () != '') || ($objUser[0]->getLastName () != '')) ? $objUser[0]->getFirstName () . ' ' . $objUser[0]->getLastName () . ' ' : '') . '<' . $objUser[0]->getUser_email () . '>';
+                                
+                $oSpool = new EmailFunctions();
+                $oSpool->setConfig($aConfiguration);
+                
+                $oSpool->create(
+                    array ('msg_uid' => '',
+                           'app_uid' => $appUid,
+                           'del_index' => 0,
+                           'app_msg_type' => 'DERIVATION',
+                           'app_msg_subject' => $sSubject,
+                           'app_msg_from' => $sFrom,
+                           'app_msg_to' => $sTo,
+                           'app_msg_body' => $sBody,
+                           'app_msg_cc' => '',
+                           'app_msg_bcc' => '',
+                           'app_msg_attach' => '',
+                           'app_msg_template' => '',
+                           'app_msg_status' => 'pending',
+                           'app_msg_error' => $msgError
+                           )
+                    );
+                if ($msgError == '') {
+                    if (($aConfiguration['MESS_BACKGROUND'] == '') || ($aConfiguration['MESS_TRY_SEND_INMEDIATLY'] == '1')) {
+                        $oSpool->sendMail();
+                    }
+                }
 
-                mail ($sTo, $configNoteNotification['subject'], $sBody);
+                //mail ($sTo, $configNoteNotification['subject'], $sBody);
             }
             //Send derivation notification - End
         } catch (Exception $oException) {
