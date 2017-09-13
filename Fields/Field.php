@@ -36,6 +36,7 @@ class Field
     private $isDisabled;
     private $ValidationFailures;
     private $helpText;
+    
     private $arrayFieldDefinition = array(
         "type" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getFieldType", "mutator" => "setFieldType"),
         "required" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getTableName", "mutator" => "setTableName"),
@@ -110,10 +111,10 @@ class Field
 
         if ( $errorCount > 0 )
         {
-            return FALSE;
+            return false;
         }
 
-        return TRUE;
+        return true;
     }
 
     /**
