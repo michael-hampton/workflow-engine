@@ -76,7 +76,7 @@ class WebEntry
      *
      * return bool Return true if exists the title of a Web Entry, false otherwise
      */
-    public function existsTitle ($processUid, $webEntryTitle, $webEntryUidExclude = "")
+    public function existsTitle ($webEntryTitle, $webEntryUidExclude = "")
     {
         try {
             $sql = "SELECT WE_UID FROM web_entry WHERE PRO_UID = ?";
@@ -129,10 +129,10 @@ class WebEntry
      *
      * return void Throw exception if exists the title of a Web Entry
      */
-    public function throwExceptionIfExistsTitle ($processUid, $webEntryTitle, $webEntryUidExclude = "")
+    public function throwExceptionIfExistsTitle ($webEntryTitle, $webEntryUidExclude = "")
     {
         try {
-            if ( $this->existsTitle ($processUid, $webEntryTitle, $webEntryUidExclude) )
+            if ( $this->existsTitle ($webEntryTitle, $webEntryUidExclude) )
             {
                 throw new \Exception ("ID_WEB_ENTRY_TITLE_ALREADY_EXISTS");
             }
@@ -160,7 +160,7 @@ class WebEntry
             //Verify data
             if ( isset ($arrayData["WE_TITLE"]) )
             {
-                $this->throwExceptionIfExistsTitle ($processUid, $webEntryUid);
+                $this->throwExceptionIfExistsTitle ($webEntryUid);
             }
             if ( isset ($arrayData["TAS_UID"]) )
             {
@@ -372,8 +372,9 @@ class WebEntry
             //Delete web entry 
             $objWebEntry = new \WebEntry();
             $objWebEntry->setWeUid ($arrayWebEntryData['WE_UID']);
-            $result = $objWebEntry->delete ();
+            $objWebEntry->delete ();
             //Delete filesa 
+            
             if ( $arrayWebEntryData["WE_METHOD"] == "WS" )
             {
                 $pathDataPublicProcess = $this->pathDataPublic . $arrayWebEntryData["PRO_UID"];
