@@ -51,7 +51,7 @@ class Role
 
             if ( isset ($result[0]) && !empty ($result[0]) )
             {
-                return TRUE;
+                return true;
             }
         } catch (Exception $e) {
             throw $e;
@@ -325,10 +325,8 @@ class Role
                 return $arrayRole;
             }
             //Set variables
-            $role = new \Role();
             //SQL
             $criteria = $this->getRoleCriteria ();
-
 
             if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"]) && trim ($arrayFilterData["filter"]) != "" )
             {
