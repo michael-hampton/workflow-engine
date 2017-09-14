@@ -13,31 +13,82 @@
  */
 class Iso
 {
+
     private $objMysql;
-    
+
     public function __construct ()
     {
         $this->objMysql = new Mysql2();
     }
-    
-    public function getCountries()
+
+    public function getCountries ($pk = null)
     {
-        $results = $this->objMysql->_select("workflow.iso_country", [], [], ["IC_NAME" => "ASC"]);
-        
+        $arrWhere = [];
+
+        if ( $pk !== null )
+        {
+            $arrWhere['IC_UID'] = $pk;
+        }
+
+        $results = $this->objMysql->_select ("workflow.iso_country", [], $arrWhere, ["IC_NAME" => "ASC"]);
+
+        if ( !isset ($results[0]) || empty ($results[0]) )
+        {
+            return false;
+        }
+
         return $results;
     }
-    
-    public function getLocations()
+
+    public function retrieveLocationByPk ($country, $location)
     {
-        $results = $this->objMysql->_select("workflow.iso_location", [], [], ["IL_NAME" => "ASC"]);
-        
+        $results = $this->objMysql->_select ("workflow.iso_location", [], ["IC_UID" => $country, "IL_UID" => $location]);
+
+        if ( !isset ($results[0]) || empty ($results[0]) )
+        {
+            return false;
+        }
+
         return $results;
     }
-    
-    public function getSubDivisions()
+
+    public function retrieveSubdivisionByPk ($country, $city)
     {
-        $results = $this->objMysql->_select("workflow.iso_subdivision", [], [], ["IS_NAME" => "ASC"]);
-        
+        $results = $this->objMysql->_select ("workflow.iso_subdivision", [], ["IC_UID" => $country, "IS_UID" => $city]);
+
+        if ( !isset ($results[0]) || empty ($results[0]) )
+        {
+            return false;
+        }
+
+        return $results;
+    }
+
+    public function getLocations ($filter = '')
+    {
+        $arrWhere = [];
+
+        if ( $filter !== "" )
+        {
+            $arrWhere['IS_UID'] = $filter;
+        }
+
+        $results = $this->objMysql->_select ("workflow.iso_location", [], $arrWhere, ["IL_NAME" => "ASC"]);
+
+        return $results;
+    }
+
+    public function getSubDivisions ($filter = '')
+    {
+        $arrWhere = [];
+
+        if ( $filter !== "" )
+        {
+            $arrWhere['IC_UID'] = $filter;
+        }
+
+        $results = $this->objMysql->_select ("workflow.iso_subdivision", [], $arrWhere, ["IS_NAME" => "ASC"]);
+
         return $results;
     }
 

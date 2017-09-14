@@ -246,6 +246,83 @@ class UsersFactory
                 $this->throwExceptionIfPasswordIsInvalid ($arrayData["USR_NEW_PASS"]);
             }
 
+            if ( isset ($arrayData["replacedBy"]) && $arrayData["replacedBy"] != "" )
+            {
+                $obj = $this->getUser ($arrayData['replacedBy']);
+
+                if ( !is_object ($obj) || !get_class ($obj) === "Users" )
+                {
+                    throw new \Exception ("ID_USER_DOES_NOT_EXIST " . $arrayData["USR_REPLACED_BY"]);
+                }
+            }
+
+            if ( isset ($arrayData["USR_DUE_DATE"]) )
+            {
+
+                $arrayUserDueDate = explode ("-", $arrayData["USR_DUE_DATE"]);
+
+                if ( ctype_digit ($arrayUserDueDate[0]) )
+                {
+                    if ( !checkdate ($arrayUserDueDate[1], $arrayUserDueDate[2], $arrayUserDueDate[0]) )
+                    {
+                        throw new \Exception ("ID_MSG_ERROR_DUE_DATE");
+                    }
+                }
+                else
+                {
+                    throw new \Exception ("ID_MSG_ERROR_DUE_DATE");
+                }
+            }
+
+            $iso = new \Iso();
+
+            if ( isset ($arrayData["country"]) && $arrayData["country"] != "" )
+            {
+                $obj = $iso->getCountries ($arrayData['country']);
+
+                if ( $obj === false )
+                {
+                    throw new \Exception ("ID_INVALID_VALUE_FOR COUNTRY");
+                }
+            }
+
+            if ( isset ($arrayData["state"]) && $arrayData["state"] != "" )
+            {
+                if ( !isset ($arrayData["country"]) || $arrayData["country"] == "" )
+                {
+                    throw new \Exception ("ID_INVALID_VALUE_FOR COUNTRY");
+                }
+
+                $obj = $iso->retrieveSubdivisionByPk ($arrayData["country"], $arrayData["state"]);
+
+                if ( $obj === false )
+                {
+                    throw new \Exception ("ID_INVALID_VALUE_FOR CITY");
+                }
+            }
+            if ( isset ($arrayData["location"]) && $arrayData["location"] != "" )
+            {
+                if ( !isset ($arrayData["country"]) || $arrayData["country"] == "" )
+                {
+                    throw new \Exception ("ID_INVALID_VALUE_FOR COUNTRY");
+                }
+                $obj = $iso->retrieveLocationByPk ($arrayData["country"], $arrayData["location"]);
+
+                if ( $obj === false )
+                {
+                    throw new \Exception ("ID_INVALID_VALUE_FOR TOWN");
+                }
+            }
+
+            if ( isset ($arrayData["calendar"]) && $arrayData["calendar"] != "" )
+            {
+                $obj = (new \CalendarDefinition())->retrieveByPk ($arrayData["calendar"]);
+
+                if ( !is_object ($obj) || get_class ($obj) !== "CalendarDefinition" )
+                {
+                    throw new Exception ("ID_CALENDAR_DOES_NOT_EXIST");
+                }
+            }
 
             if ( is_numeric ($arrayData['dept_id']) && $this->validateDeptId ($arrayData['dept_id']) === false )
             {
@@ -288,10 +365,12 @@ class UsersFactory
 
                 $arrayData["USR_PASSWORD"] = $password->hashPassword ($arrayData["password"]);
 
-                //$password->verifyHashPassword ($arrayData['password'], '736b3b43759fa498fb0a3d890ef533d2');
-
+                $arrayData["USR_BIRTHDAY"] = (isset ($arrayData["USR_BIRTHDAY"])) ? $arrayData["USR_BIRTHDAY"] : date ("Y-m-d");
+                $arrayData["USR_LOGGED_NEXT_TIME"] = (isset ($arrayData["USR_LOGGED_NEXT_TIME"])) ? $arrayData["USR_LOGGED_NEXT_TIME"] : 0;
                 $arrayData["USR_CREATE_DATE"] = date ("Y-m-d H:i:s");
                 $arrayData["USR_UPDATE_DATE"] = date ("Y-m-d H:i:s");
+
+                //$password->verifyHashPassword ($arrayData['password'], '736b3b43759fa498fb0a3d890ef533d2');
 
                 $userUid = $user->createUser ($arrayData, $arrayData["role_id"]);
 
@@ -299,6 +378,14 @@ class UsersFactory
                 {
 
                     $this->uploadImage ($userUid, $_FILES);
+                }
+
+                //Save Calendar assigment
+                if ( isset ($arrayData["calendar"]) )
+                {
+                    //Save Calendar ID for this user
+                    $calendar = new \CalendarDefinition();
+                    $calendar->assignCalendarTo ($userUid, $arrayData["calendar"], "USER");
                 }
 
                 //Create in workflow

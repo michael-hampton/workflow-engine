@@ -23,6 +23,49 @@ class CalendarDefinition extends BaseCalendarDefinition
         $this->objMysql = new Mysql2();
     }
 
+    public function getCalendarList ($onlyActive = false, $arrayMode = false)
+    {
+        $sql = "SELECT CALENDAR_UID, 
+                        CALENDAR_NAME, 
+                        CALENDAR_CREATE_DATE, 
+                        CALENDAR_UPDATE_DATE, 
+                        CALENDAR_DESCRIPTION, 
+                        CALENDAR_STATUS,
+                CASE CALENDAR_UID
+                    WHEN '00000000000000000000000000000001' THEN 'delete'
+                    ELSE ''
+                 END as 'DELETABLE'
+               FROM calendar.calendar
+               WHERE 1=1";
+
+        // Note: This list doesn't show deleted items (STATUS = DELETED)
+        if ( $onlyActive )
+        {
+            // Show only active. Used on assignment lists
+            $sql .= " AND CALENDAR_STATUS = 'ACTIVE'";
+        }
+        else
+        {
+            $sql .= " AND CALENDAR_STATUS IN (" . implode (",", array("ACTIVE", "INACTIVE")) . ")";
+            // Show Active and Inactive calendars. USed in main list
+        }
+
+        $sql .= " AND CALENDAR_UID != 'xx'";
+
+
+        if ( !$arrayMode )
+        {
+            return $sql;
+        }
+        else
+        {
+            $results = $this->objMysql->_query ($sql);
+            $return['criteria'] = $sql;
+            $return['array'] = $results;
+            return $return;
+        }
+    }
+
     public function getCalendarInfo ($CalendarUid)
     {
         //if exists the row in the database propel will update it, otherwise will insert.
