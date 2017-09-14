@@ -650,6 +650,7 @@ class WorkflowStep
             if ( $this->nextStep == 0 || $this->nextStep == "" )
             {
                 $status = "WORKFLOW COMPLETE";
+                $objAppThread->closeAllThreads($this->parentId);
                 $arrCompleteData['status'] = !isset ($arrCompleteData['status']) ? "WORKFLOW COMPLETE" : $arrCompleteData['status'];
             }
             else
@@ -835,6 +836,7 @@ class WorkflowStep
         (new AppDelegation())->createAppDelegation ($this, $objMike, $objUser, $objTask, $this->_stepId, 3, false, $auditStatus);
 
         // create app thread
+        
         (new AppThread())->createAppThread ($this, $objMike, $objUser, $objTask, $this->_stepId, $status);
 
         // send notifications

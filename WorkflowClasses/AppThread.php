@@ -118,6 +118,7 @@ class AppThread extends BaseAppThread
     {
         try {
             $oApp = $this->retrieveByPK ($aData['APP_UID'], $aData['APP_NUMBER']);
+            
 
             if ( is_object ($oApp) && get_class ($oApp) == 'AppThread' )
             {
@@ -225,19 +226,26 @@ class AppThread extends BaseAppThread
             throw ($e);
         }
     }
-    
-    public function closeAllThreads($projectId)
-    {
-        $arrElements = array();
-        
-        foreach ($arrElements as $arrElement) {
-                        
-            $aData['APP_UID'] = $projectId;
-            $aData['APP_NUMBER'] = $objElement->getId ();
 
-            $aData['APP_THREAD_STATUS'] = 'CLOSED';
+    public function closeAllThreads ($projectId)
+    {
+        $arrResults = $this->objMysql->_select ("workflow.workflow_data", [], ["object_id" => $projectId]);
+
+        if ( !isset ($arrResults[0]) || empty ($arrResults[0]) )
+        {
+            return false;
+        }
+
+        $elements = array_keys (json_decode ($arrResults[0]['workflow_data'], true)['elements']);
+
+        foreach ($elements as $elementId) {
+            $aData['APP_UID'] = $projectId;
+            $aData['APP_NUMBER'] = $elementId;
+
+            $aData['APP_THREAD_STATUS'] = 'WORKFLOW COMPLETE';
 
             $this->update ($aData);
         }
     }
+
 }
