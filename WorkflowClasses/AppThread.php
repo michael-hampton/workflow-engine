@@ -204,7 +204,7 @@ class AppThread extends BaseAppThread
      * @throws type
      */
 
-    public function closeAppThread ($objElement, WorkflowStep $objWorkflowStep)
+    public function closeAppThread ($objElement, $blWorkflowComplete = false)
     {
 
         try {
@@ -216,7 +216,11 @@ class AppThread extends BaseAppThread
             $aData['APP_UID'] = $objectId;
             $aData['APP_NUMBER'] = $objElement->getId ();
 
-            $aData['APP_THREAD_STATUS'] = 'CLOSED';
+            if($blWorkflowComplete === true) {
+                $aData['APP_THREAD_STATUS'] = 'WORKFLOW COMPLETE';
+            } else {
+                $aData['APP_THREAD_STATUS'] = 'CLOSED';
+            }     
 
             $this->update ($aData);
 
