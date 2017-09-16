@@ -274,28 +274,27 @@ class Lists
         return $arrProjects;
     }
 
-    public function last ($arrData)
+    private function last ($arrData)
     {
         end ($arrData['steps']);
         $key = key ($arrData['steps']);
         return $key;
     }
 
-    function paginate ($array, $intPageLimit, $page = 1)
-    {
+    private function paginate ($array, $intPageLimit, $page = 1)
+        $arrData = [];
         $intPageLimit = (int) $intPageLimit;
         $page = (int) $page;
         $totalRows = (int) count ($array);
-        $_SESSION["pagination"]["current_page"] = $page;
+        
+        $arrData['page'] = $page;
+        $arrData['total'] = $totalRows;
+        $arrData['total_pages'] (int) ceil (($totalRows / $intPageLimit));
 
         $page = $page < 1 ? 1 : $page + 1;
-
         $start = ($page - 1) * $intPageLimit;
-
-        $_SESSION["pagination"]["total_pages"] = (int) ceil (($totalRows / $intPageLimit));
-        $_SESSION["pagination"]["total_counter"] = $totalRows;
-
-        return array_slice ($array, $start, $intPageLimit);
+        $arrData['data'] = array_slice ($array, $start, $intPageLimit);
+        
+        return $arrData;
     }
-
 }
