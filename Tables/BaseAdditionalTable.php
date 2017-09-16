@@ -646,9 +646,9 @@ abstract class BaseAdditionalTables implements Persistent
         }
         if ( $errorCount > 0 )
         {
-            return FALSE;
+            return false;
         }
-        return TRUE;
+        return true;
     }
     
     public function loadObject (array $arrData)
