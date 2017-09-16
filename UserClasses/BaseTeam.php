@@ -61,7 +61,7 @@ abstract class BaseTeam implements Persistent
         return true;
     }
 
-    function getId ()
+    public function getId ()
     {
         return $this->id;
     }
@@ -201,7 +201,7 @@ abstract class BaseTeam implements Persistent
         return true;
     }
 
-    public function removeUserOfGroup (Users $objUser, $groupUid = null)
+    public function removeUserOfGroup (Users $objUser)
     {
         if ( !is_numeric ($objUser->getUserId ()) )
         {
