@@ -187,6 +187,8 @@ abstract class BaseUser implements Persistent
         "USR_BIRTHDAY" => array("accessor" => "getUsrBirthday", "mutator" => "setUsrBirthday", "required" => false),
         "USR_LOGGED_NEXT_TIME" => array("accessor" => "getUsrLastLogin", "mutator" => "setUsrLastLogin", "required" => false),
         "country" => array("accessor" => "getUsrCountry", "mutator" => "setUsrCountry", "required" => false),
+        "phoneNo" => array("accessor" => "getUsrPhone", "mutator" => "setUsrPhone", "required" => false),
+        "postcode" => array("accessor" => "getUsrZipCode", "mutator" => "setUsrZipCode", "required" => false),
     );
     public $arrUser = array();
 
@@ -786,7 +788,7 @@ abstract class BaseUser implements Persistent
             }
             if ( $ts === -1 || $ts === false )
             {
-                throw new PropelException ("Unable to parse date/time value for [usr_birthday] from input: ");
+                throw new Exception ("Unable to parse date/time value for [usr_birthday] from input: ");
             }
         }
         else

@@ -287,7 +287,7 @@ class RolePermission
                     $arrWhere = $criteria['where'];
                     $criteria = $criteria['sql'];
 
-                    $criteria .= " AND p.perm_id not in (
+                    $criteria .= " AND p.id not in (
                                     SELECT perm_id 
                                     FROM user_management.role_perms 
                                     WHERE role_id = ?)";
@@ -333,17 +333,16 @@ class RolePermission
             {
                 $criteria .= " LIMIT 100";
             }
-
+            
             $results = $this->objMysql->_query ($criteria, $arrWhere);
-
-
+            
             if ( !empty ($results) )
             {
                 foreach ($results as $row) {
                     $arrayPermission[] = $this->getPermissionDataFromRecord ($row);
                 }
             }
-
+            
             //Return
             return $arrayPermission;
         } catch (Exception $e) {

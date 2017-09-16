@@ -219,6 +219,8 @@ require_once HOME_DIR . '/core/app/library/UserClasses/BaseUser.php';
 require_once HOME_DIR . '/core/app/library/UserClasses/BasePermission.php';
 require_once HOME_DIR . '/core/app/library/UserClasses/Permission.php';
 require_once HOME_DIR . '/core/app/library/UserClasses/Users.php';
+require_once HOME_DIR . '/core/app/library/UserClasses/BaseUserProperties.php';
+require_once HOME_DIR . '/core/app/library/UserClasses/UserProperties.php';
 
 require_once HOME_DIR . '/core/app/library/BusinessModel/UsersFactory.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/RoleUser.php';

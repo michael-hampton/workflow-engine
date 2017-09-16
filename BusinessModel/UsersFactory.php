@@ -38,7 +38,7 @@ class UsersFactory
      * @param type $strOrderDir
      * @return type
      */
-    public function countUsers (array $arrayWhere = null, $flagRecord = true, $throwException = true)
+    public function countUsers (array $arrayWhere = null)
     {
         $arrWhere = array();
         $flag = !is_null ($arrayWhere) && is_array ($arrayWhere);
@@ -380,6 +380,16 @@ class UsersFactory
                     $this->uploadImage ($userUid, $_FILES);
                 }
 
+                //User Properties
+
+                $userProperty = new \UserProperties();
+
+                $aUserProperty = $userProperty->loadOrCreateIfNotExists ($userUid, array("USR_PASSWORD_HISTORY" => serialize (array($password->hashPassword ($arrayData["password"])))));
+
+                $aUserProperty["USR_LOGGED_NEXT_TIME"] = $arrayData["USR_LOGGED_NEXT_TIME"];
+
+                $userProperty->update ($aUserProperty);
+
                 //Save Calendar assigment
                 if ( isset ($arrayData["calendar"]) )
                 {
@@ -408,7 +418,7 @@ class UsersFactory
      *
      * return array Return data of the User updated
      */
-    public function update ($userUid, array $arrayData)
+    public function update ($userUid, array $arrayData, \Users $objUser)
     {
         try {
             //Verify data
@@ -416,26 +426,27 @@ class UsersFactory
             $this->throwExceptionIfDataIsEmpty ($arrayData, "\$arrayData");
             //Set data
 
-
             /* ----------------------------------********--------------------------------- */
             //Verify data
             $this->throwExceptionIfNotExistsUser ($userUid);
             $this->throwExceptionIfDataIsInvalid ($userUid, $arrayData);
+
             //Permission Admin
-            //$countPermission = 0;
-            //$permission = $this->loadUserRolePermission ("PROCESSMAKER", $userUidLogged);
-            //foreach ($permission as $key => $value) {
-            //if ( preg_match ('/^(?:PM_USERS|PM_EDITPERSONALINFO)$/', $value['PER_CODE']) )
-            //{
-            //$countPermission = $countPermission + 1;
-            //break;
-            //}
-            //}
-            //if ( $countPermission == 0 )
-            //{
-            //throw new \Exception (\G::LoadTranslation ("ID_USER_CAN_NOT_UPDATE", array($userUidLogged)));
-            //}
-            //Update
+            $countPermission = 0;
+            $permission = $this->loadUserRolePermission ($objUser);
+
+            foreach ($permission as $value) {
+                if ( preg_match ('/^(?:PM_USERS|PM_EDITPERSONALINFO)$/', $value['perm_name']) )
+                {
+                    $countPermission = $countPermission + 1;
+                    break;
+                }
+            }
+
+            if ( $countPermission == 0 )
+            {
+                throw new \Exception ("ID_USER_CAN_NOT_UPDATE");
+            }
 
             try {
                 $user = new \Users();
@@ -446,7 +457,91 @@ class UsersFactory
                 }
 
                 $arrayData["USR_UID"] = $userUid;
+                $arrayData["USR_LOGGED_NEXT_TIME"] = (isset ($arrayData["USR_LOGGED_NEXT_TIME"])) ? $arrayData["USR_LOGGED_NEXT_TIME"] : 0;
                 $arrayData["USR_UPDATE_DATE"] = date ("Y-m-d H:i:s");
+
+                $flagUserLoggedNextTime = false;
+
+                if ( isset ($arrayData["password"]) )
+                {
+                    if ( $arrayData["password"] != "" )
+                    {
+                        //require_once 'classes/model/UsersProperties.php';
+                        $passwordHistory = array("USR_PASSWORD_HISTORY" => serialize (array($password->hashPassword ($arrayData["password"]))));
+                        $userProperty = new \UserProperties();
+                        $aUserProperty = $userProperty->loadOrCreateIfNotExists ($userUid, $passwordHistory);
+
+                        if ( isset ($this->aUserInfo["ROLE"][0]["role_name"]) && $this->aUserInfo["ROLE"][0]["role_name"] == "EASYFLOW_ADMIN" )
+                        {
+                            $arrayData["USR_LAST_UPDATE_DATE"] = date ("Y-m-d H:i:s");
+                            $arrayData["USR_LOGGED_NEXT_TIME"] = $arrayData["USR_LOGGED_NEXT_TIME"];
+                            $userProperty->update ($arrayData);
+                        }
+
+                        $aHistory = unserialize ($passwordHistory['USR_PASSWORD_HISTORY']);
+
+                        if ( !is_array ($aHistory) )
+                        {
+                            $aHistory = array();
+                        }
+
+                        if ( !defined ("PPP_PASSWORD_HISTORY") )
+                        {
+                            define ("PPP_PASSWORD_HISTORY", 0);
+                        }
+
+                        if ( PPP_PASSWORD_HISTORY > 0 )
+                        {
+                            //it's looking a password igual into aHistory array that was send for post in md5 way
+                            $c = 0;
+                            $sw = 1;
+                            while (count ($aHistory) >= 1 && count ($aHistory) > $c && $sw) {
+                                if ( strcmp (trim ($aHistory[$c]), trim ($arrayData['USR_PASSWORD'])) == 0 )
+                                {
+                                    $sw = 0;
+                                }
+                                $c++;
+                            }
+                            if ( $sw == 0 )
+                            {
+                                $sDescription = "ID_POLICY_ALERT" . ":\n\n";
+                                $sDescription = $sDescription . " - " . "PASSWORD_HISTORY" . ": " . PPP_PASSWORD_HISTORY . "\n";
+                                $sDescription = $sDescription . "\n" . "ID_PLEASE_CHANGE_PASSWORD_POLICY" . "";
+                                throw new \Exception ($sDescription);
+                            }
+
+                            if ( count ($aHistory) >= PPP_PASSWORD_HISTORY )
+                            {
+                                $sLastPassw = array_shift ($aHistory);
+                            }
+                            $aHistory[] = $arrayData["USR_PASSWORD"];
+                        }
+                        $arrayData["USR_LAST_UPDATE_DATE"] = date ("Y-m-d H:i:s");
+                        $arrayData["USR_LOGGED_NEXT_TIME"] = $arrayData["USR_LOGGED_NEXT_TIME"];
+                        $arrayData["USR_PASSWORD_HISTORY"] = serialize ($aHistory);
+                        $userProperty->update ($arrayData);
+                    }
+                    else
+                    {
+                        $flagUserLoggedNextTime = true;
+                    }
+                }
+                else
+                {
+                    $flagUserLoggedNextTime = true;
+                }
+
+                if ( $flagUserLoggedNextTime )
+                {
+                    //require_once "classes/model/Users.php";
+                    $oUser = new \Users();
+                    $aUser = $oUser->load ($userUid);
+                    //require_once "classes/model/UsersProperties.php";
+                    $oUserProperty = new \UserProperties();
+                    $aUserProperty = $oUserProperty->loadOrCreateIfNotExists ($userUid, array("USR_PASSWORD_HISTORY" => serialize (array($aUser["USR_PASSWORD"]))));
+                    $aUserProperty["USR_LOGGED_NEXT_TIME"] = $arrayData["USR_LOGGED_NEXT_TIME"];
+                    $oUserProperty->update ($aUserProperty);
+                }
 
                 //Update in rbac
                 $arrayData['dept_id'] = trim ($arrayData['dept_id']) !== "" ? $arrayData['dept_id'] : 1;
@@ -461,6 +556,12 @@ class UsersFactory
                 }
                 //Update in workflow
                 //Save Calendar assigment
+                if ( isset ($arrayData["calendar"]) )
+                {
+                    //Save Calendar ID for this user
+                    $calendar = new \CalendarDefinition();
+                    $calendar->assignCalendarTo ($userUid, $arrayData["calendar"], "USER");
+                }
 
                 return true;
             } catch (Exception $e) {
@@ -553,7 +654,8 @@ class UsersFactory
                 $arrWhere[] = "%" . $search . "%";
             }
             //Number records total
-            $numRecTotal = $this->countUsers ($arrayWhere, $flagRecord, $throwException);
+            $numRecTotal = $this->countUsers ($arrayWhere);
+
             //Query
 
             $criteria .= " GROUP BY u.usrid ";
@@ -636,6 +738,15 @@ class UsersFactory
             $objUsers->setUser_email ($record['user_email']);
             $objUsers->setTeam_id ($record['team_id']);
             $objUsers->setUserReplaces ($record['user_replaces']);
+            $objUsers->setUsrAddress ($record['USR_ADDRESS']);
+            //$objUsers->setUsrBirthday (date ("Y-m-d H:i:s", strtotime ($record['USR_BIRTHDAY'])));
+            $objUsers->setUsrPhone ($record['USR_PHONE']);
+            //$objUsers->setUsrUpdateDate ($record['USR_UPDATE_DATE']);
+            //$objUsers->setUsrCreateDate ($record['USR_CREATE_DATE']);
+            $objUsers->setUsrZipCode ($record['USR_ZIP_CODE']);
+            $objUsers->setUsrLocation ($record['USR_LOCATION']);
+            $objUsers->setUsrCity ($record['USR_CITY']);
+            $objUsers->setUsrCountry ($record['USR_COUNTRY']);
 
             return $objUsers;
         } catch (Exception $ex) {
@@ -730,9 +841,9 @@ class UsersFactory
      * @return $this->aUserInfo[ $sSystem ]
 
      */
-    public function loadUserRolePermission ($sUser)
+    public function loadUserRolePermission (\Users $objUser)
     {
-        $objUser = (new UsersFactory())->getUser ($sUser);
+
         $objUserRole = new \BusinessModel\RoleUser();
         $fieldsRoles = $objUserRole->getRolesForUser ($objUser);
 
@@ -750,7 +861,7 @@ class UsersFactory
             }
         }
 
-        $this->aUserInfo['USER_INFO'] = $this->getUser ($sUser);
+        $this->aUserInfo['USER_INFO'] = $objUser;
         $this->aUserInfo['ROLE'] = $fieldsRoles;
 
         $this->aUserInfo['PERMISSIONS'] = $fieldsPermissions;
@@ -769,9 +880,7 @@ class UsersFactory
                 throw new Exception ("User could not be found");
             }
 
-            $userUid = $objUser->getUserId ();
-
-            $arrayUserRolePermission = $this->loadUserRolePermission ($userUid);
+            $arrayUserRolePermission = $this->loadUserRolePermission ($objUser);
 
             foreach ($arrayUserRolePermission as $value) {
 

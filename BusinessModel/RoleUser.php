@@ -157,7 +157,7 @@ class RoleUser
     {
         try {
             $results = $this->objMysql->_query ("SELECT p.* FROM user_management.role_perms rp
-                                                    INNER JOIN user_management.permissions p ON p.perm_id = rp.perm_id
+                                                    INNER JOIN user_management.permissions p ON p.id = rp.perm_id
                                                     WHERE rp.role_id = ?", [$objRole->getRoleId ()]);
             return $results;
         } catch (Exception $oError) {

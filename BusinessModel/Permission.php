@@ -70,7 +70,7 @@ class Permission
 
     public function throwExceptionIfNotExistsPermission ($permId)
     {
-        $result = $this->objMysql->_select ("user_management.permissions", array(), array("perm_id" => $permId));
+        $result = $this->objMysql->_select ("user_management.permissions", array(), array("id" => $permId));
 
         if ( isset ($result[0]) && !empty ($result[0]) )
         {
@@ -180,7 +180,7 @@ class Permission
     {
         try {
 
-            $criteria = "SELECT p.perm_id, p.perm_name, rp.role_id, r.role_name FROM user_management.permissions p";
+            $criteria = "SELECT p.id AS perm_id, p.perm_name, rp.role_id, r.role_name FROM user_management.permissions p";
             $criteriaWhere = " WHERE 1=1";
             $arrWhere = array();
 
@@ -194,7 +194,7 @@ class Permission
 
             if ( !is_null ($arrayPermissionUidExclude) && is_array ($arrayPermissionUidExclude) )
             {
-                $criteriaWhere .= " AND perm_id NOT IN (?)";
+                $criteriaWhere .= " AND id NOT IN (?)";
                 $arrWhere[] = implode (",", $arrayPermissionUidExclude);
             }
 
