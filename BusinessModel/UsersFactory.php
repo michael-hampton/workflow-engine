@@ -579,18 +579,12 @@ class UsersFactory
             if ( !is_null ($limit) )
             {
                 $criteria .= " LIMIT " . ((int) ($limit));
-                // calculating displaying pages
-                $_SESSION["pagination"]["total_pages"] = (int) ceil (($numRecTotal / $limit));
             }
 
             if ( !is_null ($start) )
             {
-                $criteria .= " OFFSET " . ((int) ($start));
-                $current_page = $start;
-                $_SESSION["pagination"]["current_page"] = $current_page;
+                $criteria .= " OFFSET " . (int) $start;
             }
-
-            $_SESSION["pagination"]["total_counter"] = $numRecTotal;
 
             $records = $this->objMysql->_query ($criteria, $arrWhere);
 
@@ -601,6 +595,7 @@ class UsersFactory
             //Return
             return array(
                 "total" => $numRecTotal,
+                "total_pages" => (int) ceil (($numRecTotal / $limit));
                 "start" => (int) ((!is_null ($start)) ? $start : 0),
                 "limit" => (int) ((!is_null ($limit)) ? $limit : 0),
                 $filterName => ($flagFilter) ? $arrayWhere['filter'] : '',
