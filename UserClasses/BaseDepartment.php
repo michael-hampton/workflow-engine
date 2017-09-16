@@ -69,7 +69,7 @@ abstract class BaseDepartment implements Persistent
      * 
      * @return type
      */
-    function getDepartment ()
+    public function getDepartment ()
     {
         return $this->department;
     }
@@ -78,7 +78,7 @@ abstract class BaseDepartment implements Persistent
      * 
      * @param type $department
      */
-    function setDepartment ($department)
+    public function setDepartment ($department)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
@@ -95,7 +95,7 @@ abstract class BaseDepartment implements Persistent
      * 
      * @return type
      */
-    function getId ()
+    public function getId ()
     {
         return $this->id;
     }
@@ -104,7 +104,7 @@ abstract class BaseDepartment implements Persistent
      * 
      * @param type $id
      */
-    function setId ($id)
+    public function setId ($id)
     {
         // Since the native PHP type for this column is integer,
         // we will cast the input value to an int (if it is not).
@@ -120,7 +120,7 @@ abstract class BaseDepartment implements Persistent
      * 
      * @return type
      */
-    function getStatus ()
+    public function getStatus ()
     {
         return $this->status;
     }
@@ -129,7 +129,7 @@ abstract class BaseDepartment implements Persistent
      * 
      * @param type $status
      */
-    function setStatus ($status)
+    public function setStatus ($status)
     {
         // Since the native PHP type for this column is integer,
         // we will cast the input value to an int (if it is not).
@@ -146,7 +146,7 @@ abstract class BaseDepartment implements Persistent
      * 
      * @return type
      */
-    function getDepartmentManager ()
+    public function getDepartmentManager ()
     {
         return $this->departmentManager;
     }
@@ -155,7 +155,7 @@ abstract class BaseDepartment implements Persistent
      * 
      * @param type $departmentManager
      */
-    function setDepartmentManager ($departmentManager)
+    public function setDepartmentManager ($departmentManager)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
@@ -297,10 +297,10 @@ abstract class BaseDepartment implements Persistent
 
         if ( $errorCount > 0 )
         {
-            return FALSE;
+            return false;
         }
 
-        return TRUE;
+        return true;
     }
 
 }

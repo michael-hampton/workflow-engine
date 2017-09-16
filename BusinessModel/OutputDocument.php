@@ -110,7 +110,7 @@ class OutputDocument
      *
      * @access public
      */
-    public function getOutputDocument ($sProcessUID = '', $sOutputDocumentUID = '')
+    public function getOutputDocument ($sProcessUID = '')
     {
         try {
             $outputDocArray = $this->getOutputDocuments ($sProcessUID);
@@ -194,7 +194,7 @@ class OutputDocument
 
             $outDocUid = $oOutputDocument->create ($outputDocumentData);
 
-            $this->updateOutputDocument ($sProcessUID, $outputDocumentData, 1, $outDocUid);
+            $this->updateOutputDocument ($outputDocumentData, 1, $outDocUid);
             //Return
 
             $objStepDocument = new \BusinessModel\Step();
@@ -220,7 +220,7 @@ class OutputDocument
      *
      * @access public
      */
-    public function updateOutputDocument ($sProcessUID, $outputDocumentData, $sFlag, $sOutputDocumentUID = '')
+    public function updateOutputDocument ($outputDocumentData, $sFlag, $sOutputDocumentUID = '')
     {
         $outputDocumentData['out_doc_pdf_security_permissions'] = "print|modify|copy";
         $pemission = $outputDocumentData['out_doc_pdf_security_permissions'];
@@ -310,7 +310,7 @@ class OutputDocument
      *
      * @access public
      */
-    public function deleteOutputDocument ($sProcessUID, $sOutputDocumentUID)
+    public function deleteOutputDocument ($sOutputDocumentUID)
     {
         try {
             $this->throwExceptionIfItsAssignedInOtherObjects ($sOutputDocumentUID, "outputDocumentUid");

@@ -66,7 +66,7 @@ abstract class BaseTeam implements Persistent
         return $this->id;
     }
 
-    function setId ($id)
+    public function setId ($id)
     {
         // Since the native PHP type for this column is integer,
         // we will cast the input value to an int (if it is not).
@@ -78,12 +78,12 @@ abstract class BaseTeam implements Persistent
         $this->id = $id;
     }
 
-    function getStatus ()
+    public function getStatus ()
     {
         return $this->status;
     }
 
-    function setStatus ($status)
+    public function setStatus ($status)
     {
         // Since the native PHP type for this column is integer,
         // we will cast the input value to an int (if it is not).
@@ -96,17 +96,17 @@ abstract class BaseTeam implements Persistent
         $this->arrTeam['status'] = $status;
     }
 
-    function getTeamName ()
+    public function getTeamName ()
     {
         return $this->teamName;
     }
 
-    function getDeptId ()
+    public function getDeptId ()
     {
         return $this->deptId;
     }
 
-    function setTeamName ($teamName)
+    public function setTeamName ($teamName)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
@@ -119,7 +119,7 @@ abstract class BaseTeam implements Persistent
         $this->arrTeam['team_name'] = $teamName;
     }
 
-    function setDeptId ($deptId)
+    public function setDeptId ($deptId)
     {
         // Since the native PHP type for this column is integer,
         // we will cast the input value to an int (if it is not).
@@ -159,7 +159,7 @@ abstract class BaseTeam implements Persistent
             if ( $this->validate () === true )
             {
                 $id = $this->objMysql->_insert ("user_management.teams", $this->arrTeam);
-                $this->setId($id);
+                $this->setId ($id);
                 return true;
             }
 
@@ -174,7 +174,7 @@ abstract class BaseTeam implements Persistent
 
     public function deleteTeam ()
     {
-        
+
         $this->objMysql->_delete ("user_management.teams", array("team_id" => $this->id));
     }
 
@@ -195,10 +195,10 @@ abstract class BaseTeam implements Persistent
 
         if ( $errorCount > 0 )
         {
-            return FALSE;
+            return false;
         }
 
-        return TRUE;
+        return true;
     }
 
     public function removeUserOfGroup (Users $objUser, $groupUid = null)
@@ -210,7 +210,7 @@ abstract class BaseTeam implements Persistent
 
         $this->objMysql->_update ("user_management.poms_users", array("team_id" => null), array("usrid" => $objUser->getUserId ()));
     }
-    
+
     public function addUserOfGroup ($groupUid, $userUid)
     {
         if ( !is_numeric ($groupUid) || !is_numeric ($userUid) )

@@ -117,7 +117,7 @@ class MessageEventDefinition
      *
      * return void Throw exception if data has an invalid value
      */
-    public function throwExceptionIfDataIsInvalid ($messageEventDefinitionUid, $projectUid, array $arrayData)
+    public function throwExceptionIfDataIsInvalid ($messageEventDefinitionUid, array $arrayData)
     {
         try {
             //Set variables
@@ -215,7 +215,7 @@ class MessageEventDefinition
      *
      * return array Return data of the Message-Event-Definition updated
      */
-    public function update ($messageEventDefinitionUid, array $arrayData)
+    public function update ($messageEventDefinitionUid, array $arrayData, \Users $objUser)
     {
         try {
             //Verify data
@@ -230,7 +230,7 @@ class MessageEventDefinition
 
             //Verify data
             $this->throwExceptionIfNotExistsMessageEventDefinition ($messageEventDefinitionUid);
-            $arrayData = $this->throwExceptionIfDataIsInvalid ($messageEventDefinitionUid, $arrayMessageEventDefinitionData[0]["workflow_id"], $arrayData);
+            $arrayData = $this->throwExceptionIfDataIsInvalid ($messageEventDefinitionUid, $arrayData);
 
             //Update
             try {
@@ -242,7 +242,7 @@ class MessageEventDefinition
 
                 $messageEventDefinition->setMsgedUid ($messageEventDefinitionUid);
                 $messageEventDefinition->setPrjUid ($arrayMessageEventDefinitionData[0]["workflow_id"]);
-                $messageEventDefinition->setMsgedUsrUid ($_SESSION['user']['usrid']); //admin
+                $messageEventDefinition->setMsgedUsrUid ($objUser->getUserId ()); //admin
                 $messageEventDefinition->setEvnUid ($arrayData['EVN_UID']);
                 $messageEventDefinition->setMsgedCorrelation ($arrayData['MSGED_CORRELATION']);
                 $messageEventDefinition->setMsgtUid ($arrayData['MSGT_UID']);
@@ -282,7 +282,7 @@ class MessageEventDefinition
      *
      * return array Return data of the new Message-Event-Definition created
      */
-    public function create ($projectUid, array $arrayData, $flagValidateArrayData = true)
+    public function create ($projectUid, array $arrayData, \Users $objUser, $flagValidateArrayData = true)
     {
         try {
             //Verify data
@@ -295,7 +295,7 @@ class MessageEventDefinition
             //$process->throwExceptionIfNotExistsProcess($projectUid, $this->arrayFieldNameForException["projectUid"]);
             if ( $flagValidateArrayData )
             {
-                $arrayData = $this->throwExceptionIfDataIsInvalid ("", $projectUid, $arrayData);
+                $arrayData = $this->throwExceptionIfDataIsInvalid ("", $arrayData);
             }
             //Create
             try {
@@ -318,7 +318,7 @@ class MessageEventDefinition
                 //$messageEventDefinition->setMsgedUid ($messageEventDefinitionUid);
                 $messageEventDefinition->setPrjUid ($projectUid);
                 $messageEventDefinition->setMessageType ($arrayData['messageType']);
-                $messageEventDefinition->setMsgedUsrUid ($_SESSION['user']['usrid']); //admin
+                $messageEventDefinition->setMsgedUsrUid ($$objUser->getUserId ()); //admin
                 $messageEventDefinition->setEvnUid ($arrayData['EVN_UID']);
                 $messageEventDefinition->setMsgedCorrelation ($arrayData['MSGED_CORRELATION']);
                 $messageEventDefinition->setMsgtUid ($arrayData['MSGT_UID']);

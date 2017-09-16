@@ -72,7 +72,7 @@ abstract class BaseRole implements Persistent
      * 
      * @return type
      */
-    function getRoleId ()
+    public function getRoleId ()
     {
         return $this->roleId;
     }
@@ -81,7 +81,7 @@ abstract class BaseRole implements Persistent
      * 
      * @return type
      */
-    function getRoleName ()
+    public function getRoleName ()
     {
         return $this->roleName;
     }
@@ -90,7 +90,7 @@ abstract class BaseRole implements Persistent
      * 
      * @param type $roleId
      */
-    function setRoleId ($roleId)
+    public function setRoleId ($roleId)
     {
         // Since the native PHP type for this column is integer,
         // we will cast the input value to an int (if it is not).
@@ -106,7 +106,7 @@ abstract class BaseRole implements Persistent
      * 
      * @param type $roleName
      */
-    function setRoleName ($roleName)
+    public function setRoleName ($roleName)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
@@ -123,7 +123,7 @@ abstract class BaseRole implements Persistent
      * 
      * @return type
      */
-    function getStatus ()
+    public function getStatus ()
     {
         return $this->status;
     }
@@ -132,7 +132,7 @@ abstract class BaseRole implements Persistent
      * 
      * @param type $status
      */
-    function setStatus ($status)
+    public function setStatus ($status)
     {
         // Since the native PHP type for this column is integer,
         // we will cast the input value to an int (if it is not).
@@ -246,10 +246,9 @@ abstract class BaseRole implements Persistent
 
         if ( $errorCount > 0 )
         {
-            return FALSE;
+            return false;
         }
 
-        return TRUE;
+        return true;
     }
-
 }

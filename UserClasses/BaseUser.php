@@ -755,7 +755,7 @@ abstract class BaseUser implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    function setLastName ($lastName)
+    public function setLastName ($lastName)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
@@ -842,7 +842,7 @@ abstract class BaseUser implements Persistent
      * 
      * @param type $team_id
      */
-    function setTeam_id ($team_id)
+    public function setTeam_id ($team_id)
     {
         // Since the native PHP type for this column is integer,
         // we will cast the input value to an int (if it is not).
@@ -859,7 +859,7 @@ abstract class BaseUser implements Persistent
      * 
      * @param type $img_src
      */
-    function setImg_src ($img_src)
+    public function setImg_src ($img_src)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
@@ -877,7 +877,7 @@ abstract class BaseUser implements Persistent
      * 
      * @return     string
      */
-    function getUser_email ()
+    public function getUser_email ()
     {
         return $this->user_email;
     }
@@ -1151,7 +1151,7 @@ abstract class BaseUser implements Persistent
      * 
      * @return     string
      */
-    function getPassword ()
+    public function getPassword ()
     {
         return $this->password;
     }
@@ -1162,7 +1162,7 @@ abstract class BaseUser implements Persistent
      * @param      string $v new value
      * @return     void
      */
-    function setPassword ($password)
+    public function setPassword ($password)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
@@ -1179,7 +1179,7 @@ abstract class BaseUser implements Persistent
      * 
      * @return type
      */
-    function getRoleName ()
+    public function getRoleName ()
     {
         return $this->roleName;
     }
@@ -1188,7 +1188,7 @@ abstract class BaseUser implements Persistent
      * 
      * @param type $roleName
      */
-    function setRoleName ($roleName)
+    public function setRoleName ($roleName)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
@@ -1204,7 +1204,7 @@ abstract class BaseUser implements Persistent
      * 
      * @return type
      */
-    function getRoleId ()
+    public function getRoleId ()
     {
         return $this->roleId;
     }
@@ -1213,7 +1213,7 @@ abstract class BaseUser implements Persistent
      * 
      * @param type $roleId
      */
-    function setRoleId ($roleId)
+    public function setRoleId ($roleId)
     {
         // Since the native PHP type for this column is integer,
         // we will cast the input value to an int (if it is not).
@@ -1239,7 +1239,7 @@ abstract class BaseUser implements Persistent
      * 
      * @return type
      */
-    function getDepartment ()
+    public function getDepartment ()
     {
         return $this->department;
     }
@@ -1248,7 +1248,7 @@ abstract class BaseUser implements Persistent
      * 
      * @param type $department
      */
-    function setDepartment ($department)
+    public function setDepartment ($department)
     {
         $this->department = $department;
     }
@@ -1351,10 +1351,10 @@ abstract class BaseUser implements Persistent
 
         if ( $errorCount > 0 )
         {
-            return FALSE;
+            return false;
         }
 
-        return TRUE;
+        return TtrueRUE;
     }
 
     public function disableUser ()
