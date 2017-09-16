@@ -2,9 +2,6 @@
 
 class BaseComments
 {
-
-    private $id;
-    private $object = array();
     private $ValidationFailures;
     private $objFields = array(
         "source_id" => array("required" => "true", "type" => "int", "accessor" => "getAppUid"),
