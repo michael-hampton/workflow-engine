@@ -595,9 +595,9 @@ class UsersFactory
             //Return
             return array(
                 "total" => $numRecTotal,
-                "total_pages" => (int) ceil (($numRecTotal / $limit));
-                "start" => (int) ((!is_null ($start)) ? $start : 0),
-                "limit" => (int) ((!is_null ($limit)) ? $limit : 0),
+                "total_pages" => (int) ceil ($numRecTotal / $limit),
+                "page" => (int) !is_null ($start) ? $start : 0,
+                "limit" => (int) !is_null ($limit) ? $limit : 0,
                 $filterName => ($flagFilter) ? $arrayWhere['filter'] : '',
                 "data" => $arrayUser
             );

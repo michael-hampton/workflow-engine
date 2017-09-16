@@ -337,6 +337,10 @@ class Elements
      */
     public function setWorkflowName ($workflowName)
     {
+        if($workflowName === false) {
+            return false;
+        }
+        
         $this->workflowName = $workflowName;
     }
 

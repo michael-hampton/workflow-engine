@@ -90,32 +90,7 @@ class Cases
                 $userUid, $start, $limit, $action, $filter, $search, $process, $status, $dateFrom, $dateTo, $dir, (strpos ($sort, ".") !== false) ? $sort : "APP_CACHE_VIEW." . $sort, $category, $paged
         );
 
-        if ( $paged == false )
-        {
-            $response = $result['data'];
-        }
-        else
-        {
-            $response['total'] = $result['totalCount'];
-            $response['start'] = $start + 1;
-            $response['limit'] = $limit;
-            $response['sort'] = strtolower ($sort);
-            $response['dir'] = strtolower ($dir);
-            $response['cat_uid'] = $category;
-            $response['pro_uid'] = $process;
-            $response['search'] = $search;
-
-            if ( $action == 'search' )
-            {
-                $response['app_status'] = strtolower ($status);
-                $response['usr_uid'] = $user;
-                $response['date_from'] = $dateFrom;
-                $response['date_to'] = $dateTo;
-            }
-            $response['data'] = $result['data'];
-        }
-
-        return $response;
+        return $result;
     }
 
     public function getUsersParticipatedInCase ($projectId)
@@ -201,6 +176,8 @@ class Cases
                     $previousStep = $this->getPreviousStep ($currentStep, $workflowId);
                     $currentStatus = $element['status'];
 
+                    $audit = isset ($auditData['elements'][$elementId]['steps'][$previousStep]) ? $auditData['elements'][$elementId]['steps'][$previousStep] : [];
+
                     if ( count ($auditData['elements'][$elementId]['steps']) == 1 )
                     {
                         reset ($auditData['elements'][$elementId]['steps']);
@@ -208,36 +185,13 @@ class Cases
 
                         $audit = $auditData['elements'][$elementId]['steps'][$first_key];
                     }
-                    else
-                    {
-                        $audit = $auditData['elements'][$elementId]['steps'][$previousStep];
-                    }
 
-                    if ( trim ($audit['dateCompleted']) !== "" )
-                    {
-                        $dateCompleted = date ('Y-m-d', strtotime (str_replace ('.', '-', $audit['dateCompleted'])));
-                    }
+                    $dateCompleted = isset ($audit['dateCompleted']) && trim ($audit['dateCompleted']) !== "" ? date ('Y-m-d', strtotime (str_replace ('.', '-', $audit['dateCompleted']))) : '';
 
-
-                    if ( $userUid !== null && $audit['claimed'] != $userUid )
-                    {
-                        $intSkip++;
-                    }
-
-                    if ( is_numeric ($process) && trim ($process) != trim ($workflowId) )
-                    {
-                        $intSkip++;
-                    }
-
-                    if ( is_numeric ($category) && $category != $requestId )
-                    {
-                        $intSkip++;
-                    }
-
-                    if ( trim ($status) !== "" && trim (strtolower ($status)) !== trim (strtolower ($currentStatus)) )
-                    {
-                        $intSkip++;
-                    }
+                    $userUid !== null && isset ($audit['claimed']) && trim ($audit['claimed']) !== $userUid ? $intSkip++ : $intSkip;
+                    is_numeric ($process) && (int) trim ($process) !== (int) trim ($workflowId) ? $intSkip++ : $intSkip;
+                    is_numeric ($category) && $category !== $requestId ? $intSkip++ : $intSkip;
+                    trim ($status) !== "" && trim (strtolower ($status)) !== trim (strtolower ($currentStatus)) ? $intSkip++ : $intSkip;
 
                     if ( trim ($dateFrom) !== "" && trim ($dateTo) !== "" )
                     {
@@ -286,44 +240,21 @@ class Cases
             foreach ($arrCases['data'] as $key => $arrCase) {
 
                 $objCase = new \Elements ($arrCase['projectId'], $arrCase['elementId']);
+                $objCase->setWorkflow_id (isset ($arrCase['workflow_id']) ? $arrCase['workflow_id'] : '' );
+                $workflowName = $this->getWorkflowName ($arrCase['workflow_id']);
+                $objCase->setWorkflowName ($workflowName !== false ? $workflowName : '');
+                $objCase->setCurrent_user (isset ($arrCase['current_user']) ? $arrCase['current_user'] : '');
+                $stepName = $this->getStepName ($arrCase['current_step']);
+                $objCase->setCurrent_step ($stepName !== false ? $stepName : '');
+                $objCase->setStatus (isset ($arrCase['status']) ? $arrCase['status'] : '');
 
-                if ( isset ($arrCase['workflow_id']) )
+
+                if ( !is_object ($objCase) )
                 {
-
-                    $objCase->setWorkflow_id ($element['workflow_id']);
-                    $workflowName = $this->getWorkflowName ($arrCase['workflow_id']);
-
-                    if ( $workflowName !== false )
-                    {
-                        $objCase->setWorkflowName ($workflowName);
-                    }
+                    return false;
                 }
 
-                if ( isset ($arrCase['current_user']) )
-                {
-                    $objCase->setCurrent_user ($arrCase['current_user']);
-                }
-
-                if ( isset ($arrCase['current_step']) )
-                {
-
-                    $stepName = $this->getStepName ($arrCase['current_step']);
-
-                    if ( $stepName !== false )
-                    {
-                        $objCase->setCurrent_step ($stepName);
-                    }
-                }
-
-                if ( isset ($arrCase['status']) )
-                {
-                    $objCase->setStatus ($arrCase['status']);
-                }
-
-                if ( is_object ($objCase) )
-                {
-                    $arrCases['data'][$key] = $objCase;
-                }
+                $arrCases['data'][$key] = $objCase;
             }
 
             return $arrCases;
@@ -340,9 +271,9 @@ class Cases
         $page = $page < 1 ? 1 : $page + 1;
         $start = ($page - 1) * $intPageLimit;
 
-        $arrData['totalCount'] = $totalRows;
-        $arrData['total_pages'] = (int) ceil($totalRows / $intPageLimit);
-        $arrData['page'] = $page;
+        $arrData['count']['total'] = $totalRows;
+        $arrData['count']['total_pages'] = (int) ceil ($totalRows / $intPageLimit);
+        $arrData['count']['page'] = $page;
         $arrData['data'] = array_slice ($array, $start, $intPageLimit);
 
         return $arrData;
@@ -402,42 +333,22 @@ class Cases
 
                         $objElements = new \Elements ($projectId, $elementId);
 
-                        if ( isset ($audit['due_date']) )
-                        {
-                            $objElements->setDueDate ($audit['due_date']);
-                        }
-
-                        if ( isset ($audit['dateCompleted']) )
-                        {
-                            $objElements->setDateCompleted ($audit['dateCompleted']);
-                        }
-
-                        if ( isset ($element['request_id']) && is_numeric ($element['request_id']) )
-                        {
-                            $objElements->setRequestId ($element['request_id']);
-                        }
+                        $objElements->setDueDate (isset ($audit['due_date']) ? $audit['due_date'] : '');
+                        $objElements->setDateCompleted (isset ($audit['dateCompleted']) ? $audit['dateCompleted'] : '');
+                        $objElements->setRequestId (isset ($element['request_id']) ? $element['request_id'] : '');
 
                         $workflowName = $this->getWorkflowName ($element['workflow_id']);
-
-                        if ( $workflowName !== false )
-                        {
-                            $objElements->setWorkflowName ($workflowName);
-                        }
-
+                        $objElements->setWorkflowName ($workflowName !== false ? $workflowName : '');
                         $objElements->setWorkflow_id ($element['workflow_id']);
-
-
-                        if ( isset ($audit['claimed']) )
-                        {
-                            $objElements->setCurrent_user ($audit['claimed']);
-                        }
+                        $objElements->setCurrent_user (isset ($audit['claimed']) ? $audit['claimed'] : '');
 
                         $stepName = $this->getStepName ($element['current_step']);
+                        $objElements->setCurrent_step ($stepName !== false ? $stepName : '');
+                        $objElements->setCurrentStepId (isset ($element['current_step']) ? $element['current_step'] : '');
 
-                        if ( $stepName !== false )
+                        if ( !is_object ($objElements) )
                         {
-                            $objElements->setCurrent_step ($stepName);
-                            $objElements->setCurrentStepId ($element['current_step']);
+                            return false;
                         }
 
                         return $objElements;

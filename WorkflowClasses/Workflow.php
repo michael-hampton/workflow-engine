@@ -164,14 +164,18 @@ class Workflow extends BaseProcess
         {
             $casesCnt = $this->getCasesCountInAllProcesses ();
         }
+
         //execute the query
         $results = $this->objMysql->_query ($sql, $arrParameters);
+
         $processes = array();
         $uids = array();
+
         foreach ($results as $row) {
             $processes[] = $row;
             $uids[] = $processes[sizeof ($processes) - 1]['workflow_id'];
         }
+
         foreach ($processes as $process) {
             $proTitle = isset ($process['workflow_name']) ? $process['workflow_name'] : '';
             $proDescription = isset ($process['description']) ? htmlspecialchars ($process['description']) : '';
@@ -206,6 +210,7 @@ class Workflow extends BaseProcess
 
             $aProcesses[] = $process;
         }
+
         if ( $limit == '' )
         {
             $limit = count ($aProcesses);
@@ -221,10 +226,13 @@ class Workflow extends BaseProcess
                 usort ($aProcesses, array($this, "ordProcessDesc"));
             }
         }
+
         if ( is_numeric ($start) && is_numeric ($limit) )
         {
             $aProcesses = $this->paginate ($aProcesses, $limit, $start);
         }
+
+
         $arrWorkflows = [];
         foreach ($aProcesses['data'] as $aProcess) {
             $objProcess = new Workflow();
@@ -239,9 +247,10 @@ class Workflow extends BaseProcess
             $objProcess->setProCreateUser ($aProcess['PRO_CREATE_USER_LABEL']);
             $arrWorkflows[$aProcess['workflow_id']] = $objProcess;
         }
-        
-        $arrWorkflows['count'] = $aProcesses['count'];
-        return $arrWorkflows;
+
+        $aProcesses['data'] = $arrWorkflows;
+
+        return $aProcesses;
     }
 
     private function paginate ($array, $intPageLimit, $page = 1)
@@ -250,16 +259,16 @@ class Workflow extends BaseProcess
         $intPageLimit = (int) $intPageLimit;
         $page = (int) $page;
         $totalRows = (int) count ($array);
-   
+
         $arrData['count']['page'] = $page;
         $arrData['count']['total_pages'] = (int) ceil (($totalRows / $intPageLimit));
         $arrData['count']['total'] = $totalRows;
-        
+
         $page = $page < 1 ? 1 : $page + 1;
         $start = ($page - 1) * $intPageLimit;
-     
+
         $arrData['data'] = array_slice ($array, $start, $intPageLimit);
-        
+
         return $arrData;
     }
 

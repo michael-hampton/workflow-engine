@@ -332,7 +332,6 @@ class Team
     {
         try {
             $arrayGroup = array();
-            $numRecTotal = 0;
             $arrWhere = array();
 
             //Set variables
@@ -389,13 +388,15 @@ class Team
             {
                 $criteria .= " ASC";
             }
-            if ( !is_null ($start) )
-            {
-                $criteria .= " OFFSET " . ((int) ($start));
-            }
+            
             if ( !is_null ($limit) )
             {
                 $criteria .= " LIMIT " . ((int) ($limit));
+            }
+            
+            if ( !is_null ($start) )
+            {
+                $criteria .= " OFFSET " . ((int) ($start));
             }
 
             $results = $this->objMysql->_query ($criteria, $arrWhere);
@@ -409,9 +410,9 @@ class Team
             //Return
             return array(
                 "total" => $numRecTotal,
-                "start" => (int) ((!is_null ($start)) ? $start : 0),
-                "limit" => (int) ((!is_null ($limit)) ? $limit : 0),
-                //$filterName => (!is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"])) ? $arrayFilterData["filter"] : "",
+                "total_pages" => (int) ceil ($numRecTotal / $limit),
+                "page" => (int) !is_null ($start) ? $start : 0,
+                "limit" => (int) !is_null ($limit) ? $limit : 0,
                 "data" => $arrayGroup
             );
         } catch (Exception $e) {

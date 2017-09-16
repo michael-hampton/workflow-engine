@@ -104,15 +104,19 @@ class Mysql2 extends D
         try {
             $indexed = $data == array_values ($data);
             foreach ($data as $k => $v) {
-                if ( is_string ($v) ) {
+                if ( is_string ($v) )
+                {
                     $v = "'$v'";
                 }
-			
-                if ( $indexed ) {
+
+                if ( $indexed )
+                {
                     $string = preg_replace ('/\?/', $v, $string, 1);
-               } else {
+                }
+                else
+                {
                     $string = str_replace (":$k", $v, $string);
-               }	
+                }
             }
 
             return $string;
@@ -219,7 +223,7 @@ class Mysql2 extends D
             if ( !is_int ($offset) )
             {
 
-                throw new Exception('Non integer passed to function as OFFSET value');
+                throw new Exception ('Non integer passed to function as OFFSET value');
                 return false;
             }
 
@@ -246,7 +250,7 @@ class Mysql2 extends D
 
                 return $arrResultSet;
             } catch (Exception $e) {
-                $message = $this->parms($query, $arrParameters);
+                $message = $this->parms ($query, $arrParameters);
                 //die($e->getMessage());
                 $this->setLog ($e, $message);
             }
@@ -258,7 +262,7 @@ class Mysql2 extends D
                 $this->logInfo ($this->parms ($query, $arrParameters));
                 return $this->db->lastInsertId ();
             } catch (Exception $e) {
-               
+
                 $this->setLog ($e, $this->parms ($query, $arrParameters));
             }
         }

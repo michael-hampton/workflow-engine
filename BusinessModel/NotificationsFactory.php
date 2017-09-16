@@ -166,7 +166,7 @@ class NotificationsFactory
 //        $arrResults = $this->objMysql->_select ("workflow.notifications_sent", array(), $arrWhere, array("date_sent" => "DESC"));
         $arrAllMessages = array();
         $arrAllMessages['counts']['total'] = $totalRows;
-        $arrAllMessages['counts']['total_pages'] ceil ((int) $total_pages);
+        $arrAllMessages['counts']['total_pages'] = ceil ((int) $total_pages);
         $arrAllMessages['counts']['page'] = $page;
 
         foreach ($arrResults as $key => $arrResult) {

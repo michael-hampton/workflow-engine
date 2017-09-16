@@ -330,7 +330,7 @@ class Role
 
             if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData["filter"]) && trim ($arrayFilterData["filter"]) != "" )
             {
-                $criteria .= " AND role_code LIKE ?";
+                $whereSql .= " AND role_code LIKE ?";
                 $arrWhere[] = "%" . $arrayFilterData['filter'] . "%";
             }
             //SQL
@@ -344,30 +344,47 @@ class Role
             }
             if ( !is_null ($sortDir) && trim ($sortDir) != "" && strtoupper ($sortDir) == "DESC" )
             {
-                $criteria .= " ORDER BY " . $sortField . " DESC";
+                $whereSql .= " ORDER BY " . $sortField . " DESC";
             }
             else
             {
-                $criteria .= " ORDER BY " . $sortField . " ASC";
+                $whereSql .= " ORDER BY " . $sortField . " ASC";
             }
+
+            $countSql = "SELECT COUNT(*) as count FROM user_management.roles WHERE 1=1" . $whereSql;
+            
 
             if ( !is_null ($limit) )
             {
-                $criteria .= " LIMIT " . (int) ($limit);
+                $whereSql .= " LIMIT " . (int) ($limit);
             }
             if ( !is_null ($start) )
             {
-                $criteria .= "OFFSET " . (int) ($start);
+                $whereSql .= " OFFSET " . (int) ($start);
             }
 
+            //COUNT RESULTS
+            $countResult = $this->objMysql->_query ($countSql, $arrWhere);
+            
+            // FULL RESULTS
+            $criteria .= $whereSql;
             $results = $this->objMysql->_query ($criteria, $arrWhere);
 
             foreach ($results as $row) {
 
                 $arrayRole[] = $this->getRoleDataFromRecord ($row);
             }
+
+            $numRecTotal = $countResult[0]['count'];
+
             //Return
-            return $arrayRole;
+            return array(
+                "total" => $numRecTotal,
+                "total_pages" => (int) ceil ($numRecTotal / $limit),
+                "page" => (int) !is_null ($start) ? $start : 0,
+                "limit" => (int) !is_null ($limit) ? $limit : 0,
+                "data" => $arrayRole
+            );
         } catch (Exception $e) {
             throw $e;
         }

@@ -210,7 +210,7 @@ class Lists
 
             if ( isset ($page) && isset ($pageLimit) )
             {
-                $arrrPaginated = $this->paginate ($arrProjects, $pageLimit, $page);
+                $arrrPaginated = $this->paginate (array_filter ($arrProjects), $pageLimit, $page);
 
                 return $arrrPaginated;
             }
@@ -241,8 +241,9 @@ class Lists
                     $lastKey = $this->last ($this->audit);
                     $this->lastStep = $this->audit['steps'][$lastKey];
 
-                    $currentStep = $workflow['elements'][$elementId];
-                    $this->lastStepInProcess = $this->getLastStep ($currentStep);
+                    $currentStep = isset ($workflow['elements'][$elementId]) ? $workflow['elements'][$elementId] : [];
+
+                    $this->lastStepInProcess = isset ($currentStep['workflow_id']) ? $this->getLastStep ($currentStep['workflow_id']) : '';
 
                     $list = $this->$function ();
 
@@ -282,19 +283,20 @@ class Lists
     }
 
     private function paginate ($array, $intPageLimit, $page = 1)
+    {
         $arrData = [];
         $intPageLimit = (int) $intPageLimit;
-        $page = (int) $page;
         $totalRows = (int) count ($array);
-        
-        $arrData['page'] = $page;
-        $arrData['total'] = $totalRows;
-        $arrData['total_pages'] (int) ceil (($totalRows / $intPageLimit));
 
-        $page = $page < 1 ? 1 : $page + 1;
+        $arrData['count']['page'] = $page;
+        $arrData['count']['total'] = $totalRows;
+        $arrData['count']['total_pages'] = (int) ceil ($totalRows / $intPageLimit);
+
+        $page = (int) $page < 1 ? 1 : $page + 1;
         $start = ($page - 1) * $intPageLimit;
         $arrData['data'] = array_slice ($array, $start, $intPageLimit);
-        
+
         return $arrData;
     }
+
 }
