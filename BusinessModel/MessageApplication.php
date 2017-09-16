@@ -57,8 +57,7 @@ class MessageApplication
 
             if ( isset ($arrayApplicationData['elements'][$applicationUid]) && isset ($arrayApplicationData['elements'][$applicationUid]['hasEvent']) && $arrayApplicationData['elements'][$applicationUid]['hasEvent'] === 'true' )
             {
-                echo "RETURN FALSE";
-                return FALSE;
+                return false;
             }
 
             $flagCreate = true;
