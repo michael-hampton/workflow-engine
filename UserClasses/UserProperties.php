@@ -88,7 +88,6 @@ class UserProperties extends BaseUsersProperties
                 throw (new Exception( 'This row doesn\'t exist!' ));
             }
         } catch (Exception $oError) {
-            $oConnection->rollback();
             throw ($oError);
         }
     }
@@ -157,8 +156,7 @@ class UserProperties extends BaseUsersProperties
             }
         }
         if (PPP_EXPIRATION_IN > 0) {
-            G::LoadClass( 'calendar' );
-            $oCalendar = new calendar();
+            $oCalendar = new CalendarFunctions();
             if ($oCalendar->pmCalendarUid == '') {
             	$oCalendar->pmCalendarUid = '00000000000000000000000000000001';
             	$oCalendar->getCalendarData();
