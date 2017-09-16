@@ -226,7 +226,7 @@ class Workflow extends BaseProcess
             $aProcesses = $this->paginate ($aProcesses, $limit, $start);
         }
         $arrWorkflows = [];
-        foreach ($aProcesses as $aProcess) {
+        foreach ($aProcesses['data'] as $aProcess) {
             $objProcess = new Workflow();
             $objProcess->setId ($aProcess['workflow_id']);
             $objProcess->setWorkflowName ($aProcess['PRO_TITLE']);
@@ -239,20 +239,28 @@ class Workflow extends BaseProcess
             $objProcess->setProCreateUser ($aProcess['PRO_CREATE_USER_LABEL']);
             $arrWorkflows[$aProcess['workflow_id']] = $objProcess;
         }
+        
+        $arrWorkflows['count'] = $aProcesses['count'];
         return $arrWorkflows;
     }
 
     private function paginate ($array, $intPageLimit, $page = 1)
     {
+        $arrData = [];
         $intPageLimit = (int) $intPageLimit;
         $page = (int) $page;
         $totalRows = (int) count ($array);
-        $_SESSION["pagination"]["current_page"] = $page;
+   
+        $arrData['count']['page'] = $page;
+        $arrData['count']['total_pages'] = (int) ceil (($totalRows / $intPageLimit));
+        $arrData['count']['total'] = $totalRows;
+        
         $page = $page < 1 ? 1 : $page + 1;
         $start = ($page - 1) * $intPageLimit;
-        $_SESSION["pagination"]["total_pages"] = (int) ceil (($totalRows / $intPageLimit));
-        $_SESSION["pagination"]["total_counter"] = $totalRows;
-        return array_slice ($array, $start, $intPageLimit);
+     
+        $arrData['data'] = array_slice ($array, $start, $intPageLimit);
+        
+        return $arrData;
     }
 
     public function ordProcessAsc ($a, $b)
