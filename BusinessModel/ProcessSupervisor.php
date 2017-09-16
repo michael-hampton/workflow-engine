@@ -367,14 +367,14 @@ class ProcessSupervisor
 			WHERE t.status = 1 AND ps.workflow_id = ? 
 			AND ps.pu_type = 'GROUP_SUPERVISOR'
 			AND t.id = ?";
+		
+            $arrResults = $this->objMysql_query($sql, [$sPuUID]);
 
-
-            while ($aRow = $oDataset->getRow ()) {
+            foreach($arrResults as $aRow) {
                 $aResp = array('pu_uid' => $aRow['PU_UID'],
                     'pu_type' => "GROUP_SUPERVISOR",
                     'grp_uid' => $aRow['USR_UID'],
                     'grp_name' => $aRow['GRP_TITLE']);
-                $oDataset->next ();
             }
 
 
@@ -384,9 +384,11 @@ class ProcessSupervisor
 			WHERE ps.workflow_id = ? AND u.status = 1
 			AND ps.pu_type = 'SUPERVISOR'
 			AND U.usrid = ?";
+		
+		$arrResults2 = $this->objMysql->_query($sql, [$sProcessUID, $sPuUID]);
 
 
-            while ($aRow = $oDataset->getRow ()) {
+            foreach($arrResults2 as $aRow) {
                 $aResp = array('pu_uid' => $aRow['PU_UID'],
                     'pu_type' => "SUPERVISOR",
                     'usr_uid' => $aRow['USR_UID'],
@@ -394,7 +396,6 @@ class ProcessSupervisor
                     'usr_lastname' => $aRow['USR_LASTNAME'],
                     'usr_username' => $aRow['USR_USERNAME'],
                     'usr_email' => $aRow['USR_EMAIL']);
-                $oDataset->next ();
             }
             return $aResp;
         } catch (Exception $e) {
