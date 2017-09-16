@@ -337,17 +337,12 @@ class Cases
         $intPageLimit = (int) $intPageLimit;
         $page = (int) $page;
         $totalRows = (int) count ($array);
-        $_SESSION["pagination"]["current_page"] = $page;
-
         $page = $page < 1 ? 1 : $page + 1;
-
         $start = ($page - 1) * $intPageLimit;
 
-        $_SESSION["pagination"]["total_pages"] = (int) ceil (($totalRows / $intPageLimit));
-        $_SESSION["pagination"]["total_counter"] = $totalRows;
-
         $arrData['totalCount'] = $totalRows;
-
+        $arrData['total_pages'] = (int) ceil($totalRows / $intPageLimit);
+        $arrData['page'] = $page;
         $arrData['data'] = array_slice ($array, $start, $intPageLimit);
 
         return $arrData;
