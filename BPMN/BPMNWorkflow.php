@@ -498,7 +498,7 @@ class BPMNWorkflow extends BPMN
      * @param type $array
      * @return type
      */
-    function fix_keys ($array)
+    private function fix_keys ($array)
     {
         $numberCheck = false;
         foreach ($array as $k => $val) {
