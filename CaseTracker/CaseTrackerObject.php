@@ -156,11 +156,8 @@ class CaseTrackerObject extends BaseCaseTrackerObject
     public function removeByObject ($sType, $sObjUid)
     {
         try {
-            $results = $this->objMysql->_select ("case_tracker_objects", [], ["CTO_TYPE_OBJ" => $sType, "CTO_UID_OBJ" => $sObjUid]);
+            //$results = $this->objMysql->_select ("case_tracker_objects", [], ["CTO_TYPE_OBJ" => $sType, "CTO_UID_OBJ" => $sObjUid]);
 
-            foreach ($results as $result) {
-                
-            }
         } catch (Exception $e) {
             throw ($e);
         }
