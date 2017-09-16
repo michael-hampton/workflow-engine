@@ -157,24 +157,17 @@ class NotificationsFactory
         //      Pagination
         //
 
-        
-        //all rows
-        $_SESSION["pagination"]["total_counter"] = $totalRows;
-
-        $current_page = $page;
-        //$startwith = $pageLimit * $page;
         $total_pages = $totalRows / $pageLimit;
-        $_SESSION["pagination"]["current_page"] = $current_page;
-
-        // calculating displaying pages
-        $_SESSION["pagination"]["total_pages"] = ceil ((int) $total_pages);
-
+        
         $query .= " LIMIT " . $page . ", " . $pageLimit;
 
         $arrResults = $this->objMysql->_query ($query, $arrWhere);
 
 //        $arrResults = $this->objMysql->_select ("workflow.notifications_sent", array(), $arrWhere, array("date_sent" => "DESC"));
         $arrAllMessages = array();
+        $arrAllMessages['counts']['total'] = $totalRows;
+        $arrAllMessages['counts']['total_pages'] ceil ((int) $total_pages);
+        $arrAllMessages['counts']['page'] = $page;
 
         foreach ($arrResults as $key => $arrResult) {
 
@@ -197,11 +190,6 @@ class NotificationsFactory
                 $arrAllMessages[$key]['notifications'] = $objNotifications;
             }
         }
-
-        echo $query;
-        print_r ($arrParameters);
-        echo '<pre>';
-        print_r ($arrAllMessages);
 
         return $arrAllMessages;
     }
