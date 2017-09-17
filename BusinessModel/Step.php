@@ -160,7 +160,6 @@ class Step
      */
     public function throwExceptionIfNotExistsStep ($stepUid)
     {
-        $step = new \Step();
 
         if ( $this->objMysql === null )
         {
