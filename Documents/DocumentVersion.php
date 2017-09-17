@@ -83,7 +83,7 @@ class DocumentVersion extends BaseDocumentVersion
      */
     public function retrieveByPK ($app_doc_uid, $doc_version)
     {
-        $result = $this->objMysql->_select ("task_manager.APP_DOCUMENT", [], ["id" => $app_doc_uid]);
+        $result = $this->objMysql->_select ("task_manager.APP_DOCUMENT", [], ["id" => $app_doc_uid "document_version" => $doc_version]);
 
         if ( !isset ($result[0]) || empty ($result[0]) )
         {
@@ -239,7 +239,7 @@ class DocumentVersion extends BaseDocumentVersion
                     $arrayDocumentsToDelete[] = array('sAppDocUid' => $sAppDocUid, 'iVersion' => $iVersion);
                 }
 
-                foreach ($arrayDocumentsToDelete as $key => $docToDelete) {
+                foreach ($arrayDocumentsToDelete as $docToDelete) {
                     $aFields = array('APP_DOC_UID' => $docToDelete['sAppDocUid'], 'DOC_VERSION' => $docToDelete['iVersion'], 'APP_DOC_STATUS' => 'DELETED');
                     $oAppDocument->update ($aFields);
                 }
