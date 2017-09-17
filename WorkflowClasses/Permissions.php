@@ -16,11 +16,11 @@ abstract class Permissions implements Persistent
      * 
      * @param type $stepId
      */
-    public function __construct (Task $objTask = NULL)
+    public function __construct (Task $objTask = null)
     {
         $this->objMysql = new Mysql2();
 
-        if ( $objTask !== NULL )
+        if ( $objTask !== null )
         {
             $this->stepId = $objTask->getStepId ();
         }
