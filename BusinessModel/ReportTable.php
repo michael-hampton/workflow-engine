@@ -439,7 +439,7 @@ class ReportTable
                     }
                     else
                     {
-                        $tableData->PRO_UID = $_POST['form']['PRO_UID'];
+                        $tableData->PRO_UID = $processUid;
                     }
 
                     $flagIsPmTable = $contentSchema['PRO_UID'] === '';
