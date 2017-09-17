@@ -882,7 +882,7 @@ class Elements
         $oAppDelay->update ($aData);
 
         $objTask = (new Task())->retrieveByPk ($nextTask);
-        $objUser = (new \BusinessModel\UsersFactory())->getUser ($_SESSION['user']['usrid']);
+        $objUser = (new \BusinessModel\UsersFactory())->getUser (2);
 
         (new BusinessModel\StepTrigger())->executeSendMail ($objUser, $objTask, "pauseCase");
     }
