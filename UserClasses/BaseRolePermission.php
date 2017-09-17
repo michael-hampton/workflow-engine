@@ -70,7 +70,19 @@ abstract class BaseRolePermission implements Persistent
     
     public function loadObject (array $arrData)
     {
-        ;
+        foreach ($arrData as $formField => $formValue) {
+            if ( isset ($this->arrayFieldDefinition[$formField]) )
+            {
+                $mutator = $this->arrayFieldDefinition[$formField]['mutator'];
+                if ( method_exists ($this, $mutator) && is_callable (array($this, $mutator)) )
+                {
+                    if ( isset ($this->arrayFieldDefinition[$formField]) && trim ($formValue) != "" )
+                    {
+                        call_user_func (array($this, $mutator), $formValue);
+                    }
+                }
+            }
+        }
     }
     
     public function validate ()
@@ -86,10 +98,10 @@ abstract class BaseRolePermission implements Persistent
         }
         
         if($errorCount > 0) {
-            return FALSE;
+            return false;
         }
         
-        return TRUE;
+        return true;
     }
 
 }
