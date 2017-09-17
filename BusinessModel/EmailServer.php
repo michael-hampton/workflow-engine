@@ -127,7 +127,7 @@ class EmailServer
             }
 
             //Verify data Test Connection
-            if ( isset ($_SERVER["SERVER_NAME"]) )
+            if (defined( SERVER_NAME ) )
             {
                 $arrayTestConnectionResult = $this->testConnection ($arrayFinalData);
 
