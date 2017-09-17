@@ -337,15 +337,15 @@ class UsersFactory
         }
     }
 
-   /**
-    * 
-    * @param array $arrayData
-    * @param \Users $objUser
-    * @param type $arrFiles
-    * @return type
-    * @throws \BusinessModel\Exception
-    */
-    public function create (array $arrayData, \Users $objUser, $arrFiles)
+    /**
+     * 
+     * @param array $arrayData
+     * @param \Users $objUser
+     * @param type $arrFiles
+     * @return type
+     * @throws \BusinessModel\Exception
+     */
+    public function create (array $arrayData, \Users $objUser, $arrFiles = array())
     {
         try {
             //Verify data
@@ -374,10 +374,10 @@ class UsersFactory
 
                 $userUid = $user->createUser ($arrayData, $arrayData["role_id"]);
 
-                if ( isset ($_FILES['upload']) && !empty ($_FILES['upload']['name']) )
+                if ( isset ($arrFiles['upload']) && !empty ($arrFiles['upload']['name']) )
                 {
 
-                    $this->uploadImage ($userUid, $_FILES);
+                    $this->uploadImage ($userUid, $arrFiles);
                 }
 
                 //User Properties
@@ -470,7 +470,7 @@ class UsersFactory
                         $passwordHistory = array("USR_PASSWORD_HISTORY" => serialize (array($password->hashPassword ($arrayData["password"]))));
                         $userProperty = new \UserProperties();
                         $aUserProperty = $userProperty->loadOrCreateIfNotExists ($userUid, $passwordHistory);
-                        
+
                         if ( isset ($this->aUserInfo["ROLE"][0]["role_name"]) && $this->aUserInfo["ROLE"][0]["role_name"] == "EASYFLOW_ADMIN" )
                         {
                             $arrayData["USR_LAST_UPDATE_DATE"] = date ("Y-m-d H:i:s");
@@ -478,7 +478,7 @@ class UsersFactory
                             $userProperty->update ($arrayData);
                         }
 
-                        $aHistory = unserialize ($aUserProperty->getUsrPasswordHistory());
+                        $aHistory = unserialize ($aUserProperty->getUsrPasswordHistory ());
 
                         if ( !is_array ($aHistory) )
                         {
@@ -509,14 +509,14 @@ class UsersFactory
                                 $sDescription = $sDescription . "\n" . "ID_PLEASE_CHANGE_PASSWORD_POLICY" . "";
                                 throw new \Exception ($sDescription);
                             }
-                            
+
                             //if ( count ($aHistory) >= PPP_PASSWORD_HISTORY )
                             //{
-                                //$sLastPassw = array_shift ($aHistory);
+                            //$sLastPassw = array_shift ($aHistory);
                             //}
-                            $aHistory[] = $password->hashPassword($arrayData["password"]);
+                            $aHistory[] = $password->hashPassword ($arrayData["password"]);
                         }
-                        
+
                         $arrayData["USR_LAST_UPDATE_DATE"] = date ("Y-m-d H:i:s");
                         $arrayData["USR_LOGGED_NEXT_TIME"] = $arrayData["USR_LOGGED_NEXT_TIME"];
                         $arrayData["USR_PASSWORD_HISTORY"] = serialize ($aHistory);
