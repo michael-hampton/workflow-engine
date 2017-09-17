@@ -177,11 +177,10 @@ class UsersFactory
 
     /**
      * Verify password
-     *
      * @param string $userPassword          Password
-     * @param string $fieldNameForException Field name for the exception
-     *
-     * return void Throw exception if password is invalid
+     * @param type $userPassword
+     * @throws \BusinessModel\Exception
+     * @throws Exception
      */
     public function throwExceptionIfPasswordIsInvalid ($userPassword)
     {
@@ -215,11 +214,11 @@ class UsersFactory
 
     /**
      * Validate the data if they are invalid (INSERT and UPDATE)
-     *
-     * @param string $userUid   Unique id of User
-     * @param array  $arrayData Data
-     *
-     * return void Throw exception if data has an invalid value
+     * @param type $userUid
+     * @param array $arrayData
+     * @throws \BusinessModel\Exception
+     * @throws Exception
+     * @throws \Exception
      */
     public function throwExceptionIfDataIsInvalid ($userUid, array $arrayData)
     {
@@ -338,14 +337,15 @@ class UsersFactory
         }
     }
 
-    /**
-     * Create User
-     *
-     * @param array $arrayData Data
-     *
-     * return array Return data of the new User created
-     */
-    public function create (array $arrayData)
+   /**
+    * 
+    * @param array $arrayData
+    * @param \Users $objUser
+    * @param type $arrFiles
+    * @return type
+    * @throws \BusinessModel\Exception
+    */
+    public function create (array $arrayData, \Users $objUser, $arrFiles)
     {
         try {
             //Verify data
@@ -411,12 +411,12 @@ class UsersFactory
 
     /**
      * Update User
-     *
      * @param string $userUid       Unique id of User
      * @param array  $arrayData     Data
-     * @param string $userUidLogged Unique id of User logged
-     *
-     * return array Return data of the User updated
+     * @param \Users $objUser
+     * @return boolean
+     * @throws \BusinessModel\Exception
+     * @throws \Exception
      */
     public function update ($userUid, array $arrayData, \Users $objUser)
     {
@@ -470,7 +470,7 @@ class UsersFactory
                         $passwordHistory = array("USR_PASSWORD_HISTORY" => serialize (array($password->hashPassword ($arrayData["password"]))));
                         $userProperty = new \UserProperties();
                         $aUserProperty = $userProperty->loadOrCreateIfNotExists ($userUid, $passwordHistory);
-
+                        
                         if ( isset ($this->aUserInfo["ROLE"][0]["role_name"]) && $this->aUserInfo["ROLE"][0]["role_name"] == "EASYFLOW_ADMIN" )
                         {
                             $arrayData["USR_LAST_UPDATE_DATE"] = date ("Y-m-d H:i:s");
@@ -478,7 +478,7 @@ class UsersFactory
                             $userProperty->update ($arrayData);
                         }
 
-                        $aHistory = unserialize ($passwordHistory['USR_PASSWORD_HISTORY']);
+                        $aHistory = unserialize ($aUserProperty->getUsrPasswordHistory());
 
                         if ( !is_array ($aHistory) )
                         {
@@ -487,7 +487,7 @@ class UsersFactory
 
                         if ( !defined ("PPP_PASSWORD_HISTORY") )
                         {
-                            define ("PPP_PASSWORD_HISTORY", 0);
+                            define ("PPP_PASSWORD_HISTORY", 1);
                         }
 
                         if ( PPP_PASSWORD_HISTORY > 0 )
@@ -496,7 +496,7 @@ class UsersFactory
                             $c = 0;
                             $sw = 1;
                             while (count ($aHistory) >= 1 && count ($aHistory) > $c && $sw) {
-                                if ( strcmp (trim ($aHistory[$c]), trim ($arrayData['USR_PASSWORD'])) == 0 )
+                                if ( strcmp (trim ($aHistory[$c]), trim ($arrayData['password'])) == 0 )
                                 {
                                     $sw = 0;
                                 }
@@ -509,13 +509,14 @@ class UsersFactory
                                 $sDescription = $sDescription . "\n" . "ID_PLEASE_CHANGE_PASSWORD_POLICY" . "";
                                 throw new \Exception ($sDescription);
                             }
-
-                            if ( count ($aHistory) >= PPP_PASSWORD_HISTORY )
-                            {
-                                $sLastPassw = array_shift ($aHistory);
-                            }
-                            $aHistory[] = $arrayData["USR_PASSWORD"];
+                            
+                            //if ( count ($aHistory) >= PPP_PASSWORD_HISTORY )
+                            //{
+                                //$sLastPassw = array_shift ($aHistory);
+                            //}
+                            $aHistory[] = $password->hashPassword($arrayData["password"]);
                         }
+                        
                         $arrayData["USR_LAST_UPDATE_DATE"] = date ("Y-m-d H:i:s");
                         $arrayData["USR_LOGGED_NEXT_TIME"] = $arrayData["USR_LOGGED_NEXT_TIME"];
                         $arrayData["USR_PASSWORD_HISTORY"] = serialize ($aHistory);

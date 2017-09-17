@@ -186,7 +186,6 @@ class SendNotification
         $htmlContent = '';
 
         try {
-            $system = "accept";
 
             if ( $system === "task_manager" )
             {
@@ -305,7 +304,7 @@ class SendNotification
             $this->abeRequest['ABE_REQ_UID'] = '';
             $this->abeRequest['APP_UID'] = $this->projectId;
             $this->abeRequest['DEL_INDEX'] = $this->taskId;
-            $this->abeRequest['ABE_REQ_SENT_TO'] = $this->recipient;
+            $this->abeRequest['ABE_REQ_SENT_TO'] = trim ($this->recipient) !== "" ? $this->recipient : "bluetiger_uan@yahoo.com";
             $this->abeRequest['ABE_REQ_SUBJECT'] = $this->subject;
             $this->abeRequest['ABE_REQ_BODY'] = '';
             $this->abeRequest['ABE_REQ_ANSWERED'] = 0;
@@ -397,7 +396,7 @@ class SendNotification
                     }
             }
 
-            return $html;
+            return isset ($html) ? $html : false;
         } catch (Exception $ex) {
             
         }

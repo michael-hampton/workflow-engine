@@ -339,6 +339,67 @@ class CalendarDefinition extends BaseCalendarDefinition
         }
     }
 
+    public function getCalendarFor ($userUid, $proUid, $tasUid, $sw_validate = true)
+    {
+        //Default Calendar
+        $calendarUid = "00000000000000000000000000000001";
+        $calendarOwner = "DEFAULT";
+        //Load User,Task and Process calendars (if exist)
+
+        $sql = "SELECT CALENDAR_UID, USER_UID, OBJECT_TYPE FROM calendar.calendar_assignees WHERE USER_UID IN (" . implode (",", array($userUid, $proUid, $tasUid)) . ")";
+        $results = $this->objMysql->_query ($sql);
+        
+        if ( !isset ($results[0]) || empty ($results[0]) )
+        {
+            return false;
+        }
+
+        $calendarArray = array();
+
+        foreach ($results as $aRow) {
+            if ( $aRow['USER_UID'] == $userUid )
+            {
+                $calendarArray['USER'] = $aRow['CALENDAR_UID'];
+            }
+            if ( $aRow['USER_UID'] == $proUid )
+            {
+                $calendarArray['PROCESS'] = $aRow['CALENDAR_UID'];
+            }
+            if ( $aRow['USER_UID'] == $tasUid )
+            {
+                $calendarArray['TASK'] = $aRow['CALENDAR_UID'];
+            }
+        }
+
+        if ( isset ($calendarArray['USER']) )
+        {
+            $calendarUid = $calendarArray['USER'];
+            $calendarOwner = "USER";
+        }
+        elseif ( isset ($calendarArray['PROCESS']) )
+        {
+            $calendarUid = $calendarArray['PROCESS'];
+            $calendarOwner = "PROCESS";
+        }
+        elseif ( isset ($calendarArray['TASK']) )
+        {
+            $calendarUid = $calendarArray['TASK'];
+            $calendarOwner = "TASK";
+        }
+        //print "<h1>$calendarUid</h1>";
+        if ( $sw_validate )
+        {
+            $calendarDefinition = $this->getCalendarInfo ($calendarUid);
+        }
+        else
+        {
+            $calendarDefinition = $this->getCalendarInfoE ($calendarUid);
+        }
+        $calendarDefinition['CALENDAR_APPLIED'] = $calendarOwner;
+
+        return $calendarDefinition;
+    }
+
     public function assignCalendarTo ($objectUid, $calendarUid, $objectType)
     {
         $objCalendarAssignment = new CalendarAssignment();
