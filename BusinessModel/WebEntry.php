@@ -79,13 +79,19 @@ class WebEntry
     public function existsTitle ($webEntryTitle, $webEntryUidExclude = "")
     {
         try {
+            $arrWhere = [];
+            
             $sql = "SELECT WE_UID FROM web_entry WHERE PRO_UID = ?";
             if ( $webEntryUidExclude != "" )
             {
                 $sql .= " AND WE_UID != ?";
+                $arrWhere[] = $webEntryUidExclude;
             }
             $sql .= " AND WE_TITLE = ?";
-            $results = $this->objMysql->_query ($sql);
+            $arrWhere[] = $webEntryTitle;
+            
+            $results = $this->objMysql->_query ($sql, $arrWhere);
+           
             if ( isset ($results[0]) && !empty ($results[0]) )
             {
                 return true;
