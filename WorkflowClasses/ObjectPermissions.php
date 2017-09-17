@@ -51,24 +51,20 @@ class ObjectPermissions extends Permissions
 
     public function update ($aFields)
     {
-        $oConnection = Propel::getConnection (ObjectPermissionPeer::DATABASE_NAME);
         try {
-            $oConnection->begin ();
-            $this->load ($aFields['OP_UID']);
-            $this->fromArray ($aFields, BasePeer::TYPE_FIELDNAME);
+            $this->loadObject ($aFields);
+            
             if ( $this->validate () )
             {
                 $iResult = $this->save ();
-                $oConnection->commit ();
+        
                 return $iResult;
             }
             else
             {
-                $oConnection->rollback ();
                 throw (new Exception ('Failed Validation in class ' . get_class ($this) . '.'));
             }
         } catch (Exception $e) {
-            $oConnection->rollback ();
             throw ($e);
         }
     }
@@ -89,7 +85,7 @@ class ObjectPermissions extends Permissions
 
             $arrWhere = array("permission_type" => $permissionType, "permission" => $permission);
 
-            if ( $stepId !== NULL )
+            if ( $stepId !== null )
             {
                 $arrWhere['step_id'] = $stepId;
             }
