@@ -684,10 +684,13 @@ class EmailFunctions
         {
             $errors = $spool->getValidationFailures ();
             $this->status = 'error';
+            $errorMsg = '';
 
             foreach ($errors as $key => $value) {
-                echo "Validation error - " . $value->getMessage ($key) . "\n";
+                $errorMsg .= "Validation error - " . $value->getMessage ($key) . "\n";
             }
+            
+            throw new Exception($errorMsg);
         }
         else
         {
