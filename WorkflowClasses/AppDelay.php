@@ -16,7 +16,7 @@ class AppDelay extends BaseAppDelay
 
     private $objMysql;
 
-    public function __construct ($id = null)
+    public function __construct ()
     {
         parent::__construct ();
         $this->objMysql = new Mysql2();
@@ -124,7 +124,7 @@ class AppDelay extends BaseAppDelay
         }
     }
 
-    public function isPaused ($appUid, $delIndex)
+    public function isPaused ($appUid)
     {
 
         $sql = "SELECT * FROM APP_DELAY WHERE APP_UID = ? AND (APP_DISABLE_ACTION_USER = 0 or ISNULL(APP_DISABLE_ACTION_USER))";
