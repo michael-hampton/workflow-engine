@@ -82,7 +82,7 @@ class NET
             if (! $this->hostname = @gethostbyaddr( $ipHost )) {
                 $this->errno = 2000;
                 $this->errstr = "NET::Host down";
-                $this->error = G::loadTranslation('ID_HOST_UNREACHABLE');
+                $this->error = 'ID_HOST_UNREACHABLE';
             }
         } else {
             $ip = @gethostbyname( $ipHost );
@@ -107,11 +107,11 @@ class NET
     public function scannPort ($pPort)
     {
         define( 'TIMEOUT', 5 );
-        $hostip = @gethostbyname( $host ); // resloves IP from Hostname returns hostname on failure
+        //$hostip = @gethostbyname( $host ); // resloves IP from Hostname returns hostname on failure
         // attempt to connect
         if (@fsockopen( $this->ip, $pPort, $this->errno, $this->errstr, TIMEOUT )) {
             return true;
-            @fclose( $x ); //close connection (i dont know if this is needed or not).
+            //@fclose( $x ); //close connection (i dont know if this is needed or not).
         } else {
             $this->errno = 9999;
             $this->errstr = "NET::Port Host Unreachable";
@@ -155,7 +155,7 @@ class NET
     public function ping ($pTTL = 3000)
     {
         $cmd = "ping -w $pTTL $this->ip";
-        $output = exec( $cmd, $a, $a1 );
+        //$output = exec( $cmd, $a, $a1 );
         $this->errstr = "";
         for ($i = 0; $i < count( $a ); $i ++) {
             $this->errstr += $a[$i];
@@ -199,7 +199,6 @@ class NET
      */
     public function tryConnectServer($pDbDriver, array $arrayServerData = array(), $dbsEncode = "")
     {
-        G::LoadSystem('inputfilter');
         $filter = new InputFilter();
         $this->ip = $filter->validateInput($this->ip);
         $this->db_port = $filter->validateInput($this->db_port,'int');
@@ -466,7 +465,7 @@ class NET
      * @param string $driver
      * @return void
      */
-    public function getDbServerVersion ($driver)
+    /*public function getDbServerVersion ($driver)
     {
         if (! isset( $this->ip )) {
             $this->ip = getenv( 'HTTP_CLIENT_IP' );
@@ -491,7 +490,7 @@ class NET
         } else {
             throw new Exception( 'NET::Error->No params for Data Base Server!' );
         }
-    }
+    }*/
 
     /**
      * This function reurns DB name
