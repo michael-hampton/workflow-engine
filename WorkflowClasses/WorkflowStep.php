@@ -384,7 +384,7 @@ class WorkflowStep
         return false;
     }
 
-    private function validateParallelUsers (Users $objUser, Task $objTask, $isParallel = false)
+    private function saveParallelUsers (Users $objUser, Task $objTask, $isParallel = false)
     {
         if ( $isParallel === true && !isset ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers']) )
         {
@@ -605,14 +605,14 @@ class WorkflowStep
         /*         * ************** Determine next step if there is one else stay at current step ********************** */
         $blHasTrigger = false;
         $objTrigger = new \BusinessModel\StepTrigger ($this->_workflowStepId, $this->nextStep);
-       
+
         if ( !isset ($arrCompleteData['status']) || trim ($arrCompleteData['status']) !== "REJECT" )
         {
             $blHasTrigger = $objTrigger->checkTriggers ($this, $objMike, $objUser);
         }
-        
+
         $blWorkflowComplete = false;
-        
+
         if ( $complete === true && $this->nextStep !== 0 && $this->nextStep != "" )
         {
             $openThreads = $objAppThread->GetOpenThreads ($objMike);
@@ -655,7 +655,6 @@ class WorkflowStep
             {
                 $blWorkflowComplete = true;
                 $arrCompleteData['status'] = !isset ($arrCompleteData['status']) ? "WORKFLOW COMPLETE" : $arrCompleteData['status'];
-                                                
             }
             else
             {
@@ -686,7 +685,7 @@ class WorkflowStep
                 {
                     $this->objAudit = json_decode ($arrData[0]['audit_data'], true);
                 }
-                $this->validateParallelUsers ($objUser, $objTask, $blIsParralelTask);
+                $this->saveParallelUsers ($objUser, $objTask, $blIsParralelTask);
                 $strAudit = json_encode ($this->objAudit);
                 $this->objMysql->_update ("workflow.workflow_data", ["audit_data" => $strAudit], ["id" => $arrData[0]['id']]);
             }
@@ -719,14 +718,7 @@ class WorkflowStep
                 $objProcess = (new Workflow ($this->workflowId))->load ($this->workflowId);
                 switch ($taskType) {
                     case "PARALLEL":
-                        $blTaskUsersCompleted = 0;
-                        foreach ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers'] as $parallelUser) {
-                            if ( isset ($parallelUser['dateCompleted']) && trim ($parallelUser['dateCompleted']) !== "" )
-                            {
-                                $blTaskUsersCompleted++;
-                            }
-                        }
-                        if ( count ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers']) !== $blTaskUsersCompleted )
+                        if ( $this->validateParallelUsers () === false )
                         {
                             $step2 = $this->_workflowStepId;
                             $objTask->setStepId ($this->_workflowStepId);
@@ -808,48 +800,53 @@ class WorkflowStep
             $arrCompleteData['status'] = "COMPLETE";
             $status = "WORKFLOW COMPLETE";
         }
-        /*         * ****************** Validate User ****************** */
-        if ( isset ($arrCompleteData['status']) && trim ($arrCompleteData['status']) === "CLAIMED" )
+
+        $this->doDerivation ($arrCompleteData, $objMike, $objUser, $objTask, $status, $step, $arrEmailAddresses);
+    }
+
+    private function doDerivation ($arrCompleteData, $objMike, Users $objUser, Task $objTask, $status, $step, $arrEmailAddresses)
+    {
+        $auditStatus = isset ($arrCompleteData['status']) ? $arrCompleteData['status'] : '';
+        $objAppThread = new AppThread();
+        $objAppDelegation = new AppDelegation();
+
+        // create app delegation
+        $objAppDelegation->createAppDelegation ($this, $objMike, $objUser, $objTask, $this->_stepId, 3, false, $auditStatus);
+
+        // create app thread
+
+        $blWorkflowComplete = $status === "WORKFLOW COMPLETE" ? true : false;
+
+        if ( $blWorkflowComplete === false )
         {
-            $claimFlag = true;
+            $objAppThread->createAppThread ($this, $objMike, $objUser, $objTask, $this->_stepId, $status);
         }
         else
         {
-            $claimFlag = false;
+            $objAppThread->closeAppThread ($objMike, true);
         }
-        // check permissions
-//        $objCase = new \BusinessModel\Cases();
-//        $isValidUser = $objCase->doPostReassign (
-//                $objTask, array(
-//            "cases" => array(
-//                0 => array(
-//                    "elementId" => $this->elementId,
-//                    "parentId" => $this->parentId,
-//                    "user" => $objUser
-//                )
-//            )
-//                ), $claimFlag
-//        );
-//        if ( $isValidUser === false )
-//        {
-//            throw new Exception ("Invalid user given. Cannot complete workflow step " . $step . " - " . $this->workflowId);
-//        }
-        $auditStatus = isset ($arrCompleteData['status']) ? $arrCompleteData['status'] : '';
 
-        // create app delegation
-        (new AppDelegation())->createAppDelegation ($this, $objMike, $objUser, $objTask, $this->_stepId, 3, false, $auditStatus);
-
-        // create app thread
-        
-        if($blWorkflowComplete === false) {
-            $objAppThread->createAppThread ($this, $objMike, $objUser, $objTask, $this->_stepId, $status);
-        } else {
-            $objAppThread->closeAppThread($objMike, true);
-        }
-        
         // send notifications
         $this->sendNotification ($objUser, $arrEmailAddresses);
         $this->nextTask = $step;
+    }
+
+    private function validateParallelUsers ()
+    {
+        $blTaskUsersCompleted = 0;
+
+        foreach ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers'] as $parallelUser) {
+            if ( isset ($parallelUser['dateCompleted']) && trim ($parallelUser['dateCompleted']) !== "" )
+            {
+                $blTaskUsersCompleted++;
+            }
+        }
+        if ( count ($this->objAudit['elements'][$this->elementId]['steps'][$this->_workflowStepId]['parallelUsers']) !== $blTaskUsersCompleted )
+        {
+            return false;
+        }
+
+        return true;
     }
 
     public function complete ($objMike, $arrCompleteData, Users $objUser, $arrEmailAddresses = array())
