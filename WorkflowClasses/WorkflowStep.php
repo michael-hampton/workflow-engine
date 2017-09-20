@@ -810,8 +810,19 @@ class WorkflowStep
         $objAppThread = new AppThread();
         $objAppDelegation = new AppDelegation();
 
+        if ( is_numeric ($arrCompleteData['DEL_PRIORITY']) )
+        {
+
+            $arrCompleteData['DEL_PRIORITY'] = (isset ($arrCompleteData['DEL_PRIORITY']) ? ($arrCompleteData['DEL_PRIORITY'] >= 1 && $arrCompleteData['DEL_PRIORITY'] <= 5 ? $arrCompleteData['DEL_PRIORITY'] : '3') : '3');
+        }
+        else
+        {
+
+            $arrCompleteData['DEL_PRIORITY'] = 3;
+        }
+
         // create app delegation
-        $objAppDelegation->createAppDelegation ($this, $objMike, $objUser, $objTask, $this->_stepId, 3, false, $auditStatus);
+        $objAppDelegation->createAppDelegation ($this, $objMike, $objUser, $objTask, $this->_stepId, $arrCompleteData['DEL_PRIORITY'], false, $auditStatus);
 
         // create app thread
 
