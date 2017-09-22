@@ -74,13 +74,21 @@ class BaseDocumentVersion implements Persistent
      * @var        string
      */
     protected $app_doc_tags;
+    
+     /**
+     * The value for the del_index field.
+     * @var        int
+     */
+    protected $del_index = 0;
 
     /**
      * The value for the app_doc_create_date field.
      * @var        int
      */
     protected $app_doc_create_date;
+    
     private $objMysql;
+    
     public $arrFieldMapping = array(
         "APP_DOC_UID" => array("mutator" => "setAppDocUid", "accessor" => "getAppDocUid", "type" => "date", "required" => "true"),
         "DOC_VERSION" => array("mutator" => "setDocVersion", "accessor" => "getDocVersion", "type" => "date", "required" => "true"),
@@ -207,6 +215,16 @@ class BaseDocumentVersion implements Persistent
     public function getAppDocStatus ()
     {
         return $this->app_doc_status;
+    }
+        
+    /**
+     * Get the [del_index] column value.
+     * 
+     * @return     int
+     */
+    public function getDelIndex()
+    {
+        return $this->del_index;
     }
 
     /**
@@ -507,6 +525,24 @@ class BaseDocumentVersion implements Persistent
             $this->app_doc_tags = $v;
         }
     } 
+    
+     /**
+     * Set the value of [del_index] column.
+     * 
+     * @param      int $v new value
+     * @return     void
+     */
+    public function setDelIndex($v)
+    {
+        // Since the native PHP type for this column is integer,
+        // we will cast the input value to an int (if it is not).
+        if ($v !== null && !is_int($v) && is_numeric($v)) {
+            $v = (int) $v;
+        }
+        if ($this->del_index !== $v || $v === 0) {
+            $this->del_index = $v;
+        }
+    }
 
     /**
      * Stores the object in the database.  If the object is new,
