@@ -439,7 +439,7 @@ abstract class BaseLoginLog implements Persistent
         }
         
         try {
-            $this->objMysql->_insert("LOGIN_LOG",
+            $this->objMysql->_insert("user_management.LOGIN_LOG",
                                      [       
                                           'LOG_UID' => $this->log_uid,
                                           'LOG_STATUS' => $this->log_status,
