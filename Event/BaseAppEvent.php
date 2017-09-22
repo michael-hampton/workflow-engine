@@ -63,6 +63,8 @@ abstract class BaseAppEvent extends BaseObject implements Persistent
      * @var        boolean
      */
     protected $alreadyInSave = false;
+    
+    protected $id;
     /**
      * Flag to prevent endless validation loop, if this object is referenced
      * by another object which falls in this transaction.
