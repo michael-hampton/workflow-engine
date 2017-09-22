@@ -330,6 +330,11 @@ abstract class BaseAppEvent extends BaseObject implements Persistent
             throw $e;
         }
     }
+    
+    private function getConnection() {
+        $this->objMysql = new MySql2();
+    }
+    
     /**
      * Stores the object in the database.  If the object is new,
      * it inserts it; otherwise an update is performed.  This method
@@ -340,10 +345,21 @@ abstract class BaseAppEvent extends BaseObject implements Persistent
      */
     public function save()
     {
+        if($this->objMysql === null) {
+            $this->getConnection();
+        }
         
         try {
-            
-          
+            $this->objMysql->_insert("workflow.APP_EVENT",
+                  ['APP_UID' => $this->app_uid,
+                   'DEL_INDEX' => $this->del_index,
+                   'EVN_UID' => $this->evn_uid,
+                   'APP_EVN_ACTION_DATE' => $this->app_evn_action_date, 
+                   'APP_EVN_ATTEMPTS' => $this->app_evn_attempts,
+                   'APP_EVN_LAST_EXECUTION_DATE' => $this->app_evn_last_execution_date,
+                   'APP_EVN_STATUS' => $this->app_evn_status,
+                   ]
+                  );
             
           
         } catch (Exception $e) {
