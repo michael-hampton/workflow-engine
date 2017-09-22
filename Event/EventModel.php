@@ -169,5 +169,73 @@ class EventModel extends BaseEvent
             throw ($oError);
         }
     }
+    
+        public function closeAppEvents ($PRO_UID, $APP_UID, $DEL_INDEX, $TAS_UID)
+    {
+        $aAppEvents = $this->getAppEvents( $APP_UID, $DEL_INDEX );
+        if ($aAppEvents) {
+            foreach ($aAppEvents as $aRow) {
+                if ($aRow['EVN_RELATED_TO'] == 'SINGLE' || ($aRow['EVN_RELATED_TO'] == $TAS_UID)) {
+                    $oAppEvent = AppEventPeer::retrieveByPK( $aRow['APP_UID'], $aRow['DEL_INDEX'], $aRow['EVN_UID'] );
+                    $oAppEvent->setAppEvnLastExecutionDate( date( 'Y-m-d H:i:s' ) );
+                    $oAppEvent->setAppEvnStatus( 'CLOSE' );
+                    $oAppEvent->save();
+                }
+            }
+        }
+    }
+    public function createAppEvents ($PRO_UID, $APP_UID, $DEL_INDEX, $TAS_UID)
+    {
+        $aRows = array ();
+        $aEventsRows = $this->getBy( $PRO_UID, $TAS_UID );
+        if ($aEventsRows !== false) {
+            $aRows = array_merge( $aRows, $aEventsRows );
+        }
+        foreach ($aRows as $aData) {
+            // if the events has a condition
+            if (trim( $aData['EVN_CONDITIONS'] ) != '') {
+                G::LoadClass( 'case' );
+                $oCase = new Cases();
+                $aFields = $oCase->loadCase( $APP_UID );
+                $Fields = $aFields['APP_DATA'];
+                $conditionContents = trim( $aData['EVN_CONDITIONS'] );
+                //$sContent    = G::unhtmlentities($sContent);
+                $iAux = 0;
+                $iOcurrences = preg_match_all( '/\@(?:([\>])([a-zA-Z\_]\w*)|([a-zA-Z\_][\w\-\>\:]*)\(((?:[^\\\\\)]*(?:[\\\\][\w\W])?)*)\))((?:\s*\[[\'"]?\w+[\'"]?\])+)?/', $conditionContents, $aMatch, PREG_PATTERN_ORDER | PREG_OFFSET_CAPTURE );
+                if ($iOcurrences) {
+                    for ($i = 0; $i < $iOcurrences; $i ++) {
+                        preg_match_all( '/@>' . $aMatch[2][$i][0] . '([\w\W]*)' . '@<' . $aMatch[2][$i][0] . '/', $conditionContents, $aMatch2, PREG_PATTERN_ORDER | PREG_OFFSET_CAPTURE );
+                        $sGridName = $aMatch[2][$i][0];
+                        $sStringToRepeat = $aMatch2[1][0][0];
+                        if (isset( $Fields[$sGridName] )) {
+                            if (is_array( $Fields[$sGridName] )) {
+                                $sAux = '';
+                                foreach ($Fields[$sGridName] as $aRow) {
+                                    $sAux .= G::replaceDataField( $sStringToRepeat, $aRow );
+                                }
+                            }
+                        }
+                        $conditionContents = str_replace( '@>' . $sGridName . $sStringToRepeat . '@<' . $sGridName, $sAux, $conditionContents );
+                    }
+                }
+                $sCondition = G::replaceDataField( $conditionContents, $Fields );
+                $evalConditionResult = false;
+                $sCond = 'try{ $evalConditionResult=(' . $sCondition . ')? true: false; } catch(Exception $e){$evalConditionResult=false;}';
+                @eval( $sCond );
+                if (! $evalConditionResult) {
+                    continue;
+                }
+            }
+            $appEventData['APP_UID'] = $APP_UID;
+            $appEventData['DEL_INDEX'] = $DEL_INDEX;
+            $appEventData['EVN_UID'] = $aData['EVN_UID'];
+            $appEventData['APP_EVN_ACTION_DATE'] = $this->toCalculateTime( $aData );
+            $appEventData['APP_EVN_ATTEMPTS'] = 3;
+            $appEventData['APP_EVN_LAST_EXECUTION_DATE'] = null;
+            $appEventData['APP_EVN_STATUS'] = 'OPEN';
+            $oAppEvent = new AppEvent();
+            $oAppEvent->create( $appEventData );
+        }
+    }
 
 }
