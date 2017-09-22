@@ -361,6 +361,17 @@ abstract class BaseAppEvent extends BaseObject implements Persistent
                    ]
                   );
             
+                 $this->objMysql->_update("workflow.APP_EVENT",
+                  ['APP_UID' => $this->app_uid,
+                   'DEL_INDEX' => $this->del_index,
+                   'EVN_UID' => $this->evn_uid,
+                   'APP_EVN_ACTION_DATE' => $this->app_evn_action_date, 
+                   'APP_EVN_ATTEMPTS' => $this->app_evn_attempts,
+                   'APP_EVN_LAST_EXECUTION_DATE' => $this->app_evn_last_execution_date,
+                   'APP_EVN_STATUS' => $this->app_evn_status,
+                   ], []
+                  );
+            
           
         } catch (Exception $e) {
            
