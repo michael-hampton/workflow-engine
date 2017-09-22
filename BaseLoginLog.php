@@ -274,7 +274,6 @@ abstract class BaseLoginLog implements Persistent
      */
     public function setLogIp ($v)
     {
-
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
         if ( $v !== null && !is_string ($v) )
@@ -296,7 +295,6 @@ abstract class BaseLoginLog implements Persistent
      */
     public function setLogSid ($v)
     {
-
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
         if ( $v !== null && !is_string ($v) )
@@ -318,7 +316,6 @@ abstract class BaseLoginLog implements Persistent
      */
     public function setLogInitDate ($v)
     {
-
         if ( $v !== null && !is_int ($v) )
         {
             $ts = strtotime ($v);
@@ -350,7 +347,6 @@ abstract class BaseLoginLog implements Persistent
      */
     public function setLogEndDate ($v)
     {
-
         if ( $v !== null && !is_int ($v) )
         {
             $ts = strtotime ($v);
@@ -382,7 +378,6 @@ abstract class BaseLoginLog implements Persistent
      */
     public function setLogClientHostname ($v)
     {
-
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
         if ( $v !== null && !is_string ($v) )
@@ -394,7 +389,8 @@ abstract class BaseLoginLog implements Persistent
         {
             $this->log_client_hostname = $v;
         }
-    }
+        
+            }
 
     /**
      * Set the value of [usr_uid] column.
@@ -404,7 +400,6 @@ abstract class BaseLoginLog implements Persistent
      */
     public function setUsrUid ($v)
     {
-
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
         if ( $v !== null && !is_string ($v) )
@@ -424,7 +419,6 @@ abstract class BaseLoginLog implements Persistent
      */
     public function delete ()
     {
-
         try {
         } catch (Exception $e) {
             throw $e;
@@ -440,11 +434,27 @@ abstract class BaseLoginLog implements Persistent
      */
     public function save ()
     {
-
-        try {
-        } catch (Exception $e) {
-            throw $e;
+        if($this->objMysql === null) {
+            $this->getConnection();
         }
+        
+        try {
+            $this->objMysql->_insert("LOGIN_LOG",
+                                     [       
+                                          'LOG_UID' => $this->log_uid,
+                                          'LOG_STATUS' => $this->log_status,
+                                          'LOG_IP' => $this->log_ip,
+                                          'LOG_SID' => $this->log_sid,
+                                          'LOG_INIT_DATE' => $this->log_init_date,
+                                          'LOG_END_DATE' => $this->log_end_date,
+                                          'LOG_CLIENT_HOSTNAME' => $this->log_client->hostname, 
+                                          'USR_UID' => $this->usr_uid
+
+                                      ]
+                                    );
+    } catch (Exception $e) {
+        throw $e;
+    }
     }
 
     /**
