@@ -56,6 +56,24 @@ class BaseDocumentVersion implements Persistent
      * @var        string
      */
     protected $folder_uid = '';
+    
+     /**
+     * The value for the app_doc_title field.
+     * @var        string
+     */
+    protected $app_doc_title;
+   
+    /**
+     * The value for the app_doc_comment field.
+     * @var        string
+     */
+    protected $app_doc_comment;
+   
+    /**
+     * The value for the app_doc_tags field.
+     * @var        string
+     */
+    protected $app_doc_tags;
 
     /**
      * The value for the app_doc_create_date field.
@@ -129,6 +147,26 @@ class BaseDocumentVersion implements Persistent
 
         return $this->usr_uid;
     }
+      
+    /**
+     * Get the [app_doc_title] column value.
+     * 
+     * @return     string
+     */
+    public function getAppDocTitle()
+    {
+        return $this->app_doc_title;
+    }
+    
+    /**
+     * Get the [app_doc_comment] column value.
+     * 
+     * @return     string
+     */
+    public function getAppDocComment()
+    {
+        return $this->app_doc_comment;
+    }
 
     /**
      * Get the [app_doc_type] column value.
@@ -139,6 +177,16 @@ class BaseDocumentVersion implements Persistent
     {
 
         return $this->app_doc_type;
+    }
+    
+     /**
+     * Get the [app_doc_tags] column value.
+     * 
+     * @return     string
+     */
+    public function getAppDocTags()
+    {
+        return $this->app_doc_tags;
     }
 
     /**
@@ -193,8 +241,6 @@ class BaseDocumentVersion implements Persistent
         }
     }
 
-// setAppDoc
-
     /**
      * Set the value of [app_doc_filename] column.
      *
@@ -216,8 +262,6 @@ class BaseDocumentVersion implements Persistent
             $this->app_doc_filename = $v;
         }
     }
-
-// setAppDocFilename()
 
     /**
      * Set the value of [doc_version] column.
@@ -241,8 +285,6 @@ class BaseDocumentVersion implements Persistent
         }
     }
 
-// setDocVersion()
-
     /**
      * Set the value of [doc_uid] column.
      *
@@ -265,8 +307,6 @@ class BaseDocumentVersion implements Persistent
         }
     }
 
-// setDocUid()
-
     /**
      * Set the value of [usr_uid] column.
      *
@@ -288,8 +328,6 @@ class BaseDocumentVersion implements Persistent
             $this->usr_uid = $v;
         }
     }
-
-// setUsrUid()
 
     /**
      * Set the value of [app_doc_type] column.
@@ -378,8 +416,6 @@ class BaseDocumentVersion implements Persistent
         return $this->app_doc_create_date;
     }
 
-// setAppDocType()
-
     /**
      * Set the value of [app_doc_create_date] column.
      *
@@ -414,6 +450,63 @@ class BaseDocumentVersion implements Persistent
             $this->app_doc_create_date = $ts;
         }
     }
+    
+     /**
+     * Set the value of [app_doc_title] column.
+     * 
+     * @param      string $v new value
+     * @return     void
+     */
+    public function setAppDocTitle($v)
+    {
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ($v !== null && !is_string($v)) {
+            $v = (string) $v;
+        }
+        
+        if ($this->app_doc_title !== $v) {
+            $this->app_doc_title = $v;
+        }
+    }
+    
+    /**
+     * Set the value of [app_doc_comment] column.
+     * 
+     * @param      string $v new value
+     * @return     void
+     */
+    public function setAppDocComment($v)
+    {
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ($v !== null && !is_string($v)) {
+            $v = (string) $v;
+        }
+        
+        if ($this->app_doc_comment !== $v) {
+            $this->app_doc_comment = $v;
+        }
+    } 
+    
+     /**
+     * Set the value of [app_doc_tags] column.
+     * 
+     * @param      string $v new value
+     * @return     void
+     */
+    public function setAppDocTags($v)
+    {
+        // Since the native PHP type for this column is string,
+        // we will cast the input to a string (if it is not).
+        if ($v !== null && !is_string($v)) {
+            $v = (string) $v;
+        }
+        
+        if ($this->app_doc_tags !== $v) {
+            $this->app_doc_tags = $v;
+        }
+    } 
 
     /**
      * Stores the object in the database.  If the object is new,
