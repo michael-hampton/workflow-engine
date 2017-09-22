@@ -71,6 +71,12 @@ abstract class BaseLoginLog implements Persistent
      * @var        boolean
      */
     protected $alreadyInValidation = false;
+    
+    private $objMysql;
+    
+    private function getConnection() {
+        $this->objMysql = new MySql2();
+    }
 
     /**
      * Get the [log_uid] column value.
