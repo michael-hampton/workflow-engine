@@ -900,5 +900,37 @@ class UsersFactory
             throw $e;
         }
     }
+    
+    
 
+    /**
+     * AuditLog
+     *
+     * @param string $option    Option
+     * @param array  $arrayData Data
+     *
+     * @return void
+     */
+    public function auditLog($option, array $arrayData)
+    {
+        try {
+            $firstName = (array_key_exists('USR_FIRSTNAME', $arrayData))? ' - First Name: ' . $arrayData['USR_FIRSTNAME'] : '';
+            $lastName = (array_key_exists('USR_LASTNAME', $arrayData))? ' - Last Name: ' . $arrayData['USR_LASTNAME'] : '';
+            $email = (array_key_exists('USR_EMAIL', $arrayData))? ' - Email: ' . $arrayData['USR_EMAIL'] : '';
+            $dueDate = (array_key_exists('USR_DUE_DATE', $arrayData))? ' - Due Date: ' . $arrayData['USR_DUE_DATE'] : '';
+            $status = (array_key_exists('USR_STATUS', $arrayData))? ' - Status: ' . $arrayData['USR_STATUS'] : '';
+            $address = (array_key_exists('USR_ADDRESS', $arrayData))? ' - Address: ' . $arrayData['USR_ADDRESS'] : '';
+            $phone = (array_key_exists('USR_PHONE', $arrayData))? ' - Phone: ' . $arrayData['USR_PHONE'] : '';
+            $zipCode = (array_key_exists('USR_ZIP_CODE', $arrayData))? ' - Zip Code: ' . $arrayData['USR_ZIP_CODE'] : '';
+            $position = (array_key_exists('USR_POSITION', $arrayData))? ' - Position: ' . $arrayData['USR_POSITION'] : '';
+            $role = (array_key_exists('USR_ROLE', $arrayData))? ' - Role: ' . $arrayData['USR_ROLE'] : '';
+            $languageDef = (array_key_exists('USR_DEFAULT_LANG', $arrayData))? ' - Default Language: ' . $arrayData['USR_DEFAULT_LANG'] : '';
+            $timeZone = (array_key_exists('USR_TIME_ZONE', $arrayData))? ' - Time Zone: ' . $arrayData['USR_TIME_ZONE'] : '';
+            $str = 'User Name: ' . $arrayData['USR_USERNAME'] . ' - User ID: (' . $arrayData['USR_UID'] . ')' .
+                $firstName . $lastName . $email . $dueDate . $status . $address . $phone . $zipCode . $position . $role . $timeZone . $languageDef;
+            \G::auditLog(($option == 'INS')? 'CreateUser' : 'UpdateUser', $str);
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
 }
