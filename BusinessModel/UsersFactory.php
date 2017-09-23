@@ -908,27 +908,29 @@ class UsersFactory
      *
      * @param string $option    Option
      * @param array  $arrayData Data
-     *
+     *o
      * @return void
      */
     public function auditLog($option, array $arrayData)
     {
         try {
-            $firstName = (array_key_exists('USR_FIRSTNAME', $arrayData))? ' - First Name: ' . $arrayData['USR_FIRSTNAME'] : '';
-            $lastName = (array_key_exists('USR_LASTNAME', $arrayData))? ' - Last Name: ' . $arrayData['USR_LASTNAME'] : '';
-            $email = (array_key_exists('USR_EMAIL', $arrayData))? ' - Email: ' . $arrayData['USR_EMAIL'] : '';
-            $dueDate = (array_key_exists('USR_DUE_DATE', $arrayData))? ' - Due Date: ' . $arrayData['USR_DUE_DATE'] : '';
-            $status = (array_key_exists('USR_STATUS', $arrayData))? ' - Status: ' . $arrayData['USR_STATUS'] : '';
-            $address = (array_key_exists('USR_ADDRESS', $arrayData))? ' - Address: ' . $arrayData['USR_ADDRESS'] : '';
-            $phone = (array_key_exists('USR_PHONE', $arrayData))? ' - Phone: ' . $arrayData['USR_PHONE'] : '';
-            $zipCode = (array_key_exists('USR_ZIP_CODE', $arrayData))? ' - Zip Code: ' . $arrayData['USR_ZIP_CODE'] : '';
-            $position = (array_key_exists('USR_POSITION', $arrayData))? ' - Position: ' . $arrayData['USR_POSITION'] : '';
-            $role = (array_key_exists('USR_ROLE', $arrayData))? ' - Role: ' . $arrayData['USR_ROLE'] : '';
-            $languageDef = (array_key_exists('USR_DEFAULT_LANG', $arrayData))? ' - Default Language: ' . $arrayData['USR_DEFAULT_LANG'] : '';
-            $timeZone = (array_key_exists('USR_TIME_ZONE', $arrayData))? ' - Time Zone: ' . $arrayData['USR_TIME_ZONE'] : '';
-            $str = 'User Name: ' . $arrayData['USR_USERNAME'] . ' - User ID: (' . $arrayData['USR_UID'] . ')' .
-                $firstName . $lastName . $email . $dueDate . $status . $address . $phone . $zipCode . $position . $role . $timeZone . $languageDef;
-            \G::auditLog(($option == 'INS')? 'CreateUser' : 'UpdateUser', $str);
+            $firstName = trim($this->firstName) !== '' ? ' - First Name: ' . $this->firstName : '';
+            $lastName = trim($this->lastName) !== ''  ? ' - Last Name: ' . $this->lastName : '';
+            $email = trim($this->user_email) !== '' ? ' - Email: ' . $this->user_email : '';
+            $dueDate = '';
+            $status = trim($this->status) !== '' ? ' - Status: ' . $this->status : '';
+            $address = trim($this->user_address) !== '' ? ' - Address: ' . $this->usr_address : '';
+            $phone = trim($this->user_phone) !== '' ? ' - Phone: ' . $this->usr_phone : '';
+            $zipCode = trim($this->user_zip_code) !== '' ? ' - Zip Code: ' . $this->usr_zip_code : '';
+            $position = '';
+            //$position = (array_key_exists('USR_POSITION', $arrayData))? ' - Position: ' . $arrayData['USR_POSITION'] : '';
+            $role = trim($this->roleId) !== '' ? ' - Role: ' . $this->roleId : '';
+           
+            $str = 'User Name: ' . $this->username . ' - User ID: (' . $this->userId . ')' .
+                $firstName . $lastName . $email . $dueDate . $status . $address . $phone . $zipCode . $position . $role;
+            $title = $option === 'INS' ? 'NEW USER ADDED' : 'USER UPDATED';
+            
+            $this->objMysql->_insert("user_management.user_log", ['user_id'=> $objUser->getUserId(), 'detail' => $str, 'summary' => $title, 'date_updated' => date("Y-m-d H:i:s")]);
         } catch (\Exception $e) {
             throw $e;
         }
