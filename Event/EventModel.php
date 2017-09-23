@@ -195,10 +195,10 @@ class EventModel extends BaseEvent
         foreach ($aRows as $aData) {
             // if the events has a condition
             if (trim( $aData['EVN_CONDITIONS'] ) != '') {
-                G::LoadClass( 'case' );
+               
                 $oCase = new Cases();
-                $aFields = $oCase->loadCase( $APP_UID );
-                $Fields = $aFields['APP_DATA'];
+                $Fields = $oCase->getCaseVariables ((int) $APP_UID, (int) $projectId, (int) $DEL_INDEX);
+               
                 $conditionContents = trim( $aData['EVN_CONDITIONS'] );
                 //$sContent    = G::unhtmlentities($sContent);
                 $iAux = 0;
@@ -212,20 +212,20 @@ class EventModel extends BaseEvent
                             if (is_array( $Fields[$sGridName] )) {
                                 $sAux = '';
                                 foreach ($Fields[$sGridName] as $aRow) {
-                                    $sAux .= G::replaceDataField( $sStringToRepeat, $aRow );
+                                    $sAux .= $oCase->replaceDataField( $sStringToRepeat, $aRow );
                                 }
                             }
                         }
                         $conditionContents = str_replace( '@>' . $sGridName . $sStringToRepeat . '@<' . $sGridName, $sAux, $conditionContents );
                     }
                 }
-                $sCondition = G::replaceDataField( $conditionContents, $Fields );
-                $evalConditionResult = false;
+                $sCondition = $oCase->replaceDataField( $conditionContents, $Fields );
+                /*$evalConditionResult = false;
                 $sCond = 'try{ $evalConditionResult=(' . $sCondition . ')? true: false; } catch(Exception $e){$evalConditionResult=false;}';
                 @eval( $sCond );
                 if (! $evalConditionResult) {
                     continue;
-                }
+                }*/
             }
             $appEventData['APP_UID'] = $APP_UID;
             $appEventData['DEL_INDEX'] = $DEL_INDEX;
