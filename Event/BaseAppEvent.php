@@ -411,8 +411,24 @@ abstract class BaseAppEvent extends BaseObject implements Persistent
      * @return     boolean Whether all columns pass validation.
      * @see        getValidationFailures()
      */
-    public function validate()
+    public function validate ()
     {
+        $errorCount = 0;
+        foreach ($this->arrayFieldDefinition as $fieldName => $arrField) {
+            if ( $arrField['required'] === true )
+            {
+                $accessor = $this->arrayFieldDefinition[$fieldName]['accessor'];
+                if ( trim ($this->$accessor ()) == "" )
+                {
+                    $this->arrValidationErrors[] = $fieldName . " Is empty. It is a required field";
+                    $errorCount++;
+                }
+            }
+        }
+        if ( $errorCount > 0 )
+        {
+            return false;
+        }
         return true;
     }
 }
