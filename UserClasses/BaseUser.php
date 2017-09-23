@@ -1344,7 +1344,7 @@ abstract class BaseUser implements Persistent
      *o
      * @return void
      */
-    public function auditLog($option, Users $objUser)
+    private function auditLog($option, Users $objUser)
     {
         try {
             $firstName = trim($this->firstName) !== '' ? ' - First Name: ' . $this->firstName : '';
