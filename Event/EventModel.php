@@ -170,13 +170,13 @@ class EventModel extends BaseEvent
         }
     }
     
-        public function closeAppEvents ($PRO_UID, $APP_UID, $DEL_INDEX, $TAS_UID)
+    public function closeAppEvents ($PRO_UID, $APP_UID, $DEL_INDEX, $TAS_UID)
     {
         $aAppEvents = $this->getAppEvents( $APP_UID, $DEL_INDEX );
         if ($aAppEvents) {
             foreach ($aAppEvents as $aRow) {
                 if ($aRow['EVN_RELATED_TO'] == 'SINGLE' || ($aRow['EVN_RELATED_TO'] == $TAS_UID)) {
-                    $oAppEvent = AppEventPeer::retrieveByPK( $aRow['APP_UID'], $aRow['DEL_INDEX'], $aRow['EVN_UID'] );
+                    $oAppEvent = (new AppEvent())->retrieveByPK( $aRow['APP_UID'], $aRow['DEL_INDEX'], $aRow['EVN_UID'] );
                     $oAppEvent->setAppEvnLastExecutionDate( date( 'Y-m-d H:i:s' ) );
                     $oAppEvent->setAppEvnStatus( 'CLOSE' );
                     $oAppEvent->save();
@@ -184,6 +184,7 @@ class EventModel extends BaseEvent
             }
         }
     }
+    
     public function createAppEvents ($PRO_UID, $APP_UID, $DEL_INDEX, $TAS_UID)
     {
         $aRows = array ();
