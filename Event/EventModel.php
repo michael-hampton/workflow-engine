@@ -239,55 +239,88 @@ class EventModel extends BaseEvent
         }
     }
     
-        public function getBy ($PRO_UID, $taskUid)
+        public function getAppEvents ($APP_UID, $DEL_INDEX)
     {
+        //for single task event
         $oCriteria = new Criteria( 'workflow' );
+        $oCriteria->addSelectColumn( AppEventPeer::APP_UID );
+        $oCriteria->addSelectColumn( AppEventPeer::DEL_INDEX );
+        $oCriteria->addSelectColumn( AppEventPeer::EVN_UID );
+        $oCriteria->addSelectColumn( AppEventPeer::APP_EVN_ACTION_DATE );
+        $oCriteria->addSelectColumn( AppEventPeer::APP_EVN_ATTEMPTS );
+        $oCriteria->addSelectColumn( AppEventPeer::APP_EVN_LAST_EXECUTION_DATE );
+        $oCriteria->addSelectColumn( AppEventPeer::APP_EVN_STATUS );
         $oCriteria->addSelectColumn( EventPeer::EVN_UID );
+        $oCriteria->addSelectColumn( EventPeer::PRO_UID );
+        $oCriteria->addSelectColumn( EventPeer::EVN_STATUS );
+        $oCriteria->addSelectColumn( EventPeer::EVN_WHEN_OCCURS );
+        $oCriteria->addSelectColumn( EventPeer::EVN_RELATED_TO );
         $oCriteria->addSelectColumn( EventPeer::TAS_UID );
         $oCriteria->addSelectColumn( EventPeer::EVN_TAS_UID_FROM );
         $oCriteria->addSelectColumn( EventPeer::EVN_TAS_UID_TO );
-        $oCriteria->add( EventPeer::EVN_STATUS, 'ACTIVE' );
-        $oCriteria->add( EventPeer::EVN_ACTION, '', Criteria::NOT_EQUAL );
-        $oCriteria->add( EventPeer::PRO_UID, $PRO_UID, Criteria::EQUAL );
-        $oDataset = EventPeer::doSelectRs( $oCriteria );
+        $oCriteria->addSelectColumn( EventPeer::EVN_TAS_ESTIMATED_DURATION );
+        $oCriteria->addSelectColumn( EventPeer::EVN_WHEN );
+        $oCriteria->addSelectColumn( EventPeer::EVN_MAX_ATTEMPTS );
+        $oCriteria->addSelectColumn( EventPeer::EVN_ACTION );
+        $oCriteria->addSelectColumn( EventPeer::EVN_CONDITIONS );
+        $oCriteria->addSelectColumn( EventPeer::EVN_ACTION_PARAMETERS );
+        $oCriteria->addSelectColumn( EventPeer::TRI_UID );
+        $oCriteria->addJoin( AppEventPeer::EVN_UID, EventPeer::EVN_UID );
+        $oCriteria->add( AppEventPeer::APP_UID, $APP_UID );
+        $oCriteria->add( AppEventPeer::DEL_INDEX, $DEL_INDEX );
+        $oCriteria->add( AppEventPeer::APP_EVN_STATUS, 'OPEN' );
+        $oDataset = AppEventPeer::doSelectRs( $oCriteria );
         $oDataset->setFetchmode( ResultSet::FETCHMODE_ASSOC );
-        $eventsTask = array ();
+        $aRows = Array ();
         while ($oDataset->next()) {
-            $aDataEvent = $oDataset->getRow();
+            $aRows[] = $oDataset->getRow();
+        }
+        return (count( $aRows ) > 0) ? $aRows : false;
+    }
+    
+    public function getBy ($PRO_UID, $taskUid)
+    {
+        $sql = "SELECT EVN_UID, TAS_UID, EVN_TAS_UID_FROM, EVN_TAS_UID_TO WHERE EVN_STATUS = 'ACTIVE' AND EVN_ACTION != '' AND PRO_UID = ?";
+        
+        $results = $this->objMysql->_query($sql);
+        
+        $eventsTask = array ();
+        foreach($results as $aDataEvent) {
+           
             if ($taskUid == $aDataEvent['TAS_UID'] || $taskUid == $aDataEvent['EVN_TAS_UID_FROM'] || $taskUid == $aDataEvent['EVN_TAS_UID_TO']) {
                 $eventsTask[] = $aDataEvent['EVN_UID'];
             } else {
-                $flag = $this->verifyTaskbetween( $PRO_UID, $aDataEvent['EVN_TAS_UID_FROM'], $aDataEvent['EVN_TAS_UID_TO'], $taskUid );
-                if ($flag) {
-                    $eventsTask[] = $aDataEvent['EVN_UID'];
-                }
+                //$flag = $this->verifyTaskbetween( $PRO_UID, $aDataEvent['EVN_TAS_UID_FROM'], $aDataEvent['EVN_TAS_UID_TO'], $taskUid );
+                //if ($flag) {
+                    //$eventsTask[] = $aDataEvent['EVN_UID'];
+                //}
             }
         }
-        $aRows = Array ();
+        $aRows = array ();
         if (count( $eventsTask ) > 0) {
-            $oCriteria = new Criteria( 'workflow' );
-            $oCriteria->addSelectColumn( EventPeer::EVN_UID );
-            $oCriteria->addSelectColumn( EventPeer::PRO_UID );
-            $oCriteria->addSelectColumn( EventPeer::EVN_STATUS );
-            $oCriteria->addSelectColumn( EventPeer::EVN_WHEN_OCCURS );
-            $oCriteria->addSelectColumn( EventPeer::EVN_RELATED_TO );
-            $oCriteria->addSelectColumn( EventPeer::TAS_UID );
-            $oCriteria->addSelectColumn( EventPeer::EVN_TAS_UID_FROM );
-            $oCriteria->addSelectColumn( EventPeer::EVN_TAS_UID_TO );
-            $oCriteria->addSelectColumn( EventPeer::EVN_TAS_ESTIMATED_DURATION );
-            $oCriteria->addSelectColumn( EventPeer::EVN_WHEN );
-            $oCriteria->addSelectColumn( EventPeer::EVN_MAX_ATTEMPTS );
-            $oCriteria->addSelectColumn( EventPeer::EVN_ACTION );
-            $oCriteria->addSelectColumn( EventPeer::EVN_CONDITIONS );
-            $oCriteria->addSelectColumn( EventPeer::EVN_ACTION_PARAMETERS );
-            $oCriteria->addSelectColumn( EventPeer::TRI_UID );
-            $oCriteria->add( EventPeer::EVN_UID, (array) $eventsTask, Criteria::IN );
-            $oDataset = EventPeer::doSelectRs( $oCriteria );
-            $oDataset->setFetchmode( ResultSet::FETCHMODE_ASSOC );
-            while ($oDataset->next()) {
-                $aRows[] = $oDataset->getRow();
-            }
+            
+           $sql = " SELECT EVN_UID 
+                           PRO_UID 
+                           EVN_STATUS
+                           EVN_WHEN_OCCURS
+                           EVN_RELATED_TO 
+                
+                           TAS_UID
+                           EVN_TAS_UID_FROM );
+                           EVN_TAS_UID_TO 
+                           EVN_TAS_ESTIMATED_DURATION 
+                           EVN_WHEN 
+                           EVN_MAX_ATTEMPTS 
+                           EVN_ACTION 
+                           EVN_CONDITIONS 
+                           EVN_ACTION_PARAMETERS 
+                           TRI_UID 
+                       FROM workflow.EVENY
+                       WHERE EVN_UID IN  ". implode(',',$eventsTask);
+            
+            $aRows = $this->objMysql->_query($sql);
         }
+        
         return (count( $aRows ) > 0) ? $aRows : false;
     }
     
