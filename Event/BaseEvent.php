@@ -860,7 +860,29 @@ abstract class BaseEvent
                              ]
                          );
         } else {
-            
+                        $this->objMysql->_update("workflow.EVENT",  
+                                 [
+                                 'PRO_UID' => $this->pro_uid,
+                                 'EVN_STATUS' => $this->evn_status,
+                                 'EVN_WHEN_OCCURS' => $this->evn_when_occurs,
+                                 'EVN_RELATED_TO' => $this->evn_related_to,
+                                 'TAS_UID' => $this->tas_uid,
+                                 'EVN_TAS_UID_FROM' => $this->evn_tas_uid_from,
+                                 'EVN_TAS_UID_TO' => $this->evn_tas_uid_to, 
+                                 'EVN_TAS_ESTIMATED_DURATION' => $this->evn_tas_estimated_duration, 
+                                 'EVN_TIME_UNIT' => $this->evn_time_unit, 
+                                'EVN_WHEN' => $this->evn_when,
+                                'EVN_MAX_ATTEMPTS' => $this->evn_max_attempts,
+                                'EVN_ACTION' => $this->evn_action,
+                                'EVN_CONDITIONS' => $this->evn_conditions, 
+                                'EVN_ACTION_PARAMETERS' => $this->evn_action_parameters, 
+                                'TRI_UID' => $this->tri_uid, 
+                                'EVN_POSX' => $this->evn_posx,
+                                'EVN_POSY' => $this->evn_posy, 
+                                'EVN_TYPE' => $this->evn_type, 
+                                'TAS_EVN_UID' => $this->tas_evn_uid
+                             ], ['EVN_UID' => $this->evn_uid]
+                         );
         }
             
         
