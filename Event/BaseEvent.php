@@ -372,7 +372,6 @@ abstract class BaseEvent
         }
     }
 
-// setEvnUid()
     /**
      * Set the value of [pro_uid] column.
      * 
@@ -393,7 +392,6 @@ abstract class BaseEvent
         }
     }
 
-// setProUid()
     /**
      * Set the value of [evn_status] column.
      * 
@@ -413,8 +411,7 @@ abstract class BaseEvent
             $this->evn_status = $v;
         }
     }
-
-// setEvnStatus()
+    
     /**
      * Set the value of [evn_when_occurs] column.
      * 
@@ -435,7 +432,6 @@ abstract class BaseEvent
         }
     }
 
-// setEvnWhenOccurs()
     /**
      * Set the value of [evn_related_to] column.
      * 
@@ -456,7 +452,6 @@ abstract class BaseEvent
         }
     }
 
-// setEvnRelatedTo()
     /**
      * Set the value of [tas_uid] column.
      * 
@@ -478,7 +473,7 @@ abstract class BaseEvent
         }
     }
 
-// setTasUid()
+
     /**
      * Set the value of [evn_tas_uid_from] column.
      * 
@@ -499,7 +494,6 @@ abstract class BaseEvent
         }
     }
 
-// setEvnTasUidFrom()
     /**
      * Set the value of [evn_tas_uid_to] column.
      * 
@@ -520,7 +514,6 @@ abstract class BaseEvent
         }
     }
 
-// setEvnTasUidTo()
     /**
      * Set the value of [evn_tas_estimated_duration] column.
      * 
@@ -535,7 +528,6 @@ abstract class BaseEvent
         }
     }
 
-// setEvnTasEstimatedDuration()
     /**
      * Set the value of [evn_time_unit] column.
      * 
@@ -556,7 +548,6 @@ abstract class BaseEvent
         }
     }
 
-// setEvnTimeUnit()
     /**
      * Set the value of [evn_when] column.
      * 
@@ -571,7 +562,6 @@ abstract class BaseEvent
         }
     }
 
-// setEvnWhen()
     /**
      * Set the value of [evn_max_attempts] column.
      * 
@@ -592,7 +582,6 @@ abstract class BaseEvent
         }
     }
 
-// setEvnMaxAttempts()
     /**
      * Set the value of [evn_action] column.
      * 
@@ -613,7 +602,6 @@ abstract class BaseEvent
         }
     }
 
-// setEvnAction()
     /**
      * Set the value of [evn_conditions] column.
      * 
@@ -634,7 +622,6 @@ abstract class BaseEvent
         }
     }
 
-// setEvnConditions()
     /**
      * Set the value of [evn_action_parameters] column.
      * 
@@ -655,7 +642,6 @@ abstract class BaseEvent
         }
     }
 
-// setEvnActionParameters()
     /**
      * Set the value of [tri_uid] column.
      * 
@@ -676,7 +662,6 @@ abstract class BaseEvent
         }
     }
 
-// setTriUid()
     /**
      * Set the value of [evn_posx] column.
      * 
@@ -697,7 +682,6 @@ abstract class BaseEvent
         }
     }
 
-// setEvnPosx()
     /**
      * Set the value of [evn_posy] column.
      * 
@@ -718,7 +702,6 @@ abstract class BaseEvent
         }
     }
 
-// setEvnPosy()
     /**
      * Set the value of [evn_type] column.
      * 
@@ -739,7 +722,6 @@ abstract class BaseEvent
         }
     }
 
-// setEvnType()
     /**
      * Set the value of [tas_evn_uid] column.
      * 
@@ -760,7 +742,6 @@ abstract class BaseEvent
         }
     }
 
-// setTasEvnUid()
 
     public function getValidationFailures ()
     {
@@ -853,6 +834,35 @@ abstract class BaseEvent
         $conditions['params'][$this->event]['when_occurs'] = $this->evn_when_occurs;
         $conditions['params'][$this->event]['action_params'] = $this->evn_action_parameters;
         $conditions['params'][$this->event]['evn_type'] = $this->evn_type;
+        
+        if(trim($this->evn_uid) === '') {
+            $this->objMysql->_insert("workflow.EVENT",  
+                                 [
+                                 'PRO_UID' => $this->pro_uid,
+                                 'EVN_STATUS' => $this->evn_status,
+                                 'EVN_WHEN_OCCURS' => $this->evn_when_occurs,
+                                 'EVN_RELATED_TO' => $this->evn_related_to,
+                                 'TAS_UID' => $this->tas_uid,
+                                 'EVN_TAS_UID_FROM' => $this->evn_tas_uid_from,
+                                 'EVN_TAS_UID_TO' => $this->evn_tas_uid_to, 
+                                 'EVN_TAS_ESTIMATED_DURATION' => $this->evn_tas_estimated_duration, 
+                                 'EVN_TIME_UNIT' => $this->evn_time_unit, 
+                                'EVN_WHEN' => $this->evn_when,
+                                'EVN_MAX_ATTEMPTS' => $this->evn_max_attempts,
+                                'EVN_ACTION' => $this->evn_action,
+                                'EVN_CONDITIONS' => $this->evn_conditions, 
+                                'EVN_ACTION_PARAMETERS' => $this->evn_action_parameters, 
+                                'TRI_UID' => $this->tri_uid, 
+                                'EVN_POSX' => $this->evn_posx,
+                                'EVN_POSY' => $this->evn_posy, 
+                                'EVN_TYPE' => $this->evn_type, 
+                                'TAS_EVN_UID' => $this->tas_evn_uid
+                             ]
+                         );
+        } else {
+            
+        }
+            
         
         $this->objMysql->_update("workflow.status_mapping", ["step_condition" => json_encode ($conditions)], ["id" => $this->tas_uid]);
     }
