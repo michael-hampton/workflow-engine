@@ -17,15 +17,17 @@ class Users extends BaseUser
      *
      * return array Return data of the new User created
      */
-    public function create ($aData)
+    public function create ($aData, Users $objAuditUser)
     {
         try {
+            
+            $objUser = new Users(null, $objAuditUser);
 
-            $this->loadObject ($aData);
+            $objUser->loadObject ($aData);
 
-            if ( $this->validate () )
+            if ( $objUser->validate () )
             {
-                $userId = $this->save ();
+                $userId = $objUser->save ();
 
                 return $userId;
             }
@@ -33,7 +35,7 @@ class Users extends BaseUser
             {
                 $sMessage = '';
 
-                $aValidationFailures = $this->getValidationFailures ();
+                $aValidationFailures = $objUser->getValidationFailures ();
 
                 foreach ($aValidationFailures as $message) {
 
@@ -48,13 +50,13 @@ class Users extends BaseUser
         }
     }
 
-    public function update ($fields)
+    public function update ($fields, Users $objAuditUser)
     {
-
+        
         try {
-            $user = new Users();
+            $user = new Users(null, $objAuditUser);
             $user->loadObject ($fields);
-
+            
             if ( $user->validate () )
             {
                 $result = $user->save ();
@@ -102,7 +104,7 @@ class Users extends BaseUser
      * @return $sUserUID
 
      */
-    public function createUser ($aData = array(), $sRolCode = '')
+    public function createUser (Users $objAuditUser, $aData = array(), $sRolCode = '')
     {
 
         if ( $aData["status"] . "" == "1" )
@@ -131,7 +133,7 @@ class Users extends BaseUser
             $aData['status'] = 0;
         }
 
-        $sUserUID = $this->create ($aData);
+        $sUserUID = $this->create ($aData, $objAuditUser);
 
         if ( $sRolCode != '' )
         {
@@ -157,7 +159,7 @@ class Users extends BaseUser
      * @return void
 
      */
-    public function updateUser ($aData = array(), $sRolCode = '')
+    public function updateUser (Users $objAuditUser, $aData = array(), $sRolCode = '')
     {
 
         if ( isset ($aData['status']) )
@@ -170,7 +172,7 @@ class Users extends BaseUser
             }
         }
 
-        $this->update ($aData);
+        $this->update ($aData, $objAuditUser);
 
         if ( $sRolCode != '' )
         {

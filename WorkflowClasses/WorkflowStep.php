@@ -793,7 +793,7 @@ class WorkflowStep
 
         if ( $hasEvent !== 'true' )
         {
-            $this->checkEvents ($objUser);
+            $this->checkEvents ($objUser, $objMike, $objTask);
         }
         if ( ($this->nextStep == 0 || $this->nextStep == "") && $complete === true && $arrCompleteData['status'] == "COMPLETE" )
         {
@@ -810,7 +810,7 @@ class WorkflowStep
         $objAppThread = new AppThread();
         $objAppDelegation = new AppDelegation();
 
-        if ( is_numeric ($arrCompleteData['DEL_PRIORITY']) )
+        if ( isset ($arrCompleteData['DEL_PRIORITY']) && is_numeric ($arrCompleteData['DEL_PRIORITY']) )
         {
 
             $arrCompleteData['DEL_PRIORITY'] = (isset ($arrCompleteData['DEL_PRIORITY']) ? ($arrCompleteData['DEL_PRIORITY'] >= 1 && $arrCompleteData['DEL_PRIORITY'] <= 5 ? $arrCompleteData['DEL_PRIORITY'] : '3') : '3');
@@ -880,7 +880,9 @@ class WorkflowStep
         }
         if ( isset ($this->nextStep) && $this->nextStep !== 0 )
         {
-            $this->checkEvents ($objUser);
+            $objTask = (new Task())->retrieveByPk ($this->_stepId);
+
+            $this->checkEvents ($objUser, $objMike, $objTask);
             $this->_workflowStepId = $this->nextStep;
             $this->currentTask = $this->nextTask;
             return new WorkflowStep ($this->_workflowStepId, $objMike);
@@ -935,11 +937,23 @@ class WorkflowStep
         }
     }
 
-    private function checkEvents (Users $objUser)
+    private function checkEvents (Users $objUser, $objMike, Task $objTask)
     {
+
+        try {
+            $oEvent = new EventModel();
+            $oEvent->createAppEvents (new Workflow ($this->workflowId), $objMike, $objTask);
+            $oEvent->closeAppEvents(new Workflow($this->workflowId), $objMike, $objTask);
+        } catch (Exception $ex) {
+            
+        }
+
+
+        /*         * *************** MESSAGES ****************************** */
+
         $objEvent = new \BusinessModel\Event();
         $arrEvents = $objEvent->getEvent ($this->_workflowStepId);
-        /*         * *************** MESSAGES ****************************** */
+
         if ( isset ($arrEvents[0]['step_condition']) && !empty ($arrEvents[0]['step_condition']) )
         {
             $arrConditions = json_decode ($arrEvents[0]['step_condition'], true);

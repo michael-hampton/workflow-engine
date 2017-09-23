@@ -20,10 +20,10 @@ class Event
      * @access public
      * @return array
      */
-    public function saveEvents ($taskId, $dataEvent, $create = true)
+    public function saveEvents ($dataEvent, $create = true)
     {
-
-        $taskId = $this->validateProUid ($taskId);
+        
+        $taskId = $this->validateProUid ($dataEvent['TAS_UID']);
         //if (!$create) {
         //$dataEvent['evn_uid'] = $this->validateEvnUid($dataEvent['evn_uid']);
         //}
@@ -62,8 +62,11 @@ class Event
         {
             throw (new \Exception ("TASK ID DOESNT EXIST"));
         }
-        $oProcess = new \Flow();
-        $oProcess->throwExceptionIfNotExistsTask ($taskId);
+        $objTask = new \Task();
+        if ( $objTask->retrieveByPk ($taskId) === false )
+        {
+            throw new Exception ("TASK ID DOES NOT EXIST");
+        }
         return $taskId;
     }
 

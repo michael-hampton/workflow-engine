@@ -233,7 +233,7 @@ abstract class BaseInputDocument implements Persistent
             "description" => $this->description,
             "allow_versioning" => $this->versioning,
             "destination_path" => $this->destinationPath,
-            "filesize_unit" => $this->filesizeUnit
+            "filesize_unit" => $this->filesizeUnit,
                 )
         );
 

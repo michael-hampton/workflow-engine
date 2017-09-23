@@ -15,6 +15,8 @@ class Attachment
     private $table = "task_manager.attachments";
     private $files;
     private $workflowId;
+    private $documentComment;
+    private $documentTitle;
 
     public function __construct ()
     {
@@ -45,6 +47,9 @@ class Attachment
                 $this->stepId = $arrData['step']->getStepId ();
                 $this->projectId = $arrData['source_id'];
                 $this->workflowId = $arrData['step']->getWorkflowId ();
+
+                $this->documentTitle = isset ($arrData['document_title']) ? $arrData['document_title'] : '';
+                $this->documentComment = isset ($arrData['document_comment']) ? $arrData['document_comment'] : '';
 
                 $result = $this->uploadDocument ($arrData['files'], $objUser);
 
@@ -220,7 +225,16 @@ class Attachment
             $this->object['file_destination'] = $destination;
 
             // update version
-            $id = $objVersioning->create (array("folderId" => $folderId, "filename" => $originalFilename, "document_id" => $this->documentId, "app_uid" => $this->projectId), $objUser);
+            $id = $objVersioning->create (
+                    array(
+                "folderId" => $folderId,
+                "filename" => $originalFilename,
+                "document_id" => $this->documentId,
+                "app_uid" => $this->projectId,
+                "document_title" => $this->documentTitle,
+                "document_comment" => $this->documentComment,
+                "del_index" => $this->stepId
+                    ), $objUser);
             $arrUploadedFiles[] = $id;
 
             $intCount++;

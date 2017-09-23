@@ -190,21 +190,28 @@ abstract class BaseUser implements Persistent
         "phoneNo" => array("accessor" => "getUsrPhone", "mutator" => "setUsrPhone", "required" => false),
         "postcode" => array("accessor" => "getUsrZipCode", "mutator" => "setUsrZipCode", "required" => false),
     );
-    public $arrUser = array();
+    private $arrUser = array();
+    private $auditUser;
 
     /**
      * 
      * @param type $userId
      */
-    public function __construct ($userId = null)
+    public function __construct ($userId = null, Users $objAuditUser = null)
     {
-        $this->objMysql = new Mysql2();
+        if ( $objAuditUser !== null )
+        {
+            $this->auditUser = $objAuditUser->getUserId ();
+        }
 
         if ( $userId !== null )
         {
             $this->userId = $userId;
         }
+    }
 
+    private function getConnection ()
+    {
         $this->objMysql = new Mysql2();
     }
 
@@ -1145,7 +1152,6 @@ abstract class BaseUser implements Persistent
         }
 
         $this->userId = $userId;
-        $this->arrUser['usrid'] = $userId;
     }
 
     /**
@@ -1267,9 +1273,15 @@ abstract class BaseUser implements Persistent
 
     /**
      * 
+     * @return boolean
      */
-    public function save (User $objAuditUser)
+    public function save ()
     {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
         if ( isset ($this->userId) && is_numeric ($this->userId) )
         {
             $this->objMysql->_update ("user_management.poms_users", [
@@ -1297,8 +1309,8 @@ abstract class BaseUser implements Persistent
                 "USR_PHONE" => $this->usr_phone,
                 "USR_ADDRESS" => $this->usr_address
                     ], ["usrid" => $this->userId]);
-            
-            $this->auditLog('UPD', $objAuditUser);
+
+            $this->auditLog ('UPD', $objAuditUser);
         }
         else
         {
@@ -1328,42 +1340,47 @@ abstract class BaseUser implements Persistent
                 "USR_ADDRESS" => $this->usr_address
                     ]
             );
-            
-            $this->auditLog('INS', $objAuditUser);
+
+            $this->auditLog ('INS', $objAuditUser);
             return $id;
         }
 
         return true;
     }
-    
-        /**
+
+    /**
      * AuditLog
      *
      * @param string $option    Option
      * @param array  $arrayData Data
-     *o
+     * o
      * @return void
      */
-    private function auditLog($option, Users $objUser)
+    private function auditLog ($option)
     {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
         try {
-            $firstName = trim($this->firstName) !== '' ? ' - First Name: ' . $this->firstName : '';
-            $lastName = trim($this->lastName) !== ''  ? ' - Last Name: ' . $this->lastName : '';
-            $email = trim($this->user_email) !== '' ? ' - Email: ' . $this->user_email : '';
+            $firstName = trim ($this->firstName) !== '' ? ' - First Name: ' . $this->firstName : '';
+            $lastName = trim ($this->lastName) !== '' ? ' - Last Name: ' . $this->lastName : '';
+            $email = trim ($this->user_email) !== '' ? ' - Email: ' . $this->user_email : '';
             $dueDate = '';
-            $status = trim($this->status) !== '' ? ' - Status: ' . $this->status : '';
-            $address = trim($this->user_address) !== '' ? ' - Address: ' . $this->usr_address : '';
-            $phone = trim($this->user_phone) !== '' ? ' - Phone: ' . $this->usr_phone : '';
-            $zipCode = trim($this->user_zip_code) !== '' ? ' - Zip Code: ' . $this->usr_zip_code : '';
+            $status = trim ($this->status) !== '' ? ' - Status: ' . $this->status : '';
+            $address = trim ($this->user_address) !== '' ? ' - Address: ' . $this->usr_address : '';
+            $phone = trim ($this->usr_phone) !== '' ? ' - Phone: ' . $this->usr_phone : '';
+            $zipCode = trim ($this->usr_zip_code) !== '' ? ' - Zip Code: ' . $this->usr_zip_code : '';
             $position = '';
             //$position = (array_key_exists('USR_POSITION', $arrayData))? ' - Position: ' . $arrayData['USR_POSITION'] : '';
-            $role = trim($this->roleId) !== '' ? ' - Role: ' . $this->roleId : '';
-           
+            $role = trim ($this->roleId) !== '' ? ' - Role: ' . $this->roleId : '';
+
             $str = 'User Name: ' . $this->username . ' - User ID: (' . $this->userId . ')' .
-                $firstName . $lastName . $email . $dueDate . $status . $address . $phone . $zipCode . $position . $role;
+                    $firstName . $lastName . $email . $dueDate . $status . $address . $phone . $zipCode . $position . $role;
             $title = $option === 'INS' ? 'NEW USER ADDED' : 'USER UPDATED';
-            
-            $this->objMysql->_insert("user_management.user_log", ['user_id'=> $objUser->getUserId(), 'detail' => $str, 'summary' => $title, 'date_updated' => date("Y-m-d H:i:s")]);
+
+            $this->objMysql->_insert ("user_management.user_log", ['user_id' => $this->auditUser, 'detail' => $str, 'summary' => $title, 'date_updated' => date ("Y-m-d H:i:s")]);
         } catch (\Exception $e) {
             throw $e;
         }
@@ -1393,16 +1410,26 @@ abstract class BaseUser implements Persistent
             return false;
         }
 
-        return TtrueRUE;
+        return true;
     }
 
     public function disableUser ()
     {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
         $this->objMysql->_update ("user_management.poms_users", array("status" => $this->status), array("userId" => $this->userId));
     }
 
     public function removeRolesFromUser ($usrId, $roleId = null)
     {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
         $arrWhere['userId'] = $usrId;
 
         if ( $roleId !== null )
@@ -1415,6 +1442,11 @@ abstract class BaseUser implements Persistent
 
     public function assignRoleToUser ($userId, $roleId)
     {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
         $this->objMysql->_insert ("user_management.user_roles", array("userId" => $userId, "roleId" => $roleId));
     }
 

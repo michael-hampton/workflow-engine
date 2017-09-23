@@ -1,4 +1,5 @@
 <?php
+
 /**
  * AppEvent.php
  *
@@ -18,93 +19,147 @@
  */
 class AppEvent extends BaseAppEvent
 {
+
+    private $objMysql;
+
+    private function getConnection ()
+    {
+        $this->objMysql = new Mysql2();
+    }
+
     public function load ($sApplicationUID, $iDelegation)
     {
         try {
-            $oAppEvent = AppEventPeer::retrieveByPK( $sApplicationUID, $iDelegation );
-            if (! is_null( $oAppEvent )) {
-                $aFields = $oAppEvent->toArray( BasePeer::TYPE_FIELDNAME );
-                $this->fromArray( $aFields, BasePeer::TYPE_FIELDNAME );
-                return $aFields;
-            } else {
-                throw (new Exception( 'This row doesn\'t exist!' ));
+            $oAppEvent = $this->retrieveByPK ($sApplicationUID, $iDelegation);
+
+            if ( $oAppEvent === false )
+            {
+                throw (new Exception ('This row doesn\'t exist!'));
             }
+
+            return $oAppEvent;
         } catch (Exception $oError) {
             throw ($oError);
         }
     }
+
+    public function retrieveByPK ($app_uid, $del_index, $evn_uid, $caseId)
+    {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        $result = $this->objMysql->_select ("workflow.APP_EVENT", [], ["APP_UID" => $app_uid, "DEL_INDEX" => $del_index, "EVN_UID" => $evn_uid, "CASE_UID" => $caseId]);
+
+        if ( !isset ($result[0]) || empty ($result[0]) )
+        {
+            return false;
+        }
+
+        $objAppEvent = new AppEvent();
+        $objAppEvent->setAppEvnActionDate ($result[0]['APP_EVN_ACTION_DATE']);
+        $objAppEvent->setAppEvnAttempts ($result[0]['APP_EVN_ATTEMPTS']);
+        $objAppEvent->setAppEvnLastExecutionDate ($result[0]['APP_EVN_LAST_EXECUTION_DATE']);
+        $objAppEvent->setAppEvnStatus ($result[0]['APP_EVN_STATUS']);
+        $objAppEvent->setAppUid ($result[0]['APP_UID']);
+        $objAppEvent->setCaseUid ($result[0]['CASE_UID']);
+        $objAppEvent->setDelIndex ($result[0]['DEL_INDEX']);
+        $objAppEvent->setEvnUid ($result[0]['EVN_UID']);
+        $objAppEvent->setId ($result[0]['id']);
+
+        return $objAppEvent;
+    }
+
     public function create ($aData)
     {
         try {
             $oAppEvent = new AppEvent();
-            $oAppEvent->loadObject( $aData );
-            
-            if ($oAppEvent->validate()) {
-         
-                $oAppEvent->save();
-                
+
+            $oAppEvent->loadObject ($aData);
+
+            if ( $oAppEvent->validate () )
+            {
+
+                $oAppEvent->save ();
+
                 return true;
-            } else {
+            }
+            else
+            {
                 $sMessage = '';
-                $aValidationFailures = $oAppEvent->getValidationFailures();
-                
+                $aValidationFailures = $oAppEvent->getValidationFailures ();
+
                 foreach ($aValidationFailures as $oValidationFailure) {
                     $sMessage .= $oValidationFailure . '<br />';
                 }
-                throw (new Exception( 'The registry cannot be created!<br />' . $sMessage ));
+
+                throw (new Exception ('The registry cannot be created!<br />' . $sMessage));
             }
         } catch (Exception $oError) {
-            
+
             throw ($oError);
         }
     }
+
     public function update ($aData)
     {
         try {
-            $oAppEvent = $this->retrieveByPK( $aData['APP_UID'], $aData['DEL_INDEX'] );
-            
-            if (! is_null( $oAppEvent )) {
-                $oAppEvent->loadArray( $aData );
-                
-                if ($oAppEvent->validate()) {
-                    
-                    $iResult = $oAppEvent->save();
-                    
+            $oAppEvent = $this->retrieveByPK ($aData['APP_UID'], $aData['DEL_INDEX']);
+
+            if ( !is_null ($oAppEvent) )
+            {
+                $oAppEvent->loadArray ($aData);
+
+                if ( $oAppEvent->validate () )
+                {
+
+                    $iResult = $oAppEvent->save ();
+
                     return $iResult;
-                } else {
+                }
+                else
+                {
                     $sMessage = '';
-                    $aValidationFailures = $oAppEvent->getValidationFailures();
-                    
+                    $aValidationFailures = $oAppEvent->getValidationFailures ();
+
                     foreach ($aValidationFailures as $oValidationFailure) {
                         $sMessage .= $oValidationFailure . '<br />';
                     }
-                    throw (new Exception( 'The registry cannot be updated!<br />' . $sMessage ));
+                    throw (new Exception ('The registry cannot be updated!<br />' . $sMessage));
                 }
-            } else {
-                throw (new Exception( 'This row doesn\'t exist!' ));
+            }
+            else
+            {
+                throw (new Exception ('This row doesn\'t exist!'));
             }
         } catch (Exception $oError) {
-            
+
             throw ($oError);
         }
     }
+
     public function remove ($sApplicationUID, $iDelegation, $sEvnUid)
     {
-        
+
         try {
-            $oAppEvent = $this->retrieveByPK( $sApplicationUID, $iDelegation, $sEvnUid );
-            
-            if (! is_null( $oAppEvent )) {
-                
-                $iResult = $oAppEvent->delete();
-                
+            $oAppEvent = $this->retrieveByPK ($sApplicationUID, $iDelegation, $sEvnUid);
+
+            if ( !is_null ($oAppEvent) )
+            {
+
+                $iResult = $oAppEvent->delete ();
+
                 return $iResult;
-            } else {
-                throw (new Exception( 'This row doesn\'t exist!' ));
+            }
+            else
+            {
+                throw (new Exception ('This row doesn\'t exist!'));
             }
         } catch (Exception $oError) {
-            
+
             throw ($oError);
         }
     }
+
 }

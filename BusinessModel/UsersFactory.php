@@ -255,7 +255,7 @@ class UsersFactory
                 }
             }
 
-            if ( isset ($arrayData["USR_DUE_DATE"]) )
+            if ( isset ($arrayData["USR_DUE_DATE"]) && trim($arrayData["USR_DUE_DATE"]) !== "" )
             {
 
                 $arrayUserDueDate = explode ("-", $arrayData["USR_DUE_DATE"]);
@@ -372,7 +372,7 @@ class UsersFactory
 
                 //$password->verifyHashPassword ($arrayData['password'], '736b3b43759fa498fb0a3d890ef533d2');
 
-                $userUid = $user->createUser ($arrayData, $arrayData["role_id"]);
+                $userUid = $user->createUser ($objUser, $arrayData, $arrayData["role_id"]);
 
                 if ( isset ($arrFiles['upload']) && !empty ($arrFiles['upload']['name']) )
                 {
@@ -447,7 +447,7 @@ class UsersFactory
             {
                 throw new \Exception ("ID_USER_CAN_NOT_UPDATE");
             }
-
+            
             try {
                 $user = new \Users();
                 if ( isset ($arrayData['password']) )
@@ -543,17 +543,17 @@ class UsersFactory
                     $aUserProperty["USR_LOGGED_NEXT_TIME"] = $arrayData["USR_LOGGED_NEXT_TIME"];
                     $oUserProperty->update ($aUserProperty);
                 }
-
+                
                 //Update in rbac
                 $arrayData['dept_id'] = trim ($arrayData['dept_id']) !== "" ? $arrayData['dept_id'] : 1;
 
                 if ( isset ($arrayData["role_id"]) )
                 {
-                    $result = $user->updateUser ($arrayData, $arrayData["role_id"]);
+                    $result = $user->updateUser ($objUser, $arrayData, $arrayData["role_id"]);
                 }
                 else
                 {
-                    $result = $user->updateUser ($arrayData);
+                    $result = $user->updateUser ($objUser, $arrayData);
                 }
                 //Update in workflow
                 //Save Calendar assigment
@@ -814,9 +814,11 @@ class UsersFactory
             $criteria = $this->getUserCriteria ();
 
             $criteria .= " AND u.usrid = ?";
+            
+            $criteria .= " limit 1";
 
             $result = $this->objMysql->_query ($criteria, [$userUid]);
-
+ 
             if ( !isset ($result[0]) || empty ($result[0]) )
             {
                 throw new \Exception ("Failed to find user");
@@ -900,4 +902,5 @@ class UsersFactory
             throw $e;
         }
     }
+
 }

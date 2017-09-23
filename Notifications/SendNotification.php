@@ -11,6 +11,7 @@ class SendNotification
     private $cc;
     private $bcc;
     private $status;
+    private $recipient;
     private $system;
     private $to;
     private $sendToAll;

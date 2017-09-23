@@ -56,26 +56,26 @@ class BaseDocumentVersion implements Persistent
      * @var        string
      */
     protected $folder_uid = '';
-    
-     /**
+
+    /**
      * The value for the app_doc_title field.
      * @var        string
      */
     protected $app_doc_title;
-   
+
     /**
      * The value for the app_doc_comment field.
      * @var        string
      */
     protected $app_doc_comment;
-   
+
     /**
      * The value for the app_doc_tags field.
      * @var        string
      */
     protected $app_doc_tags;
-    
-     /**
+
+    /**
      * The value for the del_index field.
      * @var        int
      */
@@ -86,9 +86,7 @@ class BaseDocumentVersion implements Persistent
      * @var        int
      */
     protected $app_doc_create_date;
-    
     private $objMysql;
-    
     public $arrFieldMapping = array(
         "APP_DOC_UID" => array("mutator" => "setAppDocUid", "accessor" => "getAppDocUid", "type" => "date", "required" => "true"),
         "DOC_VERSION" => array("mutator" => "setDocVersion", "accessor" => "getDocVersion", "type" => "date", "required" => "true"),
@@ -155,23 +153,23 @@ class BaseDocumentVersion implements Persistent
 
         return $this->usr_uid;
     }
-      
+
     /**
      * Get the [app_doc_title] column value.
      * 
      * @return     string
      */
-    public function getAppDocTitle()
+    public function getAppDocTitle ()
     {
         return $this->app_doc_title;
     }
-    
+
     /**
      * Get the [app_doc_comment] column value.
      * 
      * @return     string
      */
-    public function getAppDocComment()
+    public function getAppDocComment ()
     {
         return $this->app_doc_comment;
     }
@@ -186,13 +184,13 @@ class BaseDocumentVersion implements Persistent
 
         return $this->app_doc_type;
     }
-    
-     /**
+
+    /**
      * Get the [app_doc_tags] column value.
      * 
      * @return     string
      */
-    public function getAppDocTags()
+    public function getAppDocTags ()
     {
         return $this->app_doc_tags;
     }
@@ -216,13 +214,13 @@ class BaseDocumentVersion implements Persistent
     {
         return $this->app_doc_status;
     }
-        
+
     /**
      * Get the [del_index] column value.
      * 
      * @return     int
      */
-    public function getDelIndex()
+    public function getDelIndex ()
     {
         return $this->del_index;
     }
@@ -468,78 +466,86 @@ class BaseDocumentVersion implements Persistent
             $this->app_doc_create_date = $ts;
         }
     }
-    
-     /**
+
+    /**
      * Set the value of [app_doc_title] column.
      * 
      * @param      string $v new value
      * @return     void
      */
-    public function setAppDocTitle($v)
+    public function setAppDocTitle ($v)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
-        
-        if ($this->app_doc_title !== $v) {
+
+        if ( $this->app_doc_title !== $v )
+        {
             $this->app_doc_title = $v;
         }
     }
-    
+
     /**
      * Set the value of [app_doc_comment] column.
      * 
      * @param      string $v new value
      * @return     void
      */
-    public function setAppDocComment($v)
+    public function setAppDocComment ($v)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
-        
-        if ($this->app_doc_comment !== $v) {
+
+        if ( $this->app_doc_comment !== $v )
+        {
             $this->app_doc_comment = $v;
         }
-    } 
-    
-     /**
+    }
+
+    /**
      * Set the value of [app_doc_tags] column.
      * 
      * @param      string $v new value
      * @return     void
      */
-    public function setAppDocTags($v)
+    public function setAppDocTags ($v)
     {
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
-        if ($v !== null && !is_string($v)) {
+        if ( $v !== null && !is_string ($v) )
+        {
             $v = (string) $v;
         }
-        
-        if ($this->app_doc_tags !== $v) {
+
+        if ( $this->app_doc_tags !== $v )
+        {
             $this->app_doc_tags = $v;
         }
-    } 
-    
-     /**
+    }
+
+    /**
      * Set the value of [del_index] column.
      * 
      * @param      int $v new value
      * @return     void
      */
-    public function setDelIndex($v)
+    public function setDelIndex ($v)
     {
         // Since the native PHP type for this column is integer,
         // we will cast the input value to an int (if it is not).
-        if ($v !== null && !is_int($v) && is_numeric($v)) {
+        if ( $v !== null && !is_int ($v) && is_numeric ($v) )
+        {
             $v = (int) $v;
         }
-        if ($this->del_index !== $v || $v === 0) {
+        if ( $this->del_index !== $v || $v === 0 )
+        {
             $this->del_index = $v;
         }
     }
@@ -574,7 +580,11 @@ class BaseDocumentVersion implements Persistent
                 "document_type" => $this->app_doc_type,
                 "app_id" => $this->app_uid,
                 "status" => $this->app_doc_status,
-                "FOLDER_UID" => $this->folder_uid
+                "FOLDER_UID" => $this->folder_uid,
+                "APP_DOC_TITLE" => $this->app_doc_title,
+                "APP_DOC_COMMENT" => $this->app_doc_comment,
+                "APP_DOC_TAGS" => $this->app_doc_tags,
+                "DEL_INDEX" => $this->del_index
                     )
             );
 

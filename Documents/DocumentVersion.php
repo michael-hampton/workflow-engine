@@ -99,7 +99,7 @@ class DocumentVersion extends BaseDocumentVersion
         $objDocumentVersion->setUsrUid ($result[0]['user_id']);
         $objDocumentVersion->setAppDocType ($result[0]['document_type']);
         $objDocumentVersion->setDocVersion ($result[0]['document_version']);
-        $objDocumentVersion->setAppUid($result[0]['app_id']);
+        $objDocumentVersion->setAppUid ($result[0]['app_id']);
 
         return $objDocumentVersion;
     }
@@ -163,6 +163,9 @@ class DocumentVersion extends BaseDocumentVersion
             $objVersioning->setAppDocFilename ($aData['filename']);
             $objVersioning->setAppUid ($aData['app_uid']);
             $objVersioning->setFolderUid ($aData['folderId']);
+            $objVersioning->setAppDocTitle ($aData['document_title']);
+            $objVersioning->setAppDocComment ($aData['document_comment']);
+            $objVersioning->setDelIndex ($aData['del_index']);
 
             $docType = isset ($aData['document_type']) ? $aData['document_type'] : '';
 
@@ -264,7 +267,7 @@ class DocumentVersion extends BaseDocumentVersion
     {
         try {
             $oAppDocument = $this->retrieveByPK ($aData['APP_DOC_UID'], $aData['DOC_VERSION']);
-            
+
             if ( !is_null ($oAppDocument) )
             {
                 /* ----------------------------------********--------------------------------- */

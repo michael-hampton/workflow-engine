@@ -13,7 +13,7 @@ define ("PATH_IMAGES_ENVIRONMENT_USERS", HOME_DIR . PATH_DATA_PUBLIC . "img/user
 define ("WEB_ENTRY_DIR", HOME_DIR . "core/public/webentry/");
 define ("WEB_ENTRY_TEMPLATES", WEB_ENTRY_DIR . "template.phtml");
 define ("HOST", $_SERVER['HTTP_HOST']);
-define ('SERVER_NAME', $_SERVER["SERVER_NAME"]); 
+define ('SERVER_NAME', $_SERVER["SERVER_NAME"]);
 
 require_once HOME_DIR . "/core/app/config/config.php";
 require_once HOME_DIR . '/core/app/library/Persistent.php';
@@ -46,6 +46,8 @@ require_once HOME_DIR . '/core/app/library/Event/MessageApplication.php';
 require_once HOME_DIR . '/core/app/library/Event/MessageEventRelation.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/MessageEventRelation.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/MessageApplication.php';
+require_once HOME_DIR . '/core/app/library/Event/BaseAppEvent.php';
+require_once HOME_DIR . '/core/app/library/Event/AppEvent.php';
 require_once HOME_DIR . '/core/app/library/Event/BaseEvent.php';
 require_once HOME_DIR . '/core/app/library/Event/EventModel.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/Event.php';

@@ -640,7 +640,7 @@ class Cases
      * Uploads files that were saved as part of the new case process
      * @see addCase
      */
-    public function uploadCaseFiles ($arrFilesUploaded, $projectId, \WorkflowStep $objStep, \Users $objUser, $fileType = '')
+    public function uploadCaseFiles ($arrFilesUploaded, $projectId, \WorkflowStep $objStep, \Users $objUser, $fileType = '', $documentTitle = '', $documentComment = '')
     {
         if ( isset ($arrFilesUploaded['fileUpload']['name'][0]) && !empty ($arrFilesUploaded['fileUpload']['name'][0]) )
         {
@@ -654,7 +654,9 @@ class Cases
                     "uploaded_by" => $objUser->getUsername (),
                     "contents" => $fileContent,
                     "files" => $arrFilesUploaded,
-                    "step" => $objStep
+                    "step" => $objStep,
+                    "document_comment" => $documentComment,
+                    "document_title" => $documentTitle
                 );
 
                 if ( trim ($fileType) !== "" )

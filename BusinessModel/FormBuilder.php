@@ -139,7 +139,29 @@ class FormBuilder
 
     public function buildDocHTML ($arrDocs)
     {
-        $this->documentHTML = '<div class="col-lg-12 pull-left m-t-sm m-b-sm" style="border: 1px dotted #CCC"></div>';
+        $this->documentHTML = '<h2>Upload Document</h2>';
+        
+        $this->documentHTML .= '<div class="col-lg-12 pull-left m-t-sm m-b-sm" style="border: 1px dotted #CCC"></div>';
+
+            $this->documentHTML .= '<div class="form-group">
+                <label class="col-lg-2 control-label">Title</label>
+                <div class="col-lg-10">';
+
+
+
+                    $this->documentHTML .= '<input class="form-control" name="document_title" id="document_title">';
+                $this->documentHTML .= '</div>';
+            $this->documentHTML .= '</div>';
+            
+            $this->documentHTML .= '<div class="form-group">
+                <label class="col-lg-2 control-label">Comment</label>
+                <div class="col-lg-10">';
+
+
+
+                    $this->documentHTML .= '<textarea class="form-control" name="document_comment" id="document_comment"></textarea>';
+                $this->documentHTML .= '</div>';
+            $this->documentHTML .= '</div>';
 
         $this->documentHTML .= '<div class="form-group">
             <label class="col-lg-2 control-label">Document Type</label>

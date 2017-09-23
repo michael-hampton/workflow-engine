@@ -144,6 +144,7 @@ abstract class BaseEvent
      * @var        boolean
      */
     protected $alreadyInSave = false;
+    protected $mapId;
 
     /**
      * Flag to prevent endless validation loop, if this object is referenced
@@ -160,6 +161,16 @@ abstract class BaseEvent
     public function getEvnUid ()
     {
         return $this->evn_uid;
+    }
+
+    public function getMapId ()
+    {
+        return $this->mapId;
+    }
+
+    public function setMapId ($mapId)
+    {
+        $this->mapId = $mapId;
     }
 
     /**
@@ -411,7 +422,7 @@ abstract class BaseEvent
             $this->evn_status = $v;
         }
     }
-    
+
     /**
      * Set the value of [evn_when_occurs] column.
      * 
@@ -460,7 +471,7 @@ abstract class BaseEvent
      */
     public function setTasUid ($v)
     {
-        
+
         // Since the native PHP type for this column is string,
         // we will cast the input to a string (if it is not).
         if ( $v !== null && !is_string ($v) )
@@ -472,7 +483,6 @@ abstract class BaseEvent
             $this->tas_uid = $v;
         }
     }
-
 
     /**
      * Set the value of [evn_tas_uid_from] column.
@@ -742,7 +752,6 @@ abstract class BaseEvent
         }
     }
 
-
     public function getValidationFailures ()
     {
         return $this->ValidationFailures;
@@ -813,79 +822,93 @@ abstract class BaseEvent
         return true;
     }
 
+    private function checkIfExistsInEventTable ()
+    {
+        $result = $this->objMysql->_select ("workflow.EVENT", [], ["EVN_UID" => $this->evn_uid]);
+
+        if ( isset ($result[0]) && !empty ($result[0]) )
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     public function doSave ()
     {
-        $conditions = $this->getEventsForTask ();
+//        $conditions = $this->getEventsForTask ();
+//
+//        if ( !empty ($conditions) )
+//        {
+//            $conditions = json_decode ($conditions, TRUE);
+//        }
+//        else
+//        {
+//            $conditions = [];
+//        }
+//
+//        $conditions[$this->event] = $this->evn_status;
+//        $conditions['params'][$this->event]['max_attempts'] = $this->evn_max_attempts;
+//        $conditions['params'][$this->event]['time_unit'] = $this->evn_time_unit;
+//        $conditions['params'][$this->event]['estimated_duration'] = $this->evn_tas_estimated_duration;
+//        $conditions['params'][$this->event]['event_when'] = $this->evn_when;
+//        $conditions['params'][$this->event]['when_occurs'] = $this->evn_when_occurs;
+//        $conditions['params'][$this->event]['action_params'] = $this->evn_action_parameters;
+//        $conditions['params'][$this->event]['evn_type'] = $this->evn_type;
 
-        if ( !empty ($conditions) )
+        if ( trim ($this->evn_uid) === '' && $this->checkIfExistsInEventTable () === false )
         {
-            $conditions = json_decode ($conditions, TRUE);
+            $this->objMysql->_insert ("workflow.EVENT", [
+                'PRO_UID' => $this->pro_uid,
+                'EVN_STATUS' => $this->evn_status,
+                'EVN_WHEN_OCCURS' => $this->evn_when_occurs,
+                'EVN_RELATED_TO' => $this->evn_related_to,
+                'TAS_UID' => $this->tas_uid,
+                'EVN_TAS_UID_FROM' => $this->evn_tas_uid_from,
+                'EVN_TAS_UID_TO' => $this->evn_tas_uid_to,
+                'EVN_TAS_ESTIMATED_DURATION' => $this->evn_tas_estimated_duration,
+                'EVN_TIME_UNIT' => $this->evn_time_unit,
+                'EVN_WHEN' => $this->evn_when,
+                'EVN_MAX_ATTEMPTS' => $this->evn_max_attempts,
+                'EVN_ACTION' => $this->evn_action,
+                'EVN_CONDITIONS' => $this->evn_conditions,
+                'EVN_ACTION_PARAMETERS' => $this->evn_action_parameters,
+                'TRI_UID' => $this->tri_uid,
+                'EVN_POSX' => $this->evn_posx,
+                'EVN_POSY' => $this->evn_posy,
+                'EVN_TYPE' => $this->evn_type,
+                'TAS_EVN_UID' => $this->tas_evn_uid
+                    ]
+            );
         }
         else
         {
-            $conditions = [];
+            $this->objMysql->_update ("workflow.EVENT", [
+                'PRO_UID' => $this->pro_uid,
+                'EVN_STATUS' => $this->evn_status,
+                'EVN_WHEN_OCCURS' => $this->evn_when_occurs,
+                'EVN_RELATED_TO' => $this->evn_related_to,
+                'TAS_UID' => $this->tas_uid,
+                'EVN_TAS_UID_FROM' => $this->evn_tas_uid_from,
+                'EVN_TAS_UID_TO' => $this->evn_tas_uid_to,
+                'EVN_TAS_ESTIMATED_DURATION' => $this->evn_tas_estimated_duration,
+                'EVN_TIME_UNIT' => $this->evn_time_unit,
+                'EVN_WHEN' => $this->evn_when,
+                'EVN_MAX_ATTEMPTS' => $this->evn_max_attempts,
+                'EVN_ACTION' => $this->evn_action,
+                'EVN_CONDITIONS' => $this->evn_conditions,
+                'EVN_ACTION_PARAMETERS' => $this->evn_action_parameters,
+                'TRI_UID' => $this->tri_uid,
+                'EVN_POSX' => $this->evn_posx,
+                'EVN_POSY' => $this->evn_posy,
+                'EVN_TYPE' => $this->evn_type,
+                'TAS_EVN_UID' => $this->tas_evn_uid
+                    ], ['EVN_UID' => $this->evn_uid]
+            );
         }
-        
-        $conditions[$this->event] = $this->evn_status;
-        $conditions['params'][$this->event]['max_attempts'] = $this->evn_max_attempts;
-        $conditions['params'][$this->event]['time_unit'] = $this->evn_time_unit;
-        $conditions['params'][$this->event]['estimated_duration'] = $this->evn_tas_estimated_duration;
-        $conditions['params'][$this->event]['event_when'] = $this->evn_when;
-        $conditions['params'][$this->event]['when_occurs'] = $this->evn_when_occurs;
-        $conditions['params'][$this->event]['action_params'] = $this->evn_action_parameters;
-        $conditions['params'][$this->event]['evn_type'] = $this->evn_type;
-        
-        if(trim($this->evn_uid) === '') {
-            $this->objMysql->_insert("workflow.EVENT",  
-                                 [
-                                 'PRO_UID' => $this->pro_uid,
-                                 'EVN_STATUS' => $this->evn_status,
-                                 'EVN_WHEN_OCCURS' => $this->evn_when_occurs,
-                                 'EVN_RELATED_TO' => $this->evn_related_to,
-                                 'TAS_UID' => $this->tas_uid,
-                                 'EVN_TAS_UID_FROM' => $this->evn_tas_uid_from,
-                                 'EVN_TAS_UID_TO' => $this->evn_tas_uid_to, 
-                                 'EVN_TAS_ESTIMATED_DURATION' => $this->evn_tas_estimated_duration, 
-                                 'EVN_TIME_UNIT' => $this->evn_time_unit, 
-                                'EVN_WHEN' => $this->evn_when,
-                                'EVN_MAX_ATTEMPTS' => $this->evn_max_attempts,
-                                'EVN_ACTION' => $this->evn_action,
-                                'EVN_CONDITIONS' => $this->evn_conditions, 
-                                'EVN_ACTION_PARAMETERS' => $this->evn_action_parameters, 
-                                'TRI_UID' => $this->tri_uid, 
-                                'EVN_POSX' => $this->evn_posx,
-                                'EVN_POSY' => $this->evn_posy, 
-                                'EVN_TYPE' => $this->evn_type, 
-                                'TAS_EVN_UID' => $this->tas_evn_uid
-                             ]
-                         );
-        } else {
-                        $this->objMysql->_update("workflow.EVENT",  
-                                 [
-                                 'PRO_UID' => $this->pro_uid,
-                                 'EVN_STATUS' => $this->evn_status,
-                                 'EVN_WHEN_OCCURS' => $this->evn_when_occurs,
-                                 'EVN_RELATED_TO' => $this->evn_related_to,
-                                 'TAS_UID' => $this->tas_uid,
-                                 'EVN_TAS_UID_FROM' => $this->evn_tas_uid_from,
-                                 'EVN_TAS_UID_TO' => $this->evn_tas_uid_to, 
-                                 'EVN_TAS_ESTIMATED_DURATION' => $this->evn_tas_estimated_duration, 
-                                 'EVN_TIME_UNIT' => $this->evn_time_unit, 
-                                'EVN_WHEN' => $this->evn_when,
-                                'EVN_MAX_ATTEMPTS' => $this->evn_max_attempts,
-                                'EVN_ACTION' => $this->evn_action,
-                                'EVN_CONDITIONS' => $this->evn_conditions, 
-                                'EVN_ACTION_PARAMETERS' => $this->evn_action_parameters, 
-                                'TRI_UID' => $this->tri_uid, 
-                                'EVN_POSX' => $this->evn_posx,
-                                'EVN_POSY' => $this->evn_posy, 
-                                'EVN_TYPE' => $this->evn_type, 
-                                'TAS_EVN_UID' => $this->tas_evn_uid
-                             ], ['EVN_UID' => $this->evn_uid]
-                         );
-        }
-            
-        
-        $this->objMysql->_update("workflow.status_mapping", ["step_condition" => json_encode ($conditions)], ["id" => $this->tas_uid]);
+
+
+        $this->objMysql->_update ("workflow.status_mapping", ["step_condition" => json_encode ($conditions)], ["id" => $this->mapId]);
     }
+
 }

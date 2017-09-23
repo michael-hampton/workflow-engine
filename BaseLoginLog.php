@@ -71,25 +71,24 @@ abstract class BaseLoginLog implements Persistent
      * @var        boolean
      */
     protected $alreadyInValidation = false;
-        
     private $arrayFieldDefinition = array(
         "LOG_STATUS" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getLogStatus", "mutator" => "setLogStatus"),
-        "LOG_IP" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getLogId", "mutator" => "setLogIp"),
+        "LOG_IP" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getLogIp", "mutator" => "setLogIp"),
         "LOG_SID" => array("type" => "string", "required" => false, "empty" => true, "accessor" => "getLogSid", "mutator" => "setLogSid"),
         "LOG_INIT_DATE" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getLogInitDate", "mutator" => "setLogInitDate"),
         "LOG_CLIENT_HOSTNAME" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getLogClientHostname", "mutator" => "setLogClientHostname"),
         "USR_UID" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getUsrUid", "mutator" => "setUsrUid"),
         "LOG_UID" => array("type" => "int", "required" => false, "empty" => false, "accessor" => "getLogUid", "mutator" => "setLogUid"),
         "LOG_END_DATE" => array("type" => "string", "required" => false, "empty" => true, "accessor" => "getLogEndDate", "mutator" => "setLogEndDate"),
-        //"INP_DOC_TAGS" => array("type" => "string", "required" => false, "empty" => true, "accessor" => "", "mutator" => ""),
-        //"INP_DOC_TYPE_FILE" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getFileType", "mutator" => "setFileType"),
-        //"INP_DOC_MAX_FILESIZE" => array("type" => "int", "required" => true, "empty" => false, "accessor" => "getMaxFileSize", "mutator" => "setMaxFileSize"),
-        //"INP_DOC_MAX_FILESIZE_UNIT" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getFilesizeUnit", "mutator" => "setFilesizeUnit")
+            //"INP_DOC_TAGS" => array("type" => "string", "required" => false, "empty" => true, "accessor" => "", "mutator" => ""),
+            //"INP_DOC_TYPE_FILE" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getFileType", "mutator" => "setFileType"),
+            //"INP_DOC_MAX_FILESIZE" => array("type" => "int", "required" => true, "empty" => false, "accessor" => "getMaxFileSize", "mutator" => "setMaxFileSize"),
+            //"INP_DOC_MAX_FILESIZE_UNIT" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getFilesizeUnit", "mutator" => "setFilesizeUnit")
     );
-    
     private $objMysql;
-    
-    private function getConnection() {
+
+    private function getConnection ()
+    {
         $this->objMysql = new MySql2();
     }
 
@@ -356,7 +355,7 @@ abstract class BaseLoginLog implements Persistent
         }
         if ( $this->log_init_date !== $ts )
         {
-            $this->log_init_date = date("Y-m-d H:i:s", $ts);
+            $this->log_init_date = date ("Y-m-d H:i:s", $ts);
         }
     }
 
@@ -387,7 +386,7 @@ abstract class BaseLoginLog implements Persistent
         }
         if ( $this->log_end_date !== $ts )
         {
-            $this->log_end_date = date("Y-m-d H:i:s");
+            $this->log_end_date = date ("Y-m-d H:i:s");
         }
     }
 
@@ -410,8 +409,7 @@ abstract class BaseLoginLog implements Persistent
         {
             $this->log_client_hostname = $v;
         }
-        
-            }
+    }
 
     /**
      * Set the value of [usr_uid] column.
@@ -441,6 +439,7 @@ abstract class BaseLoginLog implements Persistent
     public function delete ()
     {
         try {
+            
         } catch (Exception $e) {
             throw $e;
         }
@@ -455,24 +454,39 @@ abstract class BaseLoginLog implements Persistent
      */
     public function save ()
     {
-        if($this->objMysql === null) {
-            $this->getConnection();
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
         }
-        
-        try {
-            $this->objMysql->_insert("user_management.LOGIN_LOG",
-                                     [       
-                                          'LOG_UID' => $this->log_uid,
-                                          'LOG_STATUS' => $this->log_status,
-                                          'LOG_IP' => $this->log_ip,
-                                          'LOG_SID' => $this->log_sid,
-                                          'LOG_INIT_DATE' => $this->log_init_date,
-                                          'LOG_END_DATE' => $this->log_end_date,
-                                          'LOG_CLIENT_HOSTNAME' => $this->log_client->hostname, 
-                                          'USR_UID' => $this->usr_uid
 
-                                      ]
-                                    );
+        try {
+
+            if ( trim ($this->log_uid) === "" )
+            {
+                $this->objMysql->_insert ("user_management.LOGIN_LOG", [
+                    'LOG_STATUS' => $this->log_status,
+                    'LOG_IP' => $this->log_ip,
+                    'LOG_SID' => $this->log_sid,
+                    'LOG_INIT_DATE' => $this->log_init_date,
+                    'LOG_END_DATE' => $this->log_end_date,
+                    'LOG_CLIENT_HOSTNAME' => $this->log_client_hostname,
+                    'USR_UID' => $this->usr_uid
+                        ]
+                );
+            }
+            else
+            {
+                $this->objMysql->_update ("user_management.LOGIN_LOG", [
+                    'LOG_STATUS' => $this->log_status,
+                    'LOG_IP' => $this->log_ip,
+                    'LOG_SID' => $this->log_sid,
+                    'LOG_INIT_DATE' => $this->log_init_date,
+                    'LOG_END_DATE' => $this->log_end_date,
+                    'LOG_CLIENT_HOSTNAME' => $this->log_client_hostname,
+                    'USR_UID' => $this->usr_uid
+                        ], ["LOG_UID" => $this->log_uid]
+                );
+            }
         } catch (Exception $e) {
             throw $e;
         }
