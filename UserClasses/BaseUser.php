@@ -1268,7 +1268,7 @@ abstract class BaseUser implements Persistent
     /**
      * 
      */
-    public function save ()
+    public function save (User $objAuditUser)
     {
         if ( isset ($this->userId) && is_numeric ($this->userId) )
         {
@@ -1297,6 +1297,8 @@ abstract class BaseUser implements Persistent
                 "USR_PHONE" => $this->usr_phone,
                 "USR_ADDRESS" => $this->usr_address
                     ], ["usrid" => $this->userId]);
+            
+            $this->auditLog('UPD', $objAuditUser);
         }
         else
         {
@@ -1326,10 +1328,45 @@ abstract class BaseUser implements Persistent
                 "USR_ADDRESS" => $this->usr_address
                     ]
             );
+            
+            $this->auditLog('INS', $objAuditUser);
             return $id;
         }
 
         return true;
+    }
+    
+        /**
+     * AuditLog
+     *
+     * @param string $option    Option
+     * @param array  $arrayData Data
+     *o
+     * @return void
+     */
+    public function auditLog($option, Users $objUser)
+    {
+        try {
+            $firstName = trim($this->firstName) !== '' ? ' - First Name: ' . $this->firstName : '';
+            $lastName = trim($this->lastName) !== ''  ? ' - Last Name: ' . $this->lastName : '';
+            $email = trim($this->user_email) !== '' ? ' - Email: ' . $this->user_email : '';
+            $dueDate = '';
+            $status = trim($this->status) !== '' ? ' - Status: ' . $this->status : '';
+            $address = trim($this->user_address) !== '' ? ' - Address: ' . $this->usr_address : '';
+            $phone = trim($this->user_phone) !== '' ? ' - Phone: ' . $this->usr_phone : '';
+            $zipCode = trim($this->user_zip_code) !== '' ? ' - Zip Code: ' . $this->usr_zip_code : '';
+            $position = '';
+            //$position = (array_key_exists('USR_POSITION', $arrayData))? ' - Position: ' . $arrayData['USR_POSITION'] : '';
+            $role = trim($this->roleId) !== '' ? ' - Role: ' . $this->roleId : '';
+           
+            $str = 'User Name: ' . $this->username . ' - User ID: (' . $this->userId . ')' .
+                $firstName . $lastName . $email . $dueDate . $status . $address . $phone . $zipCode . $position . $role;
+            $title = $option === 'INS' ? 'NEW USER ADDED' : 'USER UPDATED';
+            
+            $this->objMysql->_insert("user_management.user_log", ['user_id'=> $objUser->getUserId(), 'detail' => $str, 'summary' => $title, 'date_updated' => date("Y-m-d H:i:s")]);
+        } catch (\Exception $e) {
+            throw $e;
+        }
     }
 
     /**
