@@ -1,11 +1,4 @@
-Code  Pull requests 3  Pulse
-workflow/engine/classes/model/om/BaseAppEvent.php
-
 <?php
-require_once 'propel/om/BaseObject.php';
-require_once 'propel/om/Persistent.php';
-include_once 'propel/util/Criteria.php';
-include_once 'classes/model/AppEventPeer.php';
 /**
  * Base class that represents a row from the 'APP_EVENT' table.
  *
@@ -15,13 +8,6 @@ include_once 'classes/model/AppEventPeer.php';
  */
 abstract class BaseAppEvent extends BaseObject implements Persistent
 {
-    /**
-     * The Peer class.
-     * Instance provides a convenient way of calling static methods on a class
-     * that calling code may not be able to identify.
-     * @var        AppEventPeer
-    */
-    protected static $peer;
     /**
      * The value for the app_uid field.
      * @var        string
