@@ -71,6 +71,21 @@ abstract class BaseLoginLog implements Persistent
      * @var        boolean
      */
     protected $alreadyInValidation = false;
+        
+    private $arrayFieldDefinition = array(
+        "LOG_STATUS" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getLogStatus", "mutator" => "setLogStatus"),
+        "LOG_IP" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getLogId", "mutator" => "setLogIp"),
+        "LOG_SID" => array("type" => "string", "required" => false, "empty" => true, "accessor" => "getLogSid", "mutator" => "setLogSid"),
+        "LOG_INIT_DATE" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getLogInitDate", "mutator" => "setLogInitDate"),
+        "LOG_CLIENT_HOSTNAME" => array("type" => "string", "required" => false, "empty" => false, "accessor" => "getLogClientHostname", "mutator" => "setLogClientHostname"),
+        "USR_UID" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getUsrUid", "mutator" => "setUsrUid"),
+        "LOG_UID" => array("type" => "int", "required" => false, "empty" => false, "accessor" => "getLogUid", "mutator" => "setLogUid"),
+        "LOG_END_DATE" => array("type" => "string", "required" => false, "empty" => true, "accessor" => "getLogEndDate", "mutator" => "setLogEndDate"),
+        //"INP_DOC_TAGS" => array("type" => "string", "required" => false, "empty" => true, "accessor" => "", "mutator" => ""),
+        //"INP_DOC_TYPE_FILE" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getFileType", "mutator" => "setFileType"),
+        //"INP_DOC_MAX_FILESIZE" => array("type" => "int", "required" => true, "empty" => false, "accessor" => "getMaxFileSize", "mutator" => "setMaxFileSize"),
+        //"INP_DOC_MAX_FILESIZE_UNIT" => array("type" => "string", "required" => true, "empty" => false, "accessor" => "getFilesizeUnit", "mutator" => "setFilesizeUnit")
+    );
     
     private $objMysql;
     
