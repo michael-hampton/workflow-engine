@@ -238,5 +238,79 @@ class EventModel extends BaseEvent
             $oAppEvent->create( $appEventData );
         }
     }
+    
+        public function getBy ($PRO_UID, $taskUid)
+    {
+        $oCriteria = new Criteria( 'workflow' );
+        $oCriteria->addSelectColumn( EventPeer::EVN_UID );
+        $oCriteria->addSelectColumn( EventPeer::TAS_UID );
+        $oCriteria->addSelectColumn( EventPeer::EVN_TAS_UID_FROM );
+        $oCriteria->addSelectColumn( EventPeer::EVN_TAS_UID_TO );
+        $oCriteria->add( EventPeer::EVN_STATUS, 'ACTIVE' );
+        $oCriteria->add( EventPeer::EVN_ACTION, '', Criteria::NOT_EQUAL );
+        $oCriteria->add( EventPeer::PRO_UID, $PRO_UID, Criteria::EQUAL );
+        $oDataset = EventPeer::doSelectRs( $oCriteria );
+        $oDataset->setFetchmode( ResultSet::FETCHMODE_ASSOC );
+        $eventsTask = array ();
+        while ($oDataset->next()) {
+            $aDataEvent = $oDataset->getRow();
+            if ($taskUid == $aDataEvent['TAS_UID'] || $taskUid == $aDataEvent['EVN_TAS_UID_FROM'] || $taskUid == $aDataEvent['EVN_TAS_UID_TO']) {
+                $eventsTask[] = $aDataEvent['EVN_UID'];
+            } else {
+                $flag = $this->verifyTaskbetween( $PRO_UID, $aDataEvent['EVN_TAS_UID_FROM'], $aDataEvent['EVN_TAS_UID_TO'], $taskUid );
+                if ($flag) {
+                    $eventsTask[] = $aDataEvent['EVN_UID'];
+                }
+            }
+        }
+        $aRows = Array ();
+        if (count( $eventsTask ) > 0) {
+            $oCriteria = new Criteria( 'workflow' );
+            $oCriteria->addSelectColumn( EventPeer::EVN_UID );
+            $oCriteria->addSelectColumn( EventPeer::PRO_UID );
+            $oCriteria->addSelectColumn( EventPeer::EVN_STATUS );
+            $oCriteria->addSelectColumn( EventPeer::EVN_WHEN_OCCURS );
+            $oCriteria->addSelectColumn( EventPeer::EVN_RELATED_TO );
+            $oCriteria->addSelectColumn( EventPeer::TAS_UID );
+            $oCriteria->addSelectColumn( EventPeer::EVN_TAS_UID_FROM );
+            $oCriteria->addSelectColumn( EventPeer::EVN_TAS_UID_TO );
+            $oCriteria->addSelectColumn( EventPeer::EVN_TAS_ESTIMATED_DURATION );
+            $oCriteria->addSelectColumn( EventPeer::EVN_WHEN );
+            $oCriteria->addSelectColumn( EventPeer::EVN_MAX_ATTEMPTS );
+            $oCriteria->addSelectColumn( EventPeer::EVN_ACTION );
+            $oCriteria->addSelectColumn( EventPeer::EVN_CONDITIONS );
+            $oCriteria->addSelectColumn( EventPeer::EVN_ACTION_PARAMETERS );
+            $oCriteria->addSelectColumn( EventPeer::TRI_UID );
+            $oCriteria->add( EventPeer::EVN_UID, (array) $eventsTask, Criteria::IN );
+            $oDataset = EventPeer::doSelectRs( $oCriteria );
+            $oDataset->setFetchmode( ResultSet::FETCHMODE_ASSOC );
+            while ($oDataset->next()) {
+                $aRows[] = $oDataset->getRow();
+            }
+        }
+        return (count( $aRows ) > 0) ? $aRows : false;
+    }
+    
+    public function toCalculateTime ($aData, $iDate = null)
+    {
+      
+        $oCalendar = new calendarFunctions();
+        $iDate = isset( $iDate ) ? $iDate : date( 'Y-m-d H:i:s' );
+        $estimatedDuration = $aData['EVN_TAS_ESTIMATED_DURATION']; //task duration
+        $when = $aData['EVN_WHEN']; //how many days
+        $whenOccurs = $aData['EVN_WHEN_OCCURS']; //time on action (AFTER_TIME/TASK_STARTED)
+        if ($oCalendar->pmCalendarUid == '') {
+        	$oCalendar->getCalendar(null, $aData['PRO_UID'], $aData['TAS_UID']);
+        	$oCalendar->getCalendarData();
+        }
+        if ($whenOccurs == 'TASK_STARTED') {
+            $calculatedDueDateA = $oCalendar->calculateDate( $iDate, $when, 'days' );
+            $sActionDate = date( 'Y-m-d H:i:s', $calculatedDueDateA['DUE_DATE_SECONDS'] );
+        } else {
+            $calculatedDueDateA = $oCalendar->calculateDate( $iDate, $estimatedDuration + $when, 'days' );
+            $sActionDate = date( 'Y-m-d H:i:s', $calculatedDueDateA['DUE_DATE_SECONDS'] );
+        }
+        return $sActionDate;
+    }
 
 }
