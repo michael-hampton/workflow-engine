@@ -507,7 +507,23 @@ abstract class BaseLoginLog implements Persistent
      */
     public function validate ()
     {
-       return true;
+        $errorCount = 0;
+        foreach ($this->arrayFieldDefinition as $fieldName => $arrField) {
+            if ( $arrField['required'] === true )
+            {
+                $accessor = $this->arrayFieldDefinition[$fieldName]['accessor'];
+                if ( trim ($this->$accessor ()) == "" )
+                {
+                    $this->arrValidationErrors[] = $fieldName . " Is empty. It is a required field";
+                    $errorCount++;
+                }
+            }
+        }
+        if ( $errorCount > 0 )
+        {
+            return FALSE;
+        }
+        return TRUE;
     }
 
     /**
