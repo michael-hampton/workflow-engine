@@ -458,9 +458,9 @@ abstract class BaseLoginLog implements Persistent
 
                                       ]
                                     );
-    } catch (Exception $e) {
-        throw $e;
-    }
+        } catch (Exception $e) {
+            throw $e;
+        }
     }
 
     /**
@@ -497,11 +497,25 @@ abstract class BaseLoginLog implements Persistent
 
     /**
      * 
-     * @param array $arrData
+     * @param type $arrDocument
+     * @return boolean
      */
-    public function loadObject(array $arrData)
+    public function loadObject (array $arrData)
     {
-        
+        foreach ($arrData as $formField => $formValue) {
+            if ( isset ($this->arrayFieldDefinition[$formField]) )
+            {
+                $mutator = $this->arrayFieldDefinition[$formField]['mutator'];
+                if ( method_exists ($this, $mutator) && is_callable (array($this, $mutator)) )
+                {
+                    if ( isset ($this->arrayFieldDefinition[$formField]) && trim ($formValue) != "" )
+                    {
+                        call_user_func (array($this, $mutator), $formValue);
+                    }
+                }
+            }
+        }
+        return true;
     }
 
 }
