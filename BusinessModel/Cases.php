@@ -248,16 +248,22 @@ class Cases
                 $objCase->setCurrent_step ($stepName !== false ? $stepName : '');
                 $objCase->setStatus (isset ($arrCase['status']) ? $arrCase['status'] : '');
 
+                $skip = false;
+
+                if ( trim ($search) !== "" && strpos ($objCase->getName (), trim ($search)) === false )
+                {
+                    $skip = true;
+                }
 
                 if ( !is_object ($objCase) )
                 {
                     return false;
                 }
 
-                $arrCases['data'][$key] = $objCase;
+                $arrCases['data'][$key] = $skip === false ? $objCase : [];
             }
 
-            return $arrCases;
+            return array_filter ($arrCases);
         }
 
         return [];
