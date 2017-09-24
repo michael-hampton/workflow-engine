@@ -245,6 +245,7 @@ class Cases
                 $objCase->setWorkflowName ($workflowName !== false ? $workflowName : '');
                 $objCase->setCurrent_user (isset ($arrCase['current_user']) ? $arrCase['current_user'] : '');
                 $stepName = $this->getStepName ($arrCase['current_step']);
+                $objCase->setCurrentStepId ($arrCase['current_step']);
                 $objCase->setCurrent_step ($stepName !== false ? $stepName : '');
                 $objCase->setStatus (isset ($arrCase['status']) ? $arrCase['status'] : '');
 
@@ -1571,38 +1572,51 @@ class Cases
     /**
      * Get Users to reassign
      *
-     * @param string $userUid Unique id of User (User logged)
-     * @param string $taskUid Unique id of Task
-     * @param array $arrayFilterData Data of the filters
-     * @param string $sortField Field name to sort
-     * @param string $sortDir Direction of sorting (ASC, DESC)
-     * @param int $start Start
-     * @param int $limit Limit
+     * @param string $userUid         Unique id of User (User logged)
+     * @param string $taskUid         Unique id of Task
+     * @param array  $arrayFilterData Data of the filters
+     * @param string $sortField       Field name to sort
+     * @param string $sortDir         Direction of sorting (ASC, DESC)
+     * @param int    $start           Start
+     * @param int    $limit           Limit
      *
      * @return array Return Users to reassign
      */
-    public function getUsersToReassign (\WorkflowStep $objStep, $arrayFilterData = null, $sortField = null, $sortDir = null, $start = null, $limit = null)
+    public function getUsersToReassign (\Users $objUser, \Task $objTask, $arrayFilterData = null, $sortField = null, $sortDir = null, $start = null, $limit = null)
     {
-        try {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
 
-            if ( $this->objMysql === null )
+        try {
+            $arrayUser = [];
+
+            $numRecTotal = 0;
+
+            //Set variables
+            $task = $objTask->retrieveByPk ($objTask->getTasUid ());
+
+            if ( $task === false )
             {
-                $this->getConnection ();
+                throw new Exception ("Failed to find task");
             }
 
-            $arrayUser = [];
-            $numRecTotal = 0;
-            //Set variables
-            $stepId = $objStep->getStepId ();
+            $processUid = $task->getProUid ();
 
-            echo $stepId;
+            $group = new \Team();
 
-            $workflowId = $objStep->getWorkflowId ();
             //Set variables
             $filterName = 'filter';
 
             if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData['filter']) )
             {
+                $arrayAux = [
+                    '' => 'filter',
+                    'LEFT' => 'lfilter',
+                    'RIGHT' => 'rfilter'
+                ];
+
                 $filterName = isset ($arrayFilterData['filterOption']) ? $arrayFilterData['filterOption'] : '';
             }
 
@@ -1618,14 +1632,19 @@ class Cases
                     'data' => $arrayUser
                 ];
             }
+
             //Set variables
             $processSupervisor = new \BusinessModel\ProcessSupervisor();
-            $arrayResult = $processSupervisor->getProcessSupervisors ($workflowId, 'ASSIGNED', null, null, null, 'teams');
+
+            $arrayResult = $processSupervisor->getProcessSupervisors ($processUid, 'ASSIGNED', null, null, null, 'teams');
 
             $arrayGroupUid = array_merge (
                     array_map (function ($value) {
-                        return $value['permission'];
-                    }, $objStep->getGroupsOfTask ($stepId, 'team')), //Groups
+                        return $value['GRP_UID'];
+                    }, $task->getGroupsOfTask ($objTask->getTasUid (), 1)), //Groups
+                    array_map (function ($value) {
+                        return $value['GRP_UID'];
+                    }, $task->getGroupsOfTask ($objTask->getTasUid (), 2)), //AdHoc Groups
                     array_map (function ($value) {
                         return $value['grp_uid'];
                     }, $arrayResult['data'])                 //ProcessSupervisor Groups
@@ -1635,14 +1654,16 @@ class Cases
             {
                 return false;
             }
-
             $arrayGroupUid = array_values (array_filter (array_unique ($arrayGroupUid)));
 
-            $sqlTaskUser = "
-            SELECT permission
-            FROM   workflow.step_permission
-            WHERE step_id = '%s' AND
-             permission_type = 'user'";
+            $sqlTaskUser = '
+            SELECT USR_UID
+            FROM   workflow.TASK_USER
+            WHERE  TAS_UID = \'%s\' AND
+                  TU_TYPE IN (1, 2) AND
+                   TU_RELATION = 1
+            ';
+
             $sqlGroupUser = '
             SELECT usrid
             FROM   user_management.poms_users 
@@ -1654,13 +1675,14 @@ class Cases
             WHERE  workflow_id = \'%s\' AND
                    pu_type = \'%s\'
             ';
-            $sqlUserToReassign = sprintf ($sqlTaskUser, $stepId);
+            $sqlUserToReassign = sprintf ($sqlTaskUser, $objTask->getTasUid ());
 
             if ( !empty ($arrayGroupUid) )
             {
                 $sqlUserToReassign .= ' UNION ' . sprintf ($sqlGroupUser, '\'' . implode ('\', \'', $arrayGroupUid) . '\'');
             }
-            $sqlUserToReassign .= ' UNION ' . sprintf ($sqlProcessSupervisor, $workflowId, 'SUPERVISOR');
+
+            $sqlUserToReassign .= ' UNION ' . sprintf ($sqlProcessSupervisor, $processUid, 'SUPERVISOR');
 
             $sql = "SELECT usrid, username, firstName, lastName 
                     FROM user_management.poms_users
@@ -1669,18 +1691,15 @@ class Cases
             if ( !is_null ($arrayFilterData) && is_array ($arrayFilterData) && isset ($arrayFilterData['filter']) && trim ($arrayFilterData['filter']) != '' )
             {
                 $search = (isset ($arrayFilterData['filterOption'])) ? $arrayFilterData['filterOption'] : '';
-
                 $sql .= "AND (username LIKE '%" . $search . "%' OR firstName LIKE '%" . $search . "%' OR lastName LIKE '%" . $search . "%' )";
             }
-
             $sql .= " AND status = 1";
 
             $result1 = $this->objMysql->_query ($sql);
-
             //Number records total
             $numRecTotal = count ($result1);
-            //Query
 
+            //Query
             if ( !is_null ($sortField) && trim ($sortField) != '' )
             {
                 $sortField = trim ($sortField);
@@ -1689,7 +1708,6 @@ class Cases
             {
                 $sortField = "username";
             }
-
             if ( !is_null ($sortDir) && trim ($sortDir) != '' && strtoupper ($sortDir) == 'DESC' )
             {
                 $sql .= " ORDER BY " . $sortField . " DESC";
@@ -1698,21 +1716,21 @@ class Cases
             {
                 $sql .= " ORDER BY " . $sortField . " ASC";
             }
-
             if ( !is_null ($limit) )
             {
                 $sql .= " LIMIT " . ((int) ($limit));
             }
-
             if ( !is_null ($start) )
             {
                 $sql .= " OFFSET " . ((int) ($start));
             }
 
             $results = $this->objMysql->_query ($sql);
+
             foreach ($results as $row) {
                 $arrayUser[] = $row;
             }
+
             //Return
             return [
                 'total' => $numRecTotal,
@@ -1723,114 +1741,6 @@ class Cases
             ];
         } catch (\Exception $e) {
             throw $e;
-        }
-    }
-
-    public function getCasesForTask (\Flow $objFlow)
-    {
-        if ( trim ($objFlow->getId ()) === "" )
-        {
-            return false;
-        }
-
-        if ( $this->objMysql === null )
-        {
-            $this->getConnection ();
-        }
-
-        $rows = [];
-        $dates = [];
-        $total = 0;
-
-        $workflowData = $this->objMysql->_select ("workflow.workflow_data");
-
-        foreach ($workflowData as $WorkflowObject) {
-            $obj = json_decode ($WorkflowObject['workflow_data'], true);
-            $objAudit = json_decode ($WorkflowObject['audit_data'], true);
-
-            if ( isset ($obj['elements']) )
-            {
-                foreach ($obj['elements'] as $elementId => $element) {
-
-                    if ( isset ($element['current_step']) && $element['current_step'] === $objFlow->getId () )
-                    {
-                        $lastStep = end ($objAudit['elements'][$elementId]['steps']);
-
-
-                        $rows[$WorkflowObject['object_id']] = $elementId;
-                        $dates[$WorkflowObject['object_id']] = $lastStep['dateCompleted'];
-                        $total++;
-                    }
-                }
-            }
-        }
-
-        if ( !empty ($rows) )
-        {
-            return array(
-                "total" => $total,
-                "dates" => $dates,
-                "rows" => $rows
-            );
-        }
-    }
-
-    public function doPostReassign (\Task $objTask, $data, $doReassign = true)
-    {
-        if ( $this->objMysql === null )
-        {
-            $this->getConnection ();
-        }
-
-        if ( !is_array ($data) )
-        {
-            $isJson = is_string ($data) && is_array (json_decode ($data, true)) ? true : false;
-            if ( $isJson )
-            {
-                $data = json_decode ($data, true);
-            }
-            else
-            {
-                return;
-            }
-        }
-
-        $casesToReassign = $data['cases'];
-
-        foreach ($casesToReassign as $val) {
-
-            if ( $doReassign === true )
-            {
-                $appDelegation = $this->objMysql->_select ("workflow.workflow_data", [], ["object_id" => $val['parentId']]);
-                $existDelegation = $this->validateReassignData ($objTask, $appDelegation, $val, 'DELEGATION_NOT_EXISTS');
-
-                if ( !$existDelegation )
-                {
-                    return false;
-                }
-
-                //Will be not able reassign a case when is paused
-                $flagPaused = $this->validateReassignData ($objTask, $appDelegation, $val, 'ID_REASSIGNMENT_PAUSED_ERROR');
-
-                //Current users of OPEN DEL_INDEX thread
-                $flagSameUser = $this->validateReassignData ($objTask, $appDelegation, $val, 'REASSIGNMENT_TO_THE_SAME_USER');
-
-
-                if ( $flagPaused && $flagSameUser )
-                {
-                    return true;
-                }
-            }
-
-            if ( !isset ($val['user']) || !is_a ($val['user'], "Users") )
-            {
-                throw new \Exception ("No user provided");
-            }
-
-            //USER_NOT_ASSIGNED_TO_TASK
-            $flagHasPermission = $this->validateReassignData ($objTask, array(), $val, 'USER_NOT_ASSIGNED_TO_TASK');
-
-            return $flagHasPermission;
         }
     }
 
@@ -2135,6 +2045,59 @@ class Cases
         array_push ($RESULT_OBJECTS['CASES_NOTES'], -1);
 
         return $RESULT_OBJECTS;
+    }
+
+    /**
+     * reassign a case 
+     * @param type $sApplicationUID
+     * @param \Task $objTask
+     * @param type $sUserUID
+     * @param \Users $objUser
+     * @param type $sType
+     * @return boolean
+     * @throws Exception
+     */
+    public function reassignCase ($sApplicationUID, \Task $objTask, \Users $objUser)
+    {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        $result = $this->objMysql->_select ("workflow.status_mapping", [], ["TAS_UID" => $objTask->getTasUid ()]);
+
+        if ( !isset ($result[0]) || empty ($result[0]) )
+        {
+            throw new Exception ("Failed to find task");
+        }
+
+        $currentDelegation = $result[0]['id'];
+
+        $workfoowDataResult = $this->objMysql->_select ("workflow.workflow_data", [], ["object_id" => $sApplicationUID]);
+
+        if ( !isset ($workfoowDataResult[0]) || empty ($workfoowDataResult[0]) )
+        {
+            throw new Exception ("Failed to find workflow data");
+        }
+
+        $auditArray = json_decode ($workfoowDataResult[0]['audit_data'], true);
+
+        if ( empty ($auditArray) )
+        {
+            throw new Exception ("Failed to find audit data");
+        }
+
+        $auditArray['elements'][1]['steps'][$currentDelegation]['claimed'] = $objUser->getUsername ();
+        $auditArray['elements'][1]['steps'][$currentDelegation]['finish_date'] = null;
+
+        $dbResult = $this->objMysql->_update ("workflow.workflow_data", ["audit_data" => json_encode ($auditArray)], ["object_id" => $sApplicationUID]);
+
+        if ( $dbResult === false )
+        {
+            throw new Exception ("Failed to update database");
+        }
+
+        return true;
     }
 
 }
