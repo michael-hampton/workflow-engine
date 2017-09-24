@@ -588,7 +588,7 @@ class UsersFactory
      * @return array Return an array with all Users, ThrowTheException/FALSE otherwise
      */
     public function getUsers (
-    array $arrayWhere = null, $sortField = null, $sortDir = null, $start = null, $limit = null, $flagRecord = false, $throwException = true
+    array $arrayWhere = null, $sortField = null, $sortDir = null, $start = 0, $limit = 200, $flagRecord = false, $throwException = true
     )
     {
         try {
@@ -688,7 +688,7 @@ class UsersFactory
             {
                 $criteria .= " OFFSET " . (int) $start;
             }
-
+            
             $records = $this->objMysql->_query ($criteria, $arrWhere);
 
             foreach ($records as $record) {

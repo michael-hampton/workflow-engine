@@ -181,7 +181,9 @@ class EventModel extends BaseEvent
 
     public function closeAppEvents (Workflow $objWorkflow, $objMike, Task $objTask)
     {
-        $aAppEvents = $this->getAppEvents ($objMike->getParentId (), $objTask->getTasUid ());
+        $id = method_exists($objMike, "getParentId") ? $objMike->getParentId() : $objMike->getId();
+        
+        $aAppEvents = $this->getAppEvents ($id, $objTask->getTasUid ());
 
         if ( $aAppEvents )
         {

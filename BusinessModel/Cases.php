@@ -71,12 +71,12 @@ class Cases
             $dir = 'ASC';
         }
 
-        if ( $process != '' )
+        if ( $process != '' && !is_array ($process) )
         {
             $this->proUid ($process);
         }
 
-        if ( $category != '' )
+        if ( $category != '' && !is_array ($category) )
         {
             $this->catUid ($category);
         }
@@ -190,6 +190,8 @@ class Cases
 
                     $userUid !== null && isset ($audit['claimed']) && trim ($audit['claimed']) !== $userUid ? $intSkip++ : $intSkip;
                     is_numeric ($process) && (int) trim ($process) !== (int) trim ($workflowId) ? $intSkip++ : $intSkip;
+                    is_array ($process) && !in_array ($workflowId, $process) ? $intSkip++ : $intSkip;
+                    is_array ($category) && !in_array ($requestId, $category) ? $intSkip++ : $intSkip;
                     is_numeric ($category) && $category !== $requestId ? $intSkip++ : $intSkip;
                     trim ($status) !== "" && trim (strtolower ($status)) !== trim (strtolower ($currentStatus)) ? $intSkip++ : $intSkip;
 
