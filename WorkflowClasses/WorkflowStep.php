@@ -800,7 +800,7 @@ class WorkflowStep
             $arrCompleteData['status'] = "COMPLETE";
             $status = "WORKFLOW COMPLETE";
         }
-
+        
         $this->doDerivation ($arrCompleteData, $objMike, $objUser, $objTask, $status, $step, $arrEmailAddresses);
     }
 
@@ -835,6 +835,9 @@ class WorkflowStep
         else
         {
             $objAppThread->closeAppThread ($objMike, true);
+                        
+            // execute trigger
+            (new BusinessModel\Cases())->executeTriggers ($objTask, "comment", $objUser, $objMike, null);
         }
 
         // send notifications

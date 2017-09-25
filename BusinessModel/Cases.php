@@ -13,50 +13,43 @@ class Cases
     {
         $this->objMysql = new \Mysql2();
     }
-    
-     /*
+
+    /*
      * Get the current delegation of a user or a case
-     * @name loadTriggers
-     * @param string $sTasUid
-     * @param string $sStepType
-     * @param array $sStepUidObj
-     * @param string $sTriggerType
-     * @return integer
+     * @param \Task $objTask
+     * @param \Step $objStep
+     * @param type $sTriggerType
+     * @return boolean
      */
 
-    public function loadTriggers($sTasUid, $sStepType, $sStepUidObj, $sTriggerType)
+    public function loadTriggers (\Task $objTask, \Step $objStep = null, $sTriggerType)
     {
-        $aTriggers = array();
-        if (($sStepUidObj != -1) && ($sStepUidObj != -2)) {
-            $c = new Criteria();
-            $c->clearSelectColumns();
-            $c->addSelectColumn(StepPeer::STEP_UID);
-            $c->add(StepPeer::TAS_UID, $sTasUid);
-            $c->add(StepPeer::STEP_TYPE_OBJ, $sStepType);
-            $c->add(StepPeer::STEP_UID_OBJ, $sStepUidObj);
-            $rs = StepPeer::doSelectRS($c);
-            $rs->setFetchmode(ResultSet::FETCHMODE_ASSOC);
-            $rs->next();
-            $row = $rs->getRow();
-            $sStepUid = $row['STEP_UID'];
-        } else {
-            $sStepUid = $sStepUidObj;
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
         }
 
-        $sql = 'SELECT TRI_UID, TRI_TITLE, ST_CONDITION, TRI_TYPE, TRI_WEBBOT FROM workflow.step_trigger WHERE step_id = ? AND TRI_TYPE = ?';
-        
+        if ( $objStep === null || trim ($objStep->getStepUid ()) === "" )
+        {
+            $stepSql = $this->objMysql->_select ("workflow.status_mapping", [], ["TAS_UID" => $objTask->getTasUid ()]);
 
-        //$c->add(StepTriggerPeer::STEP_UID, $sStepUid);
-        //$c->add(StepTriggerPeer::TAS_UID, $sTasUid);
-        //$c->add(StepTriggerPeer::ST_TYPE, $sTriggerType);
-        //$c->addJoin(StepTriggerPeer::TRI_UID, TriggersPeer::TRI_UID, Criteria::LEFT_JOIN);
-        //$c->addAscendingOrderByColumn(StepTriggerPeer::ST_POSITION);
-        //$rs = TriggersPeer::doSelectRS($c);
-        //$rs->setFetchmode(ResultSet::FETCHMODE_ASSOC);
-        
-        $results = $this->objMysql_query($sql, $arrParameters);
-        
-        if(!isset($results[0]) || empty($results[0])) {
+            if ( !isset ($stepSql[0]) || empty ($stepSql[0]) )
+            {
+                return false;
+            }
+            $sStepUid = $stepSql[0]['id'];
+        }
+        else
+        {
+            $sStepUid = $objStep->getStepUid ();
+        }
+
+        $sql = 'SELECT id, title, trigger_type, event_type, template_name FROM workflow.step_trigger WHERE step_id = ? AND trigger_type = ?';
+
+        $results = $this->objMysql->_query ($sql, [$sStepUid, $sTriggerType]);
+
+        if ( !isset ($results[0]) || empty ($results[0]) )
+        {
             return false;
         }
 
@@ -74,45 +67,53 @@ class Cases
      * @return integer
      */
 
-    public function executeTriggers($sTasUid, $sStepType, $sStepUidObj, $sTriggerType, $aFields = array())
+    public function executeTriggers (\Task $objTask, $sTriggerType, \Users $objUser, $objMike, \Step $objStep = null)
     {
-        /*----------------------------------********---------------------------------*/
+        $aTriggers = $this->loadTriggers ($objTask, $objStep, $sTriggerType);
 
-        $aTriggers = $this->loadTriggers($sTasUid, $sStepType, $sStepUidObj, $sTriggerType);
+        if ( $aTriggers !== false && count ($aTriggers) > 0 )
+        {
 
-        if ($results !== false && count($aTriggers) > 0) {
-
-            /*----------------------------------********---------------------------------*/
+            /* ----------------------------------********--------------------------------- */
 
             foreach ($aTriggers as $aTrigger) {
-                /*----------------------------------********---------------------------------*/
+                /* ----------------------------------********--------------------------------- */
 
                 //Execute
                 $bExecute = false;
-                
-                if(trim($aTrigger['type']) !== '') {
-                    switch(trim($aTrigger['type'])) {
-                            
+
+                $objStepTrigger = new StepTrigger();
+
+                if ( trim ($aTrigger['trigger_type']) !== '' )
+                {
+                    switch ($aTrigger['trigger_type']) {
+                        case "sendMail":
+                            $objStepTrigger->executeSendMail ($objUser, $objTask, $aTrigger['template_name']);
+                            break;
+
+                        case "comment":
+                            $objStepTrigger->sendComment ($objUser, $aTrigger['template_name'], $objMike);
+                            break;
                     }
                 }
 
-                /*if ($aTrigger['ST_CONDITION'] !== '') {
-                    $oPMScript->setScript($aTrigger['ST_CONDITION']);
-                    $bExecute = $oPMScript->evaluate();
-                }
+                /* if ($aTrigger['ST_CONDITION'] !== '') {
+                  $oPMScript->setScript($aTrigger['ST_CONDITION']);
+                  $bExecute = $oPMScript->evaluate();
+                  }
 
-                if ($bExecute) {
-                    $oPMScript->setScript($aTrigger['TRI_WEBBOT']);
-                    $oPMScript->execute();
+                  if ($bExecute) {
+                  $oPMScript->setScript($aTrigger['TRI_WEBBOT']);
+                  $oPMScript->execute();
 
-                    $this->arrayTriggerExecutionTime[$aTrigger['TRI_UID']] = $oPMScript->scriptExecutionTime;
-                }*/
+                  $this->arrayTriggerExecutionTime[$aTrigger['TRI_UID']] = $oPMScript->scriptExecutionTime;
+                  } */
             }
-            /*----------------------------------********---------------------------------*/
+            /* ----------------------------------********--------------------------------- */
 
             return $bExecute;
         }
-        
+
         return false;
     }
 
@@ -739,6 +740,9 @@ class Cases
                     'workflow_id' => $objWorkflow->getWorkflowId (),
                     'step_id' => $objStep->getStepId ()
                         ), \Log::NOTICE);
+
+                // Execute Trigger
+                $this->executeTriggers ((new \Task ($objStep->getStepId ())), "comment", $objUser, new \Elements ($projectId, $caseId), null);
 
                 return array("project_id" => $projectId, "case_id" => $caseId);
             }
@@ -2161,11 +2165,16 @@ class Cases
      * @return boolean
      * @throws Exception
      */
-    public function reassignCase ($sApplicationUID, \Task $objTask, \Users $objUser)
+    public function reassignCase ($objMike, \Task $objTask, \Users $objUser, $reason)
     {
         if ( $this->objMysql === null )
         {
             $this->getConnection ();
+        }
+
+        if ( !method_exists ($objMike, "getParentId") )
+        {
+            return false;
         }
 
         $result = $this->objMysql->_select ("workflow.status_mapping", [], ["TAS_UID" => $objTask->getTasUid ()]);
@@ -2177,7 +2186,7 @@ class Cases
 
         $currentDelegation = $result[0]['id'];
 
-        $workfoowDataResult = $this->objMysql->_select ("workflow.workflow_data", [], ["object_id" => $sApplicationUID]);
+        $workfoowDataResult = $this->objMysql->_select ("workflow.workflow_data", [], ["object_id" => $objMike->getParentId ()]);
 
         if ( !isset ($workfoowDataResult[0]) || empty ($workfoowDataResult[0]) )
         {
@@ -2194,7 +2203,12 @@ class Cases
         $auditArray['elements'][1]['steps'][$currentDelegation]['claimed'] = $objUser->getUsername ();
         $auditArray['elements'][1]['steps'][$currentDelegation]['finish_date'] = null;
 
-        $dbResult = $this->objMysql->_update ("workflow.workflow_data", ["audit_data" => json_encode ($auditArray)], ["object_id" => $sApplicationUID]);
+        $this->executeTriggers ($objTask, "comment", $objUser, $objMike, null);
+        
+        $objMike->setReassignReason($reason);
+        $objMike->save($objUser);
+
+        $dbResult = $this->objMysql->_update ("workflow.workflow_data", ["audit_data" => json_encode ($auditArray)], ["object_id" => $objMike->getParentId ()]);
 
         if ( $dbResult === false )
         {

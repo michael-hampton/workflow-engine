@@ -240,6 +240,9 @@ class Attachment
             $intCount++;
         }
 
+        // execute trigger
+        (new Cases())->executeTriggers ((new \Task()), "comment", $objUser, new \Elements ($this->projectId), new \Step ($this->stepId));
+        
         return $arrUploadedFiles;
     }
 

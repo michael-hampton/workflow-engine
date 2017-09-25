@@ -28,6 +28,7 @@ class Elements
     private $originalTitle;
     private $originalDescription;
     private $heldReason;
+    private $reassignReason;
     public $objJobFields = array(
         "location" => array("required" => "true", "type" => "string", "accessor" => "getLocation", "mutator" => "setLocation"),
         "batch" => array("required" => "true", "type" => "string", "accessor" => "getBatch", "mutator" => "setBatch"),
@@ -398,11 +399,31 @@ class Elements
         return $this->heldReason;
     }
 
+    /**
+     * 
+     * @param type $heldReason
+     */
     public function setHeldReason ($heldReason)
     {
         $this->heldReason = $heldReason;
+        $this->arrElement['heldReason'] = $heldReason;
     }
 
+    public function getReassignReason ()
+    {
+        return $this->reassignReason;
+    }
+
+    /**
+     * 
+     * @param type $reassignReason
+     */
+    public function setReassignReason ($reassignReason)
+    {
+        $this->reassignReason = $reassignReason;
+        $this->arrElement['reassignReason'] = $reassignReason;
+    }
+    
     public function getProjectById ()
     {
         $objMysql = new Mysql2();

@@ -187,6 +187,8 @@ class SendNotification
         $htmlContent = '';
 
         try {
+            
+            $system = "accept";
 
             if ( $system === "task_manager" )
             {
@@ -197,7 +199,6 @@ class SendNotification
                 $this->setSystem ($system);
                 $htmlContent = $this->emailActions ($objTask, $system);
             }
-
 
             $this->taskId = $objTask->getTasUid ();
 
@@ -385,6 +386,10 @@ class SendNotification
                     $html = $objFormBuilder->render ();
                     $html .= '<input type="hidden" id="workflowid" name="workflowid" value="' . $processUid . '">';
                     $html .= '<input type="hidden" id="stepId" name="stepId" value="' . $objTask->getStepId () . '">';
+                    $html .= '<input type="hidden" id="projectId" name="projectId" value="' . $this->projectId . '">';
+                    $html .= '<input type="hidden" id="elementId" name="elementId" value="' . $this->elementId . '">';
+                    $html .= '<input type="hidden" id="ABER" name="ABER" value="' . $this->abeRequest['ABE_REQ_UID'] . '">';
+                    
 
                     if ( $type === 'sendFormLink' )
                     {
@@ -395,6 +400,29 @@ class SendNotification
                         file_put_contents (PATH_DATA_MAILTEMPLATES . PATH_SEP . $fileName . ".php", $fileContent);
                         return "<a href='" . PATH_DATA_MAILTEMPLATES . $fileName . ".php'>link</a>";
                     }
+                    
+                    $html .= '<button type="button" class="btn btn-w-m btn-primary SaveABEForm">Save</button>';
+                    
+                    $html .= '<script>
+                                $(".SaveABEForm").on("click", function () {
+                                    var formData = $("#AddNewForm").serialize();
+
+                                    $.ajax ({
+                                        type: "POST",
+                                        url: "/FormBuilder/inbox/saveABEForm/",
+                                        data: formData,
+                                        success: function (response)
+                                        {
+                                           alert(response);
+                                        },
+                                        error: function (request, status, error)
+                                        {
+                                            console.log ("critical errror occured");
+                                        }
+                                    });
+                                    });
+                                    </script>';
+                    
             }
 
             return isset ($html) ? $html : false;

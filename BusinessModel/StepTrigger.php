@@ -526,6 +526,14 @@ class StepTrigger
         return $triggerArray;
     }
 
+    public function sendComment (\Users $objUser, $comment, $objMike)
+    {
+        $id = method_exists ($objMike, "getParentId") ? $objMike->getParentId () : $objMike->getId ();
+        (new \Comments())->addCaseNote ($id, $objUser->getUsername (), $comment, 1);
+
+        return true;
+    }
+
     public function executeSendMail (\Users $objUser, \Task $objTask, $templateName = null, $id = null)
     {
         if ( $templateName === null && $id === null )

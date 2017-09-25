@@ -2,12 +2,18 @@
 
 class Step extends BaseStep
 {
+
     private $objMysql;
 
-    public function __construct ()
+    public function __construct ($stepId = null)
     {
         parent::__construct ();
         $this->objMysql = new Mysql2();
+
+        if ( $stepId !== null )
+        {
+            $this->setStepUid ($stepId);
+        }
     }
 
     /*
@@ -19,7 +25,7 @@ class Step extends BaseStep
     public function update ($fields)
     {
         try {
-            
+
             $this->loadObject ($fields);
             if ( $this->validate () )
             {
@@ -28,31 +34,31 @@ class Step extends BaseStep
             }
             else
             {
-                $messages = $this->getValidationFailures();
+                $messages = $this->getValidationFailures ();
                 $strMessage = '';
-                
+
                 foreach ($messages as $message) {
                     $strMessage .= $message . "</br>";
                 }
-                
+
                 throw (new Exception ("Could not save step " . $strMessage));
             }
         } catch (Exception $e) {
             throw ($e);
         }
     }
-    
-    public function delete($type, $documentId, $task)
+
+    public function delete ($type, $documentId, $task)
     {
-        $this->setTasUid($task);
-        $this->setStepTypeObj($type);
-        $this->setStepUidObj($documentId);
-        $this->doDelete();
+        $this->setTasUid ($task);
+        $this->setStepTypeObj ($type);
+        $this->setStepUidObj ($documentId);
+        $this->doDelete ();
     }
 
     public function stepExists ($stepId)
     {
-        
+
         $result = $this->objMysql->_select ("workflow.task", [], ["TAS_UID" => $stepId]);
         if ( isset ($result[0]) && !empty ($result[0]) )
         {
