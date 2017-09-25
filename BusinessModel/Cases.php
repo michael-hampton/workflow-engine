@@ -13,6 +13,102 @@ class Cases
     {
         $this->objMysql = new \Mysql2();
     }
+    
+     /*
+     * Get the current delegation of a user or a case
+     * @name loadTriggers
+     * @param string $sTasUid
+     * @param string $sStepType
+     * @param array $sStepUidObj
+     * @param string $sTriggerType
+     * @return integer
+     */
+
+    public function loadTriggers($sTasUid, $sStepType, $sStepUidObj, $sTriggerType)
+    {
+        $aTriggers = array();
+        if (($sStepUidObj != -1) && ($sStepUidObj != -2)) {
+            $c = new Criteria();
+            $c->clearSelectColumns();
+            $c->addSelectColumn(StepPeer::STEP_UID);
+            $c->add(StepPeer::TAS_UID, $sTasUid);
+            $c->add(StepPeer::STEP_TYPE_OBJ, $sStepType);
+            $c->add(StepPeer::STEP_UID_OBJ, $sStepUidObj);
+            $rs = StepPeer::doSelectRS($c);
+            $rs->setFetchmode(ResultSet::FETCHMODE_ASSOC);
+            $rs->next();
+            $row = $rs->getRow();
+            $sStepUid = $row['STEP_UID'];
+        } else {
+            $sStepUid = $sStepUidObj;
+        }
+
+        $sql = 'SELECT TRI_UID, TRI_TITLE, ST_CONDITION, TRI_TYPE, TRI_WEBBOT FROM workflow.step_trigger WHERE step_id = ? AND TRI_TYPE = ?';
+        
+
+        //$c->add(StepTriggerPeer::STEP_UID, $sStepUid);
+        //$c->add(StepTriggerPeer::TAS_UID, $sTasUid);
+        //$c->add(StepTriggerPeer::ST_TYPE, $sTriggerType);
+        //$c->addJoin(StepTriggerPeer::TRI_UID, TriggersPeer::TRI_UID, Criteria::LEFT_JOIN);
+        //$c->addAscendingOrderByColumn(StepTriggerPeer::ST_POSITION);
+        //$rs = TriggersPeer::doSelectRS($c);
+        //$rs->setFetchmode(ResultSet::FETCHMODE_ASSOC);
+        
+        $results = $this->objMysql_query($sql, $arrParameters);
+        
+        if(!isset($results[0]) || empty($results[0])) {
+            return false;
+        }
+
+        return $results;
+    }
+
+    /*
+     * Execute trigger in task
+     * @name executeTriggers
+     * @param string $sTasUid
+     * @param string $sStepType
+     * @param array $sStepUidObj
+     * @param string $sTriggerType
+     * @param array $aFields
+     * @return integer
+     */
+
+    public function executeTriggers($sTasUid, $sStepType, $sStepUidObj, $sTriggerType, $aFields = array())
+    {
+        /*----------------------------------********---------------------------------*/
+
+        $aTriggers = $this->loadTriggers($sTasUid, $sStepType, $sStepUidObj, $sTriggerType);
+
+        if ($results !== false && count($aTriggers) > 0) {
+
+            /*----------------------------------********---------------------------------*/
+
+            foreach ($aTriggers as $aTrigger) {
+                /*----------------------------------********---------------------------------*/
+
+                //Execute
+                $bExecute = true;
+
+                if ($aTrigger['ST_CONDITION'] !== '') {
+                    $oPMScript->setScript($aTrigger['ST_CONDITION']);
+                    $bExecute = $oPMScript->evaluate();
+                }
+
+                if ($bExecute) {
+                    $oPMScript->setScript($aTrigger['TRI_WEBBOT']);
+                    $oPMScript->execute();
+
+                    $this->arrayTriggerExecutionTime[$aTrigger['TRI_UID']] = $oPMScript->scriptExecutionTime;
+                }
+            }
+            /*----------------------------------********---------------------------------*/
+
+            return $oPMScript->aFields;
+        } else {
+            return $aFields;
+        }
+    }
 
     /**
      * Get list for Cases
