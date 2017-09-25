@@ -88,9 +88,15 @@ class Cases
                 /*----------------------------------********---------------------------------*/
 
                 //Execute
-                $bExecute = true;
+                $bExecute = false;
+                
+                if(trim($aTrigger['type']) !== '') {
+                    switch(trim($aTrigger['type'])) {
+                            
+                    }
+                }
 
-                if ($aTrigger['ST_CONDITION'] !== '') {
+                /*if ($aTrigger['ST_CONDITION'] !== '') {
                     $oPMScript->setScript($aTrigger['ST_CONDITION']);
                     $bExecute = $oPMScript->evaluate();
                 }
@@ -100,14 +106,14 @@ class Cases
                     $oPMScript->execute();
 
                     $this->arrayTriggerExecutionTime[$aTrigger['TRI_UID']] = $oPMScript->scriptExecutionTime;
-                }
+                }*/
             }
             /*----------------------------------********---------------------------------*/
 
-            return $oPMScript->aFields;
-        } else {
-            return $aFields;
+            return $bExecute;
         }
+        
+        return false;
     }
 
     /**
