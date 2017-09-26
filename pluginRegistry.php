@@ -37,32 +37,32 @@ class pluginRegistry
         $this->functionName = $this->arrPlugins[$type];
     }
     
-    public function execute()
+    public function execute($arrData)
     {
         if(trim($this->functionName) === '') {
             return false;
         }
         if(is_callable(array($this, $this->functionName))){
-            return call_user_func(array($this, $this->functionName));
+            return call_user_func_array(array($this, $this->functionName), array($arrData));
         } else {
             throw new Exception('Invalid function used');
         }
     }
     
-    public function sendComment()
+    public function sendComment(array $arrData = array())
     {
     }
     
-    public function uploadDocument()
+    public function uploadDocument(array $arrData = array())
     {
     }
     
-    public function startCase()
+    public function startCase(array $arrData = array())
     {
     }
     
     
-    public function completeCase()
+    public function completeCase(array $arrData = array())
     {
     }
 }
