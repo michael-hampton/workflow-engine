@@ -5,6 +5,7 @@ class pluginRegistry
     private $objTask;
     private $objUser;
     private $objMike;
+    private $functionName;
     
     public function __construct(Users $objUser, $objMike, Task $objTask)
     {
@@ -30,8 +31,19 @@ class pluginRegistry
             return false;
         }
         
-        $this->arrPlugins[$type]();
+        //$this->arrPlugins[$type]();
         //return $this->arrPlugins[$type];
+        
+        $this->functionName = $this->arrPlugins[$type];
+    }
+    
+    public function execute()
+    {
+        if(trim($this->functionName) === '') {
+            return false;
+        }
+        
+        this->functionName();
     }
     
     public function sendComment()
