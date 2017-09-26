@@ -42,8 +42,11 @@ class pluginRegistry
         if(trim($this->functionName) === '') {
             return false;
         }
-        
-        this->functionName();
+        if(is_callable(array($this, $this->functionName))){
+            return call_user_func(array($this, $this->functionName));
+        } else {
+            throw new Exception('Invalid function used');
+        }
     }
     
     public function sendComment()
