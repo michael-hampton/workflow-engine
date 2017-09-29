@@ -713,10 +713,9 @@ class Elements
 
         if ( $this->id == "" )
         {
-            $id = $this->buildObjectId ($this->source_id, $this->workflow_id);
+            $id = (new AppSequence())->sequenceNumber();
 
             $this->setId ($id);
-
 
             $this->JSON['scheduler']['id'] = $id;
             $this->JSON['scheduler']['status'] = "Not Started";

@@ -837,7 +837,7 @@ class WorkflowStep
             $objAppThread->closeAppThread ($objMike, true);
                         
             // execute trigger
-            (new BusinessModel\Cases())->executeTriggers ($objTask, "comment", $objUser, $objMike, null);
+            (new BusinessModel\Cases())->executeTriggers ($objTask, "comment", $objUser, $objMike, [], null);
         }
 
         // send notifications

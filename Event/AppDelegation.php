@@ -81,7 +81,7 @@ class AppDelegation extends BaseAppDelegation
         }
         else
         {
-            $sql2 = "SELECT DEL_INDEX, DEL_DELEGATE_DATE, object_id WHERE object_id = ? ORDER BY DEL_DELEGATE_DATE DESC";
+            $sql2 = "SELECT DEL_INDEX, DEL_DELEGATE_DATE, object_id FROM workflow.workflow_data WHERE object_id = ? ORDER BY DEL_DELEGATE_DATE DESC";
 
             $results2 = $this->objMysql->_query ($sql2, $arrParameters);
 
@@ -110,11 +110,11 @@ class AppDelegation extends BaseAppDelegation
         try {
             //The function return an array now.  By JHL
             $delTaskDueDate = $this->calculateDueDate ($objTask);
-            $delRiskDate = $this->calculateRiskDate ($objTask, $this->getRisk ());
+            //$delRiskDate = $this->calculateRiskDate ($objTask, $this->getRisk ());
 
             //$this->setDelTaskDueDate( $delTaskDueDate['DUE_DATE'] ); // Due date formatted
             $this->setDelTaskDueDate ($delTaskDueDate);
-            $this->setDelRiskDate ($delRiskDate);
+            //$this->setDelRiskDate ($delRiskDate);
         } catch (Exception $ex) {
             
         }
@@ -258,14 +258,14 @@ class AppDelegation extends BaseAppDelegation
             //Calendar - Use the dates class to calculate dates
             $calendar = new CalendarFunctions();
             $arrayCalendarData = array();
-            if ( $calendar->pmCalendarUid == "" )
+            if ( $calendar->pmCalendarUid == "" && trim($objTask->getCalendarUid ()) !== "" )
             {
                 $calendar->getCalendar ($objTask->getCalendarUid ());
                 $arrayCalendarData = $calendar->getCalendarData ($objTask->getCalendarUid ());
             }
 
             $this->setDelDelegateDate ('now');
-
+ 
             //Risk date
             $riskDate = $calendar->dashCalculateDate ($this->getDelDelegateDate (), $riskTime, $data['TAS_TIMEUNIT'], $arrayCalendarData);
 

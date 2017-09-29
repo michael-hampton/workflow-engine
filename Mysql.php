@@ -145,9 +145,9 @@ class Mysql2 extends D
         return $this->db->lastInsertId ();
     }
 
-    public function _query ($sql, $arrParameters = array())
+    public function _query ($sql, $arrParameters = array(), $blSelect = true)
     {
-        return $this->queryDatabase ($sql, $arrParameters, true);
+        return $this->queryDatabase ($sql, $arrParameters, $blSelect);
     }
 
     public function _select ($table, $fields_array = array(), $where_params_array = array(), $order_array = array(), $limit = null, $offset = null)
@@ -251,6 +251,7 @@ class Mysql2 extends D
                 return $arrResultSet;
             } catch (Exception $e) {
                 $message = $this->parms ($query, $arrParameters);
+                
                 //die($e->getMessage());
                 $this->setLog ($e, $message);
             }

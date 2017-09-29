@@ -47,11 +47,11 @@ class CalendarFunctions extends CalendarDefinition
 
         while ($hoursDuration > 0) {
             $newDate = $this->dashGetIniDate ($newDate, $calendarData);
-
+            
             $rangeWorkHour = $this->dashGetRangeWorkHours ($newDate, $calendarData['BUSINESS_DAY']);
-
+            
             $onlyDate = (date ('Y-m-d', strtotime ($newDate))) . ' ' . $rangeWorkHour['END'];
-
+            
             if ( (((float) $hoursDuration) >= ((float) $rangeWorkHour['TOTAL'])) ||
                     ((strtotime ($onlyDate) - strtotime ($newDate)) < (((float) $hoursDuration) * 3600))
             )
@@ -436,7 +436,7 @@ class CalendarFunctions extends CalendarDefinition
 
                 $workHoursDay[] = $rangeWorkHour;
             }
-
+            
             if ( $value['CALENDAR_BUSINESS_DAY'] == '7' )
             {
                 $rangeWorkHour = array();
@@ -444,11 +444,11 @@ class CalendarFunctions extends CalendarDefinition
                 $timeEnd = $value['CALENDAR_BUSINESS_END'];
                 $rangeWorkHour['START'] = ((strlen ($timeStart) == 8) ? $timeStart : $timeStart . ':00');
                 $rangeWorkHour['END'] = ((strlen ($timeEnd) == 8) ? $timeEnd : $timeEnd . ':00');
-
+                
                 $tempWorkHoursDay[] = $rangeWorkHour;
             }
         }
-
+        
         if ( !(count ($workHoursDay)) )
         {
             $workHoursDay = $tempWorkHoursDay;

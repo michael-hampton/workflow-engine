@@ -154,7 +154,10 @@ require_once HOME_DIR . '/core/app/library/BusinessModel/StepPermission.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/Lists.php';
 
 require_once HOME_DIR . '/core/app/library/WorkflowClasses/Save.php';
+require_once HOME_DIR . '/core/app/library/WorkflowClasses/BaseAppSequence.php';
+require_once HOME_DIR . '/core/app/library/WorkflowClasses/AppSequence.php';
 require_once HOME_DIR . '/core/app/library/WorkflowClasses/Elements.php';
+require_once HOME_DIR . '/core/app/library/pluginRegistry.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/Cases.php';
 
 require_once HOME_DIR . '/core/app/library/TeamFunctions.php';

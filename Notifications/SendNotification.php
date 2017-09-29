@@ -188,8 +188,6 @@ class SendNotification
 
         try {
             
-            $system = "accept";
-
             if ( $system === "task_manager" )
             {
                 $this->setVariables ($objTask->getStepId (), $system);

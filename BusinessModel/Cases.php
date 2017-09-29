@@ -67,13 +67,12 @@ class Cases
      * @return integer
      */
 
-    public function executeTriggers (\Task $objTask, $sTriggerType, \Users $objUser, $objMike, \Step $objStep = null)
+    public function executeTriggers (\Task $objTask, $sTriggerType, \Users $objUser, $objMike, $arrData = array(), \Step $objStep = null)
     {
         $aTriggers = $this->loadTriggers ($objTask, $objStep, $sTriggerType);
 
         if ( $aTriggers !== false && count ($aTriggers) > 0 )
         {
-
             /* ----------------------------------********--------------------------------- */
 
             foreach ($aTriggers as $aTrigger) {
@@ -82,32 +81,20 @@ class Cases
                 //Execute
                 $bExecute = false;
 
-                $objStepTrigger = new StepTrigger();
-
                 if ( trim ($aTrigger['trigger_type']) !== '' )
                 {
-                    switch ($aTrigger['trigger_type']) {
-                        case "sendMail":
-                            $objStepTrigger->executeSendMail ($objUser, $objTask, $aTrigger['template_name']);
-                            break;
+                    $pluginRegistry = new \pluginRegistry ($objUser, $objMike, $objTask);
+                    $pluginRegistry->load (trim ($aTrigger['trigger_type']));
+                    $pluginRegistry->execute ($arrData);
+                    $bExecute = true;
 
-                        case "comment":
-                            $objStepTrigger->sendComment ($objUser, $aTrigger['template_name'], $objMike);
-                            break;
-                    }
+                    (new \Log (LOG_FILE))->log (
+                            array(
+                        "message" => "Plugin Executed",
+                        "data" => $arrData
+                            ), \Log::NOTICE);
+                    
                 }
-
-                /* if ($aTrigger['ST_CONDITION'] !== '') {
-                  $oPMScript->setScript($aTrigger['ST_CONDITION']);
-                  $bExecute = $oPMScript->evaluate();
-                  }
-
-                  if ($bExecute) {
-                  $oPMScript->setScript($aTrigger['TRI_WEBBOT']);
-                  $oPMScript->execute();
-
-                  $this->arrayTriggerExecutionTime[$aTrigger['TRI_UID']] = $oPMScript->scriptExecutionTime;
-                  } */
             }
             /* ----------------------------------********--------------------------------- */
 
@@ -741,10 +728,12 @@ class Cases
                     'step_id' => $objStep->getStepId ()
                         ), \Log::NOTICE);
 
-                // Execute Trigger
-                $this->executeTriggers ((new \Task ($objStep->getStepId ())), "comment", $objUser, new \Elements ($projectId, $caseId), null);
+                $arrParameters = array("project_id" => $projectId, "case_id" => $caseId);
 
-                return array("project_id" => $projectId, "case_id" => $caseId);
+                // Execute Trigger
+                $this->executeTriggers ((new \Task ($objStep->getStepId ())), "comment", $objUser, new \Elements ($projectId, $caseId), $arrParameters, null);
+
+                return $arrParameters;
             }
         } catch (Exception $ex) {
             throw new \Exception ($ex);
@@ -2203,10 +2192,10 @@ class Cases
         $auditArray['elements'][1]['steps'][$currentDelegation]['claimed'] = $objUser->getUsername ();
         $auditArray['elements'][1]['steps'][$currentDelegation]['finish_date'] = null;
 
-        $this->executeTriggers ($objTask, "comment", $objUser, $objMike, null);
-        
-        $objMike->setReassignReason($reason);
-        $objMike->save($objUser);
+        $this->executeTriggers ($objTask, "comment", $objUser, $objMike, $auditArray, null);
+
+        $objMike->setReassignReason ($reason);
+        $objMike->save ($objUser);
 
         $dbResult = $this->objMysql->_update ("workflow.workflow_data", ["audit_data" => json_encode ($auditArray)], ["object_id" => $objMike->getParentId ()]);
 

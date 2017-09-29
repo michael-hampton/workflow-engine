@@ -224,9 +224,7 @@ class Attachment
 
             $this->object['file_destination'] = $destination;
 
-            // update version
-            $id = $objVersioning->create (
-                    array(
+            $arrParameters = array(
                 "folderId" => $folderId,
                 "filename" => $originalFilename,
                 "document_id" => $this->documentId,
@@ -234,15 +232,19 @@ class Attachment
                 "document_title" => $this->documentTitle,
                 "document_comment" => $this->documentComment,
                 "del_index" => $this->stepId
-                    ), $objUser);
+            );
+
+            // update version
+            $id = $objVersioning->create (
+                    $arrParameters, $objUser);
             $arrUploadedFiles[] = $id;
 
             $intCount++;
         }
 
         // execute trigger
-        (new Cases())->executeTriggers ((new \Task()), "comment", $objUser, new \Elements ($this->projectId), new \Step ($this->stepId));
-        
+        (new Cases())->executeTriggers ((new \Task()), "EF_COMMENT", $objUser, new \Elements ($this->projectId), $arrParameters, new \Step ($this->stepId));
+
         return $arrUploadedFiles;
     }
 
