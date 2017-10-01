@@ -627,4 +627,71 @@ class ReportTable
         }
     }
 
+    private function getConnection ()
+    {
+        $this->objMysql = new \Mysql2();
+    }
+
+    /**
+     * Function deleteAllReportVars
+     * This function delete all reports
+     *
+     * @access public
+     * @param string $$sRepTabUid
+     * @return void
+     */
+    public function deleteAllReportVars ($sRepTabUid = '')
+    {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        try {
+            $result = $this->objMysql->_delete ("workflow.REPORT_VAR", [], ["REP_TAB_UID" => $sRepTabUid]);
+
+            if ( !$result )
+            {
+                return false;
+            }
+
+            return true;
+        } catch (Exception $oError) {
+            throw ($oError);
+        }
+    }
+
+    /**
+     * Function prepareQuery
+     * This function removes the table
+     *
+     * @access public
+     * @param string $sTableName Table name
+     * @param string $sConnection Conexion
+     * @return void
+     */
+    public function dropTable ($sTableName, $sConnection = 'report')
+    {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        $sTableName = $this->sPrefix . strtolower ($sTableName);
+        //we have to do the propel connection
+        try {
+
+            $rs = $this->objMysql->_query ('DROP TABLE IF EXISTS `' . $sTableName . '`');
+
+            if ( !$rs )
+            {
+                return false;
+            }
+
+            return true;
+        } catch (Exception $oError) {
+            throw ($oError);
+        }
+    }
+
 }

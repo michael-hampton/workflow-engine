@@ -23,7 +23,6 @@ require_once HOME_DIR . '/core/app/library/Configuration.php';
 require_once HOME_DIR . '/core/app/library/class.configuration.php';
 require_once HOME_DIR . '/core/app/library/netClass.php';
 
-
 require_once HOME_DIR . '/core/app/library/BusinessModel/Validator.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/Download.php';
 require_once HOME_DIR . '/core/app/library/config.php';
@@ -80,6 +79,12 @@ require_once HOME_DIR . '/core/app/library/Event/AppDelegation.php';
 
 require_once HOME_DIR . '/core/app/library/WorkflowClasses/BaseAppDelay.php';
 require_once HOME_DIR . '/core/app/library/WorkflowClasses/AppDelay.php';
+
+require_once HOME_DIR . '/core/app/library/Tables/BaseReportVar.php';
+require_once HOME_DIR . '/core/app/library/Tables/ReportVar.php';
+require_once HOME_DIR . '/core/app/library/WorkflowClasses/BaseCaseConsolidatedCore.php';
+require_once HOME_DIR . '/core/app/library/WorkflowClasses/caseConsolidatedCore.php';
+require_once HOME_DIR . '/core/app/library/consolidatedCases.php';
 
 require_once HOME_DIR . '/core/app/library/Event/BaseMessageTypeVariable.php';
 require_once HOME_DIR . '/core/app/library/Event/MessageTypeVariable.php';

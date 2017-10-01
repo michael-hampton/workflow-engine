@@ -113,7 +113,7 @@ class AdditionalTables extends BaseAdditionalTables
             if ( isset ($workflowData['elements']) && !empty ($workflowData['elements']) )
             {
                 foreach ($workflowData['elements'] as $elementId => $element) {
-                    if ( $element['workflow_id'] === $pro_uid )
+                    if ( (int)$element['workflow_id'] === (int)$pro_uid )
                     {
                         $objElement = new Elements ($projectId, $elementId);
                         $this->updateReportTables ($objElement);
@@ -306,7 +306,7 @@ class AdditionalTables extends BaseAdditionalTables
         {
             return false;
         }
-
+        
         $workflowId = $objCase->getWorkflow_id ();
 
         $results = $this->objMysql->_select ("report_tables.additional_tables", [], ["PRO_UID" => $workflowId]);
@@ -315,7 +315,7 @@ class AdditionalTables extends BaseAdditionalTables
         {
             return false;
         }
-
+        
         foreach ($results as $result) {
 
             $className = "rpt_" . strtolower ($result['ADD_TAB_CLASS_NAME']);
@@ -330,9 +330,9 @@ class AdditionalTables extends BaseAdditionalTables
             {
                 continue;
             }
-
+            
             $record = $this->objMysql->_select ("task_manager.{$className}", [], ["pro_uid" => $objElement->getSource_id (), "APP_UID" => $objElement->getId ()]);
-
+            
             $objSaveReport = new SaveReport();
             $objSaveReport->setProjectId ($objElement->getSource_id ());
             $objSaveReport->setAppUid ($objElement->getId ());
@@ -368,6 +368,7 @@ class AdditionalTables extends BaseAdditionalTables
                                 {
                                     $v = validateType ($v, $type);
                                     unset ($name);
+                                                                        
                                     $objSaveReport->setVariable ($i, ($v === '' ? null : $v));
                                 }
                             }

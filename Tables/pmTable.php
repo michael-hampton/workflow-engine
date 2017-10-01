@@ -183,7 +183,7 @@ class pmTable
                         }
                     }
                     foreach ($aFields as $aField) {
-                        
+       
                         $aField['column_size'] = isset($aField['column_size']) ? $aField['column_size'] : $aField['field_size'];
                         $aField['column_name'] = isset($aField['column_name']) ? $aField['column_name'] : $aField['field_name'];
                         $aField['column_type'] = isset($aField['column_type']) ? $aField['column_type'] : $aField['field_type'];

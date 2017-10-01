@@ -57,6 +57,7 @@ class SaveReport
 
     public function setVariable ($fieldName, $fieldValue)
     {
+        
         $this->fields[$fieldName] = $fieldValue;
     }
 
@@ -76,6 +77,7 @@ class SaveReport
         {
             $this->objMysql->_insert ($this->datebaseName . "." . $this->tableName, $this->fields);
         }
+        
         else
         {
             $this->objMysql->_update ($this->datebaseName . "." . $this->tableName, $this->fields, [
