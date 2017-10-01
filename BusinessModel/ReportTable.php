@@ -17,6 +17,7 @@ class ReportTable
 {
 
     private $objMysql;
+    private $sPrefix = "rpt_";
 
     public function __construct ()
     {

@@ -33,6 +33,7 @@ class ConsolidatedCases
 
                 $oCaseConsolidated = new CaseConsolidatedCore();
                 $oCaseConsolidated = $oCaseConsolidated->retrieveByPK ($sTasUid);
+
                 if ( !(is_object ($oCaseConsolidated)) || get_class ($oCaseConsolidated) != 'CaseConsolidatedCore' )
                 {
                     $oCaseConsolidated = new CaseConsolidatedCore();
@@ -42,28 +43,30 @@ class ConsolidatedCases
                 }
                 else
                 {
-                    $oCaseConsolidated->delete ();
+                    $oCaseConsolidated->delete ($results2[0]['TAS_UID']);
                 }
                 return 1;
             }
 
             $result = $this->objMysql->_select ("report_tables.additional_tables", [], ["ADD_TAB_UID" => $sRepTabUid]);
 
+            if ( isset ($result[0]) && !empty ($result[0]) )
+            {
+                $rptUid = $result[0]['ADD_TAB_UID'];
 
-            $rptUid = $result[0]['ADD_TAB_UID'];
-            $oldTableName = "rpt_" . strtolower ($result[0]['ADD_TAB_CLASS_NAME']);
+                $rpts = new AdditionalTables();
 
+                if ( $rptUid != null )
+                {
+                    $rpts->deleteAll ($rptUid);
+                }
 
-            $rpts = new AdditionalTables();
-//            if ( $rptUid != null )
-//            {
-//                $rpts->deleteAll ($rptUid);
-//            }
-            //$this->objMysql->_query("drop table if exists ".$oldTableName);
+                //$this->objMysql->_query("drop table if exists ".$oldTableName);
+            }
         }
 
         $arrData['PRO_UID'] = $sProUid;
-        $arrData['ADD_TAB_UID'] = $sRepTabUid;
+
         $arrData['ADD_TAB_CLASS_NAME'] = $tableName;
         $arrData['ADD_TAB_TYPE'] = "GLOBAL";
         $arrData['REP_TAB_GRID'] = '';
@@ -75,9 +78,9 @@ class ConsolidatedCases
         $arrData['FIELDS'] = array();
 
 
-        $sOldTableName = $tableName;
-        $sOldConnection = "workflow";
         $id = $rpts->create ($arrData);
+
+        $arrData['ADD_TAB_UID'] = $id;
 
         //$_POST['form']['REP_TAB_UID'] = $id;
 
@@ -85,7 +88,6 @@ class ConsolidatedCases
         $oReportTables = new BusinessModel\ReportTable();
         $oReportTables->deleteAllReportVars ($arrData['ADD_TAB_UID']);
 
-        $aFields = array();
         $pmDyna = new BusinessModel\Form();
         $fieldsDyna = $pmDyna->getFieldsForStep (new Task ($sTasUid));
 
@@ -203,12 +205,13 @@ class ConsolidatedCases
             $oCaseConsolidated = new CaseConsolidatedCore();
             $oCaseConsolidated->setTasUid ($sTasUid);
         }
-        
-        $results2 = $this->objMysql->_select("workflow.CASE_CONSOLIDATED", [], ["TAS_UID" => $sTasUid]);
-        
-        if(isset($results2[0]) && !empty($results2[0])) {
-            $oCaseConsolidated->retrieveByPk($results2[0]['TAS_UID']);
-            $oCaseConsolidated->delete();
+
+        $results2 = $this->objMysql->_select ("workflow.CASE_CONSOLIDATED", [], ["TAS_UID" => $sTasUid]);
+
+        if ( isset ($results2[0]) && !empty ($results2[0]) )
+        {
+            $oCaseConsolidated->retrieveByPk ($results2[0]['TAS_UID']);
+            $oCaseConsolidated->delete ($results2[0]['TAS_UID']);
         }
 
         if ( !(is_object ($oCaseConsolidated)) || get_class ($oCaseConsolidated) != 'CaseConsolidatedCore' )
