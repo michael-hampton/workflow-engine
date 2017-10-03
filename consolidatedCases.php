@@ -226,4 +226,63 @@ class ConsolidatedCases
         $oCaseConsolidated->save ();
     }
 
+    public function getCases ()
+    {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        $results = $this->objMysql->_query ("SELECT am.APP_UID, am.CASE_UID FROM app_message am
+                                            inner JOIN workflow.case_consolidated cc ON cc.TAS_UID = am.DEL_INDEX
+                                            WHERE am.APP_MSG_SHOW_MESSAGE = 1
+                                            AND am.APP_MSG_TO LIKE '%bluetiger_uan@yahoo.com%'");
+
+        $arrCases = [];
+
+        foreach ($results as $result) {
+            $arrCases[] = (new \BusinessModel\Cases())->getCaseInfo ($result['APP_UID'], $result['CASE_UID']);
+        }
+
+        return $arrCases;
+    }
+
+    public function getListTabs ()
+    {
+        if ( $this->objMysql === null )
+        {
+            $this->getConnection ();
+        }
+
+        $sql = "SELECT   t.step_name, 
+                    w.workflow_id, 
+                    w.workflow_name, 
+                     COUNT(am.DEL_INDEX) AS NUMREC, 
+                    t.TAS_UID  FROM workflow.app_message am
+                    INNER JOIN workflow.task t ON t.TAS_UID = am.DEL_INDEX
+                    inner JOIN workflow.case_consolidated cc ON cc.TAS_UID = am.DEL_INDEX
+                    INNER JOIN workflow.workflows w ON w.workflow_id = t.PRO_UID
+                    WHERE am.APP_MSG_SHOW_MESSAGE = 1
+                    AND am.APP_MSG_TO LIKE '%bluetiger_uan@yahoo.com%'
+                    GROUP BY t.TAS_UID";
+
+
+        $results = $this->objMysql->_query ($sql);
+
+        if ( isset ($results[0]) && !empty ($results[0]) )
+        {
+            foreach ($results as $key => $row) {
+                //$dynaformUid = $row['DYN_UID'];
+                $tabTitle = $row['step_name'] . " (" . (($row['NUMREC'] > 0) ? $row["NUMREC"] : 0) . ")";
+                $tabTitle = htmlentities (substr ($row['workflow_name'], 0, 25) . ((strlen ($row['workflow_name']) > 25) ? "..." : null) . " / " . $tabTitle, ENT_QUOTES, "UTF-8");
+                $grdTitle = htmlentities ($row['workflow_name'] . " / " . $tabTitle, ENT_QUOTES, "UTF-8");
+
+                $results[$key]['tab_title'] = $tabTitle;
+                $results[$key]['grd_title'] = $grdTitle;
+            }
+
+            return $results;
+        }
+    }
+
 }
