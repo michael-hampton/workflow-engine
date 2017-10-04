@@ -233,7 +233,7 @@ class ConsolidatedCases
             $this->getConnection ();
         }
 
-        $results = $this->objMysql->_query ("SELECT am.APP_UID, am.CASE_UID FROM app_message am
+        $results = $this->objMysql->_query ("SELECT am.APP_UID, am.CASE_UID FROM workflow.app_message am
                                             inner JOIN workflow.case_consolidated cc ON cc.TAS_UID = am.DEL_INDEX
                                             WHERE am.APP_MSG_SHOW_MESSAGE = 1
                                             AND am.APP_MSG_TO LIKE '%bluetiger_uan@yahoo.com%'");
