@@ -26,8 +26,14 @@ class Table
             $pro_uid = $this->validateProUid ($pro_uid);
         }
         $reportTables = array();
+        
+        $arrWhere = [];
+        
+        if($pro_uid !== "") {
+            $arrWhere['PRO_UID'] = $pro_uid;
+        }
 
-        $results = $this->objMysql->_select ('report_tables.additional_tables', [], ["PRO_UID" => $pro_uid]);
+        $results = $this->objMysql->_select ('report_tables.additional_tables', [], $arrWhere);
         foreach ($results as $row) {
             $reportTables[] = $this->getTable ($row['ADD_TAB_UID'], $pro_uid, $reportFlag, false);
         }
