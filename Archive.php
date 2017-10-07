@@ -13,13 +13,6 @@
  * @link     https://github.com/ifsnop/mysqldump-php
  *
  */
-
-namespace Ifsnop\Mysqldump;
-
-use Exception;
-use PDO;
-use PDOException;
-
 /**
  * Mysqldump Class Doc Comment
  *
@@ -872,6 +865,7 @@ class Mysqldump
     private function listValues ($tableName)
     {
         $this->prepareListValues ($tableName);
+                
         $onlyOnce = true;
         $lineSize = 0;
         $colStmt = $this->getColumnStmt ($tableName);
@@ -882,6 +876,7 @@ class Mysqldump
         }
         $resultSet = $this->dbHandler->query ($stmt);
         $resultSet->setFetchMode (PDO::FETCH_ASSOC);
+        
         foreach ($resultSet as $row) {
             $vals = $this->escape ($tableName, $row);
             if ( $onlyOnce || !$this->dumpSettings['extended-insert'] )
@@ -913,6 +908,7 @@ class Mysqldump
                 $lineSize = $this->compressManager->write (";" . PHP_EOL);
             }
         }
+        
         $resultSet->closeCursor ();
         if ( !$onlyOnce )
         {
