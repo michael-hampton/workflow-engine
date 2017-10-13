@@ -300,6 +300,9 @@ require_once HOME_DIR . '/core/app/library/CaseTracker/CaseTracker.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/CaseTracker.php';
 require_once HOME_DIR . '/core/app/library/BusinessModel/CaseTrackerObject.php';
 
+require_once HOME_DIR . '/core/app/library/BusinessModel/BaseAppCacheView.php';
+require_once HOME_DIR . '/core/app/library/BusinessModel/AppCacheView.php';
+
 require_once HOME_DIR . '/core/app/library/Iso.php';
 require_once HOME_DIR . '/core/app/library/BaseLoginLog.php';
 require_once HOME_DIR . '/core/app/library/LoginLog.php';

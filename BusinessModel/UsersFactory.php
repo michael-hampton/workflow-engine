@@ -323,7 +323,7 @@ class UsersFactory
                 }
             }
 
-            if ( is_numeric ($arrayData['dept_id']) && $this->validateDeptId ($arrayData['dept_id']) === false )
+            if (isset($arrayData['dept_id']) && (is_numeric ($arrayData['dept_id']) && $this->validateDeptId ($arrayData['dept_id']) === false) )
             {
                 throw new Exception ("Incorrect department given");
             }
@@ -358,7 +358,7 @@ class UsersFactory
             //Create
             try {
 
-                $arrayData['dept_id'] = trim ($arrayData['dept_id']) !== "" ? $arrayData['dept_id'] : 1;
+                $arrayData['dept_id'] = isset($arrayData['dept_id']) && trim ($arrayData['dept_id']) !== "" ? $arrayData['dept_id'] : 1;
 
                 $password = new \Password();
                 $user = new \Users();

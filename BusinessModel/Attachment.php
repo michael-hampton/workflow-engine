@@ -218,8 +218,11 @@ class Attachment
 
             if ( !move_uploaded_file ($file_tmp, $destination) )
             {
-                $this->arrayValidation[] = "File Could not be uploaded";
-                return false;
+                if ( !copy ($file_tmp, $destination) )
+                {
+                    $this->arrayValidation[] = "File Could not be uploaded";
+                    return false;
+                }
             }
 
             $this->object['file_destination'] = $destination;

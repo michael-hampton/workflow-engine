@@ -166,6 +166,7 @@ class DocumentVersion extends BaseDocumentVersion
             $objVersioning->setAppDocTitle ($aData['document_title']);
             $objVersioning->setAppDocComment ($aData['document_comment']);
             $objVersioning->setDelIndex ($aData['del_index']);
+           
 
             $docType = isset ($aData['document_type']) ? $aData['document_type'] : '';
 

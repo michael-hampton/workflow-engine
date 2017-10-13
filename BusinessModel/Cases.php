@@ -93,7 +93,6 @@ class Cases
                         "message" => "Plugin Executed",
                         "data" => $arrData
                             ), \Log::NOTICE);
-                    
                 }
             }
             /* ----------------------------------********--------------------------------- */
@@ -746,11 +745,27 @@ class Cases
      */
     public function uploadCaseFiles ($arrFilesUploaded, $projectId, \WorkflowStep $objStep, \Users $objUser, $fileType = '', $documentTitle = '', $documentComment = '')
     {
+        if ( isset ($arrFilesUploaded['files']) )
+        {
+
+            $arrFilesUploaded['fileUpload'] = $arrFilesUploaded['files'];
+           
+            unset ($arrFilesUploaded['files']);
+        }
+
         if ( isset ($arrFilesUploaded['fileUpload']['name'][0]) && !empty ($arrFilesUploaded['fileUpload']['name'][0]) )
         {
             foreach ($arrFilesUploaded['fileUpload']['name'] as $key => $value) {
-
-                $fileContent = file_get_contents ($arrFilesUploaded['fileUpload']['tmp_name'][$key]);
+                
+                
+                
+                if(  file_exists ($arrFilesUploaded['fileUpload']['tmp_name'][$key])) {
+                     $fileContent = file_get_contents ($arrFilesUploaded['fileUpload']['tmp_name'][$key]);
+                } else {
+                    $fileContent = "";
+                }
+               
+                
                 $arrData = array(
                     "source_id" => $projectId,
                     "filename" => $value,
@@ -2029,9 +2044,9 @@ class Cases
                 AND document_type IN ('INPUT', '') AND status IN('ACTIVE')
                 ORDER BY id ASC";
         $arrParameters = array($objElement->getSource_id ());
-
+        
         $results = $this->objMysql->_query ($sql, $arrParameters);
-
+        
         if ( !isset ($results[0]) || empty ($results[0]) )
         {
             return false;
