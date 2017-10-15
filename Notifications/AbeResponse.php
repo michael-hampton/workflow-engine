@@ -26,9 +26,13 @@ class AbeResponse extends BaseAbeResponse
     public function load ($abeResponsesUid)
     {
         try {
-            $abeResponsesInstance = AbeResponsesPeer::retrieveByPK ($abeResponsesUid);
-            $fields = $abeResponsesInstance->toArray (BasePeer::TYPE_FIELDNAME);
-            return $fields;
+            $data = $this->retrieveByPk($abeResponsesUid);
+            
+            if ($data === false) {
+                return false;
+            }
+              
+            return $data;
         } catch (Exception $error) {
             throw $error;
         }
