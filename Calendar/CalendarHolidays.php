@@ -66,7 +66,7 @@ class CalendarHolidays extends BaseCalendarHolidays
     {
         $toDelete = $this->getCalendarHolidays ($CalendarUid);
 
-        foreach ($toDelete as $key => $holidayInfo) {
+        foreach ($toDelete as $holidayInfo) {
             $CalendarUid = $holidayInfo['CALENDAR_UID'];
             $CalendarHolidayName = $holidayInfo['CALENDAR_HOLIDAY_NAME'];
 
@@ -99,7 +99,7 @@ class CalendarHolidays extends BaseCalendarHolidays
         $tr->setCalendarHolidayEnd ($CalendarHolidayEnd);
         if ( $tr->validate () )
         {
-            $tr->save ();
+            return $tr->save ();
         }
         else
         {
@@ -109,6 +109,7 @@ class CalendarHolidays extends BaseCalendarHolidays
             foreach ($validationFailuresArray as $objValidationFailure) {
                 $msg .= $objValidationFailure->getMessage () . "<br/>";
             }
+            throw new Exception($msg);
             //return array ( 'codError' => -100, 'rowsAffected' => 0, 'message' => $msg );
         }
         //to do: uniform  coderror structures for all classes
