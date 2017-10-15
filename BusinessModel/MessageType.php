@@ -197,7 +197,7 @@ class MessageType
      *
      * return bool Return true if exists the Name of a Message-Type, false otherwise
      */
-    public function existsName ($projectUid, $messageTypeName, $messageTypeUidToExclude = "")
+    private function existsName ($projectUid, $messageTypeName, $messageTypeUidToExclude = "")
     {
         try {
             $arrParameters = [];
@@ -256,7 +256,7 @@ class MessageType
         return $result;
     }
 
-    public function throwExceptionCheckIfThereIsRepeatedVariableName (array $arrayDataVariables)
+    private function throwExceptionCheckIfThereIsRepeatedVariableName (array $arrayDataVariables)
     {
         try {
 
@@ -287,7 +287,7 @@ class MessageType
         }
     }
 
-    public function exists ($id)
+    private function exists ($id)
     {
         $result = $this->getMessageType ($id);
 
@@ -304,7 +304,7 @@ class MessageType
      *
      * return void Throw exception if exists the title of a Message-Type
      */
-    public function throwExceptionIfExistsName ($projectUid, $messageTypeName, $messageTypeUidToExclude = "")
+    private function throwExceptionIfExistsName ($projectUid, $messageTypeName, $messageTypeUidToExclude = "")
     {
         try {
             if ( $this->existsName ($projectUid, $messageTypeName, $messageTypeUidToExclude) )
@@ -324,7 +324,7 @@ class MessageType
      *
      * return void Throw exception if does not exist the Message-Type
      */
-    public function throwExceptionIfNotExistsMessageType ($messageTypeUid)
+    private function throwExceptionIfNotExistsMessageType ($messageTypeUid)
     {
         try {
             $messageType = $this->getMessageType ($messageTypeUid);
