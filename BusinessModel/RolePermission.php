@@ -282,7 +282,7 @@ class RolePermission
                     break;
                 case "AVAILABLE-PERMISSIONS":
                     //Get Uids
-                    $arrayUid = array();
+                  
                     $criteria = $this->getPermissionCriteria ($roleUid);
                     $arrWhere = $criteria['where'];
                     $criteria = $criteria['sql'];
@@ -336,7 +336,11 @@ class RolePermission
             
             $results = $this->objMysql->_query ($criteria, $arrWhere);
             
-            if ( !empty ($results) )
+            if($results === false) {
+                return false;
+            }
+            
+            if (isset($results[0]) && !empty ($results[0]) )
             {
                 foreach ($results as $row) {
                     $arrayPermission[] = $this->getPermissionDataFromRecord ($row);
