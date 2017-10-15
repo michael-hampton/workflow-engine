@@ -17,7 +17,7 @@ class Trigger extends BaseTrigger
             $triTitle = isset ($aData['title']) ? $aData['title'] : '';
             $this->setTitle ($triTitle);
 
-            $this->setNew (TRUE);
+            $this->setNew (true);
 
             $triDescription = isset ($aData['description']) ? $aData['description'] : '';
             $template = isset($aData['template_name']) ? $aData['template_name'] : '';
