@@ -107,10 +107,10 @@ abstract class BasePermission implements Persistent
 
         if ( $errorCount > 0 )
         {
-            return FALSE;
+            return false;
         }
 
-        return TRUE;
+        return true;
     }
     
     public function getValidationFailures ()
@@ -126,7 +126,12 @@ abstract class BasePermission implements Persistent
     
     public function save()
     {
-        $this->objMysql->_insert("user_management.permissions", array("perm_name" => $this->permName));
+        $result = $this->objMysql->_insert("user_management.permissions", array("perm_name" => $this->permName));
+        
+        if(!$result) {
+            throw new Exception("FAILED TO SAVE PERMISSIONS");
+        }
+        return $result;
     }
 
 
