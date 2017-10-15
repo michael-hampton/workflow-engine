@@ -50,7 +50,7 @@ class RoleUser
      *
      * return void Throw exception if it's assigned the User to Role
      */
-    public function throwExceptionIfItsAssignedUserToRole ($roleUid, $userUid)
+    private function throwExceptionIfItsAssignedUserToRole ($roleUid, $userUid)
     {
         try {
             $obj = $this->retrieveByPK ($userUid, $roleUid);
@@ -72,7 +72,7 @@ class RoleUser
      *
      * return void Throw exception if not it's assigned the User to Role
      */
-    public function throwExceptionIfNotItsAssignedUserToRole ($roleUid, $userUid)
+    private function throwExceptionIfNotItsAssignedUserToRole ($roleUid, $userUid)
     {
         try {
             $obj = $this->retrieveByPK ($userUid, $roleUid);
@@ -153,7 +153,7 @@ class RoleUser
         return $results;
     }
 
-    function getAllPermissions (\Role $objRole)
+    public function getAllPermissions (\Role $objRole)
     {
         try {
             $results = $this->objMysql->_query ("SELECT p.* FROM user_management.role_perms rp
