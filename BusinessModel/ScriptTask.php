@@ -146,11 +146,10 @@ class ScriptTask
      *
      * return void Throw exception if data has an invalid value
      */
-    public function throwExceptionIfDataIsInvalid ($scriptTaskUid, $projectUid, array $arrayData)
+    private function throwExceptionIfDataIsInvalid ($scriptTaskUid, $projectUid, array $arrayData)
     {
         try {
             //Set variables
-            $arrayScriptTaskData = ($scriptTaskUid == "") ? array() : $this->getScriptTask ($scriptTaskUid, true);
             
             if ( isset ($arrayData["ACT_UID"]) )
             {
