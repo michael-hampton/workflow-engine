@@ -88,7 +88,7 @@ class WebEntryEvent
      *
      * return bool Return true if exists the title of a WebEntry-Event, false otherwise
      */
-    public function existsTitle ($projectUid, $webEntryEventTitle, $webEntryEventUidToExclude = "")
+    private function existsTitle ($projectUid, $webEntryEventTitle, $webEntryEventUidToExclude = "")
     {
         try {
             $sql = "SELECT * FROM WEB_ENTRY_EVENT WHERE PRJ_UID = ? AND WEE_TITLE = ?";
@@ -114,7 +114,7 @@ class WebEntryEvent
      *
      * return void Throw exception if does not exists the WebEntry-Event
      */
-    public function throwExceptionIfNotExistsWebEntryEvent ($webEntryEventUid)
+    private function throwExceptionIfNotExistsWebEntryEvent ($webEntryEventUid)
     {
         try {
             if ( !$this->exists ($webEntryEventUid) )
@@ -136,7 +136,7 @@ class WebEntryEvent
      *
      * return void Throw exception if is registered the Event
      */
-    public function throwExceptionIfEventIsRegistered ($projectUid, $eventUid, $webEntryEventUidToExclude = "")
+    private function throwExceptionIfEventIsRegistered ($projectUid, $eventUid, $webEntryEventUidToExclude = "")
     {
         try {
             if ( $this->existsEvent ($projectUid, $eventUid, $webEntryEventUidToExclude) )
@@ -158,7 +158,7 @@ class WebEntryEvent
      *
      * return void Throw exception if exists the title of a WebEntry-Event
      */
-    public function throwExceptionIfExistsTitle ($projectUid, $webEntryEventTitle, $webEntryEventUidToExclude = "")
+    private function throwExceptionIfExistsTitle ($projectUid, $webEntryEventTitle, $webEntryEventUidToExclude = "")
     {
         try {
             if ( $this->existsTitle ($projectUid, $webEntryEventTitle, $webEntryEventUidToExclude) )
@@ -179,7 +179,7 @@ class WebEntryEvent
      *
      * return void Throw exception if data has an invalid value
      */
-    public function throwExceptionIfDataIsInvalid ($webEntryEventUid, $projectUid, array $arrayData)
+    private function throwExceptionIfDataIsInvalid ($webEntryEventUid, $projectUid, array $arrayData)
     {
         try {
             //Verify data
@@ -511,8 +511,8 @@ class WebEntryEvent
                     $objWebEntry->save ();
 
                     //Return
-                    $arrayData = $arrayDataBackup;
-                    return $arrayData;
+                    $arrayDataBackup;
+                    return $arrayDataBackup;
                 }
                 else
                 {
@@ -665,7 +665,7 @@ class WebEntryEvent
 
             if ( !isset ($result[0]) || empty ($result[0]) )
             {
-                return FALSE;
+                return false;
             }
             //Return
             return (!$flagGetRecord) ? $this->getWebEntryEventDataFromRecord ($result[0]) : $result[0];
