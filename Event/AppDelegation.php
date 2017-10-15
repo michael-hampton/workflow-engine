@@ -355,7 +355,7 @@ class AppDelegation extends BaseAppDelegation
         $arrMike['dFinishDate'] = trim ($rowValues['dFinishDate']) !== "" ? $rowValues['dFinishDate']->format ('Y-m-d H:i:s') : date ("Y-m-d H:i:s", strtotime ("+2 days"));
 
 
-        return Array(
+        return array(
             'isStarted' => $this->createDateFromString ($arrMike['dInitDate']) != null ? 1 : 0,
             'isFinished' => $this->createDateFromString ($arrMike['dFinishDate']) != null ? 1 : 0,
             'isDelayed' => $this->calculateDelayTime ($calendar, $calData, $arrMike) > 0 ? 1 : 0,
