@@ -27,7 +27,7 @@ class RolePermissions extends BaseRolePermission
      * @param array $aData
      * @return boolean
      */
-    function create ($aData)
+    public function create ($aData)
     {
         try {
             $result = $this->objMysql->_select ("user_management.role_perms", [], ["perm_id" => $aData['PER_UID'], "role_id" => $aData['ROL_UID']]);
