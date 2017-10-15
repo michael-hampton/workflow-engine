@@ -171,7 +171,7 @@ class MessageType
      *
      * return void Throw exception if data has an invalid value
      */
-    public function throwExceptionIfDataIsInvalid ($messageTypeUid, $projectUid, array $arrayData)
+    private function throwExceptionIfDataIsInvalid ($messageTypeUid, $projectUid, array $arrayData)
     {
         try {
             //Verify data
@@ -211,7 +211,6 @@ class MessageType
             }
             $result = $this->objMysql->_query ($sql, $arrParameters);
             return isset ($result[0]) && !empty ($result[0]) ? true : false;
-            return ($rsCriteria->next ()) ? true : false;
         } catch (\Exception $e) {
             throw $e;
         }
