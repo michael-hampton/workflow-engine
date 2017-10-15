@@ -73,19 +73,21 @@ class SaveReport
 
     public function save ()
     {
-        if ( $this->blUpdate === FALSE )
+        if ( $this->blUpdate === false )
         {
-            $this->objMysql->_insert ($this->datebaseName . "." . $this->tableName, $this->fields);
+            $result = $this->objMysql->_insert ($this->datebaseName . "." . $this->tableName, $this->fields);
         }
         
         else
         {
-            $this->objMysql->_update ($this->datebaseName . "." . $this->tableName, $this->fields, [
+            $result = $this->objMysql->_update ($this->datebaseName . "." . $this->tableName, $this->fields, [
                 "PRO_UID" => $this->projectId,
                 "APP_UID" => $this->appUid
                     ]
             );
         }
+        
+        return $result;
     }
 
     //put your code here
