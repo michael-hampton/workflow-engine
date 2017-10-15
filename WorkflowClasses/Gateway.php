@@ -19,7 +19,7 @@ class Gateway extends BaseGateway
     {
         try {
 
-            $this->setNew (TRUE);
+            $this->setNew (true);
             $this->setCondition ($aData['condition']);
             $this->setConditionValue ($aData['conditionValue']);
             $this->setElse ($aData['else']);
