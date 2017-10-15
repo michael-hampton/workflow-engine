@@ -34,7 +34,7 @@ class FormAdmin
      *
      * return bool Return true if exists the title of a DynaForm, false otherwise
      */
-    public function existsTitle ($processUid, $dynaFormTitle, $dynaFormUidExclude = "")
+    private function existsTitle ($processUid, $dynaFormTitle, $dynaFormUidExclude = "")
     {
         try {
             $sql = "SELECT DYN_UID, DYN_TITLE FROM workflow.form WHERE PRO_UID = ?";
@@ -51,7 +51,7 @@ class FormAdmin
 
             $results = $this->objMysql->_query ($sql, $arrWhere);
 
-            if ( isset ($results[0]) && !empty ($results[0]) )
+            if ( isset ($results[0]) && !empty ($results[0]) && $results !== falae )
             {
                 return true;
             }
@@ -252,7 +252,7 @@ class FormAdmin
      *
      * return void Throw exception if exists the title of a DynaForm
      */
-    public function throwExceptionIfExistsTitle ($processUid, $dynaFormTitle, $dynaFormUidExclude = "")
+    private function throwExceptionIfExistsTitle ($processUid, $dynaFormTitle, $dynaFormUidExclude = "")
     {
         try {
             if ( $this->existsTitle ($processUid, $dynaFormTitle, $dynaFormUidExclude) )
@@ -290,7 +290,7 @@ class FormAdmin
     {
         try {
             $obj = $this->retrieveByPK ($dynaFormUid);
-            if ( $obj === FALSE )
+            if ( $obj === false )
             {
                 if ( $throwException )
                 {
