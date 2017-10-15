@@ -352,7 +352,7 @@ class StepPermission
 
             if ( trim ($objUser->getTeam_id ()) !== "" && in_array (trim ($objUser->getTeam_id ()), $teamList) )
             {
-                return TRUE;
+                return true;
             }
         }
 
