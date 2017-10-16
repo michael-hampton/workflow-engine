@@ -473,7 +473,7 @@ class StepVariable
         }
     }
 
-    public function getVariableTypeByName ($processUid, $variableName)
+    public function getVariableTypeByName ($variableName)
     {
         try {
             $sql = "SELECT id, variable_name, validation_type, db_connection, variation_sql, accepted_values FROM workflow.workflow_variables WHERE variable_name = ?";

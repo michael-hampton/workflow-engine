@@ -188,7 +188,7 @@ class FilesManager
      *
      * @access public
      */
-    public function addProcessFilesManager (\Workflow $objWorkflow, \Users $objUser, $aData, $isImport = false)
+    public function addProcessFilesManager (\Workflow $objWorkflow, \Users $objUser, $aData)
     {
         try {
             $aData['prf_path'] = rtrim ($aData['prf_path'], '/') . '/';

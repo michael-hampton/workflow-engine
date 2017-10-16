@@ -620,7 +620,7 @@ class ScriptFunctions
 
                                 if ( sizeof ($arrayLabels) )
                                 {
-                                    $varInfo = $variableModule->getVariableTypeByName ($_SESSION['PROCESS'], $var);
+                                    $varInfo = $variableModule->getVariableTypeByName ($var);
 
                                     if ( is_array ($varInfo) && sizeof ($varInfo) )
                                     {
@@ -648,7 +648,7 @@ class ScriptFunctions
 
                         if ( isset ($this->aFields[$var]) && is_string ($this->aFields[$var]) )
                         {
-                            $varInfo = $variableModule->getVariableTypeByName ($_SESSION['PROCESS'], $var);
+                            $varInfo = $variableModule->getVariableTypeByName ($var);
                             $options = json_decode ($varInfo["accepted_values"]);
 
                             $no = count ($options);

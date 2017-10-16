@@ -12,7 +12,7 @@ class Login
 
     public function executeLogin ($strUsername, $strPassword)
     {
-        $sql = "SELECT * FROM user_management.poms_users WHERE username = ? AND password = ?";
+        $sql = "SELECT * FROM user_management.poms_users WHERE username = ? AND password = ? AND status = 1";
         $arrParameters = array($strUsername, md5 ($strPassword));
         $arrResultSet = $this->objMysql->_query ($sql, $arrParameters);
 

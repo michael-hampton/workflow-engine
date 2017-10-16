@@ -822,7 +822,7 @@ class WorkflowStep
         }
 
         // create app delegation
-        $objAppDelegation->createAppDelegation ($this, $objMike, $objUser, $objTask, $this->_stepId, $arrCompleteData['DEL_PRIORITY'], false, $auditStatus);
+        $objAppDelegation->createAppDelegation ($this, $objMike, $objUser, $objTask, $arrCompleteData['DEL_PRIORITY'], false, $auditStatus);
 
         // create app thread
 

@@ -216,7 +216,8 @@ class InputDocument
     public function throwExceptionIfItsAssignedInOtherObjects ($inputDocumentUid)
     {
         try {
-            list($flagAssigned, $arrayData) = $this->itsAssignedInOtherObjects ($inputDocumentUid);
+            list($flagAssigned) = $this->itsAssignedInOtherObjects ($inputDocumentUid);
+
             if ( $flagAssigned )
             {
                 throw new \Exception ("INPUT DOCUMENT IS ASSIGNED TO A STEP");

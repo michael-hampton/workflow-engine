@@ -431,7 +431,7 @@ class MessageEventDefinition
      *
      * return array Return an array with data of a Message-Event-Definition by unique id of Event
      */
-    public function getMessageEventDefinitionByEvent ($eventUid, $flagGetRecord = false)
+    public function getMessageEventDefinitionByEvent ($eventUid)
     {
         try {
             //Verify data

@@ -214,7 +214,7 @@ class StepTrigger
                             {
                                 $objTask = (new \Task())->retrieveByPk ($objWorkflowStep->getStepId ());
                                 $objTask->setStepId ($arrTrigger['step_to']);
-                                (new \AppDelegation())->createAppDelegation ($objWorkflowStep, new \Save ($this->parentId), $objUser, $objTask, $objWorkflowStep->getStepId (), 3, false, -1, null, false, "STEP_COMPLETE", "COMPLETE");
+                                (new \AppDelegation())->createAppDelegation ($objWorkflowStep, new \Save ($this->parentId), $objUser, $objTask, 3, false, -1, null, false, "STEP_COMPLETE", "COMPLETE");
 
                                 (new \Log (LOG_FILE))->log (
                                         array(

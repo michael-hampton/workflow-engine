@@ -93,7 +93,7 @@ class LoginLog extends BaseLoginLog
         }
 
         $sql = "SELECT LOG_INIT_DATE FROM user_management.LOGIN_LOG WHERE USR_UID = ? LIMIT 1 ORDER BY LOG_INIT_DATE DESC";
-        $results = $this->objMysql->_query ($sql);
+        $results = $this->objMysql->_query ($sql, [$sUID]);
         return isset ($results[0]['LOG_INIT_DATE']) ? $results[0]['LOG_INIT_DATE'] : '';
     }
 

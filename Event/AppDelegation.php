@@ -38,7 +38,7 @@ class AppDelegation extends BaseAppDelegation
      * @return delegation index of the application delegation.
      */
     public function createAppDelegation (
-    WorkflowStep $objWorkflowStep, $objElement, Users $objUser, Task $objTask, $step, $iPriority = 3, $isSubprocess = false, $status2)
+    WorkflowStep $objWorkflowStep, $objElement, Users $objUser, Task $objTask, $iPriority = 3, $isSubprocess = false, $status2)
     {
         $sPrevious = -1;
 

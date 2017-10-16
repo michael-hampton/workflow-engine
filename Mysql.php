@@ -384,7 +384,7 @@ class Mysql2 extends D
 
             // DELETE all from table has been disabled as a safeguard in case anyone
             // accidentally forgets to pass the second parameter
-            return false;
+            //return false;
         }
 
         return $this->queryDatabase ($query, $bind_params_array, false);
